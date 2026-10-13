@@ -7,11 +7,12 @@ import shutil
 import subprocess
 import tarfile
 from pathlib import Path, PurePosixPath
+from theme_variants import SUFFIX
 
 from distro import is_debian_family, qt6_plugins_dir
 from steps._helpers import (
     HOME, build_dir, cmake_build, fail, have, info, kw_write, offline, ok,
-    reinstall, sudo_install_file, sudo_remove, warn,
+    reinstall, install_reduced_variant, sudo_install_file, sudo_remove, warn,
 )
 from utils import run_user
 
@@ -309,6 +310,8 @@ def install() -> None:
 
     for name in _THEMES:
         _install_one(name)
+        destination = DEST_DIR_DARK if "Dark" in name else DEST_DIR
+        install_reduced_variant(src, destination.with_name(name + SUFFIX), "kvantum", name)
 
     if any((DEST_DIR / f"{_THEMES[0]}{e}").is_file() for e in (".kvconfig", ".svg")):
         ok("mac-tahoe-liquid-kde theme (installed)")
@@ -388,6 +391,8 @@ def _remove_bundled_engine() -> None:
 
 
 def uninstall() -> None:
+    for directory in (DEST_DIR, DEST_DIR_DARK):
+        shutil.rmtree(directory.with_name(directory.name + SUFFIX), ignore_errors=True)
     any_was_installed = False
     for d in (DEST_DIR, DEST_DIR_DARK):
         if d.is_dir():

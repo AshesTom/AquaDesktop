@@ -73,6 +73,7 @@ def test_kvantum_does_not_warn_when_kwriteconfig6_present(tmp_path, monkeypatch)
     fake_src = tmp_path / "fake-offline" / "kvantum/mac-tahoe-liquid-kde"
     fake_src.mkdir(parents=True)
     (fake_src / "mac-tahoe-liquid-kde.kvconfig").write_text("[General]\n")
+    (fake_src / "mac-tahoe-liquid-kde.svg").write_text("<svg/>")
     (fake_src / "mac-tahoe-liquid-kdeDark.kvconfig").write_text("[General]\n")
     (fake_src / "mac-tahoe-liquid-kdeDark.svg").write_text("<svg/>")
 

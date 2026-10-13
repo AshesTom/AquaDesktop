@@ -1,0 +1,47 @@
+"""Assemble store assets without invoking installer or changing user config."""
+import json
+import shutil
+import sys
+from pathlib import Path
+
+from theme_variants import SUFFIX, generate
+
+source, out = map(Path, sys.argv[1:])
+share = out / "share"
+
+def copy(src, dst):
+    shutil.copytree(src, dst, dirs_exist_ok=True)
+
+for folder, destination in (("color-schemes", "color-schemes"),
+                            ("plasma-theme", "plasma/desktoptheme"),
+                            ("gtk", "themes")):
+    copy(source / folder, share / destination)
+for kind, folder, destination in (("plasma", "plasma-theme", "plasma/desktoptheme"),
+                                  ("gtk", "gtk", "themes")):
+    for theme in sorted((source / folder).glob("MacTahoeLiquidKde-*")):
+        generate(theme, share / destination / (theme.name + SUFFIX), kind)
+for theme in sorted((source / "look-and-feel").glob("MacTahoeLiquidKde-*")):
+    name = json.loads((theme / "metadata.json").read_text())["KPlugin"]["Id"]
+    copy(theme, share / "plasma/look-and-feel" / name)
+for mode in ("Light", "Dark"):
+    name = f"MacTahoeLiquidKde-{mode}"
+    dest = share / "aurorae/themes" / name
+    copy(source / "aurorae" / name, dest)
+    copy(source / "aurorae" / f"icons-{mode}", dest)
+    shutil.copy2(source / "aurorae" / f"{name}rc", dest)
+    for fn in ("metadata.json", "metadata.desktop"):
+        (dest / fn).write_text((source / "aurorae" / fn).read_text().replace("theme_name", name))
+for name in ("mac-tahoe-liquid-kde", "mac-tahoe-liquid-kdeDark"):
+    dest = share / "Kvantum" / name
+    dest.mkdir(parents=True)
+    for ext in (".svg", ".kvconfig"):
+        shutil.copy2(source / "kvantum/mac-tahoe-liquid-kde" / (name + ext), dest)
+    generate(source / "kvantum/mac-tahoe-liquid-kde", share / "Kvantum" / (name + SUFFIX), "kvantum", name)
+for theme in (source / "plasmoids").iterdir():
+    if (theme / "metadata.json").is_file() and not (theme / "CMakeLists.txt").exists():
+        copy(theme, share / "plasma/plasmoids" / theme.name)
+# The icons-only wrapper resolves this runtime package via X-Plasma-RootPath.
+task = source / "plasmoids/org.kde.mac.tahoe.liquid.taskmanager"
+dest = share / "plasma/plasmoids" / task.name
+copy(task / "contents", dest / "contents")
+shutil.copy2(task / "metadata.json", dest)

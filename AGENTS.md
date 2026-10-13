@@ -443,6 +443,39 @@ so the base is re-captured instead of fought. `restore` undoes only the
 currently-applied delta; the step's install() with the flag off tears
 the units down, so a plain re-install is self-healing.
 
+## Architecture — Reduced Transparency
+
+`mac-tahoe-theme-switch transparency {standard|reduced}` persists a per-user
+preference in `mac-tahoe-liquid-kde/appearance.json` under XDG_CONFIG_HOME.
+It is independent of the scheduled light/dark mode. The Plasma, Kvantum and
+GTK install steps generate `-ReducedTransparency` variants from bundled
+sources using `theme_variants.py`; never edit the standard or live user themes
+to implement this preference. Increase surface fills only, preserving cutouts,
+gradients, shadows and geometry. Generated variants are removed by their
+owning steps. Nix uses the same generator at build time. A declaratively
+managed appearance file must not be replaced by the CLI.
+
+## Architecture — NixOS and Home Manager
+
+The `flake.nix` / `nix/` path is a separate, experimental installation route;
+never run the sudo installer or write into the Nix store at activation time.
+All compiled plugins must use the consuming configuration's Qt/KWin SDK.
+Nix Rounded Corners reads the tag and digest from `rounded_corners.py`, avoiding
+independent pins. Dependency fetches happen at build time; activation is offline.
+Apple fonts, wallpapers and sounds are excluded from the default free asset
+package and require explicit non-free permission. Do not add a blanket
+`allowUnfree` override. The optional panel module requires the user's own
+plasma-manager import; never make it a required input. Keep runtime-mutated
+KDE, Kvantum and GTK files writable. No Firefox profile/bookmark ownership or
+SDDM configuration is claimed. NixOS remains testing until a booted desktop is
+qualified; rpm-ostree systems remain out of scope.
+
+Run `nix flake check` for package/artifact and module checks, plus
+`nix flake check --no-build --all-systems` for both architecture evaluations.
+The optional panel module also needs evaluation with upstream plasma-manager
+when its options change. `tests/test_nix.py` checks lock integrity and asset
+assembly without requiring Nix on the imperative installer's host.
+
 ## Architecture — Wallpapers
 
 Wallpapers are fully bundled. Every entry under

@@ -1,8 +1,9 @@
 import shutil
 import subprocess
+from theme_variants import SUFFIX
 
 from steps._helpers import (
-    HOME, fail, have, info, install_tree, offline, ok, qdbus_call, remove_tree,
+    HOME, fail, have, info, install_tree, install_reduced_variant, offline, ok, qdbus_call, remove_tree,
 )
 from utils import run_user
 
@@ -29,6 +30,7 @@ def install() -> None:
             continue
         if install_tree(src / v, DEST_DIR / v, v):
             n += 1
+            install_reduced_variant(src / v, DEST_DIR / (v + SUFFIX), "gtk")
     if have("gsettings"):
         run_user(
             ["gsettings", "set", "org.gnome.desktop.wm.preferences",
@@ -42,6 +44,7 @@ def install() -> None:
 def uninstall() -> None:
     n = 0
     for v in VARIANTS:
+        remove_tree(DEST_DIR / (v + SUFFIX))
         if remove_tree(DEST_DIR / v, f"{v} removed"):
             n += 1
 

@@ -4,7 +4,7 @@
 
 # macOS Tahoe Liquid Theme for Plasma 6.6/6.7+
 
-[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1380_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
+[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1397_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
 
 Bring a little Tahoe to your Linux desktop.
 
@@ -249,6 +249,97 @@ Try the theme in a disposable Plasma VM:
 Use `all` to launch every distro.
 
 </details>
+
+<br>
+
+### Reduced transparency
+
+After installing the current Plasma, GTK and Kvantum themes, run:
+
+```sh
+mac-tahoe-theme-switch transparency reduced
+```
+
+This selects approximately 96%-opaque panel, Dock, popup and application
+surfaces while retaining rounded shapes, highlights, shadows and blur. The
+preference persists across light/dark changes and login. It covers the bundled
+Plasma, Kvantum and GTK themes; applications drawing their own surfaces may
+need their own appearance settings. Some GTK applications need reopening.
+Restore the original appearance with
+`mac-tahoe-theme-switch transparency standard`.
+
+### NixOS and Home Manager (testing)
+
+Use the flake and declarative modules on NixOS, **not `sudo ./install`**.
+Packages build against your selected Nixpkgs Qt/KWin SDK in the Nix store.
+Rounded Corners uses the installer's verified upstream pin, fetched at build
+time; activation performs no downloads. A booted NixOS desktop has not yet
+been qualified, so this installation path remains **testing**.
+
+Add this input to a flake already using Nixpkgs and Home Manager:
+
+```nix
+inputs.mac-tahoe = {
+  url = "github:lestercorderomurillo/macos-tahoe-liquid-kde/v0.54.0";
+  inputs.nixpkgs.follows = "nixpkgs";
+  inputs.home-manager.follows = "home-manager";
+};
+```
+
+Import `inputs.mac-tahoe.nixosModules.default` in your NixOS configuration:
+
+```nix
+services.desktopManager.plasma6.enable = true;
+services.mac-tahoe.enable = true;
+# services.mac-tahoe.plymouth.enable = true; # optional boot splash
+```
+
+Import `inputs.mac-tahoe.homeManagerModules.default` in your Home Manager
+configuration and enable:
+
+```nix
+programs.mac-tahoe = {
+  enable = true;
+  mode = "auto"; # or "light" / "dark"
+  # reducedTransparency = true;
+  # appleAssets = true;
+  # oledCare.enable = true;
+};
+```
+
+Apple fonts, wallpapers and sounds are a separate non-free package, disabled
+by default. To enable `appleAssets`, explicitly allow it in your Nixpkgs policy:
+
+```nix
+nixpkgs.config.allowUnfreePredicate = pkg:
+  builtins.elem (lib.getName pkg) [ "mac-tahoe-apple-assets" ];
+```
+
+For panels, import `inputs.mac-tahoe.homeManagerModules.plasma-manager`
+**alongside your own plasma-manager module and the default MacTahoe module**.
+Set `programs.mac-tahoe.panels.enable = true` and provide Dock pins explicitly
+in `programs.mac-tahoe.panels.launchers`, for example
+`[ "applications:org.kde.dolphin.desktop" ]`. This replaces the panel layout;
+existing pins are not imported. The Dock auto-hides. Plasma-manager is not a
+required flake input.
+
+Keep `kdeglobals`, `kwinrc`, `plasmarc`, `plasmashellrc`, `kcminputrc`,
+`plasma-org.kde.plasma.desktop-appletsrc`, `Kvantum/kvantum.kvconfig` and live GTK
+configuration writable. The module rejects whole-file Home Manager ownership
+of these paths. Avoid immutable plasma-manager keys for properties controlled
+by the theme switcher. Leave `reducedTransparency = null` (the default) to
+control it with the command above; a boolean makes Home Manager its owner.
+
+Log out and back in after activation to pick up the plugin/QML paths. The Nix
+path does not modify Firefox profiles, GTK bookmarks, or SDDM. Qt global menus
+are packaged; GTK global menus require an optional native GTK3 module supplied
+through `programs.mac-tahoe.gtkAppmenuModule`. Before disabling OLED care, run
+`mac-tahoe-oled-care restore`; before removing the theme modules, select Breeze
+in System Settings. User-owned runtime settings are not deleted on removal.
+
+Run `nix flake check` for native package builds, installed-artifact checks,
+Home Manager generation builds and module evaluation. Evaluate both exported
+architectures with `nix flake check --no-build --all-systems`.
 
 <br>
 
