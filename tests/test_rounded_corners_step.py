@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
 import shutil
 import subprocess
 import tarfile
@@ -45,10 +46,48 @@ def _source_archive(path: Path, root: str, *, traversal: bool = False) -> None:
 
 
 def test_upstream_release_pin_is_complete():
-    assert rounded.UPSTREAM_VERSION == "0.9.0"
-    assert len(rounded.UPSTREAM_COMMIT) == 40
-    assert len(rounded.UPSTREAM_SHA256) == 64
+    # Keep the reviewed release, commit and archive digest together. v0.9.0
+    # fails to compile against the bool drawWindow API in KWin 6.7.91 (#94).
+    assert rounded.UPSTREAM_VERSION == "0.10.0"
+    assert rounded.UPSTREAM_COMMIT == "08dee25ac0410d977a45dd1e74a7de1823c1f098"
+    assert rounded.UPSTREAM_SHA256 == "f3f03d96e17ae4b7dcee6347a01c75de6f90ed19e070e98ae8bf2dd71ae276db"
     assert f"tags/v{rounded.UPSTREAM_VERSION}.tar.gz" in rounded.UPSTREAM_URL
+
+
+def test_deps_include_vulkan_for_standalone_rounded_corners():
+    dependencies = rounded.deps()
+    assert "vulkan-loader-cmake:vulkan-icd-loader" in dependencies
+    assert "vulkan-headers-cmake:vulkan-headers" in dependencies
+
+
+@pytest.mark.skipif(
+    not os.environ.get("MTTKDE_ROUNDED_CORNERS_ARCHIVE"),
+    reason="opt-in native build requires a reviewed upstream archive and KWin SDK",
+)
+def test_verified_release_builds_against_host_kwin(monkeypatch, tmp_path):
+    """Exercise the actual SDK override and every required install artifact (#94)."""
+    work = _pin_work(monkeypatch, tmp_path)
+    work.mkdir(parents=True)
+    shutil.copyfile(os.environ["MTTKDE_ROUNDED_CORNERS_ARCHIVE"], rounded.ARCHIVE)
+    assert rounded._archive_is_valid(rounded.ARCHIVE), "archive does not match the release pin"
+    monkeypatch.setattr(
+        rounded, "fetch",
+        lambda *a, **k: pytest.fail("native build must use the verified local archive"),
+    )
+    rounded.download()
+    assert rounded.download_ready()
+
+    for command in (
+        ["cmake", "-S", str(rounded.SOURCE), "-B", str(rounded.BUILD),
+         "-DCMAKE_BUILD_TYPE=Release"],
+        ["cmake", "--build", str(rounded.BUILD), "--parallel", "2"],
+    ):
+        result = subprocess.run(
+            command, capture_output=True, text=True, check=False, timeout=600,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+    for artifact in rounded.build_artifacts():
+        assert artifact.is_file() and artifact.stat().st_size > 0, artifact
 
 
 def test_download_fetches_verifies_and_extracts(monkeypatch, tmp_path):

@@ -36,13 +36,15 @@ from steps._helpers import (
 from utils import fetch, qdbus_cmd, run_user
 
 
-UPSTREAM_VERSION = "0.9.0"
-UPSTREAM_COMMIT = "96e5dc7ba681af088a6297053593c2dd0cf041c9"
+# v0.10.0 handles KWin 6.7.80+'s bool drawWindow API while retaining
+# the void override for older SDKs (issue #94).
+UPSTREAM_VERSION = "0.10.0"
+UPSTREAM_COMMIT = "08dee25ac0410d977a45dd1e74a7de1823c1f098"
 UPSTREAM_URL = (
     "https://github.com/matinlotfali/KDE-Rounded-Corners/"
     f"archive/refs/tags/v{UPSTREAM_VERSION}.tar.gz"
 )
-UPSTREAM_SHA256 = "4acaf2dad31a22cbfa009bdce836b969177996527237eb8c62c8393e03622c5f"
+UPSTREAM_SHA256 = "f3f03d96e17ae4b7dcee6347a01c75de6f90ed19e070e98ae8bf2dd71ae276db"
 UPSTREAM_PROJECT_URL = "https://github.com/matinlotfali/KDE-Rounded-Corners"
 
 EFFECT_ID = "kwin4_effect_shapecorners"
@@ -90,6 +92,10 @@ def deps():
         "xcb-sync-cmake:libxcb",
         "wayland-cmake:wayland",
         "drm-cmake:libdrm",
+        # Newer KWin SDKs export Vulkan as a CMake dependency, including
+        # when Rounded Corners is selected without Acrylic Glass.
+        "vulkan-loader-cmake:vulkan-icd-loader",
+        "vulkan-headers-cmake:vulkan-headers",
     ]
 
 

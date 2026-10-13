@@ -239,7 +239,7 @@ mode, so existing installs and custom filters cannot fill seamless cutouts with
 glass (issue #90). The VirtualBox manager remains eligible for glass.
 
 `rounded_corners.py` is the only feature allowed to implement
-`download()`. It fetches KDE-Rounded-Corners v0.9.0 from the upstream
+`download()`. It fetches KDE-Rounded-Corners v0.10.0 from the upstream
 GitHub tag, verifies the pinned SHA-256 before extraction, rejects
 links/special nodes/path traversal, then compiles against the host KWin
 SDK. The verified archive is cached under
@@ -514,7 +514,7 @@ a genuine missing package and fails CI.
 | `plasma_theme.py`             | Translucent panels and dock SVGs. |
 | `plasmoids.py`                | QML plasmoids: Menu, Launcher, Trashcan, IconTasks. |
 | `plymouth.py`                 | Boot splash. GRUB patch behind `_grub_is_active_bootloader()`; `--no-grub-modify` opt-out exists. |
-| `rounded_corners.py`          | Best-effort verified download of KDE Rounded Corners v0.9.0; compile/install and enable the effect, KCM, shaders, locales, and license without synchronizing other theme geometry. |
+| `rounded_corners.py`          | Best-effort verified download of KDE Rounded Corners v0.10.0; compile/install and enable the effect, KCM, shaders, locales, and license without synchronizing other theme geometry. |
 | `portals.py`                  | Route xdg-portal FileChooser / AppChooser to KDE (fixes stale dialog colors). |
 | `sddm.py`                     | Login screen theme. |
 | `sounds.py`                   | Notification and event sounds. |

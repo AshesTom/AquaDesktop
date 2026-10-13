@@ -103,6 +103,20 @@ If you add a step that talks to the live session (`user_service_manager_command`
 MAC_TAHOE_SKIP_LIVE_SAFETY_NET=1 ./test         # CI / no-live-session
 ```
 
+For a Rounded Corners release-pin update, review the full upstream diff and
+verify the tag, commit and archive SHA-256 together. Run the opt-in native
+build test in an unprivileged, network-disabled container with the target
+KWin SDK and a read-only copy of the reviewed archive:
+
+```sh
+MTTKDE_ROUNDED_CORNERS_ARCHIVE=/path/to/reviewed-release.tar.gz python -m pytest tests/test_rounded_corners_step.py -k verified_release_builds
+```
+
+This verifies and extracts the archive into pytest's temporary directory,
+compiles the effect and KCM, and checks both plugins and shaders without
+installing or loading them. Test both a stable SDK and the reported failing
+SDK when fixing an API incompatibility (issue #94: KWin 6.7.91).
+
 For Acrylic Glass rendering changes, run the opt-in pixel probe as well:
 
 ```sh
