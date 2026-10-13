@@ -509,6 +509,7 @@ Window {
             RowLayout {
                 anchors.centerIn: parent
                 spacing: 10
+                enabled: !featuresLoader.item || !featuresLoader.item.applyingTransparency
 
                 FlatButton {
                     text: installerWindow.t("Install")
@@ -740,6 +741,7 @@ Window {
         id: featuresLoader
         active: false
         source: "FeaturesWindow.qml"
+        onLoaded: item.installBusy = Qt.binding(() => installerWindow.busy)
 
         function open(): void {
             active = true;
