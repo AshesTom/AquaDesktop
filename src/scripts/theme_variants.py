@@ -36,7 +36,39 @@ def opaque_svg(data: bytes, kind: str) -> bytes:
     ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
     root = ET.fromstring(data)
 
-    def visit(node, active=False):
+    def paint(node):
+        style = dict(part.split(":", 1) for part in node.get("style", "").split(";") if ":" in part)
+        fill = style.get("fill", node.get("fill", ""))
+        alpha = float(style.get("opacity", node.get("opacity", "1"))) * float(
+            style.get("fill-opacity", node.get("fill-opacity", "1")))
+        return style, fill, alpha
+
+    # With compositing, Kvantum uses *-shadow as the entire popup frame,
+    # including its surface fill, not just the exterior drop shadow. Match
+    # that fill to the center; leave gradients, dark outlines and faint
+    # highlight strokes alone. The bundled surface fills have alpha >= .5.
+    popup_fills = {}
+    if kind == "kvantum":
+        for node in root.iter():
+            for prefix in ("menu", "tooltip"):
+                if node.get("id") == prefix + "-normal":
+                    _, fill, alpha = paint(node)
+                    popup_fills[prefix] = (fill, max(0.96, alpha))
+
+    def visit(node, active=False, popup=None):
+        identifier = node.get("id", "")
+        for prefix in popup_fills:
+            if identifier.startswith(prefix + "-shadow"):
+                popup = prefix
+        if popup and node.tag.rsplit("}", 1)[-1] in ("path", "rect", "ellipse", "circle", "polygon"):
+            style, fill, alpha = paint(node)
+            surface_fill, target = popup_fills[popup]
+            if fill == surface_fill and 0.5 <= alpha < target:
+                style["opacity"] = str(target)
+                style["fill-opacity"] = "1"
+                node.attrib.pop("opacity", None)
+                node.attrib.pop("fill-opacity", None)
+                node.set("style", ";".join(f"{k}:{v}" for k, v in style.items()))
         active = active or _surface(node.get("id", ""), kind)
         if active:
             style = dict(part.split(":", 1) for part in node.get("style", "").split(";") if ":" in part)
@@ -55,7 +87,7 @@ def opaque_svg(data: bytes, kind: str) -> bytes:
             if style:
                 node.set("style", ";".join(f"{k}:{v}" for k, v in style.items()))
         for child in node:
-            visit(child, active)
+            visit(child, active, popup)
 
     visit(root)
     return ET.tostring(root, encoding="utf-8", xml_declaration=True)

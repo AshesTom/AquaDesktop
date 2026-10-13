@@ -554,12 +554,13 @@ def test_kvantum_dark_popup_parity(offline):
             )
 
 
-def test_kvantum_mode_profiles_have_matching_surface_colors(offline):
+def test_kvantum_mode_profiles_have_matching_surface_colors(offline, monkeypatch, tmp_path):
     """Kvantum's SVG assets have literal menu fills, so respect_DE alone
     cannot make the light profile render dark. Keep the mode/profile mapping
     tied to their actual surface colors."""
     import theme_switch
 
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
     kv = offline / "kvantum/mac-tahoe-liquid-kde"
     expected = {
         "light": ("mac-tahoe-liquid-kde", "#f5f5f58C"),

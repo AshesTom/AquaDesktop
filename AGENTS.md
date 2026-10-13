@@ -452,7 +452,11 @@ GTK install steps generate `-ReducedTransparency` variants from bundled
 sources using `theme_variants.py`; never edit the standard or live user themes
 to implement this preference. Increase surface fills only, preserving cutouts,
 gradients, shadows and geometry. Generated variants are removed by their
-owning steps. Nix uses the same generator at build time. A declaratively
+owning steps. Kvantum composited popup frames use `menu-shadow-*` and
+`tooltip-shadow-*`, which contain surface fills as well as shadows. Match
+those fills to the interior while preserving the actual shadow gradients,
+outline strokes and faint highlights; changing only `*-normal` leaves an
+opaque rectangle inside a translucent frame. Nix uses the same generator at build time. A declaratively
 managed appearance file must not be replaced by the CLI.
 
 ## Architecture — NixOS and Home Manager
