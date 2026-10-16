@@ -199,5 +199,5 @@ def banner(version: str) -> None:
         print(f"  {_APPLE_RAINBOW[-1]}{BOLD}{extra}{RESET}")
     print()
     print(f"  {GREEN}{BOLD}        AquaDesktop {WHITE}v{version}{RESET}")
-    print(f"  {WHITE}            Developed by Lester{RESET}")
+    print(f"  {WHITE}            Developed by Lester & AshesTom{RESET}")
     print()
