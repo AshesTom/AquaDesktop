@@ -25,6 +25,15 @@ LANGUAGE_CODES = tuple(item["code"] for item in LANGUAGES)
 
 
 _ES = {
+    "Transparency": "Transparencia",
+    "Standard": "Estándar",
+    "Reduced": "Reducida",
+    "Apply now": "Aplicar ahora",
+    "Applying…": "Aplicando…",
+    "Transparency applied.": "Transparencia aplicada.",
+    "Could not apply transparency.": "No se pudo aplicar la transparencia.",
+    "Applies to installed themes. Some apps need reopening.": "Se aplica a los temas instalados. Algunas apps deben volver a abrirse.",
+
     "System default": "Predeterminado del sistema",
     "Language": "Idioma",
     "AquaDesktop Installer": "Instalador de AquaDesktop",
@@ -79,6 +88,15 @@ _ES = {
 }
 
 _ZH_CN = {
+    "Transparency": "透明度",
+    "Standard": "标准",
+    "Reduced": "降低透明度",
+    "Apply now": "立即应用",
+    "Applying…": "正在应用…",
+    "Transparency applied.": "透明度已应用。",
+    "Could not apply transparency.": "无法应用透明度。",
+    "Applies to installed themes. Some apps need reopening.": "应用于已安装的主题。部分应用需要重新打开。",
+
     "System default": "跟随系统",
     "Language": "语言",
     "AquaDesktop Installer": "AquaDesktop 安装程序",

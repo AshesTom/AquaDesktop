@@ -141,3 +141,33 @@ def test_preference_toggle_preserves_mode_and_other_settings(monkeypatch, tmp_pa
     assert switch.set_transparency("standard") == 0
     assert applied[-1] == ("dark", switch.KVANTUM_THEME_DARK)
     assert json.loads(path.read_text()) == {"transparency": "standard", "otherSetting": 42}
+
+
+@pytest.mark.parametrize("name", ["mac-tahoe-liquid-kde", "mac-tahoe-liquid-kdeDark"])
+def test_composited_menu_frame_matches_center_and_preserves_decoration(repo, name):
+    svg = pytest.importorskip("PyQt6.QtSvg")
+    gui = pytest.importorskip("PyQt6.QtGui")
+    core = pytest.importorskip("PyQt6.QtCore")
+    data = (repo / "src/offline/kvantum/mac-tahoe-liquid-kde" / (name + ".svg")).read_bytes()
+    generated = opaque_svg(data, "kvantum")
+    before = ET.fromstring(data)
+    after = ET.fromstring(generated)
+    by_id = lambda root, name: next(n for n in root.iter() if n.get("id") == name)
+    # These are the real glass fills embedded in the composited shadow frame.
+    # Both a straight side and rounded corner must match the menu interior.
+    renderer = svg.QSvgRenderer(generated)
+    colors = []
+    for element in ("menu-normal", "path4382-5", "path4714-2"):
+        image = gui.QImage(32, 32, gui.QImage.Format.Format_ARGB32)
+        image.fill(0)
+        painter = gui.QPainter(image)
+        renderer.render(painter, element, core.QRectF(0, 0, 32, 32))
+        painter.end()
+        colors.append(image.pixelColor(24, 24).getRgb())
+    assert colors[0][3] >= 240
+    assert colors[0] == colors[1] == colors[2]
+    # Shadow paths, gradient definitions and thin highlight strokes stay exact.
+    for identifier in ("rect4309", "path3545", "path3581", "path3550"):
+        assert ET.tostring(by_id(before, identifier)) == ET.tostring(by_id(after, identifier))
+    ns = "{http://www.w3.org/2000/svg}"
+    assert ET.tostring(before.find(ns + "defs")) == ET.tostring(after.find(ns + "defs"))

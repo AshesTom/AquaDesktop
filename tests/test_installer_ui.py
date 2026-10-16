@@ -859,3 +859,38 @@ def test_confirm_auto_accepts_in_no_confirm_mode(monkeypatch, capsys):
     import cli
     assert cli.confirm("Install at your own risk.") is True
     assert "auto-accepting" in capsys.readouterr().out
+
+
+def test_gui_reads_live_transparency_preference(installer_ui_module, monkeypatch, tmp_path):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    path = tmp_path / "mac-tahoe-liquid-kde/appearance.json"
+    path.parent.mkdir()
+    path.write_text('{"transparency":"reduced"}')
+    assert installer_ui_module.dump_features()["transparency"] == "reduced"
+    path.write_text('{"transparency":"standard"}')
+    assert installer_ui_module.dump_features()["transparency"] == "standard"
+
+
+@pytest.mark.parametrize("mode", ["standard", "reduced"])
+@pytest.mark.parametrize("returncode", [0, 1])
+def test_gui_applies_transparency_through_canonical_switcher(
+        installer_ui_module, monkeypatch, mode, returncode):
+    import subprocess
+    calls = []
+    def run(argv, **kwargs):
+        calls.append(argv)
+        assert kwargs["capture_output"] and kwargs["text"]
+        return subprocess.CompletedProcess(argv, returncode, "", "Missing theme assets" if returncode else "")
+    monkeypatch.setattr(installer_ui_module.subprocess, "run", run)
+    result = installer_ui_module.apply_transparency(mode)
+    assert calls == [[installer_ui_module.sys.executable,
+                      str(installer_ui_module.REPO_ROOT / "src/scripts/theme_switch.py"),
+                      "transparency", mode]]
+    assert result["ok"] == (returncode == 0)
+    if returncode:
+        assert result["message"] == "Missing theme assets"
+
+
+def test_gui_rejects_invalid_transparency_without_starting_process(installer_ui_module, monkeypatch):
+    monkeypatch.setattr(installer_ui_module.subprocess, "run", lambda *a, **kw: pytest.fail("started process"))
+    assert not installer_ui_module.apply_transparency("other")["ok"]

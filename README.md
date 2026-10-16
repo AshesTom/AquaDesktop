@@ -122,6 +122,10 @@ Icons can be imported from `.icns` files or extracted from supported `.dmg`
 images, with separate Light and Dark versions and optional tinted or clear
 styles.
 
+Reduced transparency is also available in the graphical installer under
+**Features → Transparency → Standard / Reduced → Apply now**. Reopen apps
+when needed to pick up the change.
+
 The same appearance controls are available in the terminal:
 
 ```bash
