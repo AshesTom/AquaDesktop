@@ -15,7 +15,7 @@ let
               "Kvantum" "gtk-3.0" "gtk-4.0" ];
   initEffects = pkgs.writeShellScript "mac-tahoe-initialize-effects" ''
     set -eu
-    for effect in liquidglass shapecorners; do
+    for effect in better_blur_dx shapecorners; do
       value="$(${pkgs.kdePackages.kconfig}/bin/kreadconfig6 --file kwinrc --group Plugins --key "''${effect}Enabled" --default __absent__)"
       if [ "$value" = __absent__ ]; then
         ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kwinrc --group Plugins --key "''${effect}Enabled" true

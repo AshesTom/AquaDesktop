@@ -103,9 +103,11 @@ def test_run_wizard_returns_wrapper_result(monkeypatch):
     module, not just the wrapper attribute — install_tui.curses is None
     on distros without python3-curses (openSUSE CI) and the test must
     run there too."""
-    sentinel = {"sddm": False, "_save": False}
+    sentinel = {"firefox": False, "_save": False}
     fake = types.SimpleNamespace(wrapper=lambda fn: sentinel)
     monkeypatch.setattr(install_tui, "curses", fake)
+    # run_wizard saves the chosen language; never into the real home.
+    monkeypatch.setattr(install_tui, "set_language", lambda _code: True)
     assert install_tui.run_wizard(dict(cli.DEFAULT_FEATURES)) is sentinel
 
 

@@ -9,7 +9,7 @@ import tarfile
 from pathlib import Path
 
 from steps._helpers import (
-    DATA_HOME, fail, info, install_tree, offline, ok, temp_dir,
+    DATA_HOME, HOME, fail, info, install_tree, offline, ok, temp_dir,
 )
 from utils import remove_path, run_user
 
@@ -19,6 +19,26 @@ _THEME_NAMES = (
     "MacTahoeLiquidKde-Icons",
     "MacTahoeLiquidKde-Icons-dark",
 )
+# Icon Manager (src/offline/icon-manager): the engine of Theme Settings'
+# Icons page, and the user's custom icons with the overlay themes built from
+# them (MacTahoeLiquidKde-Icons[-dark]-custom), which a reinstall must keep.
+ICON_MANAGER_SRC = offline("icon-manager")
+ICON_MANAGER_FILES = ("icon_manager.py", "dmg.py", "car.py")
+# macOS 26's Dark renders and tinted/clear masks of the pack's Apple icons.
+ICON_MANAGER_DIRS = ("macos-styles",)
+_OVERLAY_SUFFIX = "-custom"
+# The standalone Qt app of earlier builds: its UI, launcher and command.
+_LEGACY_ICON_MANAGER = ("IconManager.qml",)
+
+
+def _icon_manager_paths() -> dict:
+    return {
+        "app": DATA_HOME / "mac-tahoe-liquid-kde/apps/icon-manager",
+        "store": DATA_HOME / "mac-tahoe-liquid-kde/icon-manager",
+        "desktop": DATA_HOME / "applications/org.kde.mac-tahoe-liquid-kde.iconmanager.desktop",
+        "bin": HOME / ".local/bin/mac-tahoe-icon-manager",
+        "state": HOME / ".config/mac-tahoe-liquid-kde/icon-manager.json",
+    }
 
 # Subdirs _assemble() cherry-picks from upstream into the default theme.
 _DEFAULT_DIRS = (
@@ -27,6 +47,13 @@ _DEFAULT_DIRS = (
 )
 _DEFAULT_STATUS_SIZES = ("16", "22", "24", "32", "symbolic")
 _AT2X_DIRS = (*_DEFAULT_DIRS, "status")
+
+# macOS-style menu bar glyphs (Wi-Fi, Bluetooth, volume, brightness, battery,
+# search) for the exact names the Plasma tray applets request, cut out of
+# the Sosumi theme's sheets (see macos-status/import_sosumi.py). Overlaid at
+# install time so the tray never falls back to Breeze for them.
+STATUS_OVERLAY_DIR = OFFLINE_DIR / "macos-status"
+_SCHEME_COLOR_RE = re.compile(r"(\.ColorScheme-Text \{ *color:)(#[0-9a-fA-F]{3,8})")
 
 
 def deps():
@@ -62,6 +89,7 @@ def install() -> None:
             if not (source / "index.theme").is_file():
                 fail(f"{name} (index.theme missing from offline archive)")
                 continue
+            _overlay_status_icons(source)
             if install_tree(source, DEST_DIR / name, name):
                 n += 1
 
@@ -69,7 +97,9 @@ def install() -> None:
     # are safely live. A failed extraction must leave the installed theme intact.
     if n == len(_THEME_NAMES):
         for old in DEST_DIR.glob("MacTahoeLiquidKde-Icons*"):
-            if old.is_dir() and old.name not in _THEME_NAMES:
+            # The Icon Manager's overlays hold the user's own icons.
+            if old.is_dir() and old.name not in _THEME_NAMES \
+                    and not old.name.endswith(_OVERLAY_SUFFIX):
                 shutil.rmtree(old, ignore_errors=True)
 
     if shutil.which("gtk-update-icon-cache"):
@@ -83,9 +113,98 @@ def install() -> None:
 
     label = "icon theme" if n == 1 else "icon themes"
     info(f"{n} {label} installed/reinstalled")
+    _install_icon_manager()
+
+
+def _install_icon_manager() -> None:
+    paths = _icon_manager_paths()
+    if not all((ICON_MANAGER_SRC / name).is_file() for name in ICON_MANAGER_FILES):
+        fail("Icon Manager (missing sources)")
+        return
+    paths["app"].mkdir(parents=True, exist_ok=True)
+    for name in ICON_MANAGER_FILES:
+        shutil.copy2(ICON_MANAGER_SRC / name, paths["app"] / name)
+    for name in ICON_MANAGER_DIRS:
+        shutil.rmtree(paths["app"] / name, ignore_errors=True)
+        if (ICON_MANAGER_SRC / name).is_dir():
+            shutil.copytree(ICON_MANAGER_SRC / name, paths["app"] / name)
+    # Theme Settings (theme_switch step) is its window now.
+    for name in _LEGACY_ICON_MANAGER:
+        (paths["app"] / name).unlink(missing_ok=True)
+    for key in ("bin", "desktop"):
+        paths[key].unlink(missing_ok=True)
+    ok("Icon Manager")
+
+
+def _restore_custom_launchers(state_path: Path) -> None:
+    """Undo the Icon Manager's launcher edits (the ones naming an icon file):
+    drop the per-user copies it created, put the original Icon= back in the
+    user's own launchers."""
+    import json
+    try:
+        launchers = json.loads(state_path.read_text(encoding="utf-8")).get("launchers", {})
+    except (OSError, ValueError):
+        return
+    for app_id, record in launchers.items():
+        target = DATA_HOME / "applications" / f"{app_id}.desktop"
+        if record.get("created"):
+            target.unlink(missing_ok=True)
+        elif target.is_file():
+            text = target.read_text(encoding="utf-8")
+            target.write_text(re.sub(r"(?m)^Icon=.*$", f"Icon={record.get('icon', '')}", text),
+                              encoding="utf-8")
+
+
+def _uninstall_icon_manager() -> None:
+    paths = _icon_manager_paths()
+    _restore_custom_launchers(paths["state"])
+    for key in ("app", "store"):
+        shutil.rmtree(paths[key], ignore_errors=True)
+    for key in ("desktop", "bin", "state"):
+        paths[key].unlink(missing_ok=True)
+    ok("Icon Manager removed")
+
+
+def _theme_text_color(theme: Path) -> str | None:
+    sample = theme / "status/22/audio-volume-high-symbolic.svg"
+    try:
+        match = _SCHEME_COLOR_RE.search(sample.read_text(encoding="utf-8"))
+    except OSError:
+        return None
+    return match.group(2) if match else None
+
+
+def _overlay_status_icons(theme: Path) -> int:
+    """Write the macOS tray glyphs into an extracted theme. Fixed-size
+    directories win over scalable ones in icon lookup, and the first matching
+    context in ``Directories`` wins among equal sizes, so each glyph replaces
+    the theme's copy in every directory that has one (``system-search`` also
+    lives in ``actions/``), and always lands in the 22 px (tray) and symbolic
+    status directories. Existing entries are unlinked first: many are
+    symlinks to other icons."""
+    icons = sorted(STATUS_OVERLAY_DIR.glob("*-symbolic.svg"))
+    if not icons:
+        return 0
+    color = _theme_text_color(theme)
+    dirs = sorted(d for d in theme.glob("*/*") if d.is_dir() and not d.is_symlink())
+    written = 0
+    for icon in icons:
+        body = icon.read_text(encoding="utf-8")
+        if color:
+            body = _SCHEME_COLOR_RE.sub(lambda m: m.group(1) + color, body, count=1)
+        for directory in dirs:
+            target = directory / icon.name
+            always = directory.parent.name.startswith("status") and directory.name in ("22", "symbolic")
+            if not always and not (target.exists() or target.is_symlink()):
+                continue
+            remove_path(target)
+            target.write_text(body, encoding="utf-8")
+            written += 1
+    return written
 
 
 def uninstall() -> None:
+    _uninstall_icon_manager()
     n = 0
     for theme in DEST_DIR.glob("MacTahoeLiquidKde-Icons*"):
         if theme.is_dir():

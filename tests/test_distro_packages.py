@@ -806,7 +806,7 @@ def test_plasma_packages_per_distro(
     assert distro.package_for(token, arch) == gentoo
 
 
-# ── KWin + KDecoration (acrylic-glass effect only) ───────────────────
+# ── KWin + KDecoration (Glass effect only, feature acrylic_glass) ────
 
 
 @pytest.mark.parametrize("distro_id, id_like, expected", [

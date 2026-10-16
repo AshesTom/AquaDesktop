@@ -22,7 +22,7 @@ theme=__aurorae__svg__MacTahoeLiquidKde-Light
 LayoutName=org.kde.breeze.desktop
 
 [kwinrc][WindowSwitcher]
-LayoutName=org.kde.breeze.desktop
+LayoutName=mac-tahoe-switcher
 
 [plasmarc][Theme]
 name=MacTahoeLiquidKde-Light

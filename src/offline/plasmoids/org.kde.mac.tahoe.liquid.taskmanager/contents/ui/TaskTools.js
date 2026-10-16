@@ -13,6 +13,29 @@
 // Can't be `let`, or else QML counterpart won't be able to assign to it.
 var taskManagerInstanceCount = 0;
 
+// macOS launch bounce. Launching swaps the clicked launcher for a startup
+// task and then a window task, each a new delegate, so remember the launch
+// per app and let whichever delegate shows it keep bouncing.
+var recentLaunches = {};
+const launchBounceWindowMs = 6000;
+
+function recordLaunch(launcherUrl) {
+    if (launcherUrl) {
+        recentLaunches[launcherUrl.toString()] = Date.now();
+    }
+}
+
+function launchedRecently(launcherUrl) {
+    const when = launcherUrl ? recentLaunches[launcherUrl.toString()] : undefined;
+    return when !== undefined && Date.now() - when < launchBounceWindowMs;
+}
+
+function forgetLaunch(launcherUrl) {
+    if (launcherUrl) {
+        delete recentLaunches[launcherUrl.toString()];
+    }
+}
+
 function activateNextPrevTask(anchor, next, wheelSkipMinimized, wheelEnabled, tasks) {
     // FIXME TODO: Unnecessarily convoluted and costly; optimize.
 
@@ -118,8 +141,14 @@ function groupTopTask(childTaskList, attribute, tasks) {
 
 function activateTask(index, model, modifiers, task, plasmoid, tasks, windowViewAvailable) {
     if (modifiers & Qt.ShiftModifier) {
+        recordLaunch(model.LauncherUrlWithoutIcon);
+        task.startLaunchBounce();
         tasks.tasksModel.requestNewInstance(index);
         return;
+    }
+    if (model.IsLauncher) {
+        recordLaunch(model.LauncherUrlWithoutIcon);
+        task.startLaunchBounce();
     }
     // Publish delegate geometry again if there are more than one task manager instance
     if (taskManagerInstanceCount >= 2) {

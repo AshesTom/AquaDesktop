@@ -1,0 +1,15 @@
+{
+    "KPackageStructure": "KWin/WindowSwitcher",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "AquaDesktop contributors"
+            }
+        ],
+        "Description": "The macOS application switcher: a row of large app icons on glass, the selected one on a rounded square with its name below",
+        "Icon": "preferences-system-windows-switcher-big-icons",
+        "Id": "mac-tahoe-switcher",
+        "License": "GPL-3.0",
+        "Name": "AquaDesktop App Switcher"
+    }
+}

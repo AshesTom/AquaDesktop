@@ -109,7 +109,7 @@ def test_enumerate_destinations_covers_all_compiled_steps():
     assert "globalmenu QML module" in labels
     assert "taskmanager .so" in labels
     assert "taskmanager QML module" in labels
-    assert "acrylic-glass plugin dir" in labels
+    assert "glass plugin dir" in labels
     assert "kvantum Qt6 style plugin" in labels
     assert "kvantum bundled-source marker" in labels
     assert "kvantum bundled-source license" in labels
@@ -328,7 +328,7 @@ def test_install_destinations_anchor_to_qmake6_libdir(monkeypatch, tmp_path):
         ("globalmenu QML",       globalmenu.DEST_QML_DIR,        fake_qml),
         ("taskmanager .so",      plasmoids.TASKMANAGER_DEST_SO,  fake_plugins),
         ("taskmanager QML",      plasmoids.TASKMANAGER_DEST_QML, fake_qml),
-        ("acrylic-glass plugin", acrylic_glass._plugin_dir(),    fake_plugins),
+        ("glass plugin", acrylic_glass._plugin_dir(),    fake_plugins),
         ("kvantum plugin",       kvantum._engine_destination(), fake_plugins),
         ("rounded-corners plugin", rounded_corners._plugin_dir(), fake_plugins),
     ):

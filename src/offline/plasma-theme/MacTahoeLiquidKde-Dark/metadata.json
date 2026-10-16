@@ -2,19 +2,19 @@
     "KPlugin": {
         "Authors": [
             {
-                "Name": "Lester Cordero Murillo"
+                "Name": "AquaDesktop contributors"
             }
         ],
         "Category": "Plasma 6.0 theme",
-        "Description": "MacTahoeLiquidKde Dark by Lester Cordero Murillo",
-        "Description[zh_CN]": "MacTahoe 暗黑苹果主题，由 Lester Cordero Murillo 设计制作",
+        "Description": "Tahoe and Golden Gate glass theme for KDE Plasma (dark)",
+        "Description[zh_CN]": "融合 Tahoe 与 Golden Gate 玻璃风格的 KDE Plasma 主题",
         "EnabledByDefault": true,
         "Id": "MacTahoeLiquidKde-Dark",
         "License": "GPL-3.0",
-        "Name": "MacTahoeLiquidKde-Dark",
-        "Name[zh_CN]": "MacTahoe 暗黑苹果",
+        "Name": "AquaDesktop (Dark)",
+        "Name[zh_CN]": "AquaDesktop（深色）",
         "Version": "6.2.0",
-        "Website": "https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde"
+        "Website": "https://github.com/AshesTom/AquaDesktop"
     },
     "X-Plasma-API": "5.0"
 }

@@ -1,0 +1,23 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "AquaDesktop contributors"
+            }
+        ],
+        "Category": "System Information",
+        "Category[es]": "Información del sistema",
+        "Category[zh_CN]": "系统信息",
+        "Description": "macOS Tahoe Control Center for the menu bar: Wi-Fi, Bluetooth, Focus, Now Playing, Display, Sound and quick actions",
+        "Description[es]": "Centro de control de macOS Tahoe para la barra de menús: Wi-Fi, Bluetooth, Concentración, En reproducción, Pantalla, Sonido y acciones rápidas",
+        "Description[zh_CN]": "菜单栏中的 macOS Tahoe 控制中心：Wi-Fi、蓝牙、专注模式、正在播放、显示器、声音和快捷操作",
+        "Icon": "configure",
+        "Id": "org.kde.mac-tahoe-liquid-kde.controlcenter",
+        "License": "GPL-3.0",
+        "Name": "Control Center (AquaDesktop)",
+        "Name[es]": "Centro de control (AquaDesktop)",
+        "Name[zh_CN]": "控制中心 (AquaDesktop)"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

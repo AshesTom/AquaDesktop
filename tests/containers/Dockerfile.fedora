@@ -10,8 +10,8 @@ FROM fedora:latest
 #   - Qt6: qtbase, qttools, qtdeclarative
 #   - KF6 frameworks for deps() of the compiled steps
 #   - Plasma / KSysGuard / plasma-workspace cmake configs
-#   - KWin + KDecoration (acrylic-glass kwin effect)
-#   - libepoxy + libdrm + libX11 + libxcb (acrylic-glass effect)
+#   - KWin + KDecoration (Glass KWin effect)
+#   - libepoxy + libdrm + libX11 + libxcb (Glass effect)
 RUN dnf install -y --setopt=install_weak_deps=False \
         python3 python3-pytest \
         cmake make gcc-c++ extra-cmake-modules pkgconf-pkg-config \

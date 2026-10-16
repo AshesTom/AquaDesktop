@@ -22,6 +22,7 @@ import plasma.applet.org.kde.mac.tahoe.liquid.taskmanager as TaskManagerApplet
 import org.kde.plasma.workspace.dbus as DBus
 import "LayoutMetrics.js" as LayoutMetrics
 import "TaskTools.js" as TaskTools
+import org.kde.mac.tahoe.liquid.dockzoom
 
 PlasmoidItem {
     id: tasks
@@ -35,6 +36,9 @@ PlasmoidItem {
     readonly property bool shouldShrinkToZero: tasksModel.count === 0
     readonly property bool vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
     readonly property bool iconsOnly: Plasmoid.pluginName === "org.kde.mac.tahoe.liquid.icontasks"
+    // The Dock's minimized-windows section (before the Trash): one window
+    // thumbnail per minimized window, like macOS.
+    readonly property bool minimizedShelf: iconsOnly && Plasmoid.configuration.showOnlyMinimized
 
     property Task toolTipOpenedByClick
     property Task toolTipAreaItem
@@ -176,7 +180,8 @@ PlasmoidItem {
             return true;
         }
 
-        groupMode: groupModeEnumValue(Plasmoid.configuration.groupingStrategy)
+        groupMode: tasks.minimizedShelf ? TaskManager.TasksModel.GroupDisabled
+            : groupModeEnumValue(Plasmoid.configuration.groupingStrategy)
         groupInline: !Plasmoid.configuration.groupPopups && !tasks.iconsOnly
         groupingWindowTasksThreshold: (Plasmoid.configuration.onlyGroupWhenFull && !tasks.iconsOnly
             ? LayoutMetrics.optimumCapacity(tasks.width, tasks.height) + 1 : -1)
@@ -319,8 +324,16 @@ PlasmoidItem {
         Binding {
             target: Plasmoid
             property: "status"
-            value: (tasksModel.anyTaskDemandsAttention && Plasmoid.configuration.unhideOnAttention
-                ? PlasmaCore.Types.NeedsAttentionStatus : PlasmaCore.Types.PassiveStatus)
+            value: {
+                // With nothing minimized, the Dock's minimized-windows section
+                // leaves the Dock entirely (the panel still shows hidden
+                // applets in edit mode).
+                if (tasks.minimizedShelf && tasks.shouldShrinkToZero) {
+                    return PlasmaCore.Types.HiddenStatus;
+                }
+                return tasksModel.anyTaskDemandsAttention && Plasmoid.configuration.unhideOnAttention
+                    ? PlasmaCore.Types.NeedsAttentionStatus : PlasmaCore.Types.PassiveStatus;
+            }
             restoreMode: Binding.RestoreBinding
         }
 
@@ -352,6 +365,19 @@ PlasmoidItem {
             Drag.onDragFinished: dropAction => {
                 tasks.dragSource = null;
             }
+        }
+
+        // Parabolic Dock magnification, shared with the other Dock widgets.
+        DockZoomTracker {
+            horizontal: !tasks.vertical && tasks.iconsOnly
+        }
+
+        Binding {
+            target: DockZoom
+            property: "magnification"
+            // The minimized-windows instance follows the main Dock setting.
+            when: tasks.iconsOnly && !Plasmoid.configuration.showOnlyMinimized
+            value: Math.max(1, Math.min(2, Plasmoid.configuration.dockMagnification / 100))
         }
 
         KSvg.FrameSvgItem {

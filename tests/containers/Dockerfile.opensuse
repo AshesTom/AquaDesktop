@@ -6,12 +6,12 @@
 # surface only at the cmake configure step, not at the zypper install
 # probe):
 #   - base toolchain: python3, pytest, cmake, make, gcc-c++, ECM, pkgconf
-#   - Qt6: base, tools, uitools (acrylic-glass effect's find_package),
+#   - Qt6: base, tools, uitools (Glass effect's find_package),
 #     declarative
 #   - KF6 frameworks for deps() of the compiled steps
 #   - Plasma / KSysGuard / plasma-workspace cmake configs
-#   - KWin + KDecoration (acrylic-glass kwin effect)
-#   - libepoxy + libdrm + libX11 + libxcb (acrylic-glass effect)
+#   - KWin + KDecoration (Glass KWin effect)
+#   - libepoxy + libdrm + libX11 + libxcb (Glass effect)
 FROM opensuse/tumbleweed:latest
 
 # `zypper refresh` against download.opensuse.org occasionally times out

@@ -35,8 +35,11 @@ def test_neon_keeps_unmarked_distro_qt6_engine(monkeypatch, tmp_path):
     _neon(monkeypatch, kvantum, destination)
     monkeypatch.setattr(kvantum, "ENGINE_MARKER", tmp_path / "missing-marker")
 
-    assert kvantum.deps() == []
-    assert kvantum.build_artifacts() == []
+    # The distro's system plugin is never replaced: no system install; the
+    # patched engine is still built, for the user's plugin directory.
+    assert kvantum._bundled_engine_required() is False
+    assert "kvantummanager:kvantum" not in kvantum.deps()
+    assert kvantum.build_artifacts() == [kvantum.ENGINE_BUILD / "style/libkvantum.so"]
 
 
 def test_bundled_archive_extracts_only_after_digest_check(monkeypatch, tmp_path):
@@ -50,6 +53,12 @@ def test_bundled_archive_extracts_only_after_digest_check(monkeypatch, tmp_path)
     assert kvantum._extract_bundled_engine() is True
     assert (source / "Kvantum/CMakeLists.txt").is_file()
     assert (source / "Kvantum/COPYING").is_file()
+    # AquaDesktop's patches are applied on extraction.
+    style = source / "Kvantum/style"
+    assert (style / "tahoe.h").is_file()
+    assert "Tahoe::accented(userSvg)" in (style / "Kvantum.cpp").read_text()
+    assert "Tahoe::macShortcut(" in (style / "Kvantum.cpp").read_text()
+    assert "new Tahoe::AccentWatcher(this)" in (style / "polishing.cpp").read_text()
 
     corrupt = tmp_path / "Kvantum-corrupt.tar.xz"
     corrupt.write_bytes(kvantum.ENGINE_ARCHIVE.read_bytes() + b"corrupt")
@@ -411,3 +420,70 @@ def test_uninstall_retains_invalid_ownership_marker_for_recovery(
     assert marker.is_file()
     assert license_file.is_file()
     assert failures and "retaining" in failures[0]
+
+
+def test_user_engine_takes_over_through_the_plasma_environment(monkeypatch, tmp_path):
+    from steps import kvantum
+
+    build = tmp_path / "build"
+    (build / "style").mkdir(parents=True)
+    (build / "style/libkvantum.so").write_bytes(b"engine")
+    root = tmp_path / "data/mac-tahoe-liquid-kde/qt6/plugins"
+    monkeypatch.setattr(kvantum, "ENGINE_BUILD", build)
+    monkeypatch.setattr(kvantum, "USER_PLUGIN_ROOT", root)
+    monkeypatch.setattr(kvantum, "USER_ENGINE", root / "styles/libkvantum.so")
+    for name in ("ok", "warn"):
+        monkeypatch.setattr(kvantum, name, lambda *_a: None)
+
+    kvantum._install_user_engine()
+    assert (root / "styles/libkvantum.so").read_bytes() == b"engine"
+    env = kvantum.kvantum_env_path().read_text()
+    assert env.startswith(kvantum.ENV_MARKER)
+    assert f"QT_PLUGIN_PATH={root}" in env and "export QT_PLUGIN_PATH" in env
+
+    kvantum._remove_user_engine()
+    assert not kvantum.kvantum_env_path().exists()
+    assert not root.exists()
+
+
+def test_user_engine_leaves_a_foreign_environment_script(monkeypatch, tmp_path):
+    from steps import kvantum
+
+    build = tmp_path / "build"
+    (build / "style").mkdir(parents=True)
+    (build / "style/libkvantum.so").write_bytes(b"engine")
+    monkeypatch.setattr(kvantum, "ENGINE_BUILD", build)
+    monkeypatch.setattr(kvantum, "USER_PLUGIN_ROOT", tmp_path / "qt6/plugins")
+    monkeypatch.setattr(kvantum, "USER_ENGINE", tmp_path / "qt6/plugins/styles/libkvantum.so")
+    warnings = []
+    monkeypatch.setattr(kvantum, "warn", warnings.append)
+    monkeypatch.setattr(kvantum, "ok", lambda *_a: None)
+    env = kvantum.kvantum_env_path()
+    env.parent.mkdir(parents=True)
+    env.write_text("export SOMETHING=mine\n")
+    kvantum._install_user_engine()
+    assert env.read_text() == "export SOMETHING=mine\n" and warnings
+    kvantum._remove_user_engine()
+    assert env.exists()
+
+
+def test_engine_reaches_the_running_session(monkeypatch, tmp_path):
+    """Apps started after the install load the engine without a new login:
+    QT_PLUGIN_PATH goes to the user manager and D-Bus activation."""
+    from steps import kvantum
+
+    calls = []
+    monkeypatch.setattr(kvantum, "USER_PLUGIN_ROOT", tmp_path / "plugins")
+    monkeypatch.setattr(kvantum, "user_service_manager_command",
+                        lambda *a: ["systemctl", "--user", *a])
+    monkeypatch.setattr(kvantum, "have", lambda tool: True)
+    monkeypatch.setattr(kvantum, "run_user", lambda cmd, **kw: calls.append(cmd))
+    monkeypatch.setenv("QT_PLUGIN_PATH", "/opt/qt")
+    kvantum.export_to_running_session_unpatched()
+    assert calls == [
+        ["systemctl", "--user", "set-environment", f"QT_PLUGIN_PATH={tmp_path}/plugins:/opt/qt"],
+        ["dbus-update-activation-environment", f"QT_PLUGIN_PATH={tmp_path}/plugins:/opt/qt"],
+    ]
+    calls.clear()
+    kvantum.export_to_running_session_unpatched(remove=True)
+    assert calls[0] == ["systemctl", "--user", "set-environment", "QT_PLUGIN_PATH=/opt/qt"]

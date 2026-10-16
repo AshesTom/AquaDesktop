@@ -1,480 +1,169 @@
-<p align="center">
-  <img src="src/screenshots/banner_v3.svg" alt="tahoe 26" width="360">
-</p>
+# AquaDesktop
 
-# macOS Tahoe Liquid Theme for Plasma 6.6/6.7+
+**Tahoe meets Golden Gate on KDE Plasma.**
 
-[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1397_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
+[![Plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/)
+[![Tests](https://github.com/AshesTom/AquaDesktop/actions/workflows/test.yml/badge.svg)](https://github.com/AshesTom/AquaDesktop/actions/workflows/test.yml)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
+[![Issues](https://img.shields.io/badge/report-an_issue-red?logo=github)](https://github.com/AshesTom/AquaDesktop/issues)
 
-Bring a little Tahoe to your Linux desktop.
+AquaDesktop combines macOS Tahoe's desktop layout with Golden Gate's floating
+glass controls. A refractive Dock, translucent menus, rounded popovers and
+matching app themes bring the two influences together on KDE Plasma.
 
-A macOS Tahoe-inspired theme for KDE Plasma 6.6 and 6.7+, with liquid glass, a top menu bar, a Dock, matching app themes, sounds, and a boot screen. Pick the parts you like in the installer.
+AquaDesktop is a fork of
+[macos-tahoe-liquid-kde](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde)
+by [Lester Cordero Murillo](https://github.com/lestercorderomurillo). It builds on
+upstream's theme pack and installer with its own widgets, glass tuning and
+measured desktop details.
 
-> [!CAUTION]
-> This project is experimental and under active development. Don't use it on a production system yet. KDE, KWin, or Kvantum updates may temporarily break parts of the theme; running `sudo ./install` again usually restores them. If something goes wrong, please [open an issue](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new).
+![AquaDesktop desktop with its glass Dock and menu bar](src/screenshots/aquadesktop.png)
 
-<br>
+*Desktop capture from the local Plasma calibration session.*
 
-![Features and screenshots](https://img.shields.io/badge/features-%26%20screenshots-4B6B8A?style=for-the-badge&logo=kde&logoColor=white)
+> [!WARNING]
+> Experimental software. Installation changes desktop settings and installs
+> compiled Plasma and KWin components. Use a test system and back up your
+> configuration. KDE updates can require rebuilding the components.
 
-### Acrylic Glass Tahoe Launcher
+## The desktop
 
-Find an app with a quick search, keep your favorites close, or browse with a choice of two views.
+- **Liquid Glass.** Better Blur DX renders window and Dock blur, with a
+  separate Dock material and edge refraction. Menu-bar popovers use their own
+  glass surfaces and blur regions; Control Center modules float independently.
+- **Dock.** Shared parabolic magnification across apps, Downloads and Trash,
+  launch bounce, running indicators, preserved pinned apps and auto-hide.
+  Minimized windows appear as thumbnails after the Downloads stack.
+- **Downloads stack.** Open recent downloads in a fan and drag files into apps.
+- **Menu bar.** Active app name and supported app menus, Wi-Fi, Sound, Battery,
+  keyboard input, Now Playing, Spotlight and the clock panel.
+- **Control Center.** Golden Gate-style glass bubbles for connectivity, media,
+  Focus, brightness, sound and quick actions. Available controls depend on
+  your hardware and installed Plasma backends.
+- **Spotlight.** Search apps, files and actions through Plasma's search backends.
+- **Matching apps.** Kvantum, GTK and Qt Quick controls, Finder-inspired
+  Nautilus, Konsole profiles, window decorations and optional Firefox CSS.
+- **Theme Settings.** Light, Dark and scheduled Auto appearance; accent colours;
+  Liquid Glass or Frosted; glass tint and intensity; reduced transparency;
+  Dock behaviour, minimize animation, hot corners and app icon customization.
+- **Session details.** Application switcher, notification banners, session
+  splash and logout dialogs, with an optional Plymouth boot splash.
 
-<p align="center">
-  <img src="src/screenshots/launcher_v3.png" width="415">
-  <img src="src/screenshots/launcher_dark_v3.png" width="415">
-</p>
+The glass renderer is **Better Blur DX**. The installer removes the older
+Glass and Acrylic Glass effects previously used by this project. The historical
+`--acrylic-glass` flag selects the current renderer.
 
-<br>
+## Install
 
-### Acrylic Glass Tahoe Dock
-
-Your apps sit on a glass Dock that refracts the wallpaper, with hover zoom and notification badges to show what needs your attention.
-
-<p align="center">
-  <img src="src/screenshots/dock_1_v3.png" width="840">
-</p>
-
-<br>
-
-### Acrylic Glass Tahoe Finder
-
-Give Nautilus a familiar Finder feel, with a macOS-style sidebar and a simpler toolbar in both light and dark modes.
-
-<p align="center">
-  <img src="src/screenshots/finder_v3.png" width="415">
-  <img src="src/screenshots/finder_dark_v3.png" width="415">
-</p>
-
-<br>
-
-### Acrylic Glass Tahoe Menu
-
-Keep the system menu, active app name, and window controls together in the top bar, with app menus available for applications that support the global menu.
-
-<p align="center">
-  <img src="src/screenshots/menu_v3.png" width="415">
-  <img src="src/screenshots/menu_dark_v3.png" width="415">
-</p>
-
-<br>
-
-### System Information
-
-Check your computer's details in a glass window that fits the rest of the desktop.
-
-<p align="center">
-  <img src="src/screenshots/about_v3.png" width="415">
-  <img src="src/screenshots/about_dark_v3.png" width="415">
-</p>
-
-<br>
-
-### Plasma Theme
-
-Even the desktop's right-click menu gets the glass treatment, with a translucent background and blur.
-
-<p align="center">
-  <img src="src/screenshots/context_menu_v3.png" width="415">
-  <img src="src/screenshots/context_menu_dark_v3.png" width="415">
-</p>
-
-<br>
-
-### Boot Splash
-
-An Apple-style logo sits at the center of each monitor, scaling to fit displays from 1080p to 4K. A progress bar appears during startup; shutdown and reboot keep the same layout without it. If your disk uses LUKS2 encryption, Plymouth shows a masked passphrase field below the logo.
-
-<p align="center">
-  <img src="src/screenshots/boot_v3.png" width="415">
-  <img src="src/screenshots/boot_shutdown_v3.png" width="415">
-</p>
-
-<br>
-
-![Getting started](https://img.shields.io/badge/getting-started-3B7B5B?style=for-the-badge&logo=gnubash&logoColor=white)
-
-Open the graphical installer and choose what you'd like to install or remove:
+Use a **KDE Plasma 6.6+** desktop with Python 3.10+ and `sudo`. Run the installer
+from your normal desktop session. Qt 6, KDE development packages, CMake and a
+C++ compiler are needed for compiled components; the installer resolves
+supported distribution packages.
 
 ```bash
+git clone https://github.com/AshesTom/AquaDesktop.git
+cd AquaDesktop
 ./installer
 ```
 
-For the same choices in a terminal wizard:
+The graphical installer uses PyQt6. Choose the components you want before
+starting. For the terminal selection wizard:
 
 ```bash
 sudo ./install
-sudo ./uninstall
 ```
 
-Both installers show live progress and support English, Spanish, and Simplified Chinese. Run `sudo ./install --help` for all options.
-
-<br>
-
-<details>
-<summary><b>Requirements</b></summary>
-
-- KDE Plasma 6.6+
-- Python 3.10+
-- `sudo`
-- Qt 6 development tools
-- KDE and Qt 6 development packages for the compiled plasmoids and KWin effects
-- `cmake`, `g++`, and `pkg-config` when compiled features are selected
-- `dbus-send`
-- `systemctl` or `crontab` for scheduled features
-
-Theme assets are bundled. The optional KDE Rounded Corners effect needs an internet connection; the rest installs without it.
-
-| Distro | Qt 6 tools | KDE Plasma 6 development packages |
-|--------|------------|-----------------------------------|
-| Arch family | `pacman -S qt6-tools` | `pacman -S extra-cmake-modules plasma-workspace kdecoration libplasma libnotificationmanager libksysguard plasma-activities-stats` |
-| Gentoo | `emerge dev-qt/qttools:6` | `emerge kde-frameworks/extra-cmake-modules kde-plasma/plasma-workspace kde-plasma/kdecoration kde-plasma/libplasma kde-plasma/libnotificationmanager kde-plasma/libksysguard kde-plasma/plasma-activities-stats` |
-| Fedora family | `dnf install qt6-qttools-devel` | `dnf install extra-cmake-modules plasma-workspace-devel kdecoration-devel libplasma-devel knotifications-devel libksysguard-devel kf6-plasma-activities-devel` |
-| openSUSE Tumbleweed | `zypper install qt6-tools-devel` | `zypper install extra-cmake-modules plasma6-workspace-devel kdecoration-devel libKF6Plasma-devel libnotificationmanager6-devel libksysguard6-devel libKF6PlasmaActivitiesStats6-devel` |
-
-</details>
-
-<details>
-<summary><b>Choose features and theme mode</b></summary>
-
-Any flag skips the terminal wizard. Use `--no-<name>` to leave out a component, or `--only` to install or remove selected components:
+`./install` is a Python entry point; there is no shell script to pipe into Bash.
+Use flags for a direct terminal installation:
 
 ```bash
-sudo ./install --no-gtk --no-sddm
-sudo ./install --only --fonts --icons
-sudo ./uninstall --only --cursors
-```
-
-Available feature names:
-
-`wallpapers`, `fonts`, `cursors`, `plasma-theme`, `window-decorations`, `kvantum`, `color-schemes`, `icons`, `plasmoids`, `globalmenu`, `acrylic-glass`, `rounded-corners`, `global-theme`, `layout`, `sounds`, `gtk`, `firefox`, `sddm`, `apps`, `nautilus`, `nautilus-bookmarks`, `portals`, `oled-care`, `plymouth`.
-
-Choose the initial theme mode:
-
-```bash
-sudo ./install          # automatic light/dark schedule
-sudo ./install --light
 sudo ./install --dark
+sudo ./install --no-plymouth --no-nautilus
+sudo ./install --only --fonts --icons
+sudo ./install --help
 ```
 
-Switch later with:
+The checkout's `features.json` stores component choices. Use `--save` to retain
+command-line choices, or `--reset` to restore defaults. Firefox styling, KDE
+Rounded Corners and OLED care can be selected separately.
+
+Theme assets and Better Blur DX sources are bundled. Package installation
+requires access to your distribution repositories when dependencies are missing.
+The optional KDE Rounded Corners component downloads a pinned, checksum-verified
+source release. Installation also checks upstream releases; set
+`MAC_TAHOE_NO_UPDATE_CHECK=true` to skip that check.
+
+Log out and back in after the first installation so applications load the
+Kvantum, Qt Quick and GTK menu environment hooks.
+
+### Platform status
+
+| Platform | Status |
+| --- | --- |
+| Arch Linux, CachyOS | Tested |
+| Manjaro, EndeavourOS, Garuda, Gentoo, Fedora, Nobara, openSUSE Tumbleweed, KDE neon | Testing |
+| Artix OpenRC | Testing; outside the container matrix |
+| NixOS / Home Manager | Experimental declarative installation via `flake.nix` and `nix/` |
+
+Scheduled appearance changes and OLED care use a systemd user timer or a
+per-user crontab on OpenRC. Immutable rpm-ostree systems such as Silverblue
+and Kinoite are outside the installer scope.
+
+## Make it yours
+
+Open **Theme Settings** from the app grid, or run:
+
+```bash
+mac-tahoe-theme-settings
+```
+
+Theme Settings needs GTK 4 and PyGObject; its Icons page also needs PyQt6.
+Icons can be imported from `.icns` files or extracted from supported `.dmg`
+images, with separate Light and Dark versions and optional tinted or clear
+styles.
+
+The same appearance controls are available in the terminal:
 
 ```bash
 mac-tahoe-theme-switch light
 mac-tahoe-theme-switch dark
 mac-tahoe-theme-switch auto
-```
-
-Save or reset installer choices:
-
-```bash
-sudo ./install --no-gtk --dark --save
-sudo ./install --reset
-```
-
-Useful maintenance options:
-
-- `--preflight` checks the system without installing.
-- `--no-apply-theme` stages files without switching the desktop.
-- `--no-grub-modify` leaves `/etc/default/grub` unchanged.
-- Theme changes keep any wallpaper you've chosen for each monitor.
-- `--reset-wallpapers` returns all monitors to the bundled light/dark wallpapers.
-- `./legacy-install` and `./legacy-uninstall` use the classic prompt instead of the terminal wizard.
-
-</details>
-
-<details>
-<summary><b>Glass and rounded-corner troubleshooting</b></summary>
-
-VirtualBox VM surfaces are excluded from Acrylic Glass in v0.53.0 to prevent
-glass from filling fullscreen or seamless windows. The VirtualBox manager
-keeps its normal appearance ([#90](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/90)).
-
-If small triangles appear at window corners with both effects enabled, open
-**System Settings → Window Management → Desktop Effects → Acrylic Glass**
-and adjust the window, dock, and popup corner radii. Setting them to `28`
-resolved the reported case. Starting with v0.53.0, reinstall preserves these
-adjustments. The effects retain independent defaults; this release does not
-automatically change existing radii ([#89](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/89)).
-
-The desktop-edit overlay reported with ShapeCorners remains under investigation.
-Disabling **KDE Rounded Corners** in Desktop Effects was the reporter's
-workaround ([#77](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/77)).
-
-</details>
-
-<details>
-<summary><b>Firefox theme and profile safety</b></summary>
-
-The Firefox theme works with native, Flatpak, and Snap profiles. Your browser data and existing customizations are preserved. Restart the browser to see the changes.
-
-UI settings are backed up before changes, and uninstall removes the theme's additions. Backups remain in `~/.local/state/mac-tahoe-liquid-kde/firefox/snapshots/` for recovery.
-
-</details>
-
-<details>
-<summary><b>OLED care</b></summary>
-
-OLED care is off by default. Enable it in the graphical feature picker or from the command line:
-
-```bash
-sudo ./install --oled-care
-sudo ./install --oled-care --save
-sudo ./install --no-oled-care
-sudo ./install --oled-care --oled-interval=3 --oled-max-shift=4
-```
-
-Manual controls:
-
-```bash
-mac-tahoe-oled-care shift
-mac-tahoe-oled-care restore
-mac-tahoe-oled-care status
-```
-
-</details>
-
-<details>
-<summary><b>Test in a virtual machine</b></summary>
-
-Try the theme in a disposable Plasma VM:
-
-```bash
-./vm <os>
-```
-
-**Choose your OS:** `cachyos` · `arch` · `manjaro` · `endeavouros` · `garuda` · `fedora` · `nobara` · `opensuse` · `neon` · `gentoo` · `gentoo-openrc`
-
-Use `all` to launch every distro.
-
-</details>
-
-<br>
-
-### Reduced transparency
-
-After installing the current Plasma, GTK and Kvantum themes, run:
-
-```sh
+mac-tahoe-theme-switch style tahoe
+mac-tahoe-theme-switch style frosted
 mac-tahoe-theme-switch transparency reduced
+mac-tahoe-theme-switch transparency standard
 ```
 
-This selects approximately 96%-opaque panel, Dock, popup and application
-surfaces while retaining rounded shapes, highlights, shadows and blur. The
-preference persists across light/dark changes and login. It covers the bundled
-Plasma, Kvantum and GTK themes; applications drawing their own surfaces may
-need their own appearance settings. Some GTK applications need reopening.
-Restore the original appearance with
-`mac-tahoe-theme-switch transparency standard`.
+Auto switches at **06:00 and 18:00 local time** when the schedule is installed.
+Your chosen wallpapers are preserved across theme changes. Use
+`sudo ./install --reset-wallpapers` to let the theme manage them again.
 
-### NixOS and Home Manager (testing)
+Internal theme names, plugin IDs and `mac-tahoe-*` commands keep their upstream
+identifiers so existing installations can upgrade in place.
 
-Use the flake and declarative modules on NixOS, **not `sudo ./install`**.
-Packages build against your selected Nixpkgs Qt/KWin SDK in the Nix store.
-Rounded Corners uses the installer's verified upstream pin, fetched at build
-time; activation performs no downloads. A booted NixOS desktop has not yet
-been qualified, so this installation path remains **testing**.
-
-Add this input to a flake already using Nixpkgs and Home Manager:
-
-```nix
-inputs.mac-tahoe = {
-  url = "github:lestercorderomurillo/macos-tahoe-liquid-kde/v0.54.0";
-  inputs.nixpkgs.follows = "nixpkgs";
-  inputs.home-manager.follows = "home-manager";
-};
-```
-
-Import `inputs.mac-tahoe.nixosModules.default` in your NixOS configuration:
-
-```nix
-services.desktopManager.plasma6.enable = true;
-services.mac-tahoe.enable = true;
-# services.mac-tahoe.plymouth.enable = true; # optional boot splash
-```
-
-Import `inputs.mac-tahoe.homeManagerModules.default` in your Home Manager
-configuration and enable:
-
-```nix
-programs.mac-tahoe = {
-  enable = true;
-  mode = "auto"; # or "light" / "dark"
-  # reducedTransparency = true;
-  # appleAssets = true;
-  # oledCare.enable = true;
-};
-```
-
-Apple fonts, wallpapers and sounds are a separate non-free package, disabled
-by default. To enable `appleAssets`, explicitly allow it in your Nixpkgs policy:
-
-```nix
-nixpkgs.config.allowUnfreePredicate = pkg:
-  builtins.elem (lib.getName pkg) [ "mac-tahoe-apple-assets" ];
-```
-
-For panels, import `inputs.mac-tahoe.homeManagerModules.plasma-manager`
-**alongside your own plasma-manager module and the default MacTahoe module**.
-Set `programs.mac-tahoe.panels.enable = true` and provide Dock pins explicitly
-in `programs.mac-tahoe.panels.launchers`, for example
-`[ "applications:org.kde.dolphin.desktop" ]`. This replaces the panel layout;
-existing pins are not imported. The Dock auto-hides. Plasma-manager is not a
-required flake input.
-
-Keep `kdeglobals`, `kwinrc`, `plasmarc`, `plasmashellrc`, `kcminputrc`,
-`plasma-org.kde.plasma.desktop-appletsrc`, `Kvantum/kvantum.kvconfig` and live GTK
-configuration writable. The module rejects whole-file Home Manager ownership
-of these paths. Avoid immutable plasma-manager keys for properties controlled
-by the theme switcher. Leave `reducedTransparency = null` (the default) to
-control it with the command above; a boolean makes Home Manager its owner.
-
-Log out and back in after activation to pick up the plugin/QML paths. The Nix
-path does not modify Firefox profiles, GTK bookmarks, or SDDM. Qt global menus
-are packaged; GTK global menus require an optional native GTK3 module supplied
-through `programs.mac-tahoe.gtkAppmenuModule`. Before disabling OLED care, run
-`mac-tahoe-oled-care restore`; before removing the theme modules, select Breeze
-in System Settings. User-owned runtime settings are not deleted on removal.
-
-Run `nix flake check` for native package builds, installed-artifact checks,
-Home Manager generation builds and module evaluation. Evaluate both exported
-architectures with `nix flake check --no-build --all-systems`.
-
-<br>
-
-![Compatibility](https://img.shields.io/badge/compatibility-system%20support-4B6B8A?style=for-the-badge&logo=linux&logoColor=white)
-
-**Distributions**
-
-| | Name | Status |
-|:--:|------|---------|
-| <img src="https://cdn.simpleicons.org/cachyos" alt="CachyOS" width="22"> | CachyOS | ![Heavily tested](https://img.shields.io/badge/heavily%20tested-1A7F37) |
-| <img src="https://cdn.simpleicons.org/archlinux" alt="Arch Linux" width="22"> | Arch Linux | ![Stable](https://img.shields.io/badge/stable-1A7F37) |
-| <img src="https://cdn.simpleicons.org/endeavouros" alt="EndeavourOS" width="22"> | EndeavourOS | ![Relatively stable](https://img.shields.io/badge/relatively%20stable-D4A72C) |
-| <img src="https://cdn.simpleicons.org/fedora" alt="Fedora" width="22"> | Fedora | ![Relatively stable](https://img.shields.io/badge/relatively%20stable-D4A72C) |
-| <img src="https://cdn.simpleicons.org/manjaro" alt="Manjaro" width="22"> | Manjaro | ![Needs more testing](https://img.shields.io/badge/needs%20more%20testing-B42318) |
-| <img src="https://cdn.simpleicons.org/linux" alt="Linux" width="22"> | Artix Linux (OpenRC) | ![Needs more testing](https://img.shields.io/badge/needs%20more%20testing-B42318) |
-| <img src="https://cdn.simpleicons.org/linux" alt="Linux" width="22"> | Garuda Linux | ![Needs more testing](https://img.shields.io/badge/needs%20more%20testing-B42318) |
-| <img src="https://cdn.simpleicons.org/nobaralinux" alt="Nobara" width="22"> | Nobara | ![Needs more testing](https://img.shields.io/badge/needs%20more%20testing-B42318) |
-| <img src="https://cdn.simpleicons.org/opensuse" alt="openSUSE" width="22"> | openSUSE Tumbleweed | ![Needs more testing](https://img.shields.io/badge/needs%20more%20testing-B42318) |
-| <img src="https://cdn.simpleicons.org/gentoo" alt="Gentoo" width="22"> | Gentoo | ![Needs more testing](https://img.shields.io/badge/needs%20more%20testing-B42318) |
-| <img src="https://cdn.simpleicons.org/kde" alt="KDE" width="22"> | KDE neon | ![Container + VM qualified](https://img.shields.io/badge/container%20%2B%20VM%20qualified-D4A72C) |
-
-<br>
-
-**Init systems**
-
-| Init system | Support | Testing |
-|-------------|---------|---------|
-| systemd | Supported | Completed |
-| OpenRC | Supported | In progress |
-
-Artix uses the Arch package mappings even when its `os-release` omits
-`ID_LIKE=arch`. Dependency installation, all three C++ builds, the full test
-suite, and crontab operations have been checked in an Artix OpenRC container.
-Live installation testing is still needed; Artix is not yet included in the
-automated container matrix. Scheduled theme changes and OLED care use
-the existing per-user cron support and require a running cron daemon.
-
-<br>
-
-**Plasma versions**
-
-| Plasma | Support | Since |
-|--------|---------|-------|
-| 6.5 and older | Not supported | Not applicable |
-| 6.6 | Supported | v0.1.0 |
-| 6.7+ | Supported | v0.19.0 |
-
-<details>
-<summary><b>Chromium-based app crashes with Global Menu</b></summary>
-
-A GTK3 module lifetime defect causes the startup crash reproduced from
-[issue #81](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/81).
-The affected Chromium startup code clears `gtk-modules` after GTK initializes.
-Older `appmenu-gtk-module` builds then unload while their D-Bus callbacks and GTK
-menu hooks remain registered. The next callback crashes the app. Upstream
-addresses this by [making the module resident](https://gitlab.com/vala-panel-project/vala-panel-appmenu/-/commit/a783b01c8b653349843fac9bbd075dac52cdc9de).
-
-The Global Menu installer now adds a Plasma login hook that includes the
-installed module in `GTK3_MODULES`. GTK retains this startup reference for the
-application's lifetime, including across light/dark switches. Existing module
-choices are preserved, and the protection keeps GTK global menus available.
-
-Run `sudo ./install` with Global Menu selected, then **log out and back in**.
-The hook lives at
-`${XDG_CONFIG_HOME:-$HOME/.config}/plasma-workspace/env/mac-tahoe-gtk-appmenu.sh`;
-uninstall removes the project's hook. A fresh login is also required after
-removal, because existing processes retain their startup environment.
-
-To test one app before logging out, replace `your-application` below with its
-executable:
+## Remove or rebuild
 
 ```bash
-env GTK3_MODULES="${GTK3_MODULES:+$GTK3_MODULES:}appmenu-gtk-module" your-application
+sudo ./uninstall
 ```
 
-Both reported ChatGPT builds, **26.831.21537 and 26.901.51231**, were tested
-with fresh isolated profiles: each crashes without the hook and opens a visible
-window with it. GDB traces match both application offsets in the report. See the
-[validation record and repeatable probes](tests/native/gtk_appmenu_validation.md)
-for the tested environment and scope. Avoid removing the module from live GTK
-settings: that can itself trigger the unload defect in running apps.
+Removal restores Breeze defaults and carries pinned apps back to the default
+panel. It does not reconstruct every customization from before installation.
+Browser profile backups are retained. For selective removal:
 
-</details>
+```bash
+sudo ./uninstall --only --icons --cursors
+```
 
-<br>
+After a Plasma or KWin update, pull the latest AquaDesktop changes and rebuild
+from your desktop session:
 
-![Roadmap](https://img.shields.io/badge/project-roadmap-6B4B8A?style=for-the-badge&logo=github&logoColor=white)
+```bash
+git pull --ff-only
+sudo ./install
+```
 
-Still to come: icon polish, broader distro testing, and more app themes and widgets.
-
-<details>
-<summary><b>Open the full roadmap</b></summary>
-
-| Component | Description | Status |
-|-----------|-------------|:------:|
-| Color Schemes | Light and dark colors that carry across the desktop | Available |
-| Wallpapers | Bundled Tahoe Iridescence and Landscape wallpapers | Available |
-| Fonts | SF Pro Display, Text, Rounded, and Mono | Available |
-| Cursors | Tahoe-style pointers to match the desktop | Available |
-| Plasma Theme | Glass panels and desktop menus | Available |
-| Kvantum Theme | A matching look for Qt apps in light and dark modes | Available |
-| GTK Theme | Matching themes for GTK 2, 3, and 4 apps | Available |
-| Acrylic Glass | Blur and wallpaper refraction for the glass look | Available |
-| KDE Rounded Corners | Rounded window corners | Available |
-| Auto Theme Switcher | Light at 06:00, dark at 18:00, while keeping wallpapers you choose | Available |
-| OLED Care | Small, optional panel shifts to help reduce burn-in risk | Available |
-| Installer UI | Choose what to install or remove in a graphical window | Available |
-| Installer TUI | Make the same choices in the terminal and follow live progress | Available |
-| Localization | Installers and widgets in English, Spanish, and Simplified Chinese | Available |
-| Aurorae Decorations | macOS-style title bars and window buttons | Available |
-| Global Menu | Menus from compatible apps in the top bar | Available |
-| Dock Task Manager | Your pinned apps, hover zoom, and notification badges | Available |
-| Nautilus | A Finder-style layout for browsing your files | Available |
-| Launcher | Search for apps or browse the grid | Available |
-| Trash | Open or empty the Trash from the Dock | Available |
-| Sounds | Matching notification and system sounds | Available |
-| Boot Screen | A logo on every monitor, a progress bar, and a masked LUKS2 unlock prompt | Available |
-| Shutdown Screen | The same splash during shutdown and reboot, without the progress bar | Available |
-| Firefox Theme | Matching browser styling, with backups and cleanup for each profile | Available |
-| Icons | Light and dark icons are bundled; coverage and consistency still need polish | In progress |
-| Multi-Distro Support | More desktop testing across the listed distros, including KDE neon | In progress |
-| OpenRC Testing | Scheduled theme changes and OLED care on OpenRC | In progress |
-| Konsole Theme | A terminal profile that matches the desktop | Planned |
-| Kate Theme | Matching colors for the text editor | Planned |
-| SDDM Theme | A matching login screen | Planned |
-| Calendar | A calendar you can open from the top bar | Planned |
-| Control Center | Quick access to common desktop settings | Planned |
-| System Preferences | A macOS-style launcher for system settings | Planned |
-| OS Selector | A boot menu for choosing your operating system | Planned |
-
-</details>
-
-<br>
-
-![Contributing](https://img.shields.io/badge/contributing-A04B4B?style=for-the-badge&logo=github&logoColor=white)
+## Contributing
 
 <p>
   <a href="https://github.com/lestercorderomurillo"><img src="src/screenshots/contributors/lestercorderomurillo.svg" width="40" height="40" alt="@lestercorderomurillo" title="@lestercorderomurillo"></a>
@@ -488,30 +177,27 @@ Still to come: icon polish, broader distro testing, and more app themes and widg
   <a href="https://github.com/kozeki-uii"><img src="src/screenshots/contributors/kozeki-uii.svg" width="40" height="40" alt="@kozeki-uii" title="@kozeki-uii"></a>
 </p>
 
-Thanks to everyone helping with code, translations, bug reports, and testing. You don't need to write code to contribute.
+Report AquaDesktop issues in
+[the fork's issue tracker](https://github.com/AshesTom/AquaDesktop/issues).
+Include your distribution, Plasma version, the contents of `VERSION`, and a
+screenshot for visual problems. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
+development workflow.
 
-Bug reports are the most valuable contribution right now: **[open an issue](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)** or choose **Apple menu → About This Computer → Report a Bug…** from the desktop.
+```bash
+./test
+```
 
-Please include:
+The suite checks installer behaviour, asset consistency and widget regressions.
+Live desktop behaviour also needs testing in a Plasma session.
 
-- Your Plasma version: `plasmashell --version`
-- Your distro: `grep PRETTY_NAME /etc/os-release`
-- The theme version: `cat VERSION`
-- A screenshot or recording for visual issues
+## License and disclaimer
 
-Pull requests are welcome. Keep them focused and test them with the `./vm` harness before submitting. See [CONTRIBUTING.md](CONTRIBUTING.md) for the project workflow.
+AquaDesktop is an independent community project, unaffiliated with Apple,
+KDE or KDE e.V. Apple and macOS are trademarks of Apple Inc.
 
-<br>
-
-![Disclaimer](https://img.shields.io/badge/disclaimer-not%20affiliated%20with%20apple-6B6B6B?style=for-the-badge&logo=apple&logoColor=white)
-
-This is an independent reimplementation inspired by the macOS aesthetic. It is not affiliated with or endorsed by Apple or KDE. "macOS" and "Apple" are trademarks of Apple Inc.
-
-The bundled wallpapers, system sounds, and SF Pro / SF Mono fonts remain Apple's property and are not covered by this project's license. All other code and theme assets are original or derived from compatibly licensed open-source work.
-
-Licensed [GPL-3.0](LICENSE).
-
-<br>
+The project as a whole is licensed under [GPL-3.0](LICENSE). Individual
+components retain their own license notices. Bundled Apple wallpapers,
+SF Pro / SF Mono fonts and system sounds are outside that FOSS license.
 
 ![Credits and inspiration](https://img.shields.io/badge/credits-%26%20inspiration-8A6B4B?style=for-the-badge&logo=apple&logoColor=white)
 
@@ -519,9 +205,13 @@ Thanks to the open-source projects that inspired this one or fed assets into it.
 
 - **[EliverLara](https://github.com/EliverLara/TahoeLauncher)**: `TahoeLauncher`, the inspiration for the Launcher plasmoid.
 - **[vinceliuice](https://github.com/vinceliuice)**: `MacTahoe-icon-theme` for the icons, cursors, and GTK inspiration; and the [`MacTahoe-gtk-theme` Firefox CSS/SVG](https://github.com/vinceliuice/MacTahoe-gtk-theme/tree/main/other/firefox), maintained here as an MIT-licensed fork and integrated with this project's profile backup and restore system.
-- **[taj-ny](https://github.com/taj-ny/kwin-effects-forceblur)** and **[4v3ngR](https://github.com/4v3ngR/kwin-effects-glass)**: Better Blur and its glass fork, the starting point of the Acrylic Glass effect (the KWin blur authors stay credited in the source headers).
+- **[xarblu](https://github.com/xarblu/kwin-effects-better-blur-dx)**: Better Blur DX, bundled as the current window and Dock glass renderer (GPL-3.0; pin and local changes in `src/offline/kwin-effects/better-blur-dx/UPSTREAM.md`). Its lineage includes **[taj-ny](https://github.com/taj-ny/kwin-effects-forceblur)** and **[4v3ngR](https://github.com/4v3ngR/kwin-effects-glass)**; 4v3ngR's [glassOS](https://github.com/4v3ngR/glassOS) also inspired earlier glass presets. Original copyright and license notices remain in the sources.
+- **[maximilionus](https://github.com/maximilionus/lucidglyph)**: `lucidglyph`, the recommended FreeType / Fontconfig rendering tweaks (not bundled).
+- **[Lester Cordero Murillo](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde)**: `macos-tahoe-liquid-kde`, the project this fork is built on.
+- **[cromewar](https://github.com/cromewar/plasma-downloads-stack)**: `plasma-downloads-stack`, bundled as the Dock's Downloads stack and adapted to its proportions and magnification (GPL-3.0, license shipped alongside).
+- **[snpynk](https://github.com/snpynk/macesque-taskmanager)**: `macesque-taskmanager`, whose window-thumbnail capture drives the Dock's minimized-windows section (GPL-2.0-or-later).
 - **[luisbocanegra](https://github.com/luisbocanegra/plasma-panel-colorizer)**: `plasma-panel-colorizer` v7.3.0, bundled offline and installed by the layout step to tint the panels (GPL-3.0, license shipped alongside).
-- **[Matin Lotfaliei / KDE-Rounded-Corners](https://github.com/matinlotfali/KDE-Rounded-Corners)**: the GPL-3.0 KWin rounded-window effect, fetched from the pinned v0.9.0 release and built online against the host KWin SDK (license installed alongside).
+- **[Matin Lotfaliei / KDE-Rounded-Corners](https://github.com/matinlotfali/KDE-Rounded-Corners)**: the GPL-3.0 KWin rounded-window effect, fetched from the pinned v0.10.0 release and built online against the host KWin SDK (license installed alongside).
 - **[ful1e5](https://github.com/ful1e5)**: `apple_cursor`, inspiration for an alternate macOS-style cursor.
 - **[sahibjotsaggu](https://github.com/sahibjotsaggu)**: `San-Francisco-Pro-Fonts`, where the SF Pro / SF Mono bundle comes from.
 - **[Lucide](https://github.com/lucide-icons/lucide)**: copy icons bundled in the global menu (ISC, © Lucide Contributors).
@@ -529,4 +219,4 @@ Thanks to the open-source projects that inspired this one or fed assets into it.
 
 Please support their efforts too: star their repos, report bugs upstream, and contribute back when you can.
 
-If a credit is missing, please [open an issue](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new).
+If a credit is missing, please [open an issue](https://github.com/AshesTom/AquaDesktop/issues/new).

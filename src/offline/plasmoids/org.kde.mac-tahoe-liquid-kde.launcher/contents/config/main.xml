@@ -6,6 +6,10 @@
   <kcfgfile name=""/>
 
   <group name="General">
+    <entry name="hiddenInDock" type="Bool">
+      <label>Hide the Dock button: an "Apps" launcher pinned with the apps opens the grid instead (macOS keeps Finder first).</label>
+      <default>false</default>
+    </entry>
     <entry name="icon" type="String">
       <label>The name of the icon to use for the compact representation (e.g. on a small panel).</label>
       <default>view-app-grid</default>

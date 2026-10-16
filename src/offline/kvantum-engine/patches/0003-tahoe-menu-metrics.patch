@@ -1,0 +1,87 @@
+diff --color -ruN base/Kvantum-1.1.8/Kvantum/style/Kvantum.cpp b/Kvantum-1.1.8/Kvantum/style/Kvantum.cpp
+--- a/Kvantum/style/Kvantum.cpp	2026-10-13 09:08:48.286672329 +0200
++++ b/Kvantum/style/Kvantum.cpp	2026-10-13 09:09:01.426524461 +0200
+@@ -17,6 +17,7 @@
+ 
+ #include "Kvantum.h"
+ #include "tahoe.h"
++#include "tahoe_menu.h"
+ 
+ #include <QDir>
+ #include <QPainter>
+@@ -3223,7 +3224,8 @@
+       {
+         fspec.left = fspec.right = pixelMetric(PM_MenuHMargin,option,widget);
+       }
+-      fspec.top = fspec.bottom = pixelMetric(PM_MenuVMargin,option,widget);
++      fspec.top = fspec.bottom = pixelMetric(PM_MenuVMargin,option,widget)
++                                 - Tahoe::menuExtraVMargin(widget);
+ 
+       if (!tspec_.shadowless_popup
+           && isTranslucent && tspec_now.menu_shadow_depth > 0
+@@ -13243,7 +13245,7 @@
+           else if (metric == PM_MenuHMargin)
+             return l.at(0);
+           else
+-            return l.at(1);
++            return l.at(1) + Tahoe::menuExtraVMargin(widget);
+         }
+       }
+ 
+@@ -13293,7 +13295,7 @@
+         return v + 8;
+       else if (metric == PM_MenuHMargin)
+         return h;
+-      else return v;
++      else return v + Tahoe::menuExtraVMargin(widget);
+     }
+ 
+     case PM_MenuScrollerHeight : {
+@@ -14516,7 +14518,8 @@
+           }
+           else
+             s.setWidth(qMax(s.width(), contentsSize.width()));
+-          s.setHeight(qMax(s.height(), opt->fontMetrics.height() + 8)); // as in qcommonstyle.cpp
++          s.setHeight(qMax(s.height(), opt->fontMetrics.height()
++                                       + (combo == nullptr ? Tahoe::menuItemPadding() : 8))); // as in qcommonstyle.cpp
+           s.rwidth() += shortcutSpace;
+         }
+ 
+diff --color -ruN base/Kvantum-1.1.8/Kvantum/style/tahoe_menu.h b/Kvantum-1.1.8/Kvantum/style/tahoe_menu.h
+--- a/Kvantum/style/tahoe_menu.h	1970-01-01 01:00:00.000000000 +0100
++++ b/Kvantum/style/tahoe_menu.h	2026-10-13 09:09:01.420581454 +0200
+@@ -0,0 +1,34 @@
++/*
++ * AquaDesktop — macOS Tahoe menu metrics for Kvantum (patch 0003).
++ *
++ * Kvantum ties a menu's inner padding to its frame size, which is also its
++ * corner radius, and floors every item at Qt's font height + 8. macOS Tahoe
++ * menus have 13 px of padding above and below the items and 24 px rows.
++ *
++ * SPDX-License-Identifier: GPL-3.0-or-later
++ */
++#ifndef TAHOE_MENU_H
++#define TAHOE_MENU_H
++
++#include <QComboBox>
++#include <QMenu>
++#include <QWidget>
++
++namespace Tahoe {
++
++// Extra vertical padding of a QMenu, on top of its frame (9 px in the
++// theme): 13 px in all, as macOS. Not for combo popups.
++inline int menuExtraVMargin(const QWidget *widget)
++{
++    return qobject_cast<const QMenu *>(widget) ? 4 : 0;
++}
++
++// A menu item's height over its font height: 24 px rows with a 17 px font.
++inline int menuItemPadding()
++{
++    return 7;
++}
++
++} // namespace Tahoe
++
++#endif

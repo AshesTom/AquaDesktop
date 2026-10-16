@@ -1,0 +1,30 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: AquaDesktop\n"
+"PO-Revision-Date: 2026-10-13 00:00+0200\n"
+"Last-Translator: AquaDesktop contributors\n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "@item:keyboard the space bar, as macOS menus name it"
+msgid "Space"
+msgstr "空格"
+
+msgctxt "@action Input menu"
+msgid "Show Emoji & Symbols"
+msgstr "显示表情与符号"
+
+msgctxt "@action Input menu"
+msgid "Show Keyboard Viewer"
+msgstr "显示键盘显示程序"
+
+msgctxt "@action Input menu"
+msgid "Show Clipboard History"
+msgstr "显示剪贴板历史记录"
+
+msgctxt "@action Input menu"
+msgid "Open Keyboard Settings…"
+msgstr "打开键盘设置…"

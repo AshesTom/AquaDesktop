@@ -1,5 +1,5 @@
 [Unit]
-Description=MacTahoe Liquid KDE — fire time-based light/dark transitions
+Description=AquaDesktop — fire time-based light/dark transitions
 
 [Timer]
 # Fire at 06:00 (light) and 18:00 (dark) every day. Triggers the same

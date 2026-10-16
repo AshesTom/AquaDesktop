@@ -23,7 +23,7 @@ ALL_DISTROS=(
     opensuse
     neon
     # Arch with [kde-unstable] — the newest-KWin compile target. Keep it
-    # last; it pulls the staging Plasma so the acrylic-glass effect is
+    # last; it pulls the staging Plasma so the Glass effect is
     # compiled against the next ABI (6.7+) before any release distro has it.
     arch-kdeunstable
 )

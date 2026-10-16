@@ -1,0 +1,8 @@
+module org.kde.mactahoe
+import org.kde.desktop auto
+ItemDelegate 1.0 ItemDelegate.qml
+Menu 1.0 Menu.qml
+MenuItem 1.0 MenuItem.qml
+Switch 1.0 Switch.qml
+SwitchDelegate 1.0 SwitchDelegate.qml
+internal MacSwitchIndicator MacSwitchIndicator.qml

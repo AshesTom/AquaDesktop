@@ -739,3 +739,24 @@ def test_only_globalmenu_selects_just_globalmenu(cli_module):
     assert cli_module.should_process("globalmenu", feat) is True
     assert cli_module.should_process("plasmoids", feat) is False
     assert cli_module.should_process("icons", feat) is False
+
+
+def test_component_help_matches_parser_and_retired_sddm_is_not_offered(cli_module):
+    for feature in cli_module.ALL_FEATURES:
+        flag = "--" + feature.replace("_", "-")
+        assert flag in cli_module.INSTALL_HELP
+        assert flag in cli_module.UNINSTALL_HELP
+        assert cli_module.parse_args([flag]).cli_overrides == {feature: True}
+    assert "--sddm" not in cli_module.INSTALL_HELP
+    assert "sddm" not in cli_module.DEFAULT_FEATURES
+
+
+def test_apps_flag_reaches_install_step(cli_module, monkeypatch):
+    phases = []
+    for name in ("run_preflight", "verify_plasma", "_check_deps", "_run_builds_or_abort"):
+        monkeypatch.setattr(cli_module, name, lambda *args: True)
+    monkeypatch.setattr(cli_module, "_run_optional_downloads", lambda *args: None)
+    monkeypatch.setattr(cli_module, "_print_done", lambda *args: None)
+    monkeypatch.setattr(cli_module, "run_phase", lambda *args: phases.append(args) or True)
+    assert cli_module._run_install_body({"apps": True, "apply_theme": False}) == 0
+    assert ("apps", "install") in phases

@@ -158,6 +158,8 @@ def _stub_apply_dependencies(monkeypatch, calls):
                         calls.append(("wallpaper", mode)) or True)
     monkeypatch.setattr(theme_switch, "_apply_local_extras",
                         lambda mode: calls.append(("local_extras", mode)))
+    monkeypatch.setattr(theme_switch, "apply_glass_preset",
+                        lambda mode: calls.append(("glass", mode)) or True)
     monkeypatch.setattr(theme_switch, "_apply_lookandfeel_live",
                         lambda laf: calls.append(("laf", laf)) or True)
     monkeypatch.setattr(theme_switch, "apply_cursortheme_live",
@@ -191,8 +193,9 @@ def test_apply_runs_full_pipeline_in_order(monkeypatch):
         if c[0] == "qdbus" and c[1][0] == "org.kde.KWin"
     )
 
-    assert (laf_idx < write_idx < extras_idx < wallpaper_idx < cursor_idx
-            < cycle_idx < reconfigure_idx)
+    glass_idx = next(i for i, c in enumerate(calls) if c[0] == "glass")
+    assert (laf_idx < write_idx < extras_idx < glass_idx < wallpaper_idx
+            < cursor_idx < cycle_idx < reconfigure_idx)
     assert ("laf", theme_switch.LAF_DARK) in calls
     assert ("cycle", "kvantum") in calls
 
@@ -243,7 +246,8 @@ def _prep_effect_warn_case(monkeypatch, tmp_path, kwinrc_body):
     kwinrc = home / ".config/kwinrc"
     kwinrc.write_text(kwinrc_body)
     for fn in ("write_kde_theme_config", "_apply_wallpaper",
-               "apply_cursortheme_live", "cycle_widget_style_live"):
+               "apply_cursortheme_live", "cycle_widget_style_live",
+               "apply_glass_preset"):
         monkeypatch.setattr(theme_switch, fn, lambda *a, **k: True)
     monkeypatch.setattr(theme_switch, "_apply_local_extras", lambda m: None)
     monkeypatch.setattr(theme_switch, "_apply_lookandfeel_live", lambda laf: True)
@@ -262,10 +266,10 @@ def test_apply_warns_when_third_party_effect_fails_to_load(
     and must NOT touch the on-disk key (so it returns once rebuilt)."""
     ts, kwinrc = _prep_effect_warn_case(
         monkeypatch, tmp_path,
-        "[Plugins]\nshapecornersEnabled=true\nliquidglassEnabled=true\n")
+        "[Plugins]\nshapecornersEnabled=true\nglassEnabled=true\n")
     # KWin reloaded everything EXCEPT the third-party effect.
     monkeypatch.setattr(ts, "_kwin_loaded_effects",
-                        lambda: {"liquidglass", "blur", "kwin4_effect_slide"})
+                        lambda: {"glass", "blur", "kwin4_effect_slide"})
 
     assert ts.apply("dark") is True
     err = capsys.readouterr().err
@@ -281,7 +285,7 @@ def test_apply_no_warn_when_effect_loads_fine(monkeypatch, tmp_path, capsys):
     ts, _ = _prep_effect_warn_case(
         monkeypatch, tmp_path, "[Plugins]\nshapecornersEnabled=true\n")
     monkeypatch.setattr(ts, "_kwin_loaded_effects",
-                        lambda: {"kwin4_effect_shapecorners", "liquidglass"})
+                        lambda: {"kwin4_effect_shapecorners", "glass"})
     assert ts.apply("dark") is True
     assert "could not load" not in capsys.readouterr().err
 
@@ -293,8 +297,8 @@ def test_apply_reloads_third_party_effect_before_warning(
     ts, _ = _prep_effect_warn_case(
         monkeypatch, tmp_path, "[Plugins]\nshapecornersEnabled=true\n")
     loaded = iter([
-        {"liquidglass"},
-        {"liquidglass", "kwin4_effect_shapecorners"},
+        {"glass"},
+        {"glass", "kwin4_effect_shapecorners"},
     ])
     monkeypatch.setattr(ts, "_kwin_loaded_effects", lambda: next(loaded))
     calls = []
@@ -311,11 +315,11 @@ def test_apply_reloads_third_party_effect_before_warning(
 
 def test_apply_reloads_own_compiled_effect_after_reconfigure(
         monkeypatch, tmp_path, capsys):
-    """Routine light/dark switches must restore liquidglass too, not only
+    """Routine light/dark switches must restore glass too, not only
     third-party effects or the install-time apply wrapper."""
     ts, _ = _prep_effect_warn_case(
-        monkeypatch, tmp_path, "[Plugins]\nliquidglassEnabled=true\n")
-    loaded = iter([set(), {"liquidglass"}])
+        monkeypatch, tmp_path, "[Plugins]\nbetter_blur_dxEnabled=true\n")
+    loaded = iter([set(), {"better_blur_dx"}])
     monkeypatch.setattr(ts, "_kwin_loaded_effects", lambda: next(loaded))
     calls = []
     monkeypatch.setattr(ts, "_qdbus",
@@ -323,10 +327,10 @@ def test_apply_reloads_own_compiled_effect_after_reconfigure(
 
     assert ts.apply("dark") is True
     assert any(
-        call[-2:] == ("org.kde.kwin.Effects.loadEffect", "liquidglass")
+        call[-2:] == ("org.kde.kwin.Effects.loadEffect", "better_blur_dx")
         for call in calls
     )
-    assert "liquidglass" not in capsys.readouterr().err
+    assert "better_blur_dx" not in capsys.readouterr().err
 
 
 def test_apply_no_warn_for_user_disabled_effect(monkeypatch, tmp_path, capsys):
@@ -335,7 +339,7 @@ def test_apply_no_warn_for_user_disabled_effect(monkeypatch, tmp_path, capsys):
     warning, and obviously no re-enabling."""
     ts, kwinrc = _prep_effect_warn_case(
         monkeypatch, tmp_path, "[Plugins]\nshapecornersEnabled=false\n")
-    monkeypatch.setattr(ts, "_kwin_loaded_effects", lambda: {"liquidglass"})
+    monkeypatch.setattr(ts, "_kwin_loaded_effects", lambda: {"glass"})
     assert ts.apply("dark") is True
     assert "shapecorners" not in capsys.readouterr().err
     assert ts._parse_ini(kwinrc)["Plugins"]["shapecornersEnabled"] == "false"
@@ -374,6 +378,8 @@ def test_apply_finishes_cycle_and_reconfigure_when_extras_raise(monkeypatch):
         raise OSError(17, "File exists", "/home/x/.config/gtk-4.0/assets")
 
     monkeypatch.setattr(theme_switch, "_apply_local_extras", boom)
+    # Writes kwinrc through kwriteconfig6: never the real one.
+    monkeypatch.setattr(theme_switch, "apply_glass_preset", lambda _mode: True)
     monkeypatch.setattr(theme_switch, "cycle_widget_style_live",
                         lambda target: calls.append(("cycle", target)) or True)
     monkeypatch.setattr(theme_switch, "_qdbus",
@@ -525,6 +531,36 @@ def test_local_extras_replaces_kde_generated_light_gtk4_sheet_in_dark_mode(
     gtk4 = home / ".config/gtk-4.0"
     gtk4.mkdir(parents=True)
     (gtk4 / "gtk.css").write_text("LIGHT\n@import 'colors.css';")
+
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setattr(theme_switch, "_have", lambda _cmd: False)
+    monkeypatch.setattr(theme_switch, "_qdbus", lambda *args: True)
+    monkeypatch.setattr(theme_switch, "flush_icon_caches", lambda: None)
+
+    theme_switch._apply_local_extras("dark")
+
+    assert (gtk4 / "gtk.css").is_symlink()
+    assert (gtk4 / "gtk.css").readlink().name == "gtk-Dark.css"
+
+
+def test_local_extras_replaces_a_stale_sheet_from_an_older_release(
+        monkeypatch, tmp_path):
+    """After an update, kde-gtk-config may keep the previous release's
+    expanded sheet in gtk.css. It matches no installed sheet any more but
+    carries our Finder block, so it is ours and must give way."""
+    import theme_switch
+
+    home = tmp_path / "home"
+    for variant in ("Light", "Dark"):
+        root = (home / ".themes" / f"MacTahoeLiquidKde-{variant}"
+                / "gtk-4.0")
+        root.mkdir(parents=True)
+        (root / f"gtk-{variant}.css").write_text(f"NEW {variant}")
+    gtk4 = home / ".config/gtk-4.0"
+    gtk4.mkdir(parents=True)
+    (gtk4 / "gtk.css").write_text(
+        "OLD\n" + theme_switch._GTK4_FINDER_START + "\nold finder\n"
+        + theme_switch._GTK4_FINDER_END + "\n@import 'colors.css';")
 
     monkeypatch.setenv("HOME", str(home))
     monkeypatch.setattr(theme_switch, "_have", lambda _cmd: False)
@@ -814,8 +850,8 @@ def test_session_env_recovers_custom_xdg_paths_for_openrc_cron(
 
 _APPLY_SUBCALLS = (
     "write_kde_theme_config", "_apply_wallpaper", "_apply_local_extras",
-    "_apply_lookandfeel_live", "apply_cursortheme_live",
-    "cycle_widget_style_live", "_qdbus",
+    "apply_glass_preset", "_apply_lookandfeel_live", "apply_cursortheme_live",
+    "cycle_widget_style_live", "_qdbus", "apply_kvantum_accent",
 )
 
 
@@ -1386,9 +1422,31 @@ def test_apply_color_scheme_prefers_plasma_apply_tool(monkeypatch):
     monkeypatch.setattr(theme_switch, "_run_user",
                         lambda cmd, **kw: seen.update(cmd=cmd) or
                         _FakeResult(0))
+    monkeypatch.setattr(theme_switch, "_kread", lambda *a: "")
     assert theme_switch.apply_color_scheme("MacTahoeLiquidKdeDark") is True
     assert seen["cmd"] == ["plasma-apply-colorscheme",
                            "MacTahoeLiquidKdeDark"]
+
+
+@pytest.mark.parametrize("stored, expected", [
+    ("255,149,0", ["--accent-color", "#ff9500"]),
+    ("", []),
+    ("garbage", []),
+    ("300,0,0", []),
+])
+def test_apply_color_scheme_keeps_the_accent_colour(monkeypatch, stored, expected):
+    """A Light / Dark switch re-applies the user's accent colour: the
+    scheme alone would bring its own blue back."""
+    import theme_switch
+    seen: dict = {}
+    monkeypatch.setattr(theme_switch, "_have",
+                        lambda cmd: cmd == "plasma-apply-colorscheme")
+    monkeypatch.setattr(theme_switch, "_run_user",
+                        lambda cmd, **kw: seen.update(cmd=cmd) or _FakeResult(0))
+    monkeypatch.setattr(theme_switch, "_kread",
+                        lambda f, g, k: stored if (g, k) == ("General", "AccentColor") else "")
+    assert theme_switch.apply_color_scheme("MacTahoeLiquidKdeLight") is True
+    assert seen["cmd"] == ["plasma-apply-colorscheme", "MacTahoeLiquidKdeLight", *expected]
 
 
 def test_apply_color_scheme_reports_tool_failure(monkeypatch):
@@ -1448,6 +1506,41 @@ def test_write_kde_theme_config_reports_write_failure(monkeypatch, sandbox):
     monkeypatch.setattr(theme_switch, "apply_color_groups_direct",
                         lambda s: True)
     assert theme_switch.write_kde_theme_config("dark") is True
+
+
+def test_dark_icon_overlay_is_applied_and_notified_to_kde(
+        monkeypatch, tmp_path):
+    """A config write alone leaves KDE's running KIconLoaders on the old
+    theme. Dark appearance must select the Icon Manager overlay and emit the
+    dedicated IconChanged notification after writing kdeglobals."""
+    import theme_switch
+
+    overlay = (tmp_path / "icons/MacTahoeLiquidKde-Icons-dark-custom")
+    (overlay / "apps/512").mkdir(parents=True)
+    (overlay / "index.theme").write_text("[Icon Theme]\n")
+    (overlay / "apps/512/steam.png").write_bytes(b"png")
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+    monkeypatch.setattr(theme_switch, "_have",
+                        lambda command: command in {"kwriteconfig6", "dbus-send"})
+    monkeypatch.setattr(theme_switch, "_has_session_dbus", lambda: True)
+    monkeypatch.setattr(theme_switch, "apply_color_scheme", lambda _scheme: True)
+    calls = []
+
+    def run_user(command, **kwargs):
+        calls.append(command)
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(theme_switch, "_run_user", run_user)
+
+    assert theme_switch.write_kde_theme_config("dark") is True
+
+    icon_write = next(call for call in calls if
+                      "--group" in call and "Icons" in call and
+                      "--key" in call and "Theme" in call)
+    assert icon_write[-1] == "MacTahoeLiquidKde-Icons-dark-custom"
+    notify = next(call for call in calls if call[0] == "dbus-send")
+    assert notify[-2:] == ["int32:4", "int32:0"]
+    assert calls.index(icon_write) < calls.index(notify)
 
 
 def test_color_scheme_is_applied_before_target_name_is_stamped(monkeypatch):
@@ -2000,3 +2093,91 @@ def test_switch_step_openrc_uninstall_strips_crontab(sandbox, tmp_path):
               shim_dir=shim_dir)
     # uninstall reads the crontab (to filter our tag) on the OpenRC path.
     assert "crontab -l" in log_file.read_text()
+
+
+def test_picture_of_the_day_screen_is_never_overwritten(monkeypatch):
+    """A desktop showing another wallpaper type (Picture of the Day) is the
+    user's, though org.kde.image's leftover Image key still names ours: the
+    switch neither rewrites it nor runs the all-screens helper."""
+    import theme_switch as ts
+    ours = "file:///home/u/.local/share/wallpapers/MacTahoe"
+    monkeypatch.setattr(ts, "_load_wallpaper_state", lambda: {
+        "initialized": True, "enabled": True, "user_screens": [],
+        "last_applied": [{"screen": 0, "image": ours}, {"screen": 1, "image": ours}]})
+    monkeypatch.setattr(ts, "_save_wallpaper_state", lambda state: None)
+    monkeypatch.setattr(ts, "_current_wallpapers", lambda: [
+        {"screen": 0, "image": ours}, {"screen": 1, "image": ours}])
+    monkeypatch.setattr(ts, "_wallpaper_path", lambda mode: Path("/w/MacTahoe"))
+    monkeypatch.setattr(ts, "_apply_theme_wallpaper", lambda mode: (_ for _ in ()).throw(
+        AssertionError("the global helper would replace Picture of the Day")))
+    applied = []
+    monkeypatch.setattr(ts, "_apply_wallpaper_snapshot",
+                        lambda snapshot, skip=frozenset(): applied.append((snapshot, skip)) or True)
+    monkeypatch.setattr(ts, "_foreign_wallpaper_screens", lambda: {1})
+    assert ts._apply_wallpaper("dark") is True
+    assert applied == [([{"screen": 0, "image": "file:///w/MacTahoe"}], {1})]
+    # Every screen the user's: nothing is applied.
+    applied.clear()
+    monkeypatch.setattr(ts, "_foreign_wallpaper_screens", lambda: {0, 1})
+    assert ts._apply_wallpaper("dark") is True
+    assert applied == []
+
+
+def test_wallpaper_scripts_skip_foreign_screens(monkeypatch, tmp_path):
+    import theme_switch as ts
+    script = ts._build_wallpaper_apply_script([{"screen": 0, "image": "file:///a"}], {1})
+    assert "var skip = [1];" in script and "skip.indexOf(d.screen) >= 0" in script
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    (tmp_path / "plasma-org.kde.plasma.desktop-appletsrc").write_text(
+        "[Containments][1]\nplugin=org.kde.desktopcontainment\nlastScreen=0\n"
+        "wallpaperplugin=org.kde.potd\n\n"
+        "[Containments][2]\nplugin=org.kde.plasma.folder\nlastScreen=1\n"
+        "wallpaperplugin=org.kde.image\n")
+    monkeypatch.setattr(ts, "_evaluate_plasma_script", lambda script: None)
+    assert ts._foreign_wallpaper_screens_unpatched() == {0}
+    monkeypatch.setattr(ts, "_evaluate_plasma_script",
+                        lambda script: '[{"screen":0,"plugin":"org.kde.image"},'
+                                       '{"screen":1,"plugin":"org.kde.potd"}]\n')
+    assert ts._foreign_wallpaper_screens_unpatched() == {1}
+
+
+def test_breeze_palette_under_our_scheme_name_is_repaired(monkeypatch, tmp_path):
+    """A reinstall left Breeze Light's colours under ColorScheme=…Dark; KDE
+    never re-applies a scheme it believes current. The palette itself is
+    checked against the scheme file and re-applied until it matches."""
+    import theme_switch as ts
+    scheme = tmp_path / "MacTahoeLiquidKdeDark.colors"
+    scheme.write_text("[Colors:Window]\nBackgroundNormal=36,36,36\nForegroundNormal=255,255,255\n"
+                      "[Colors:View]\nBackgroundNormal=30,30,30\n")
+    kdeglobals = tmp_path / "kdeglobals"
+    kdeglobals.write_text("[General]\nColorScheme=MacTahoeLiquidKdeDark\n"
+                          "[Colors:Window]\nBackgroundNormal=239,240,241\nForegroundNormal=35,38,41\n"
+                          "[Colors:View]\nBackgroundNormal=255,255,255\n")
+    monkeypatch.setattr(ts, "_find_scheme_file", lambda name: scheme if name.endswith("Dark") else None)
+    monkeypatch.setattr(ts, "_kdeglobals_path", lambda: kdeglobals)
+    assert ts.palette_matches_scheme("MacTahoeLiquidKdeDark") is False
+    assert ts.palette_matches_scheme("MacTahoeLiquidKdeLight") is None
+    applied = []
+
+    def apply(name):
+        applied.append(name)
+        if name.endswith("Dark"):
+            kdeglobals.write_text("[General]\nColorScheme=MacTahoeLiquidKdeDark\n" + scheme.read_text())
+        return True
+
+    monkeypatch.setattr(ts, "apply_color_scheme", apply)
+    assert ts.ensure_color_scheme("MacTahoeLiquidKdeDark") is True
+    # Through the opposite scheme first, so KDE sees a real change.
+    assert applied == ["MacTahoeLiquidKdeLight", "MacTahoeLiquidKdeDark"]
+    assert ts.palette_matches_scheme("MacTahoeLiquidKdeDark") is True
+    applied.clear()
+    assert ts.ensure_color_scheme("MacTahoeLiquidKdeDark") is True
+    assert applied == []
+
+
+def test_installer_verifies_the_palette_after_restarting_plasma(src):
+    cli = (src / "scripts/cli.py").read_text()
+    restart = cli.index('run_phase("apply", "restart_plasma")\n        run_phase("apply", "repair_colors")')
+    assert restart > 0
+    apply = (src / "scripts/steps/apply.py").read_text()
+    assert '[str(switch), "repair-colors"]' in apply

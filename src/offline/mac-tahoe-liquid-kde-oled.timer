@@ -1,5 +1,5 @@
 [Unit]
-Description=MacTahoe Liquid KDE — OLED care pixel-shift cadence
+Description=AquaDesktop — OLED care pixel-shift cadence
 
 [Timer]
 # One geometry step per fire. The 5-minute default below is rewritten

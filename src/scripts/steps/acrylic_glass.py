@@ -1,3 +1,12 @@
+"""Window and Dock glass: the Better Blur DX KWin effect (xarblu).
+
+The feature keeps its historical ``acrylic_glass`` id (``--acrylic-glass``,
+features.json) so existing installs and scripts keep working; the Glass and
+Acrylic Glass effects earlier releases installed are migrated away on
+install. Source: src/offline/kwin-effects/better-blur-dx (UPSTREAM.md there
+lists the AquaDesktop changes: the Dock's own blur and its edge lens).
+"""
+
 import subprocess
 import time
 import uuid
@@ -5,15 +14,30 @@ from pathlib import Path
 
 from distro import qt6_plugins_dir
 from steps._helpers import (
-    build_dir, cmake_build, fail, info, kw_write, ok, offline, qdbus_call,
-    sudo_install_file, sudo_remove, warn,
+    build_dir, cmake_build, info, kw_write, ok, offline, qdbus_call,
+    sudo_install_file, sudo_remove, theme_mode, warn,
 )
+from theme_switch import GLASS_EFFECT, GLASS_GROUP, glass_preset
 from utils import have, qdbus_cmd, run_user
 
-SRC = offline("kwin-effects/acrylic-glass")
-BUILD = build_dir("kwin-effects/acrylic-glass")
+SRC = offline("kwin-effects/better-blur-dx")
+BUILD = build_dir("kwin-effects/better-blur-dx")
 HOME = Path.home()
 LEGACY_USER_PLUGIN_DIR = HOME / ".local/lib/qt6/plugins"
+
+_EFFECT_SO = "kwin/effects/plugins/better_blur_dx.so"
+_CONFIG_SO = "kwin/effects/configs/kwin_better_blur_dx_config.so"
+# The effects earlier releases installed: (KWin id, kwinrc group, files).
+_REPLACED_EFFECTS = (
+    ("glass", "Effect-blurplus", (
+        "kwin/effects/plugins/glass.so",
+        "kwin/effects/configs/kwin_glass_config.so",
+    )),
+    ("liquidglass", "Effect-liquidglass", (
+        "kwin/effects/plugins/liquidglass.so",
+        "kwin/effects/configs/kwin_liquidglass_config.so",
+    )),
+)
 
 
 def deps():
@@ -26,7 +50,7 @@ def deps():
         "make",
         "g++:gcc",
         "pkg-config:pkgconf",
-        # KF6 components required by the acrylic-glass CMakeLists.
+        # KF6 components required by the effect's CMakeLists (and KWin's SDK).
         "kf6-config-cmake:kconfig",
         "kf6-configwidgets-cmake:kconfigwidgets",
         "kf6-coreaddons-cmake:kcoreaddons",
@@ -40,11 +64,11 @@ def deps():
         "kf6-windowsystem-cmake:kwindowsystem",
         "kf6-guiaddons-cmake:kguiaddons",
         "kf6-kcmutils-cmake:kcmutils",
-        # KWin (Wayland) is mandatory: the effect refuses to configure
-        # if neither GLASS_WAYLAND nor GLASS_X11 ends up enabled.
+        "kf6-colorscheme-cmake:kcolorscheme",
+        # KWin (Wayland) is mandatory: the effect is built against its SDK.
         "kwin-cmake:kwin",
         "kdecoration-cmake:kdecoration",
-        # XCB is REQUIRED even with the X11 path off — the Wayland code uses it.
+        # XCB is REQUIRED by KWin's public SDK even on Wayland.
         "epoxy-cmake:libepoxy",
         "x11-cmake:libx11",
         "xcb-cmake:libxcb",
@@ -63,8 +87,8 @@ def deps():
 
 def build_artifacts() -> list[Path]:
     return [
-        BUILD / "src/liquidglass.so",
-        BUILD / "src/kcm/kwin_liquidglass_config.so",
+        BUILD / "src/better_blur_dx.so",
+        BUILD / "src/kcm/kwin_better_blur_dx_config.so",
     ]
 
 
@@ -77,206 +101,211 @@ def _plugin_dir() -> Path:
 def build() -> None:
     if not (SRC / "CMakeLists.txt").is_file():
         return
-    # Disable conflicting blur effects before build so the kwin plugin
-    # loader doesn't keep the .so mapped while we replace it.
-    kw_write("--file", "kwinrc", "--group", "Plugins",
-             "--key", "glassEnabled", "false")
+    # Unload the effects that would keep a .so mapped while it is replaced,
+    # and the stock blur, which would blur a second time.
     kw_write("--file", "kwinrc", "--group", "Plugins",
              "--key", "blurEnabled", "false")
-    qdbus_call("org.kde.KWin", "/Effects",
-               "org.kde.kwin.Effects.unloadEffect", "glass")
-    qdbus_call("org.kde.KWin", "/Effects",
-               "org.kde.kwin.Effects.unloadEffect", "blur")
+    for effect in (GLASS_EFFECT, "blur"):
+        qdbus_call("org.kde.KWin", "/Effects",
+                   "org.kde.kwin.Effects.unloadEffect", effect)
 
-    cmake_build(SRC, BUILD, "Acrylic Glass")
+    cmake_build(SRC, BUILD, "Better Blur DX")
 
 
-_PRESET = (
-    ("BevelStrength", "0.22"), ("BlurDecorations", "true"),
-    # Match the effect's default: two Kawase downsample levels. Strength 5
-    # enters a third level and adds compositor work on every blurred frame.
-    ("BlurStrength", "3.5"), ("BorderWidth", "32"),
-    ("Brightness", "1.0"), ("Contrast", "1.0"),
-    ("EdgeBandFactor", "0.24"),
-    ("EdgeLighting", "false"), ("ExcludeDocks", "true"),
-    ("GlassInactiveWindows", "true"), ("GlassThickness", "0.2"),
-    ("GlowColor", "#00000000"), ("HighlightStrength", "0.30"),
-    ("HighlightWidth", "24"), ("InnerShadowStrength", "0.2"),
-    ("IridescenceStrength", "0.1"), ("MagnifyGlassStrength", "0.03"),
-    ("NoiseStrength", "2"), ("RefractionEdgeSize", "0"),
-    ("RefractionNormalPow", "6"), ("RefractionRGBFringing", "0"),
-    ("RefractionStrength", "0"), ("RefractionWidth", "96"),
-    ("RgbRinging", "12"), ("RimStrength", "0.5"),
-    ("RimWidth", "32"), ("Saturation", "1.0"),
-    ("ShadowStrength", "2.50"), ("SpectralMix", "1"),
-    ("SpecularStrength", "0.08"), ("TintColor", "#00000000"),
-    ("BlurMatching", "false"), ("BlurNonMatching", "true"),
+# Every mode: blur behind every window (the translucent Kvantum / GTK
+# surfaces need it) and decorations. Menus and docks are never force-blurred
+# (they ask for their own region), and plasmashell is on the deny-list:
+# Plasma surfaces keep exactly the region they request, so frameless popups
+# (the Dock's Downloads fan, the Control Center's room around its bubbles)
+# stay clear. The rest of the list are windows that render a stray glass
+# shape when force-blurred, and VirtualBox VMs whatever the case of their
+# class (issue #90: glass filled their fullscreen / seamless cutouts).
+_SHARED = (
+    ("BlurDecorations", "true"),
+    ("BlurMatching", "false"),
+    ("BlurNonMatching", "true"),
+    ("BlurDocks", "false"),
+    ("BlurMenus", "false"),
+    ("WindowClasses", "plasmashell\ncairo-dock\nkwin_wayland\nlinux-wallpaperengine\n"
+                      "xembedsniproxy\n/(?i)^VirtualBoxVM$/"),
 )
 
-
+# The windows' radius (Plasma surfaces, the Dock included, bring their own
+# rounded blur region, which the effect respects).
 _CORNER_DEFAULTS = (
-    ("WindowCornerRadius", "22"),
-    ("DockCornerRadius", "20"),
-    ("PopupCornerRadius", "6"),
+    ("CornerRadius", "22"),
 )
+# Defaults earlier releases seeded: still holding one means the user never
+# tuned it, so the current default replaces it.
+_PREVIOUS_CORNER_DEFAULTS: dict[str, tuple[str, ...]] = {}
 
 
 def _install_corner_defaults() -> None:
-    """Seed missing radii without undoing the user's corner tuning (#89).
-
-    The current effect has only three radius controls: popups also cover
-    menus/tooltips, and normal windows cover dialogs and bottom corners.
-    Preserve even explicitly empty values; failed reads never authorize a
-    write. KConfig's cascade handles both user and system configuration.
-    """
+    """Seed missing radii without undoing the user's corner tuning (#89):
+    explicitly empty values are kept too, and a failed read never
+    authorizes a write."""
     if not have("kreadconfig6"):
-        warn("Acrylic Glass corner settings preserved — kreadconfig6 is unavailable")
+        warn("Glass corner settings preserved — kreadconfig6 is unavailable")
         return
     sentinel = f"__mttkde_absent_{uuid.uuid4().hex}__"
     for key, default in _CORNER_DEFAULTS:
         try:
             result = run_user(
                 ["kreadconfig6", "--file", "kwinrc", "--group",
-                 "Effect-liquidglass", "--key", key, "--default", sentinel],
+                 GLASS_GROUP, "--key", key, "--default", sentinel],
                 check=False, capture_output=True, text=True, timeout=5,
             )
         except (OSError, subprocess.TimeoutExpired) as exc:
-            warn(f"Acrylic Glass {key} preserved — could not read it ({exc})")
+            warn(f"Glass {key} preserved — could not read it ({exc})")
             continue
         if result.returncode != 0:
-            warn(f"Acrylic Glass {key} preserved — kreadconfig6 failed")
+            warn(f"Glass {key} preserved — kreadconfig6 failed")
             continue
-        if (result.stdout or "").removesuffix("\n").removesuffix("\r") == sentinel:
-            if not kw_write("--file", "kwinrc", "--group", "Effect-liquidglass",
+        value = (result.stdout or "").removesuffix("\n").removesuffix("\r")
+        if value == sentinel or value in _PREVIOUS_CORNER_DEFAULTS.get(key, ()):
+            if not kw_write("--file", "kwinrc", "--group", GLASS_GROUP,
                             "--key", key, default):
-                warn(f"Acrylic Glass {key} default not applied — kwriteconfig6 failed")
+                warn(f"Glass {key} default not applied — kwriteconfig6 failed")
+
+
+def _strip_kwinrc_group(group: str) -> None:
+    """Drop a whole kwinrc group, so a reinstall never keeps stale values."""
+    kwinrc = HOME / ".config/kwinrc"
+    if not kwinrc.is_file():
+        return
+    text = kwinrc.read_text()
+    header = f"[{group}]"
+    if header not in text:
+        return
+    out: list[str] = []
+    skip = False
+    for line in text.splitlines():
+        if line.startswith(header):
+            skip = True
+            continue
+        if skip and line.startswith("["):
+            skip = False
+        if not skip:
+            out.append(line)
+    kwinrc.write_text("\n".join(out) + "\n")
+
+
+def _remove_replaced_effects() -> None:
+    """Earlier releases installed Glass (``glass``) and Acrylic Glass
+    (``liquidglass``): disable each before unloading (a reconfigure could
+    otherwise load it again), then drop its plugin and settings."""
+    system_dir = _plugin_dir()
+    for effect, group, files in _REPLACED_EFFECTS:
+        kw_write("--file", "kwinrc", "--group", "Plugins",
+                 "--key", f"{effect}Enabled", "false")
+        qdbus_call("org.kde.KWin", "/Effects",
+                   "org.kde.kwin.Effects.unloadEffect", effect)
+        _strip_kwinrc_group(group)
+        for relpath in files:
+            target = system_dir / relpath
+            if target.exists():
+                sudo_remove(target, f"{target.name} (replaced by Better Blur DX)")
+            legacy = LEGACY_USER_PLUGIN_DIR / relpath
+            if legacy.is_file():
+                try:
+                    legacy.unlink()
+                    ok(f"{legacy.name} (removed user-path leftover)")
+                except OSError:
+                    pass
+
+
+def _kwin_has_effect(effect: str) -> bool:
+    q = qdbus_cmd()
+    if not q:
+        return False
+    try:
+        res = run_user([q, "org.kde.KWin", "/Effects",
+                        "org.kde.kwin.Effects.activeEffects"],
+                       check=False, capture_output=True, text=True,
+                       timeout=10)
+    except subprocess.TimeoutExpired:
+        return False
+    return effect in (res.stdout or "").split()
 
 
 def install() -> None:
     system_dir = _plugin_dir()
-    effect_so = BUILD / "src/liquidglass.so"
-    config_so = BUILD / "src/kcm/kwin_liquidglass_config.so"
-    dest_effect = system_dir / "kwin/effects/plugins/liquidglass.so"
-    dest_config = system_dir / "kwin/effects/configs/kwin_liquidglass_config.so"
-
+    effect_so = BUILD / "src/better_blur_dx.so"
+    config_so = BUILD / "src/kcm/kwin_better_blur_dx_config.so"
     if not effect_so.is_file():
         return
 
-    # Unload before replacing the .so so kwin doesn't hold the file.
+    _remove_replaced_effects()
+
+    # Unload before replacing the .so so KWin doesn't hold the file.
     kw_write("--file", "kwinrc", "--group", "Plugins",
-             "--key", "liquidglassEnabled", "false")
+             "--key", f"{GLASS_EFFECT}Enabled", "false")
     qdbus_call("org.kde.KWin", "/Effects",
-               "org.kde.kwin.Effects.unloadEffect", "liquidglass")
+               "org.kde.kwin.Effects.unloadEffect", GLASS_EFFECT)
     qdbus_call("org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure")
     time.sleep(2)
-    ok("Acrylic Glass unloaded for safe upgrade")
+    ok("Better Blur DX unloaded for safe upgrade")
 
-    # Drop user-path leftovers from old sudoless installs.
-    for so in (LEGACY_USER_PLUGIN_DIR / "kwin/effects/plugins/liquidglass.so",
-               LEGACY_USER_PLUGIN_DIR / "kwin/effects/configs/kwin_liquidglass_config.so"):
-        if so.is_file():
-            try:
-                so.unlink()
-                ok(f"{so.name} (removed user-path leftover)")
-            except OSError:
-                pass
-
-    if not sudo_install_file(effect_so, dest_effect, "Acrylic Glass installed"):
+    if not sudo_install_file(effect_so, system_dir / _EFFECT_SO, "Better Blur DX installed"):
         return
-    if not sudo_install_file(config_so, dest_config, "Acrylic Glass KCM installed"):
-        warn("Acrylic Glass KCM install failed")
+    if not sudo_install_file(config_so, system_dir / _CONFIG_SO, "Better Blur DX settings installed"):
+        warn("Better Blur DX settings module install failed")
 
-    for key, value in _PRESET:
-        kw_write("--file", "kwinrc", "--group", "Effect-liquidglass",
-                 "--key", key, value)
+    for key, value in _SHARED:
+        kw_write("--file", "kwinrc", "--group", GLASS_GROUP, "--key", key, value)
+    # The theme switch rewrites the per-mode blur on every light/dark change;
+    # seed it now for an explicit mode ("auto" is resolved by that switch).
+    mode = theme_mode()
+    if mode in ("dark", "light"):
+        for key, value in glass_preset(mode).items():
+            kw_write("--file", "kwinrc", "--group", GLASS_GROUP, "--key", key, value)
     _install_corner_defaults()
-    ok("Acrylic Glass preset installed")
+    ok("Glass preset installed")
     kw_write("--file", "kwinrc", "--group", "Plugins",
-             "--key", "liquidglassEnabled", "true")
+             "--key", f"{GLASS_EFFECT}Enabled", "true")
 
     # Order matters: unload stale handle → reconfigure → loadEffect. loadEffect
     # returns true even when nothing changed; only activeEffects proves it took.
     qdbus_call("org.kde.KWin", "/Effects",
-               "org.kde.kwin.Effects.unloadEffect", "liquidglass")
+               "org.kde.kwin.Effects.unloadEffect", GLASS_EFFECT)
     qdbus_call("org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure")
     qdbus_call("org.kde.KWin", "/Effects",
-               "org.kde.kwin.Effects.loadEffect", "liquidglass")
-
-    q = qdbus_cmd()
-    active = ""
-    if q:
-        try:
-            res = run_user([q, "org.kde.KWin", "/Effects",
-                            "org.kde.kwin.Effects.activeEffects"],
-                           check=False, capture_output=True, text=True,
-                           timeout=10)
-            active = res.stdout or ""
-        except subprocess.TimeoutExpired:
-            pass
-    if "liquidglass" in active:
-        ok("Acrylic Glass loaded")
+               "org.kde.kwin.Effects.loadEffect", GLASS_EFFECT)
+    if _kwin_has_effect(GLASS_EFFECT):
+        ok("Better Blur DX loaded")
     else:
-        ok("Acrylic Glass installed (log out and back in to activate)")
+        ok("Better Blur DX installed (log out and back in to activate)")
 
 
 def uninstall() -> None:
-    # Persist the disabled state before asking KWin to unload the effect.
-    # Unloading first can race a config notification/reconfigure and let KWin
-    # immediately load the still-enabled plugin again, leaving every window
-    # translucent until the user logs out even though the .so was removed.
+    # Persist the disabled state before asking KWin to unload the effect:
+    # unloading first can race a reconfigure and load the still-enabled
+    # plugin again, leaving every window translucent until logout.
     disabled = kw_write(
         "--file", "kwinrc", "--group", "Plugins",
-        "--key", "liquidglassEnabled", "false",
+        "--key", f"{GLASS_EFFECT}Enabled", "false",
     )
     unloaded = qdbus_call(
         "org.kde.KWin", "/Effects",
-        "org.kde.kwin.Effects.unloadEffect", "liquidglass",
+        "org.kde.kwin.Effects.unloadEffect", GLASS_EFFECT,
     )
     reconfigured = qdbus_call(
         "org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure",
     )
     if not disabled:
-        warn("Acrylic Glass could not be disabled in kwinrc")
+        warn("Better Blur DX could not be disabled in kwinrc")
     if not unloaded and not reconfigured:
-        # A reconfigure with liquidglassEnabled=false is an equivalent live
-        # unload.  Only warn when neither live path reached KWin.
-        warn("Acrylic Glass live unload was not confirmed — log out once if "
+        warn("Better Blur DX live unload was not confirmed — log out once if "
              "window transparency remains")
 
-    # Strip the whole [Effect-liquidglass] group — leaving it behind would
-    # let a reinstall keep stale tuned values.
-    kwinrc = Path.home() / ".config/kwinrc"
-    if kwinrc.is_file():
-        text = kwinrc.read_text()
-        if "[Effect-liquidglass]" in text:
-            out: list[str] = []
-            skip = False
-            for line in text.splitlines():
-                if line.startswith("[Effect-liquidglass]"):
-                    skip = True
-                    continue
-                if skip and line.startswith("["):
-                    skip = False
-                if not skip:
-                    out.append(line)
-            kwinrc.write_text("\n".join(out) + "\n")
-
+    _strip_kwinrc_group(GLASS_GROUP)
     system_dir = _plugin_dir()
-    for so in (system_dir / "kwin/effects/plugins/liquidglass.so",
-               system_dir / "kwin/effects/configs/kwin_liquidglass_config.so"):
+    for relpath in (_EFFECT_SO, _CONFIG_SO):
+        so = system_dir / relpath
         sudo_remove(so, so.name)
-    # Drop user-path leftovers from old sudoless installs.
-    for so in (LEGACY_USER_PLUGIN_DIR / "kwin/effects/plugins/liquidglass.so",
-               LEGACY_USER_PLUGIN_DIR / "kwin/effects/configs/kwin_liquidglass_config.so"):
-        if so.is_file():
-            try:
-                so.unlink()
-                ok(f"{so.name} (legacy user-path)")
-            except OSError as exc:
-                fail(f"{so.name} ({exc})")
+    # Glass / Acrylic Glass leftovers from earlier releases.
+    _remove_replaced_effects()
 
-    # Refresh KWin's effect catalogue after the plugin files disappear.  This
-    # also repaints windows immediately on sessions where unloadEffect is
-    # asynchronous, instead of leaving the old effect mapped until logout.
+    # Refresh KWin's effect catalogue after the plugin files disappear.
     qdbus_call("org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure")
-    info("Acrylic Glass removed")
+    info("Better Blur DX removed")

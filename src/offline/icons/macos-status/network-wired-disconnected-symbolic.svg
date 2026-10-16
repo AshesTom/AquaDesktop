@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="90 -153 32 32">
+ <defs>
+  <style type="text/css" id="current-color-scheme">.ColorScheme-Text {
+        color:#363636;
+      }
+      .ColorScheme-Background {
+        color:#efefef;
+      }
+      .ColorScheme-Highlight {
+        color:#3498db;
+      }
+      .ColorScheme-ViewText {
+        color:#363636;
+      }
+      .ColorScheme-ViewBackground {
+        color:#fcfcfc;
+      }
+      .ColorScheme-ViewHover {
+        color:#93cee9;
+      }
+      .ColorScheme-ViewFocus{
+        color:#3daee9;
+      }
+      .ColorScheme-ButtonText {
+        color:#363636;
+      }
+      .ColorScheme-ButtonBackground {
+        color:#efefef;
+      }
+      .ColorScheme-ButtonHover {
+        color:#93cee9;
+      }
+      .ColorScheme-ButtonFocus{
+        color:#3daee9;
+      }
+      .ColorScheme-NegativeText{
+        color:#e74c3c;
+      }</style>
+ </defs>
+ <g transform="matrix(1 0 0 1 0 0)">
+  <g id="network-unavailable">
+   <rect id="rect2080" width="32" height="1.5" x="-37.920311" y="-172.57695" rx="0.75" ry="0.75" transform="rotate(45)" class="ColorScheme-Text" fill="currentColor" />
+   <rect id="rect2134" width="32" height="32" x="90" y="-153" rx="0" ry="0" style="fill:none" />
+   <path id="path2136" d="m 97.5,-146 c -1.38499,0 -2.5,1.115 -2.5,2.5 v 10 c 0,1.385 1.11501,2.5 2.5,2.5 h 12.5 0.2832 c 0.39662,0 0.7168,-0.3345 0.7168,-0.75 0,-0.4155 -0.32018,-0.75 -0.7168,-0.75 H 110 97.5 c -0.55399,0 -1,-0.446 -1,-1 v -10 c 0,-0.554 0.44601,-1 1,-1 h 0.7168 8.7832 0.2832 c 0.39662,0 0.7168,-0.3345 0.7168,-0.75 0,-0.4155 -0.32018,-0.75 -0.7168,-0.75 H 107 98.2168 Z m 13.5,0 c -0.831,0 -1.5,0.669 -1.5,1.5 v 5 c 0,0.831 0.669,1.5 1.5,1.5 h 1.5 v 9.25 c 0,0.4155 0.3345,0.75 0.75,0.75 0.4155,0 0.75,-0.3345 0.75,-0.75 V -138 h 1.5 c 0.831,0 1.5,-0.669 1.5,-1.5 v -5 c 0,-0.831 -0.669,-1.5 -1.5,-1.5 z m 0,1.5 h 4.5 v 1.5 H 111 Z m 0,3 h 4.5 v 2 H 113.25 111 Z m -9.7832,12 c -0.39662,0 -0.7168,0.3345 -0.7168,0.75 0,0.4155 0.32018,0.75 0.7168,0.75 h 9.0664 c 0.39662,0 0.7168,-0.3345 0.7168,-0.75 0,-0.4155 -0.32018,-0.75 -0.7168,-0.75 z" class="ColorScheme-Text" fill="currentColor" style="opacity:0.35" />
+  </g>
+ </g>
+</svg>

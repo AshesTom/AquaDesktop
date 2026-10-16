@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="-4 -42 33.25 32">
+ <defs>
+  <style type="text/css" id="current-color-scheme">.ColorScheme-Text { color:#363636; }</style>
+ </defs>
+ <g transform="matrix(1 0 0 1 0 0)">
+  <g transform="translate(-1,25)" id="Battery">
+   <g fill="currentColor" class="ColorScheme-Text" transform="translate(0,-24)" id="g995">
+    <path d="m 3,-34 c -2.216,0 -4,1.784 -4,4 v 6 c 0,2.216 1.784,4 4,4 h 18 c 2.216,0 4,-1.784 4,-4 v -6 c 0,-2.216 -1.784,-4 -4,-4 z m 0,2 h 18 c 1.108,0 2,0.892 2,2 v 6 c 0,1.108 -0.892,2 -2,2 H 3 c -1.108,0 -2,-0.892 -2,-2 v -6 c 0,-1.108 0.892,-2 2,-2 z" id="rect939" fill="currentColor" class="ColorScheme-Text" />
+    <path d="m 26,-29 v 4 h 0.5 A 2.25,2.1237 0 0 0 28,-27.0013 2.25,2.1237 0 0 0 26.5,-29 Z" id="path944" fill="currentColor" class="ColorScheme-Text" />
+   </g>
+   <rect fill="none" height="32" width="32" y="-67" x="-3" id="rect997" />
+  </g>
+ </g>
+ <g transform="matrix(1 0 0 1 -403 0)">
+  <g transform="translate(402,25)" id="Fill0">
+   <g fill="#ff4d62" transform="translate(0,-24)" id="g1087">
+    <path d="m 3,-34 c -2.216,0 -4,1.784 -4,4 v 6 c 0,2.216 1.784,4 4,4 h 18 c 2.216,0 4,-1.784 4,-4 v -6 c 0,-2.216 -1.784,-4 -4,-4 z m 0,2 h 18 c 1.108,0 2,0.892 2,2 v 6 c 0,1.108 -0.892,2 -2,2 H 3 c -1.108,0 -2,-0.892 -2,-2 v -6 c 0,-1.108 0.892,-2 2,-2 z" id="path1081" />
+    <path d="m 26,-29 v 4 h 0.5 A 2.25,2.1237 0 0 0 28,-27.0013 2.25,2.1237 0 0 0 26.5,-29 Z" id="path1083" />
+   </g>
+   <rect fill="none" height="32" width="32" y="-67" x="-3" id="rect1089" />
+  </g>
+ </g>
+</svg>

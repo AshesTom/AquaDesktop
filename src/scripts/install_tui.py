@@ -38,7 +38,7 @@ FEATURE_ORDER = [
     "fonts", "color_schemes", "plasma_theme", "window_decorations",
     "kvantum", "icons", "cursors", "wallpapers", "global_theme",
     "layout", "plasmoids", "globalmenu", "acrylic_glass", "rounded_corners", "sounds",
-    "gtk", "firefox", "sddm", "plymouth", "apps", "nautilus",
+    "gtk", "firefox", "plymouth", "apps", "nautilus",
     "nautilus_bookmarks", "portals", "kconf_update",
 ]
 
@@ -48,7 +48,6 @@ THEME_MODES = ("auto", "light", "dark")
 _NAME_OVERRIDES = {
     "gtk": "GTK Theme",
     "firefox": "Firefox Theme",
-    "sddm": "SDDM Login",
     "oled_care": "OLED Care",
     "rounded_corners": "Rounded Corners",
     "kconf_update": "Config Migrations",
@@ -267,7 +266,7 @@ def _draw_header(scr) -> int:
     once, in the CLI banner printed before the TUI starts. Returns the
     first body row."""
     _, w = scr.getmaxyx()
-    name = "MacTahoe Liquid KDE"
+    name = "AquaDesktop"
     ver = f" v{read_version()}"
     x = max(0, (w - len(name + ver)) // 2)
     x = _put(scr, 0, x, name, _c(_P_GREEN, curses.A_BOLD))

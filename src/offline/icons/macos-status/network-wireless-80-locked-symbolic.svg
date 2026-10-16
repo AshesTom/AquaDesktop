@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="270.004 56 32 32">
+ <defs>
+  <style type="text/css" id="current-color-scheme">.ColorScheme-Text {
+        color:#363636;
+      }
+      .ColorScheme-Background {
+        color:#efefef;
+      }
+      .ColorScheme-Highlight {
+        color:#3498db;
+      }
+      .ColorScheme-ViewText {
+        color:#363636;
+      }
+      .ColorScheme-ViewBackground {
+        color:#fcfcfc;
+      }
+      .ColorScheme-ViewHover {
+        color:#93cee9;
+      }
+      .ColorScheme-ViewFocus{
+        color:#3daee9;
+      }
+      .ColorScheme-ButtonText {
+        color:#363636;
+      }
+      .ColorScheme-ButtonBackground {
+        color:#efefef;
+      }
+      .ColorScheme-ButtonHover {
+        color:#93cee9;
+      }
+      .ColorScheme-ButtonFocus{
+        color:#3daee9;
+      }
+      .ColorScheme-NegativeText{
+        color:#e74c3c;
+      }</style>
+ </defs>
+ <g transform="matrix(1 0 0 1 0 0)">
+  <g id="network-wireless-80-locked" transform="translate(38)">
+   <path id="path15183" class="ColorScheme-Text" d="m 248.00977,75.146484 c -1.3649,0 -2.58821,0.710541 -3.24219,1.601563 -0.11377,0.170612 -0.0576,0.379894 0.10351,0.541015 l 2.32422,2.236329 C 247.57441,79.885596 247.78232,80 248.00977,80 c 0.22755,0 0.42577,-0.104914 0.81445,-0.474609 L 251,77.429688 v -0.990235 c -0.68984,-0.732209 -1.78844,-1.292969 -2.99023,-1.292969 z" fill="currentColor" />
+   <rect id="rect15185" width="32" height="32" x="232.00426" y="56" style="fill:none" />
+   <path id="path15187" class="ColorScheme-Text" d="m 248.00977,69.601562 c -2.97623,0 -5.67759,1.288652 -7.15625,3.080079 -0.16114,0.189592 -0.14297,0.417553 0.0371,0.597656 l 1.48829,1.46875 c 0.22748,0.218065 0.53199,0.199824 0.75,-0.03711 1.15636,-1.260718 3.00413,-2.15207 4.88086,-2.142579 1.36915,-0.0069 2.71669,0.472661 3.80664,1.220703 0.0591,-0.05448 0.12046,-0.107672 0.18359,-0.158203 V 73.25 c 0,-0.911356 0.33627,-1.752193 0.88867,-2.40625 -1.38856,-0.769313 -3.08415,-1.242188 -4.8789,-1.242188 z" fill="currentColor" />
+   <path id="path15189" class="ColorScheme-Text" d="m 248,64 c -4.40752,0 -8.67239,2.009395 -10.94727,4.833984 -0.15165,0.180103 -0.1527,0.425642 0.0274,0.615235 l 1.33789,1.357422 c 0.19905,0.217956 0.51022,0.207915 0.71875,-0.01953 2.34123,-2.473983 5.42256,-3.783203 8.86328,-3.783203 2.80844,0 5.36817,0.858682 7.47852,2.507813 0.0897,-0.0066 0.18027,-0.01172 0.27148,-0.01172 0.86866,0 1.67257,0.305621 2.3125,0.8125 l 0.85742,-0.863281 c 0.18959,-0.189593 0.1887,-0.435132 0.0371,-0.615235 C 256.6726,66.018874 252.41704,64 248,64 Z" fill="currentColor" style="opacity:0.65" />
+   <path d="m 255.75,71 c -1.2465,0 -2.25,1.0035 -2.25,2.25 v 1.25 c -0.554,0 -1,0.446 -1,1 V 79 c 0,0.554 0.446,1 1,1 h 4.5 c 0.554,0 1,-0.446 1,-1 v -3.5 c 0,-0.554 -0.446,-1 -1,-1 V 73.25 C 258,72.0035 256.9965,71 255.75,71 Z m 0,1 c 0.6925,0 1.25,0.5575 1.25,1.25 v 1.25 h -2.5 v -1.25 c 0,-0.6925 0.5575,-1.25 1.25,-1.25 z" id="path15191" fill="currentColor" class="ColorScheme-Text" />
+  </g>
+ </g>
+</svg>

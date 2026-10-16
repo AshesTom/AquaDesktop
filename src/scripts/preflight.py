@@ -140,6 +140,7 @@ def _enumerate_destinations() -> list[tuple[str, Path]]:
     """Known install destinations per step module. Imported lazily so
     module-level ``Path.home()`` runs AFTER the privilege drop."""
     from steps import acrylic_glass, globalmenu, kvantum, plasmoids, rounded_corners
+    from steps import _qqc2_style
 
     dests: list[tuple[str, Path]] = [
         ("globalmenu .so", globalmenu.DEST_SO),
@@ -148,10 +149,15 @@ def _enumerate_destinations() -> list[tuple[str, Path]]:
         ("plasmoids share dir", plasmoids.DEST_DIR),
         ("taskmanager .so", plasmoids.TASKMANAGER_DEST_SO),
         ("taskmanager QML module", plasmoids.TASKMANAGER_DEST_QML),
-        ("acrylic-glass plugin dir", acrylic_glass._plugin_dir()),
+        ("notifications .so", plasmoids.NOTIFICATIONS_DEST_SO),
+        ("notifications QML module", plasmoids.NOTIFICATIONS_DEST_QML),
+        ("glass plugin dir", acrylic_glass._plugin_dir()),
         ("kvantum Qt6 style plugin", kvantum._engine_destination()),
         ("kvantum bundled-source marker", kvantum.ENGINE_MARKER),
         ("kvantum bundled-source license", kvantum.ENGINE_LICENSE),
+        ("qqc2 macOS style module", _qqc2_style.style_dest()),
+        ("qqc2 macOS style Kirigami link", _qqc2_style.platform_link()),
+        ("qqc2 macOS style session setting", _qqc2_style.env_path()),
         ("rounded-corners plugin dir", rounded_corners._plugin_dir()),
         ("rounded-corners shader dir", rounded_corners.SHADER_DIR),
         ("rounded-corners locale dir", rounded_corners.LOCALE_DIR),
@@ -190,12 +196,17 @@ def _check_qt_paths() -> bool:
         return False
 
     from steps import acrylic_glass, globalmenu, kvantum, plasmoids, rounded_corners
+    from steps import _qqc2_style
     qt_destinations = [
         ("globalmenu .so", globalmenu.DEST_SO, plugins),
         ("globalmenu QML module", globalmenu.DEST_QML_DIR, qml),
         ("taskmanager .so", plasmoids.TASKMANAGER_DEST_SO, plugins),
         ("taskmanager QML module", plasmoids.TASKMANAGER_DEST_QML, qml),
-        ("acrylic-glass plugin dir", acrylic_glass._plugin_dir(), plugins),
+        ("notifications .so", plasmoids.NOTIFICATIONS_DEST_SO, plugins),
+        ("notifications QML module", plasmoids.NOTIFICATIONS_DEST_QML, qml),
+        ("qqc2 macOS style module", _qqc2_style.style_dest(), qml),
+        ("qqc2 macOS style Kirigami link", _qqc2_style.platform_link(), plugins),
+        ("glass plugin dir", acrylic_glass._plugin_dir(), plugins),
         ("kvantum Qt6 style plugin", kvantum._engine_destination(), plugins),
         ("rounded-corners plugin dir", rounded_corners._plugin_dir(), plugins),
     ]

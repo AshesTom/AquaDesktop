@@ -7,16 +7,16 @@ left_tabs=false
 attach_active_tab=false
 mirror_doc_tabs=true
 joined_inactive_tabs=false
-group_toolbar_buttons=false
+group_toolbar_buttons=true
 spread_progressbar=true
 composite=true
 menu_shadow_depth=4
 spread_menuitems=false
 tooltip_shadow_depth=5
-scroll_width=14
+scroll_width=10
 scroll_arrows=false
-scroll_min_extent=50
-transient_scrollbar=false
+scroll_min_extent=36
+transient_scrollbar=true
 splitter_width=1
 slider_width=6
 slider_handle_width=34
@@ -38,8 +38,8 @@ merge_menubar_with_toolbar=true
 small_icon_size=16
 large_icon_size=32
 button_icon_size=16
-toolbar_interior_spacing=3
-toolbar_icon_size=16
+toolbar_interior_spacing=4
+toolbar_icon_size=18
 combo_as_lineedit=true
 combo_menu=true
 combo_focus_rect=true
@@ -75,26 +75,26 @@ menu_blur_radius=14
 tooltip_blur_radius=22
 
 [GeneralColors]
-window.color=#f5f5f58C
-inactive.window.color=#f5f5f58C
-base.color=#ffffff8C
-inactive.base.color=#ffffff8C
-alt.base.color=#fafafa8C
-inactive.alt.base.color=#fafafa8C
+window.color=#F0F0F0CC
+inactive.window.color=#F0F0F0CC
+base.color=#FFFFFF
+inactive.base.color=#FFFFFF
+alt.base.color=#F5F5F5
+inactive.alt.base.color=#F5F5F5
 button.color=#ffffff
 light.color=#ffffff
 mid.light.color=#eeeeee
 dark.color=#bbbbbb
 mid.color=#dddddd
-highlight.color=#3484e2
-inactive.highlight.color=#3484e2
+highlight.color=#0088FF
+inactive.highlight.color=#DCDCDC
 text.color=#333333
 inactive.text.color=#666666
 window.text.color=#333333
 inactive.window.text.color=#666666
 button.text.color=#333333
 disabled.text.color=#33333374
-tooltip.base.color=#f5f5f58C
+tooltip.base.color=#F5F5F5E6
 tooltip.text.color=#333333
 highlight.text.color=#ffffff
 inactive.highlight.text.color=#343434
@@ -151,7 +151,7 @@ text.margin.top=0
 text.margin.bottom=0
 text.margin.left=6
 text.margin.right=6
-frame.expansion=22
+frame.expansion=64
 min_width=28
 min_height=28
 
@@ -190,6 +190,7 @@ text.normal.inactive.color=#33333374
 text.toggle.inactive.color=#24242474
 indicator.element=arrow
 indicator.size=8
+frame.expansion=64
 
 [ToolbarLineEdit]
 frame.element=lineedit
@@ -310,7 +311,7 @@ text.focus.color=#242424
 text.press.color=#242424
 text.toggle.color=#242424
 text.toggle.inactive.color=#24242474
-frame.expansion=22
+frame.expansion=64
 indicator.size=16
 text.boldness=2
 min_width=+0.2font
@@ -325,6 +326,7 @@ frame.left=4
 frame.right=4
 interior=true
 interior.element=tframe
+frame.expansion=24
 
 [TreeExpander]
 inherits=PanelButtonCommand
@@ -422,7 +424,7 @@ text.focus.color=#242424
 text.press.color=#242424
 text.toggle.color=#242424
 highlight.text.color=#242424
-frame.expansion=0
+frame.expansion=16
 
 [Splitter]
 interior.element=splitter
@@ -444,7 +446,7 @@ frame.top=7
 frame.bottom=7
 indicator.element=grip
 indicator.size=14
-frame.expansion=0
+frame.expansion=64
 
 [ScrollbarGroove]
 inherits=PanelButtonCommand
@@ -521,13 +523,13 @@ text.focus.color=#ffffff
 text.shadow=false
 text.margin.top=0
 text.margin.bottom=0
-text.margin.left=6
-text.margin.right=6
+text.margin.left=4
+text.margin.right=1
 frame.top=3
-frame.bottom=3
+frame.bottom=2
 frame.left=3
 frame.right=3
-frame.expansion=0
+frame.expansion=16
 min_height=6
 
 [ComboBox]
@@ -558,7 +560,7 @@ text.normal.inactive.color=#33333374
 text.toggle.inactive.color=#ffffff74
 text.bold=true
 text.boldness=2
-frame.expansion=0
+frame.expansion=24
 
 [TabBarFrame]
 inherits=GenericFrame

@@ -27,9 +27,20 @@ import QtQuick.Window
 
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as P5Support
+import org.kde.ki18n as KI18n
 
 Window {
     id: aboutWindow
+
+    // Translations from this widget's catalog in any host: Plasma, or the
+    // AquaDesktop shell (Quickshell has no KLocalizedContext).
+    KI18n.KI18nContext {
+        id: widgetI18n
+        translationDomain: "plasma_applet_org.kde.mac.tahoe.liquid.globalmenu"
+    }
+    function i18n(text, arg1) {
+        return arg1 === undefined ? widgetI18n.i18n(text) : widgetI18n.i18n(text, arg1);
+    }
 
     // Whether to render in the active Plasma system font or in the
     // SF Pro fallback. Passed in from main.qml (which reads it from
@@ -525,7 +536,7 @@ Window {
                 QQC2.Button {
                     text: i18n("Report a Bug…")
                     onClicked: {
-                        launcher.exec("xdg-open https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new");
+                        launcher.exec("xdg-open https://github.com/AshesTom/AquaDesktop/issues/new");
                         aboutWindow.close();
                     }
                 }

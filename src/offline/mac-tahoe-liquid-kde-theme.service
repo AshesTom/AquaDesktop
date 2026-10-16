@@ -1,5 +1,5 @@
 [Unit]
-Description=MacTahoe Liquid KDE — apply auto light/dark theme
+Description=AquaDesktop — apply auto light/dark theme
 # Run after the desktop is up — not at boot, not at the login screen.
 # plasma-plasmashell.service comes up once the user has logged in and
 # plasmashell is reachable. The script itself sleeps 10s before each

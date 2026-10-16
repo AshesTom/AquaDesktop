@@ -3,16 +3,16 @@
     "KPlugin": {
         "Authors": [
             {
-                "Name": "Lester Cordero Murillo"
+                "Name": "AquaDesktop contributors"
             }
         ],
         "Category": "Global Themes (Plasma 6)",
-        "Description": "macOS Tahoe Liquid light theme for KDE Plasma",
+        "Description": "AquaDesktop: Tahoe and Golden Gate for KDE Plasma (light)",
         "EnabledByDefault": true,
         "Id": "org.kde.mac-tahoe-liquid-kde.light",
         "License": "GPL-3.0",
-        "Name": "MacTahoe Liquid (Light)",
-        "Website": "https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde"
+        "Name": "AquaDesktop (Light)",
+        "Website": "https://github.com/AshesTom/AquaDesktop"
     },
     "Keywords": "Desktop;Workspace;Appearance;Look and Feel;macOS;Tahoe;Light;",
     "X-KDE-fallbackPackage": "org.kde.breeze.desktop",

@@ -10,13 +10,12 @@
   "plasmoids":          true,
   "globalmenu":         true,
   "acrylic_glass":      true,
-  "rounded_corners":    true,
+  "rounded_corners":    false,
   "global_theme":       true,
   "layout":             true,
   "sounds":             true,
   "gtk":                true,
-  "firefox":            true,
-  "sddm":               true,
+  "firefox":            false,
   "plymouth":           true,
   "apps":               true,
   "nautilus":           true,
@@ -27,5 +26,5 @@
   "kconf_update":       true,
   "oled_interval":      5,
   "oled_max_shift":     8,
-  "theme_mode":         "auto"
+  "theme_mode":         "dark"
 }

@@ -51,6 +51,10 @@ def test_plasmoid_catalogs_ship_for_spanish_and_simplified_chinese(repo):
     widgets = {
         "org.kde.mac-tahoe-liquid-kde.launcher": ("Apps", "Aplicaciones", "应用"),
         "org.kde.mac-tahoe-liquid-kde.trashcan": ("Trash", "Papelera", "回收站"),
+        "org.kde.mac-tahoe-liquid-kde.clock": ("Show date", "Mostrar la fecha", "显示日期"),
+        "org.kde.mac-tahoe-liquid-kde.spotlight": ("Search", "Buscar", "搜索"),
+        "org.kde.mac-tahoe-liquid-kde.controlcenter": (
+            "Control Center", "Centro de control", "控制中心"),
         "org.kde.mac.tahoe.liquid.taskmanager": (
             "Hover magnification:", "Ampliación al pasar el cursor:", "悬停放大："),
     }
@@ -61,6 +65,12 @@ def test_plasmoid_catalogs_ship_for_spanish_and_simplified_chinese(repo):
             mo = base / widget / "contents/locale" / language / "LC_MESSAGES" / domain
             assert mo.is_file(), mo
             assert _catalog(mo).gettext(source) == expected
+
+    wifi = base / "org.kde.mac-tahoe-liquid-kde.wifi/contents/locale"
+    domain = "plasma_applet_org.kde.mac-tahoe-liquid-kde.wifi.mo"
+    for language, expected in (("es", "Otras redes"), ("zh_CN", "其他网络")):
+        catalog = _catalog(wifi / language / "LC_MESSAGES" / domain)
+        assert catalog.pgettext("@title Wi-Fi menu section", "Other Networks") == expected
 
     globalmenu = base / "org.kde.mac.tahoe.liquid.globalmenu"
     domain = "plasma_applet_org.kde.mac.tahoe.liquid.globalmenu.mo"

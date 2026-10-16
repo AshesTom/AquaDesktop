@@ -123,9 +123,12 @@ PlasmoidItem {
 
             Layout.fillHeight: !root.vertical
 
-            topPadding: Kirigami.Units.smallSpacing + 1
-            bottomPadding: Kirigami.Units.smallSpacing - 1
-            leftPadding: Kirigami.Units.largeSpacing
+            // macOS keeps the Apple logo ~20 px from the screen edge and
+            // centred on the menu titles, whose caps sit ~2 px above the
+            // middle of the panel.
+            topPadding: Kirigami.Units.smallSpacing - 1
+            bottomPadding: Kirigami.Units.smallSpacing
+            leftPadding: Kirigami.Units.largeSpacing + Kirigami.Units.smallSpacing + 2
             rightPadding: Kirigami.Units.largeSpacing
 
             hoverEnabled: true
@@ -147,20 +150,35 @@ PlasmoidItem {
                        : Qt.rgba(0.5, 0.5, 0.5, systemMenuButton.menuState === 2 ? 0.25 : 0.18)
             }
 
-            contentItem: Kirigami.Icon {
-                source: root.cfgIcon
-                implicitWidth: Kirigami.Units.iconSizes.small
-                implicitHeight: Kirigami.Units.iconSizes.small
-                color: Kirigami.Theme.textColor
+            contentItem: Item {
+                // Render the theme's 32x32 vector Apple logo at 14x16.
+                readonly property bool appleLogo: root.cfgIcon === "start-here-kde-symbolic"
+
+                implicitWidth: logo.width
+                implicitHeight: logo.height
+
+                Kirigami.Icon {
+                    id: logo
+                    anchors.centerIn: parent
+                    anchors.verticalCenterOffset: 0
+                    height: parent.appleLogo ? 18 : Kirigami.Units.iconSizes.small
+                    width: parent.appleLogo ? 16 : height
+                    source: parent.appleLogo ? Qt.resolvedUrl("apple-logo.svg") : root.cfgIcon
+                    isMask: parent.appleLogo
+                    roundToIconSize: !parent.appleLogo
+                    color: Kirigami.Theme.textColor
+                }
             }
         }
 
         MenuDelegate {
             id: appNameButton
             readonly property int buttonIndex: -2
-            visible: appMenuModel.activeAppName !== "" && buttonRepeater.count > 0
+            // macOS always names the active app in bold, even when the
+            // app exports no menus.
+            visible: appMenuModel.activeAppName !== ""
             text: appMenuModel.activeAppName
-            font.weight: Font.ExtraBold
+            font.weight: Font.Bold
             Layout.fillHeight: !root.vertical
 
             down: Plasmoid.currentIndex === -2

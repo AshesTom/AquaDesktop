@@ -85,9 +85,9 @@ RUN emerge-webrsync && \
         kde-plasma/libplasma kde-plasma/plasma-activities \
         kde-plasma/plasma-activities-stats kde-plasma/libksysguard \
         kde-plasma/plasma-workspace \
-        # KWin + KDecoration3 (acrylic-glass effect).
+        # KWin + KDecoration3 (Glass effect).
         kde-plasma/kwin kde-plasma/kdecoration \
-        # libepoxy + X11/XCB headers used by the acrylic-glass effect.
+        # libepoxy + X11/XCB headers used by the Glass effect.
         media-libs/libepoxy x11-libs/libX11 x11-libs/libxcb && \
     # Trim build artefacts to keep the published image small. The
     # distfiles + binpkg cache + portage tree aren't needed at runtime

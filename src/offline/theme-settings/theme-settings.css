@@ -1,0 +1,390 @@
+/* AquaDesktop — Theme Settings, laid out like macOS Tahoe's System
+ * Settings: a floating glass sidebar inset in the window, the traffic
+ * lights in it, a back / forward capsule over the content, a header card
+ * and rounded groups of rows.
+ * @ts_accent is defined by the app from KDE's accent colour. */
+
+window.theme-settings {
+  background: transparent;
+  border-radius: 22px;
+  font-size: 13px;
+}
+window.theme-settings.maximized,
+window.theme-settings.fullscreen { border-radius: 0; }
+
+/* Window background: translucent under the sidebar (the Glass effect
+ * blurs the desktop through it), opaque under the content. Golden Gate,
+ * like its Finder: the sidebar fills the window's left side edge to edge,
+ * no inset card, no frame; only its tint sets it apart. */
+window.theme-settings .root { background: transparent; }
+window.theme-settings .sidebar-well { border-radius: 22px 0 0 22px; }
+window.theme-settings .content { border-radius: 0 22px 22px 0; }
+window.theme-settings.maximized .sidebar-well,
+window.theme-settings.maximized .content { border-radius: 0; }
+
+window.theme-settings.light .sidebar-well { background: alpha(#ececee, 0.80); }
+window.theme-settings.light .content { background: #ffffff; color: #1d1d1f; }
+window.theme-settings.dark .sidebar-well { background: alpha(#2b2b2d, 0.80); }
+window.theme-settings.dark .content { background: #1e1e1e; color: #f5f5f7; }
+
+window.theme-settings .sidebar {
+  background: none;
+  box-shadow: none;
+  border: none;
+  padding: 0 10px 10px 10px;
+}
+window.theme-settings.light .sidebar { color: #1d1d1f; }
+window.theme-settings.dark .sidebar { color: #f5f5f7; }
+
+window.theme-settings headerbar.sidebar-header {
+  background: none;
+  box-shadow: none;
+  border: none;
+  min-height: 52px;
+  padding: 0 4px;
+  margin: 0;
+}
+window.theme-settings headerbar.sidebar-header windowcontrols { margin-left: 4px; }
+
+window.theme-settings entry.search,
+window.theme-settings .search {
+  min-height: 30px;
+  border-radius: 999px;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  margin: 4px 0 10px 0;
+}
+window.theme-settings .search > text { margin-left: 4px; }
+window.theme-settings.light .search { background: alpha(#000000, 0.06); color: #1d1d1f; }
+window.theme-settings.dark .search { background: alpha(#ffffff, 0.08); color: #f5f5f7; }
+window.theme-settings .search > image { opacity: 0.55; }
+
+window.theme-settings button.brand {
+  padding: 4px 6px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: inherit;
+}
+window.theme-settings button.brand:hover { background: alpha(currentColor, 0.06); }
+window.theme-settings .avatar { border-radius: 999px; }
+window.theme-settings .avatar-empty { background: linear-gradient(#a1a1a6, #6e6e73); }
+window.theme-settings .avatar-initials { color: #ffffff; font-weight: 600; font-size: 15px; }
+window.theme-settings .brand-title { font-weight: 600; font-size: 13px; }
+window.theme-settings .brand-subtitle { font-size: 11px; opacity: 0.6; }
+
+window.theme-settings list.nav { background: none; }
+window.theme-settings list.nav > row {
+  min-height: 32px;
+  padding: 0 7px;
+  margin: 1px 0;
+  border-radius: 8px;
+  background: none;
+  outline: none;
+  box-shadow: none;
+}
+window.theme-settings list.nav > row:hover { background: alpha(currentColor, 0.06); }
+window.theme-settings list.nav > row:selected { background: @ts_accent; color: #ffffff; }
+window.theme-settings .nav-label { font-size: 13px; }
+
+/* Icon tiles: white glyph on a coloured rounded square. */
+window.theme-settings .tile { border-radius: 6px; color: #ffffff; }
+window.theme-settings .tile.big { border-radius: 15px; box-shadow: 0 1px 3px alpha(#000000, 0.18); }
+window.theme-settings .tile-blue { background: linear-gradient(#3aa0ff, #0a7cff); }
+window.theme-settings .tile-cyan { background: linear-gradient(#5ed3f3, #22a9d9); }
+window.theme-settings .tile-graphite { background: linear-gradient(#3b3b3e, #141416); }
+window.theme-settings .tile-grey { background: linear-gradient(#a3a3a8, #7c7c82); }
+window.theme-settings .tile-orange { background: linear-gradient(#ffad45, #ff8a00); }
+
+/* Content bar: back / forward capsule and the page title. */
+window.theme-settings .content-bar { padding: 9px 16px 6px 16px; min-height: 52px; }
+window.theme-settings .nav-capsule {
+  border-radius: 999px;
+  padding: 0 4px;
+}
+/* Liquid Glass capsule: a lit top edge over a soft drop shadow. */
+window.theme-settings.light .nav-capsule {
+  background: alpha(#ffffff, 0.92);
+  box-shadow: inset 0 1px alpha(#ffffff, 1), 0 0 0 0.5px alpha(#000000, 0.10),
+              0 3px 10px alpha(#000000, 0.10);
+}
+window.theme-settings.dark .nav-capsule {
+  background: alpha(#3a3a3c, 0.85);
+  box-shadow: inset 0 1px alpha(#ffffff, 0.14), 0 0 0 0.5px alpha(#ffffff, 0.08),
+              0 3px 10px alpha(#000000, 0.40);
+}
+window.theme-settings .nav-capsule > button {
+  background: none;
+  border: none;
+  box-shadow: none;
+  min-height: 34px;
+  min-width: 34px;
+  padding: 0;
+  border-radius: 999px;
+}
+window.theme-settings .nav-capsule > button:disabled { opacity: 0.35; }
+window.theme-settings .nav-capsule > separator { margin: 9px 0; min-width: 1px; background: alpha(currentColor, 0.15); }
+window.theme-settings .content-title { font-weight: 700; font-size: 15px; margin-left: 6px; }
+window.theme-settings .status { font-size: 11px; opacity: 0.6; }
+
+window.theme-settings .toast {
+  margin: 0 28px 8px 28px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: alpha(@ts_accent, 0.14);
+}
+
+/* Header card. */
+window.theme-settings .header-card {
+  border-radius: 16px;
+  padding: 22px 28px 24px 28px;
+}
+window.theme-settings.light .header-card,
+window.theme-settings.light .group { background: #f5f5f5; }
+window.theme-settings.dark .header-card,
+window.theme-settings.dark .group { background: alpha(#ffffff, 0.05); }
+window.theme-settings .header-title { font-size: 26px; font-weight: 700; }
+window.theme-settings .header-description { font-size: 13px; opacity: 0.62; }
+
+/* Groups and rows. */
+window.theme-settings .group { border-radius: 14px; padding: 0 14px; }
+window.theme-settings .row { min-height: 44px; padding: 8px 0; }
+window.theme-settings .row-title { font-size: 13px; }
+window.theme-settings .row-subtitle { font-size: 11px; opacity: 0.6; }
+window.theme-settings separator.row-separator { background: alpha(currentColor, 0.09); min-height: 1px; }
+window.theme-settings .section-title { font-size: 13px; font-weight: 700; margin-left: 4px; }
+
+window.theme-settings .group button:not(.choice):not(.swatch):not(.app-tile):not(.toggle) {
+  min-height: 24px;
+  padding: 0 12px;
+  border-radius: 7px;
+}
+window.theme-settings .group button.destructive { color: #ff3b30; }
+
+/* Segmented control. */
+window.theme-settings .segmented {
+  border-radius: 8px;
+  padding: 2px;
+  background: alpha(currentColor, 0.08);
+}
+window.theme-settings .segmented > button {
+  background: none;
+  border: none;
+  box-shadow: none;
+  min-height: 22px;
+  padding: 0 14px;
+  border-radius: 6px;
+}
+window.theme-settings.light .segmented > button:checked {
+  background: #ffffff;
+  box-shadow: 0 1px 3px alpha(#000000, 0.18);
+}
+window.theme-settings.dark .segmented > button:checked {
+  background: alpha(#ffffff, 0.22);
+  box-shadow: 0 1px 3px alpha(#000000, 0.3);
+}
+
+/* Picture choices (Appearance, window material). */
+window.theme-settings button.choice {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  outline: none;
+}
+window.theme-settings .choice-frame {
+  border-radius: 10px;
+  padding: 3px;
+}
+window.theme-settings .choice.selected .choice-frame { box-shadow: inset 0 0 0 3px @ts_accent; }
+window.theme-settings .choice-title { font-size: 11px; }
+window.theme-settings .choice.selected .choice-title { font-weight: 700; }
+window.theme-settings .thumb { border-radius: 7px; }
+window.theme-settings .thumb picture { border-radius: 7px; }
+
+window.theme-settings .mini-window { border-radius: 5px; box-shadow: 0 1px 4px alpha(#000000, 0.35); }
+window.theme-settings .mini-window > box:first-child { border-top-left-radius: 5px; border-bottom-left-radius: 5px; }
+window.theme-settings .mini-window > box:last-child { border-top-right-radius: 5px; border-bottom-right-radius: 5px; }
+window.theme-settings .mini-window-light { background: #f6f6f6; }
+window.theme-settings .mini-window-dark { background: #2b2b2d; }
+window.theme-settings .dot { min-width: 4px; min-height: 4px; border-radius: 999px; }
+window.theme-settings .dot-red { background: #ff5f57; }
+window.theme-settings .dot-yellow { background: #febc2e; }
+window.theme-settings .dot-green { background: #28c840; }
+window.theme-settings .mini-accent { min-height: 5px; border-radius: 3px; background: @ts_accent; }
+
+window.theme-settings .mini-menubar-tahoe { background: none; }
+window.theme-settings .mini-menubar-frosted { background: alpha(#ffffff, 0.45); }
+window.theme-settings .mini-glass-tahoe {
+  border-radius: 9px;
+  background: alpha(#ffffff, 0.10);
+  box-shadow: inset 0 1px alpha(#ffffff, 0.55), inset 0 0 0 1px alpha(#ffffff, 0.30),
+              0 2px 6px alpha(#000000, 0.18);
+}
+window.theme-settings .mini-glass-frosted {
+  border-radius: 7px;
+  background: alpha(#f2f2f4, 0.78);
+  box-shadow: inset 0 0 0 1px alpha(#ffffff, 0.35), 0 2px 6px alpha(#000000, 0.22);
+}
+window.theme-settings.dark .mini-glass-frosted { background: alpha(#2c2c30, 0.80); }
+window.theme-settings.dark .mini-menubar-frosted { background: alpha(#1e1e22, 0.55); }
+window.theme-settings .mini-dock { border-radius: 5px; }
+
+/* Accent swatches. */
+window.theme-settings button.swatch {
+  min-width: 18px;
+  min-height: 18px;
+  padding: 0;
+  border-radius: 999px;
+  border: none;
+  box-shadow: inset 0 0 0 1px alpha(#000000, 0.12);
+}
+window.theme-settings.light button.swatch:checked {
+  box-shadow: inset 0 0 0 1px alpha(#000000, 0.12), 0 0 0 2px #f5f5f5, 0 0 0 4px alpha(#000000, 0.28);
+}
+window.theme-settings.dark button.swatch:checked {
+  box-shadow: inset 0 0 0 1px alpha(#000000, 0.12), 0 0 0 2px #2a2a2a, 0 0 0 4px alpha(#ffffff, 0.45);
+}
+window.theme-settings .swatch-multicolour {
+  background: conic-gradient(#ff383c, #ff8d28, #ffcc00, #34c759, #0088ff, #cb30e0, #ff2d55, #ff383c);
+}
+window.theme-settings .swatch-blue { background: #0088ff; }
+window.theme-settings .swatch-purple { background: #cb30e0; }
+window.theme-settings .swatch-pink { background: #ff2d55; }
+window.theme-settings .swatch-red { background: #ff383c; }
+window.theme-settings .swatch-orange { background: #ff8d28; }
+window.theme-settings .swatch-yellow { background: #ffcc00; }
+window.theme-settings .swatch-green { background: #34c759; }
+window.theme-settings .swatch-graphite { background: #8c8c8c; }
+/* From the wallpaper: the accent changes with it. */
+window.theme-settings .swatch-wallpaper {
+  background: radial-gradient(circle at 30% 30%, #ffd36e, #ff6b6b 40%, #6a5cff 75%, #1f2a6b);
+}
+
+/* Icons page. */
+window.theme-settings flowbox.app-grid { padding: 10px 0 14px 0; background: none; }
+window.theme-settings flowbox.app-grid > flowboxchild { padding: 0; background: none; outline: none; }
+window.theme-settings menubutton.app-tile > button,
+window.theme-settings .app-tile > button {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 8px 4px 6px 4px;
+  border-radius: 12px;
+}
+window.theme-settings .app-tile > button:hover { background: alpha(currentColor, 0.06); }
+window.theme-settings .app-tile > button:checked { background: alpha(@ts_accent, 0.18); }
+window.theme-settings .app-tile > button > arrow { -gtk-icon-source: none; min-width: 0; min-height: 0; }
+window.theme-settings .app-name { font-size: 11px; }
+window.theme-settings .custom-dot { min-width: 5px; min-height: 5px; border-radius: 999px; background: @ts_accent; }
+
+popover.icon-popover > contents { border-radius: 16px; padding: 0; }
+popover.icon-popover .popover-title { font-weight: 700; font-size: 13px; }
+popover.icon-popover .well {
+  border-radius: 14px;
+  padding: 10px;
+  min-width: 104px;
+  min-height: 104px;
+}
+popover.icon-popover .well-light { background: linear-gradient(#e8eef5, #cfd9e6); }
+popover.icon-popover .well-dark { background: linear-gradient(#2d3442, #151a24); }
+popover.icon-popover button { min-height: 24px; padding: 0 10px; border-radius: 7px; }
+
+/* Sidebar labels: explicit, the GTK theme colours list rows itself. */
+window.theme-settings.light list.nav > row .nav-label { color: #1d1d1f; }
+window.theme-settings.dark list.nav > row .nav-label { color: #f5f5f7; }
+window.theme-settings list.nav > row:selected .nav-label { color: #ffffff; }
+window.theme-settings .search > image { color: inherit; }
+
+/* macOS Tahoe controls: switches with a capsule knob, thin sliders with a
+ * capsule thumb and tick marks, pop-up buttons. */
+window.theme-settings switch.mac-switch {
+  min-width: 40px;
+  min-height: 22px;
+  padding: 1px;
+  border-radius: 999px;
+  border: none;
+  box-shadow: inset 0 0 0 1px alpha(#000000, 0.06);
+  background: alpha(currentColor, 0.16);
+  transition: background 150ms ease-out;
+}
+window.theme-settings switch.mac-switch:checked { background: @ts_accent; box-shadow: none; }
+window.theme-settings switch.mac-switch > slider {
+  min-width: 24px;
+  min-height: 20px;
+  margin: 0;
+  border-radius: 999px;
+  border: none;
+  background: #ffffff;
+  box-shadow: 0 1px 3px alpha(#000000, 0.30), 0 0 0 0.5px alpha(#000000, 0.06);
+}
+window.theme-settings switch.mac-switch > image { opacity: 0; }
+
+window.theme-settings .mac-slider scale { padding: 6px 0; }
+window.theme-settings .mac-slider scale > trough {
+  min-height: 4px;
+  border-radius: 999px;
+  border: none;
+  background: alpha(currentColor, 0.14);
+}
+window.theme-settings .mac-slider scale > trough > highlight {
+  border-radius: 999px;
+  border: none;
+  background: @ts_accent;
+}
+window.theme-settings .mac-slider scale > trough > slider {
+  min-width: 26px;
+  min-height: 18px;
+  margin: -7px 0;
+  border-radius: 999px;
+  border: none;
+  background: #ffffff;
+  box-shadow: 0 1px 4px alpha(#000000, 0.28), 0 0 0 0.5px alpha(#000000, 0.08);
+}
+window.theme-settings .mac-slider scale:disabled { opacity: 0.4; }
+window.theme-settings .mac-slider scale marks indicator {
+  min-height: 5px;
+  min-width: 1px;
+  background: alpha(currentColor, 0.28);
+}
+window.theme-settings .mac-slider scale marks { margin-top: 3px; }
+window.theme-settings .slider-caption { font-size: 11px; opacity: 0.6; }
+
+window.theme-settings dropdown.mac-popup > button {
+  min-height: 22px;
+  padding: 0 6px 0 10px;
+  border-radius: 7px;
+  border: none;
+}
+window.theme-settings.light dropdown.mac-popup > button {
+  background: #ffffff;
+  box-shadow: 0 0 0 0.5px alpha(#000000, 0.16), 0 1px 2px alpha(#000000, 0.14);
+}
+window.theme-settings.dark dropdown.mac-popup > button {
+  background: alpha(#ffffff, 0.14);
+  box-shadow: 0 0 0 0.5px alpha(#ffffff, 0.10), 0 1px 2px alpha(#000000, 0.30);
+}
+window.theme-settings dropdown.mac-popup arrow { -gtk-icon-size: 12px; margin-left: 6px; opacity: 0.7; }
+popover.menu > contents, dropdown.mac-popup popover > contents { border-radius: 12px; padding: 5px; }
+
+/* Glass tint previews: the Dock over the wallpaper in each tint. */
+window.theme-settings .mini-tint-neutral { background: alpha(#6e6e73, 0.75); }
+window.theme-settings .mini-tint-accent { background: alpha(@ts_accent, 0.65); }
+window.theme-settings .mini-app { border-radius: 3px; background: alpha(#ffffff, 0.85); }
+
+/* Hot corners: a small screen with its menu bar and Dock. */
+window.theme-settings .screen { border-radius: 8px; box-shadow: 0 0 0 4px #1c1c1e, 0 6px 16px alpha(#000000, 0.25); }
+window.theme-settings .screen picture { border-radius: 8px; }
+window.theme-settings .mini-menubar-tahoe-bar { background: linear-gradient(alpha(#000000, 0.22), alpha(#000000, 0)); }
+
+/* Labels inside buttons: the GTK theme gives button text its own colour
+ * (white in places), unreadable on the light content. */
+window.theme-settings.light .content button .choice-title,
+window.theme-settings.light .nav-capsule > button,
+window.theme-settings.light dropdown.mac-popup > button { color: #1d1d1f; }
+window.theme-settings.dark .content button .choice-title,
+window.theme-settings.dark .nav-capsule > button,
+window.theme-settings.dark dropdown.mac-popup > button { color: #f5f5f7; }

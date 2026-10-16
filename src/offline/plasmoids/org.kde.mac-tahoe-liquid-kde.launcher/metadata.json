@@ -15,9 +15,9 @@
         "Icon": "view-app-grid",
         "Id": "org.kde.mac-tahoe-liquid-kde.launcher",
         "License": "GPL-3.0",
-        "Name": "Launcher (MacTahoe Liquid KDE)",
-        "Name[es]": "Lanzador (MacTahoe Liquid KDE)",
-        "Name[zh_CN]": "启动器 (MacTahoe Liquid KDE)"
+        "Name": "Launcher (AquaDesktop)",
+        "Name[es]": "Lanzador (AquaDesktop)",
+        "Name[zh_CN]": "启动器 (AquaDesktop)"
     },
     "X-Plasma-API-Minimum-Version": "6.0",
     "X-Plasma-Provides": [

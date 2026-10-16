@@ -1,0 +1,450 @@
+diff --color -ruN a/Kvantum/style/Kvantum.cpp b/Kvantum/style/Kvantum.cpp
+--- a/Kvantum/style/Kvantum.cpp	2026-10-11 21:40:08.831416665 +0200
++++ b/Kvantum/style/Kvantum.cpp	2026-10-11 21:41:00.935488537 +0200
+@@ -16,6 +16,7 @@
+  */
+ 
+ #include "Kvantum.h"
++#include "tahoe.h"
+ 
+ #include <QDir>
+ #include <QPainter>
+@@ -596,11 +597,11 @@
+ 
+         /* this can't be about a copied theme anymore */
+         if (!userConfig.isEmpty())
+-          themeSettings_ = new ThemeConfig(userConfig);
++          themeSettings_ = new ThemeConfig(Tahoe::accented(userConfig));
+         if (!userSvg.isEmpty())
+         {
+           themeRndr_ = new QSvgRenderer();
+-          themeRndr_->load(userSvg);
++          themeRndr_->load(Tahoe::accented(userSvg));
+         }
+         if (themeSettings_ || themeRndr_)
+         {
+@@ -614,7 +615,7 @@
+        *******************/
+       if (!userConfig.isEmpty())
+       { // user theme
+-        themeSettings_ = new ThemeConfig(userConfig);
++        themeSettings_ = new ThemeConfig(Tahoe::accented(userConfig));
+       }
+       else if (userSvg.isEmpty() // otherwise it's a user theme without config file
+                && !themeName.endsWith(KL1("#"))) // root theme names can't have the ending "#"
+@@ -622,14 +623,14 @@
+         temp = QString(DATADIR)
+                + QString("/Kvantum/%1/%1.kvconfig").arg(themeName);
+         if (QFile::exists(temp))
+-          themeSettings_ = new ThemeConfig(temp);
++          themeSettings_ = new ThemeConfig(Tahoe::accented(temp));
+         else if (!isThemeDir(QString(DATADIR) + "/Kvantum", themeName) // svg shouldn't be found
+                  && isThemeDir(QString(DATADIR) + "/Kvantum", lightName))
+         {
+           temp = QString(DATADIR)
+                  + QString("/Kvantum/%1/%2.kvconfig").arg(lightName).arg(themeName);
+           if (QFile::exists(temp))
+-            themeSettings_ = new ThemeConfig(temp);
++            themeSettings_ = new ThemeConfig(Tahoe::accented(temp));
+         }
+ 
+         if (!QFile::exists(temp))
+@@ -641,7 +642,7 @@
+             temp = QString(DATADIR)
+                    + QString("/themes/%1/Kvantum/%1.kvconfig").arg(themeName);
+             if (QFile::exists(temp))
+-              themeSettings_ = new ThemeConfig(temp);
++              themeSettings_ = new ThemeConfig(Tahoe::accented(temp));
+           }
+ 
+           if (!QFile::exists(temp)
+@@ -655,7 +656,7 @@
+               temp = QString(DATADIR)
+                      + QString("/themes/%1/Kvantum/%2.kvconfig").arg(lightName).arg(themeName);
+               if (QFile::exists(temp))
+-                themeSettings_ = new ThemeConfig(temp);
++                themeSettings_ = new ThemeConfig(Tahoe::accented(temp));
+             }
+           }
+         }
+@@ -666,7 +667,7 @@
+       if (!userSvg.isEmpty())
+       { // user theme
+         themeRndr_ = new QSvgRenderer();
+-        themeRndr_->load(userSvg);
++        themeRndr_->load(Tahoe::accented(userSvg));
+       }
+       else
+       {
+@@ -679,7 +680,7 @@
+             if (QFile::exists(temp))
+             {
+               themeRndr_ = new QSvgRenderer();
+-              themeRndr_->load(temp);
++              themeRndr_->load(Tahoe::accented(temp));
+             }
+             else if (!isThemeDir(QString(DATADIR) + "/Kvantum", themeName) // config shouldn't be found
+                      && isThemeDir(QString(DATADIR) + "/Kvantum", lightName))
+@@ -689,7 +690,7 @@
+               if (QFile::exists(temp))
+               {
+                 themeRndr_ = new QSvgRenderer();
+-                themeRndr_->load(temp);
++                themeRndr_->load(Tahoe::accented(temp));
+               }
+             }
+ 
+@@ -704,7 +705,7 @@
+                 if (QFile::exists(temp))
+                 {
+                   themeRndr_ = new QSvgRenderer();
+-                  themeRndr_->load(temp);
++                  themeRndr_->load(Tahoe::accented(temp));
+                 }
+               }
+ 
+@@ -721,7 +722,7 @@
+                   if (QFile::exists(temp))
+                   {
+                     themeRndr_ = new QSvgRenderer();
+-                    themeRndr_->load(temp);
++                    themeRndr_->load(Tahoe::accented(temp));
+                   }
+                 }
+               }
+@@ -738,7 +739,7 @@
+             if (QFile::exists(temp))
+             {
+               themeRndr_ = new QSvgRenderer();
+-              themeRndr_->load(temp);
++              themeRndr_->load(Tahoe::accented(temp));
+             }
+             else if (isThemeDir(QString(DATADIR) + "/Kvantum", lightName))
+             {
+@@ -747,7 +748,7 @@
+               if (QFile::exists(temp))
+               {
+                 themeRndr_ = new QSvgRenderer();
+-                themeRndr_->load(temp);
++                themeRndr_->load(Tahoe::accented(temp));
+               }
+             }
+ 
+@@ -762,7 +763,7 @@
+                 if (QFile::exists(temp))
+                 {
+                   themeRndr_ = new QSvgRenderer();
+-                  themeRndr_->load(temp);
++                  themeRndr_->load(Tahoe::accented(temp));
+                 }
+               }
+ 
+@@ -779,7 +780,7 @@
+                   if (QFile::exists(temp))
+                   {
+                     themeRndr_ = new QSvgRenderer();
+-                    themeRndr_->load(temp);
++                    themeRndr_->load(Tahoe::accented(temp));
+                   }
+                 }
+               }
+@@ -5827,7 +5828,7 @@
+             int tabIndex = txt.indexOf(QLatin1Char('\t'));
+             if (tabIndex > 0)
+             {
+-              shortcutTxt = txt.mid(tabIndex + 1);
++              shortcutTxt = Tahoe::macShortcut(txt.mid(tabIndex + 1));
+               txt = txt.left(tabIndex);
+             }
+           }
+@@ -5981,7 +5982,7 @@
+                 col = getFromRGBA(lspec.normalInactiveColor);
+               if (!col.isValid())
+                 col = getFromRGBA(lspec.normalColor);
+-              col.setAlphaF(col.alphaF() * 0.8);
++              col.setAlphaF(col.alphaF() * 0.55); // Tahoe: macOS dims shortcuts more
+               if (isInactive)
+                 lspec.normalInactiveColor = getName(col);
+               else
+diff --color -ruN a/Kvantum/style/polishing.cpp b/Kvantum/style/polishing.cpp
+--- a/Kvantum/style/polishing.cpp	2026-10-11 21:40:08.831938492 +0200
++++ b/Kvantum/style/polishing.cpp	2026-10-11 21:41:08.817942155 +0200
+@@ -15,6 +15,7 @@
+  * with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#include "tahoe.h"
+ #include "Kvantum.h"
+ 
+ #include <QProcess>
+@@ -1050,6 +1051,8 @@
+   QCommonStyle::polish(app);
+   if (itsShortcutHandler_)
+     app->installEventFilter(itsShortcutHandler_);
++  /* AquaDesktop: follow accent colour changes (see tahoe.h). */
++  app->installEventFilter(new Tahoe::AccentWatcher(this));
+ }
+ 
+ void Style::polish(QPalette &palette)
+diff --color -ruN a/Kvantum/style/tahoe.h b/Kvantum/style/tahoe.h
+--- a/Kvantum/style/tahoe.h	1970-01-01 01:00:00.000000000 +0100
++++ b/Kvantum/style/tahoe.h	2026-10-11 22:28:00.773912648 +0200
+@@ -0,0 +1,258 @@
++/*
++ * AquaDesktop additions to Kvantum (GPL-3.0-or-later, like Kvantum):
++ *
++ * - The accent colour: KDE's [General] AccentColor (set in System
++ *   Settings, Theme Settings, or from the wallpaper) recolours the theme's
++ *   accent-family blues as it is loaded, the SVG and the kvconfig alike,
++ *   keeping each blue's lightness offset from the theme's own accent. A
++ *   palette change carrying a new accent reloads the style, so every Qt
++ *   app follows a wallpaper accent at once.
++ * - macOS menu shortcuts: "Ctrl+Shift+N" is drawn "⇧⌘N".
++ */
++#ifndef TAHOE_KVANTUM_H
++#define TAHOE_KVANTUM_H
++
++#include <QApplication>
++#include <QColor>
++#include <QCryptographicHash>
++#include <QDir>
++#include <QEvent>
++#include <QFile>
++#include <QFileInfo>
++#include <QHash>
++#include <initializer_list>
++#include <QRegularExpression>
++#include <QSaveFile>
++#include <QSettings>
++#include <QStandardPaths>
++#include <QStyleFactory>
++#include <QTimer>
++
++namespace Tahoe {
++
++/* The theme's own accent, the blue its SVG and kvconfig are drawn with. */
++static const QColor kBaseAccent(0x00, 0x88, 0xff);
++
++inline QString kdeglobalsPath()
++{
++  QString config = qEnvironmentVariable("XDG_CONFIG_HOME");
++  if (config.isEmpty())
++    config = QDir::homePath() + QStringLiteral("/.config");
++  return config + QStringLiteral("/kdeglobals");
++}
++
++/* KDE's custom accent; invalid when the colour scheme's own is used. */
++inline QColor accent()
++{
++  QSettings settings(kdeglobalsPath(), QSettings::IniFormat);
++  /* QSettings maps an INI file's [General] group to its top level. */
++  const QVariant value = settings.value(QStringLiteral("AccentColor"));
++  /* QSettings reads "r,g,b" as a list */
++  QStringList parts = value.toStringList();
++  if (parts.size() == 1)
++    parts = parts.first().split(QLatin1Char(','));
++  if (parts.size() < 3)
++    return QColor();
++  bool ok[3];
++  const int r = parts.at(0).trimmed().toInt(&ok[0]);
++  const int g = parts.at(1).trimmed().toInt(&ok[1]);
++  const int b = parts.at(2).trimmed().toInt(&ok[2]);
++  if (!ok[0] || !ok[1] || !ok[2]
++      || r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
++    return QColor();
++  return QColor(r, g, b);
++}
++
++/* The accent the loaded theme was recoloured with ("" for none). */
++inline QString &loadedAccent()
++{
++  static QString name;
++  return name;
++}
++
++/* Every accent-family blue (hue 195-232°, saturated, mid lightness) in
++   the hue of `to`, with its lightness offset from the base accent and its
++   relative saturation. The same mapping as theme_switch.recolor_accent. */
++inline QString recolor(const QString &text, const QColor &to)
++{
++  static const QRegularExpression hex(QStringLiteral("#([0-9a-fA-F]{6})(?![0-9a-fA-F])"));
++  const qreal ah = qMax(qreal(0), to.hslHueF());
++  const qreal as = to.hslSaturationF();
++  const qreal al = to.lightnessF();
++  const qreal bl = kBaseAccent.lightnessF();
++  const qreal bs = kBaseAccent.hslSaturationF();
++  QString out;
++  out.reserve(text.size());
++  qsizetype last = 0;
++  QRegularExpressionMatchIterator it = hex.globalMatch(text);
++  while (it.hasNext())
++  {
++    const QRegularExpressionMatch m = it.next();
++    out += QStringView(text).mid(last, m.capturedStart() - last);
++    last = m.capturedEnd();
++    const QColor c(QLatin1Char('#') + m.captured(1));
++    const qreal h = c.hslHueF() * 360.0;
++    const qreal l = c.lightnessF();
++    const qreal s = c.hslSaturationF();
++    if (h < 195.0 || h > 232.0 || s < 0.5 || l < 0.3 || l > 0.75)
++    {
++      out += m.captured(0);
++      continue;
++    }
++    const qreal nl = qBound(qreal(0.05), al + (l - bl), qreal(0.95));
++    const qreal ns = qMin(qreal(1), as * s / bs);
++    out += QColor::fromHslF(ah, ns, nl).name();
++  }
++  out += QStringView(text).mid(last);
++  return out;
++}
++
++/* The untouched copy of a AquaDesktop theme file, kept by the installer
++   (the user's copy may have been recoloured for the stock engine). */
++inline QString original(const QString &path)
++{
++  QString data = qEnvironmentVariable("XDG_DATA_HOME");
++  if (data.isEmpty())
++    data = QDir::homePath() + QStringLiteral("/.local/share");
++  const QString candidate = data + QStringLiteral("/mac-tahoe-liquid-kde/kvantum/")
++                            + QFileInfo(path).fileName();
++  return QFile::exists(candidate) ? candidate : path;
++}
++
++/* `path` (its untouched original when there is one), or a copy of it
++   recoloured with the current accent (kept in the runtime directory, named
++   after the source and the accent). */
++inline QString accented(const QString &userPath)
++{
++  const QColor to = accent();
++  loadedAccent() = to.isValid() ? to.name() : QString();
++  if (userPath.isEmpty())
++    return userPath;
++  const QString path = original(userPath);
++  if (!to.isValid())
++    return path;
++  QFile source(path);
++  if (!source.open(QIODevice::ReadOnly))
++    return path;
++  const QString text = QString::fromUtf8(source.readAll());
++  const QString out = recolor(text, to);
++  if (out == text)
++    return path;
++  QString dir = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
++  if (dir.isEmpty())
++    dir = QDir::tempPath();
++  dir += QStringLiteral("/tahoe-kvantum");
++  if (!QDir().mkpath(dir))
++    return path;
++  const QByteArray key = QCryptographicHash::hash(path.toUtf8(), QCryptographicHash::Md5).toHex().left(8);
++  const QString target = QStringLiteral("%1/%2-%3-%4").arg(dir, QString::fromLatin1(key),
++                                                           to.name().mid(1), QFileInfo(path).fileName());
++  if (QFile::exists(target) && QFileInfo(target).lastModified() >= QFileInfo(path).lastModified())
++    return target;
++  QSaveFile file(target);
++  if (!file.open(QIODevice::WriteOnly))
++    return path;
++  file.write(out.toUtf8());
++  return file.commit() ? target : path;
++}
++
++/* Reloads the style when a palette change brings another accent (KDE
++   sends one after every colour or accent change). */
++class AccentWatcher : public QObject
++{
++public:
++  explicit AccentWatcher(QObject *parent) : QObject(parent) {}
++
++protected:
++  bool eventFilter(QObject *o, QEvent *e) override
++  {
++    if (e->type() == QEvent::ApplicationPaletteChange && o == qApp && !pending_)
++    {
++      const QColor to = accent();
++      const QString name = to.isValid() ? to.name() : QString();
++      if (name != loadedAccent())
++      {
++        pending_ = true;
++        loadedAccent() = name;
++        QTimer::singleShot(0, qApp, [] {
++          if (QStyle *style = QStyleFactory::create(QStringLiteral("kvantum")))
++            QApplication::setStyle(style);
++        });
++      }
++    }
++    return QObject::eventFilter(o, e);
++  }
++
++private:
++  bool pending_ = false;
++};
++
++/* "Ctrl+Shift+N" as macOS draws it, "⇧⌘N": modifiers in macOS order
++   (⌃⌥⇧⌘, Ctrl being Linux' ⌘) before the key, special keys as glyphs. */
++inline QString macShortcut(const QString &shortcut)
++{
++  QStringList out;
++  for (const QString &one : shortcut.split(QStringLiteral(", ")))
++  {
++    QStringList parts = one.split(QLatin1Char('+'));
++    /* "Ctrl++" */
++    if (one.endsWith(QStringLiteral("++")))
++    {
++      parts.removeAll(QString());
++      parts.append(QStringLiteral("+"));
++    }
++    if (parts.isEmpty())
++    {
++      out << one;
++      continue;
++    }
++    const QString key = parts.takeLast();
++    /* Qt translates the modifier names (French "Maj", German "Strg"...). */
++    auto has = [&parts](std::initializer_list<const char *> names) {
++      for (const char *name : names)
++        if (parts.contains(QString::fromUtf8(name), Qt::CaseInsensitive))
++          return true;
++      return false;
++    };
++    const bool known = has({"Meta", "Alt", "AltGr", "Shift", "Maj", "Umschalt", "Mayús",
++                            "Ctrl", "Strg", "Ctrl", "Control"});
++    if (!parts.isEmpty() && !known)
++    {
++      out << one;
++      continue;
++    }
++    QString mods;
++    if (has({"Meta"})) mods += QChar(0x2303);
++    if (has({"Alt", "AltGr"})) mods += QChar(0x2325);
++    if (has({"Shift", "Maj", "Umschalt", "Mayús"})) mods += QChar(0x21E7);
++    if (has({"Ctrl", "Strg", "Control"})) mods += QChar(0x2318);
++    static const QHash<QString, QString> keys = {
++      {QStringLiteral("Return"), QString(QChar(0x21A9))},
++      {QStringLiteral("Entrée"), QString(QChar(0x21A9))},
++      {QStringLiteral("Retour"), QString(QChar(0x232B))},
++      {QStringLiteral("Suppr"), QString(QChar(0x2326))},
++      {QStringLiteral("Échap"), QString(QChar(0x238B))},
++      {QStringLiteral("Enter"), QString(QChar(0x2324))},
++      {QStringLiteral("Backspace"), QString(QChar(0x232B))},
++      {QStringLiteral("Del"), QString(QChar(0x2326))},
++      {QStringLiteral("Delete"), QString(QChar(0x2326))},
++      {QStringLiteral("Esc"), QString(QChar(0x238B))},
++      {QStringLiteral("Tab"), QString(QChar(0x21E5))},
++      {QStringLiteral("Left"), QString(QChar(0x2190))},
++      {QStringLiteral("Right"), QString(QChar(0x2192))},
++      {QStringLiteral("Up"), QString(QChar(0x2191))},
++      {QStringLiteral("Down"), QString(QChar(0x2193))},
++      {QStringLiteral("PgUp"), QString(QChar(0x21DE))},
++      {QStringLiteral("PgDown"), QString(QChar(0x21DF))},
++      {QStringLiteral("Home"), QString(QChar(0x2196))},
++      {QStringLiteral("End"), QString(QChar(0x2198))},
++      {QStringLiteral("Space"), QStringLiteral("Space")},
++    };
++    out << mods + keys.value(key, key);
++  }
++  return out.join(QStringLiteral(", "));
++}
++
++} // namespace Tahoe
++
++#endif

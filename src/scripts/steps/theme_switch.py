@@ -9,7 +9,7 @@ from pathlib import Path
 
 from paths import REPO_ROOT
 from distro import user_service_manager_command
-from steps._helpers import HOME, fail, kw_write, ok, offline, theme_mode, warn
+from steps._helpers import DATA_HOME, HOME, fail, kw_write, ok, offline, theme_mode, warn
 from steps._scheduler import (
     RemovalStatus, cron_command, install_at_times, is_systemd, remove_periodic,
 )
@@ -19,6 +19,57 @@ BIN_DEST = HOME / ".local/bin/mac-tahoe-theme-switch"
 SVC_DIR = HOME / ".config/systemd/user"
 PY_SRC = REPO_ROOT / "src/scripts/theme_switch.py"
 LAYOUT_STATE_FILE = HOME / ".local/state/mac-tahoe-liquid-kde/layout-installed"
+
+# Theme Settings (src/offline/theme-settings): the GTK 4 window driving this
+# switch, the accent colour and the Icon Manager.
+THEME_SETTINGS_FILES = ("theme_settings.py", "theme-settings.css")
+THEME_SETTINGS_DESKTOP = "org.kde.mac-tahoe-liquid-kde.themesettings.desktop"
+
+
+def _theme_settings_paths() -> dict:
+    return {
+        "src": offline("theme-settings"),
+        "app": DATA_HOME / "mac-tahoe-liquid-kde/apps/theme-settings",
+        "bin": HOME / ".local/bin/mac-tahoe-theme-settings",
+        "desktop": DATA_HOME / "applications" / THEME_SETTINGS_DESKTOP,
+    }
+
+
+def _install_theme_settings() -> None:
+    paths = _theme_settings_paths()
+    sources = [paths["src"] / name for name in (*THEME_SETTINGS_FILES, THEME_SETTINGS_DESKTOP)]
+    if not all(source.is_file() for source in sources):
+        warn("Theme Settings not installed (missing sources)")
+        return
+    try:
+        paths["app"].mkdir(parents=True, exist_ok=True)
+        for name in THEME_SETTINGS_FILES:
+            shutil.copy2(paths["src"] / name, paths["app"] / name)
+        paths["bin"].parent.mkdir(parents=True, exist_ok=True)
+        paths["bin"].write_text(
+            "#!/bin/sh\n"
+            "# AquaDesktop Theme Settings\n"
+            f'exec python3 "{paths["app"] / "theme_settings.py"}" "$@"\n',
+            encoding="utf-8")
+        paths["bin"].chmod(0o755)
+        paths["desktop"].parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(paths["src"] / THEME_SETTINGS_DESKTOP, paths["desktop"])
+    except OSError as exc:
+        warn(f"Theme Settings not installed ({exc})")
+        return
+    ok("Theme Settings installed")
+
+
+def _uninstall_theme_settings() -> None:
+    paths = _theme_settings_paths()
+    shutil.rmtree(paths["app"], ignore_errors=True)
+    for key in ("bin", "desktop"):
+        try:
+            paths[key].unlink()
+        except FileNotFoundError:
+            pass
+        except OSError as exc:
+            warn(f"Theme Settings: {paths[key]} could not be removed ({exc})")
 
 
 def _managed_state_files() -> tuple[Path, Path]:
@@ -299,6 +350,7 @@ def install() -> None:
 
     if BIN_DEST.is_file() and BIN_DEST.stat().st_mode & 0o111:
         ok("Theme switcher installed")
+        _install_theme_settings()
     else:
         warn("Theme switcher not installed")
 
@@ -376,6 +428,7 @@ def uninstall() -> None:
     cron_complete = _cron_removal_complete(cron_status)
     stop_gtk_sync_watcher()
     _teardown_gtk_sync_autostart()
+    _uninstall_theme_settings()
     binaries_neutralized = True
     for p in (BIN_DEST, _LEGACY_BIN):
         try: p.unlink()

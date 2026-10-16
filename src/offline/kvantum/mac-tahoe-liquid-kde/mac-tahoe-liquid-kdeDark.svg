@@ -518,7 +518,7 @@
      y="650"
      height="20"
      id="menubar-normal"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <rect
      width="20"
      x="650"
@@ -526,14 +526,14 @@
      height="5"
      id="menubar-normal-left"
      transform="rotate(90)"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <rect
      width="20"
      x="280"
      y="645"
      height="5"
      id="menubar-normal-top"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <rect
      width="20"
      x="650"
@@ -541,7 +541,7 @@
      height="5"
      id="menubar-normal-right"
      transform="rotate(90)"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <rect
      id="dock-normal"
      style="fill:#333333;fill-opacity:1;stroke:none"
@@ -672,7 +672,7 @@
      height="5"
      id="menubar-normal-topright"
      transform="rotate(90)"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <rect
      width="5"
      x="670"
@@ -680,7 +680,7 @@
      height="5"
      id="menubar-normal-bottomleft"
      transform="rotate(90)"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <use
      width="450"
      x="0"
@@ -699,7 +699,7 @@
      y="670"
      x="280"
      width="20"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <use
      width="450"
      x="0"
@@ -722,7 +722,7 @@
      y="-304.99997"
      x="670.00012"
      width="5"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <g
      transform="translate(-5,-28.547244)"
      id="menuitem-tearoff-focused"
@@ -4378,14 +4378,7 @@
        ry="4.0000086"
        style="fill:#ffffff;opacity:0.2" />
   </g>
-  <use
-     height="100%"
-     width="100%"
-     transform="translate(-1.0000175,109.99997)"
-     id="menu-checkbox-checked-normal"
-     xlink:href="#checkbox-checked-normal"
-     y="0"
-     x="0" />
+
   <use
      height="100%"
      width="100%"
@@ -4394,46 +4387,11 @@
      xlink:href="#checkbox-tristate-normal"
      y="0"
      x="0" />
-  <use
-     height="100%"
-     width="100%"
-     transform="translate(5.9999456,109.99998)"
-     id="menu-radio-checked-normal"
-     xlink:href="#radio-checked-normal"
-     y="0"
-     x="0" />
-  <use
-     height="100%"
-     width="100%"
-     transform="translate(-1.0000175,109.99997)"
-     id="menu-checkbox-normal"
-     xlink:href="#checkbox-normal"
-     y="0"
-     x="0" />
-  <use
-     height="100%"
-     width="100%"
-     transform="translate(1.9999809,110)"
-     id="menu-radio-normal"
-     xlink:href="#radio-normal"
-     y="0"
-     x="0" />
-  <use
-     height="100%"
-     width="100%"
-     transform="translate(1.9999809,110)"
-     id="menu-radio-focused"
-     xlink:href="#radio-focused"
-     y="0"
-     x="0" />
-  <use
-     height="100%"
-     width="100%"
-     transform="translate(-1.0000175,109.99997)"
-     id="menu-checkbox-focused"
-     xlink:href="#checkbox-focused"
-     y="0"
-     x="0" />
+
+
+
+
+
   <use
      height="100%"
      width="100%"
@@ -5209,9 +5167,9 @@
        style="opacity:0;stroke-width:1.7607"
        inkscape:connector-curvature="0" />
     <path
-       d="M 233.13631,1391.7328 H 91.130355 v 2.2223 H 233.13631 Z"
+       d="M 233.13631,1392.2884 H 91.130355 v 1.1111 H 233.13631 Z"
        id="path8751"
-       style="opacity:0.06;fill:#ffffff;fill-opacity:1;stroke-width:2.46421"
+       style="opacity:0.16;fill:#ffffff;fill-opacity:1;stroke-width:2.46421"
        inkscape:connector-curvature="0" />
     <path
        inkscape:connector-curvature="0"
@@ -5371,15 +5329,15 @@
   <path
      id="toolbar-normal"
      d="M 41.999826,295.00005 V 319 h 32.00029 v -24 z"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <path
      id="toolbar-normal-left"
      d="m 10.000125,295 v 2.22227 0 V 319 H 42.000126 V 297.22227 L 41.999966,296 l -1.4e-4,-1 z"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <path
      id="toolbar-normal-right"
      d="m 73.999966,295 1.6e-4,2.22227 v 0 V 319 H 106.00013 V 297.22227 L 105.99997,296 v -1 z"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <path
      id="toolbar-normal-inactive"
      d="M 41.999666,355.00005 V 379 h 32.00029 v -24 c 0,0 -27.22181,4e-5 -32.00029,5e-5 z"
@@ -5472,15 +5430,15 @@
   <path
      d="M 41.999826,291.00001 V 295 h 32.00029 v -4 c 0,0 -27.22181,0 -32.00029,10e-6 z"
      id="toolbar-normal-top"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <path
      d="m 10.186825,291.00001 -0.1867,0.37036 v 0 V 295 h 32.000001 l -3e-4,-4 z"
      id="toolbar-normal-topleft"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <path
      d="m 73.999826,291 3e-4,0.37037 v 0 V 295 h 32.000004 l -3e-4,-4 z"
      id="toolbar-normal-topright"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <path
      id="toolbar-normal-inactive-top"
      d="m 41.999826,351 v 4 h 32.00029 v -4 c 0,0 -27.22181,0 -32.00029,0 z"
@@ -6277,7 +6235,7 @@
      height="5"
      id="menubar-normal-topleft"
      transform="rotate(90)"
-     style="fill:#333333" />
+     style="fill:#1e1e1e" />
   <g
      id="menubaritem-toggled-topleft"
      transform="translate(145,42)">
@@ -8080,27 +8038,7 @@
        rx="1.9988754"
        style="fill:#ffffff" />
   </g>
-  <g
-     id="menu-checkbox-checked-focused"
-     transform="matrix(2.0000006,0,0,2.0000006,907.99998,234.27564)">
-    <rect
-       rx="4.0000043"
-       y="0.36217991"
-       x="36"
-       height="16"
-       width="16"
-       id="rect470"
-       ry="4.0000043"
-       style="fill:#597bf2;fill-opacity:1" />
-    <path
-       d="m 41.249997,8.8621771 2.25,2.4999999 4.25,-6.4999999"
-       stroke="#ffffff"
-       stroke-width="1.5"
-       stroke-linecap="round"
-       stroke-linejoin="round"
-       id="path470"
-       style="fill:none" />
-  </g>
+
   <g
      id="item-checkbox-tristate-focused"
      transform="matrix(2.0000006,0,0,2.0000006,1073,289.27564)">
@@ -8139,44 +8077,7 @@
        y="40.000088"
        ry="1" />
   </g>
-  <g
-     id="menu-radio-checked-focused"
-     transform="matrix(2.0000006,0,0,2.0000006,912.99992,234.27563)">
-    <rect
-       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:none;stroke:none;stroke-width:1.87183;marker:none;enable-background:accumulate"
-       id="rect476"
-       width="15.999999"
-       height="15.999999"
-       x="116"
-       y="0.36218828" />
-    <rect
-       rx="8"
-       y="0.3621842"
-       x="116"
-       height="16"
-       width="16"
-       id="rect477"
-       ry="8"
-       style="fill:#597bf2;fill-opacity:1" />
-    <rect
-       ry="2"
-       id="rect478"
-       width="4"
-       height="4"
-       x="122"
-       y="6.8621778"
-       rx="1.9988754"
-       style="opacity:0.15;fill:#000000;filter:url(#filter24)" />
-    <rect
-       ry="2"
-       id="rect480"
-       width="4"
-       height="4"
-       x="122"
-       y="6.3621826"
-       rx="1.9988754"
-       style="fill:#ffffff" />
-  </g>
+
   <g
      id="lineedit-normal-top"
      transform="matrix(0.500001 0 0 0.501976 354.5 91.1877)">
@@ -8883,4 +8784,77 @@
      xlink:href="#spin-down-disabled"
      id="spin-minus-disabled"
      transform="translate(8.8821782e-7,26)" />
+
+  <!-- Expanded menu item frame: Kvantum draws these at frame.expansion/2,
+       giving the macOS Tahoe 8 px highlight corners. -->
+  <g
+     id="expand-menuitem-normal-top"
+     transform="translate(39.418654,32.628013)">
+    <path
+       id="expand-menuitem-normal-top2"
+       d="M 216.99995,504 H 209 v -8 h 8 z"
+       style="opacity:1;fill:#315bef;fill-opacity:1" />
+  </g>
+  <g
+     id="expand-menuitem-normal-bottom"
+     transform="translate(39.418654,32.628013)">
+    <path
+       id="expand-menuitem-normal-bottom2"
+       d="m 209,512 h 7.99995 v 8 h -8 z"
+       style="opacity:1;fill:#315bef;fill-opacity:1" />
+  </g>
+  <g
+     id="expand-menuitem-normal-left"
+     transform="translate(64.418654,32.628013)">
+    <path
+       id="expand-menuitem-normal-left2"
+       d="M 184,504.00005 V 512 h -8 v -8 z"
+       style="opacity:1;fill:#315bef;fill-opacity:1" />
+  </g>
+  <g
+     id="expand-menuitem-normal-right"
+     transform="translate(64.418654,32.628013)">
+    <path
+       id="expand-menuitem-normal-right2"
+       d="m 192,504 v 7.99995 h 8 v -8 z"
+       style="opacity:1;fill:#315bef;fill-opacity:1" />
+  </g>
+  <g
+     id="expand-menuitem-normal-topleft"
+     transform="translate(64.418654,32.628013)">
+    <path
+       id="expand-menuitem-normal-topleft2"
+       d="m 176,504 c 0,0 0,-8 8,-8 v 8 z"
+       style="opacity:1;fill:#315bef;fill-opacity:1" />
+  </g>
+  <g
+     id="expand-menuitem-normal-topright"
+     transform="translate(64.418654,32.628013)">
+    <path
+       id="expand-menuitem-normal-topright2"
+       d="M 199.99979,503.99989 C 199.99979,503.99989 200,496 192,496 v 7.99978 z"
+       style="opacity:1;fill:#315bef;fill-opacity:1" />
+  </g>
+  <g
+     id="expand-menuitem-normal-bottomleft"
+     transform="translate(64.418654,32.628013)">
+    <path
+       id="expand-menuitem-normal-bottomleft2"
+       d="m 184,520 c -8,0 -8,-8 -8,-8 h 8 z"
+       style="opacity:1;fill:#315bef;fill-opacity:1" />
+  </g>
+  <g
+     id="expand-menuitem-normal-bottomright"
+     transform="translate(64.418654,32.628013)">
+    <path
+       id="expand-menuitem-normal-bottomright2"
+       d="M 192,519.99989 C 200,520 199.99979,512 199.99979,512 H 192 Z"
+       style="opacity:1;fill:#315bef;fill-opacity:1" />
+  </g>
+  <path
+     id="expand-menuitem-normal"
+     d="m 248.41865,544.62801 v -8 h 8 v 8 z"
+     style="fill:#315bef;fill-opacity:1" />
+
+<g id="macos-tahoe-finder-overrides"><g id="menu-checkbox-checked-normal"><rect x="2000" y="2000" width="16" height="16" style="fill:#000000;opacity:0"/><path d="m 2003.5,2008.5 3,3 6,-7" style="fill:none;stroke:#dfdfdf;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:1.0"/></g><g id="menu-checkbox-normal"><rect x="2000" y="2020" width="16" height="16" style="fill:#000000;opacity:0"/></g><g id="menu-radio-checked-normal"><rect x="2200" y="2000" width="16" height="16" style="fill:#000000;opacity:0"/><path d="m 2203.5,2008.5 3,3 6,-7" style="fill:none;stroke:#dfdfdf;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:1.0"/></g><g id="menu-radio-normal"><rect x="2200" y="2020" width="16" height="16" style="fill:#000000;opacity:0"/></g><g id="menu-checkbox-checked-focused"><rect x="2040" y="2000" width="16" height="16" style="fill:#000000;opacity:0"/><path d="m 2043.5,2008.5 3,3 6,-7" style="fill:none;stroke:#ffffff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:1.0"/></g><g id="menu-checkbox-focused"><rect x="2040" y="2020" width="16" height="16" style="fill:#000000;opacity:0"/></g><g id="menu-radio-checked-focused"><rect x="2240" y="2000" width="16" height="16" style="fill:#000000;opacity:0"/><path d="m 2243.5,2008.5 3,3 6,-7" style="fill:none;stroke:#ffffff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:1.0"/></g><g id="menu-radio-focused"><rect x="2240" y="2020" width="16" height="16" style="fill:#000000;opacity:0"/></g><g id="menu-checkbox-checked-pressed"><rect x="2080" y="2000" width="16" height="16" style="fill:#000000;opacity:0"/><path d="m 2083.5,2008.5 3,3 6,-7" style="fill:none;stroke:#ffffff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:1.0"/></g><g id="menu-checkbox-pressed"><rect x="2080" y="2020" width="16" height="16" style="fill:#000000;opacity:0"/></g><g id="menu-radio-checked-pressed"><rect x="2280" y="2000" width="16" height="16" style="fill:#000000;opacity:0"/><path d="m 2283.5,2008.5 3,3 6,-7" style="fill:none;stroke:#ffffff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:1.0"/></g><g id="menu-radio-pressed"><rect x="2280" y="2020" width="16" height="16" style="fill:#000000;opacity:0"/></g><g id="menu-checkbox-checked-toggled"><rect x="2120" y="2000" width="16" height="16" style="fill:#000000;opacity:0"/><path d="m 2123.5,2008.5 3,3 6,-7" style="fill:none;stroke:#dfdfdf;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:1.0"/></g><g id="menu-checkbox-toggled"><rect x="2120" y="2020" width="16" height="16" style="fill:#000000;opacity:0"/></g><g id="menu-radio-checked-toggled"><rect x="2320" y="2000" width="16" height="16" style="fill:#000000;opacity:0"/><path d="m 2323.5,2008.5 3,3 6,-7" style="fill:none;stroke:#dfdfdf;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:1.0"/></g><g id="menu-radio-toggled"><rect x="2320" y="2020" width="16" height="16" style="fill:#000000;opacity:0"/></g><g id="menu-checkbox-checked-disabled"><rect x="2160" y="2000" width="16" height="16" style="fill:#000000;opacity:0"/><path d="m 2163.5,2008.5 3,3 6,-7" style="fill:none;stroke:#dfdfdf;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:0.45"/></g><g id="menu-checkbox-disabled"><rect x="2160" y="2020" width="16" height="16" style="fill:#000000;opacity:0"/></g><g id="menu-radio-checked-disabled"><rect x="2360" y="2000" width="16" height="16" style="fill:#000000;opacity:0"/><path d="m 2363.5,2008.5 3,3 6,-7" style="fill:none;stroke:#dfdfdf;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:0.45"/></g><g id="menu-radio-disabled"><rect x="2360" y="2020" width="16" height="16" style="fill:#000000;opacity:0"/></g></g>
 </svg>

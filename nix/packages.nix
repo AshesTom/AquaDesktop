@@ -49,7 +49,8 @@ in rec {
   };
   global-menu = buildPlugin "global-menu" (offline + "/plasmoids/org.kde.mac.tahoe.liquid.globalmenu") {};
   task-manager = buildPlugin "task-manager" (offline + "/plasmoids/org.kde.mac.tahoe.liquid.taskmanager") {};
-  acrylic-glass = buildPlugin "acrylic-glass" (offline + "/kwin-effects/acrylic-glass") {};
+  # The window and Dock glass: Better Blur DX (feature id acrylic_glass).
+  acrylic-glass = buildPlugin "acrylic-glass" (offline + "/kwin-effects/better-blur-dx") {};
   rounded-corners = buildPlugin "rounded-corners" (pkgs.fetchurl {
     url = "https://github.com/matinlotfali/KDE-Rounded-Corners/archive/refs/tags/v${capture "UPSTREAM_VERSION"}.tar.gz";
     sha256 = capture "UPSTREAM_SHA256";

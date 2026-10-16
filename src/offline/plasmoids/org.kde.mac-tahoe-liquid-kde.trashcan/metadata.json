@@ -15,9 +15,9 @@
         "Icon": "user-trash",
         "Id": "org.kde.mac-tahoe-liquid-kde.trashcan",
         "License": "GPL-3.0",
-        "Name": "Trashcan (MacTahoe Liquid KDE)",
-        "Name[es]": "Papelera (MacTahoe Liquid KDE)",
-        "Name[zh_CN]": "回收站 (MacTahoe Liquid KDE)"
+        "Name": "Trashcan (AquaDesktop)",
+        "Name[es]": "Papelera (AquaDesktop)",
+        "Name[zh_CN]": "回收站 (AquaDesktop)"
     },
     "X-Plasma-API-Minimum-Version": "6.0",
     "X-Plasma-DropUrlPatterns": [

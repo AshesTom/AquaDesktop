@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "AquaDesktop contributors"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "macOS battery menu bar item: the charge in percent beside the battery glyph, and the Battery menu",
+        "Icon": "battery-full",
+        "Id": "org.kde.mac-tahoe-liquid-kde.battery",
+        "License": "GPL-3.0",
+        "Name": "Battery (AquaDesktop)",
+        "EnabledByDefault": false
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

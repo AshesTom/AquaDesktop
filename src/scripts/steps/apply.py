@@ -253,6 +253,26 @@ def _run_theme_switch_install(switch: Path) -> int | None:
         return None
 
 
+def repair_colors() -> None:
+    """After the final Plasma restart: the palette under the scheme's name
+    must be the scheme's. A reinstall once left Breeze Light's colours under
+    MacTahoeLiquidKdeDark, which KDE never re-applied (same name)."""
+    switch = HOME / ".local/bin/mac-tahoe-theme-switch"
+    if not (switch.is_file() and switch.stat().st_mode & 0o111):
+        return
+    try:
+        result = run_user([str(switch), "repair-colors"], check=False,
+                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                          timeout=_THEME_SWITCH_TIMEOUT)
+    except (subprocess.TimeoutExpired, OSError):
+        warn("Color scheme check did not finish")
+        return
+    if result.returncode == 0:
+        ok("Color scheme verified")
+    else:
+        warn("Color scheme does not match its palette — re-run the theme switch")
+
+
 def _refresh_desktop_database() -> None:
     """Rebuild mimeinfo.cache: a stale cache leaves launcher/taskbar apps
     missing after a theme switch. User dir as user; the system dir needs root."""
@@ -350,7 +370,7 @@ def install() -> None:
     print("  …  Reconfiguring KWin", end="\r", flush=True)
     if feat_enabled("ACRYLIC_GLASS"):
         qdbus_call("org.kde.KWin", "/Effects",
-                   "org.kde.kwin.Effects.loadEffect", "liquidglass")
+                   "org.kde.kwin.Effects.loadEffect", "better_blur_dx")
         time.sleep(1)
     # The switcher already protects foreign effects during its own
     # reconfigure. Protect this install-tail reconfigure as well; otherwise a

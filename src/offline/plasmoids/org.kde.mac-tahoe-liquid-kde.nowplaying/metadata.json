@@ -1,0 +1,24 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "AquaDesktop contributors"
+            }
+        ],
+        "Category": "Multimedia",
+        "Category[es]": "Multimedia",
+        "Category[zh_CN]": "多媒体",
+        "Description": "macOS Now Playing menu bar item: shows up while media plays, with artwork, progress and playback controls",
+        "Description[es]": "Elemento «En reproducción» de la barra de menús de macOS: aparece mientras suena algo, con carátula, progreso y controles",
+        "Description[zh_CN]": "macOS 菜单栏中的“正在播放”：播放媒体时出现，带封面、进度和播放控制",
+        "Icon": "media-playback-start",
+        "Id": "org.kde.mac-tahoe-liquid-kde.nowplaying",
+        "License": "GPL-3.0",
+        "Name": "Now Playing (AquaDesktop)",
+        "Name[es]": "En reproducción (AquaDesktop)",
+        "Name[zh_CN]": "正在播放 (AquaDesktop)",
+        "EnabledByDefault": false
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

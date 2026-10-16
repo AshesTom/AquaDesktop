@@ -1,0 +1,22 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "AquaDesktop contributors"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "macOS Wi-Fi menu bar item: the Wi-Fi switch, the current connections, known and other networks",
+        "Description[es]": "Elemento Wi-Fi de la barra de menús de macOS: el interruptor, las conexiones actuales y las redes conocidas y otras",
+        "Description[zh_CN]": "macOS 菜单栏 Wi-Fi：开关、当前连接、已知网络和其他网络",
+        "Icon": "network-wireless",
+        "Id": "org.kde.mac-tahoe-liquid-kde.wifi",
+        "License": "GPL-3.0",
+        "Name": "Wi-Fi (AquaDesktop)",
+        "Name[es]": "Wi-Fi (AquaDesktop)",
+        "Name[zh_CN]": "Wi-Fi (AquaDesktop)",
+        "EnabledByDefault": false
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

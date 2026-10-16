@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "AquaDesktop contributors"
+            }
+        ],
+        "Category": "Multimedia",
+        "Description": "macOS sound menu bar item: the speaker glyph and the output's volume slider",
+        "Icon": "audio-volume-high",
+        "Id": "org.kde.mac-tahoe-liquid-kde.volume",
+        "License": "GPL-3.0",
+        "Name": "Sound (AquaDesktop)",
+        "EnabledByDefault": false
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

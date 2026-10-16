@@ -9,7 +9,7 @@ widgetStyle=kvantum
 LookAndFeelPackage=org.kde.mac-tahoe-liquid-kde.dark
 
 [kcminputrc][Mouse]
-cursorTheme=MacTahoeLiquidKde-Dark
+cursorTheme=MacTahoeLiquidKde
 
 [kwinrc][org.kde.kdecoration2]
 BorderSize=Tiny
@@ -22,7 +22,7 @@ theme=__aurorae__svg__MacTahoeLiquidKde-Dark
 LayoutName=org.kde.breeze.desktop
 
 [kwinrc][WindowSwitcher]
-LayoutName=org.kde.breeze.desktop
+LayoutName=mac-tahoe-switcher
 
 [plasmarc][Theme]
 name=MacTahoeLiquidKde-Dark

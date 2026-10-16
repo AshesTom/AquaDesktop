@@ -4,7 +4,7 @@
 # (and most rolling distros) still ship 6.6, and it shares the pacman
 # libdir layout with CachyOS / Manjaro / EndeavourOS / Garuda.
 #
-# Its whole reason to exist is to compile the acrylic-glass KWin effect
+# Its whole reason to exist is to compile the Glass KWin effect
 # against the *newest* KWin ABI, so a 6.6->6.7-style break (removed
 # wayland/blur.h, prePaint* losing presentTime) fails the matrix here
 # before a user on a fast-moving distro hits it. run_in_container.py
@@ -30,10 +30,10 @@ RUN printf '\n[kde-unstable]\nInclude = /etc/pacman.d/mirrorlist\n' >> /etc/pacm
     # Plasma / KSysGuard / plasma-workspace cmake configs.
     libplasma plasma-activities plasma-activities-stats libksysguard \
     plasma-workspace \
-    # KWin + KDecoration3 (acrylic-glass effect). vulkan-headers:
+    # KWin + KDecoration3 (Glass effect). vulkan-headers:
     # KWin 6.27+ pulls Vulkan into its cmake config.
     kwin kdecoration vulkan-headers \
-    # libepoxy + X11/XCB headers used by the acrylic-glass effect.
+    # libepoxy + X11/XCB headers used by the Glass effect.
     libepoxy libx11 libxcb \
     && pacman -Scc --noconfirm
 

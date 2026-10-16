@@ -121,12 +121,22 @@ def test_mac_layout_adds_no_application_launchers_of_its_own():
 
     assert 'tasks.writeConfig("launchers", "");' in script
     # Keep the full-width panel invisible and let Plasma draw its own
-    # light/dark-aware floating-applet surfaces. Custom panel/widget layers
-    # stack and recreate an opaque strip plus mismatched dark tiles.
+    # light/dark-aware floating-applet surfaces. The only panel layer is
+    # Tahoe's dark veil (a gradient fading to nothing at the bar's bottom
+    # edge); solid panel/widget layers recreate an opaque strip plus
+    # mismatched dark tiles.
+    import theme_switch
     assert ('"background": { "enabled": false, "opacity": 0, '
             '"shadow": false }') in script
-    assert '"panel": {' not in script
-    assert '"widgets": {' not in script
+    assert script.count('"panel": {') == 1
+    assert f'"panel": {{ "normal": {theme_switch.TOP_BAR_SCRIM} }}' in script
+    # Widgets only get a white foreground (macOS menu bar text and icons),
+    # never a background layer.
+    for key in ("widgets", "trayWidgets"):
+        assert (f'"{key}": {{ "normal": {{ "enabled": true, '
+                '"backgroundColor": { "enabled": false }, '
+                '"foregroundColor": { "enabled": true, "sourceType": 0, '
+                '"alpha": 1, "custom": "#ffffff" } } }') in script
     assert '"custom": "#1c1c1e"' not in script
     assert "preferred://filemanager" not in script
     assert "applications:steam.desktop" not in script
@@ -157,7 +167,17 @@ def test_panel_background_keeps_light_dark_surface_parity(offline):
     # Both packages map the same neutral SVG through their active color
     # scheme. A separate hardcoded dark asset caused 55% square tiles on the
     # top bar and made the Dock inherit the same heavy tint in v0.48.0.
-    assert dark.read_bytes() == light.read_bytes()
+    # Only the Dock's 1 px rim differs (measured per appearance on Apple's
+    # Docks, see test_glass_effect.py).
+    import gzip
+    import re
+
+    def surfaces(path):
+        svg = gzip.decompress(path.read_bytes()).decode()
+        return re.sub(r'<g id="south-(?:top|bottom|left|right)(?:left|right)?">.*?</g>',
+                      "", svg, flags=re.S)
+
+    assert surfaces(dark) == surfaces(light)
 
 
 # ── Discover install check ──────────────────────────────────────────────
@@ -299,6 +319,8 @@ def _quiet_layout_install(monkeypatch, tmp_path):
     monkeypatch.setattr(layout, "HOME", tmp_path)
     monkeypatch.setattr(layout, "_ensure_panel_colorizer", lambda: None)
     monkeypatch.setattr(layout, "_patch_plasmashellrc", lambda: None)
+    # Reads the user's glass style; tested on its own.
+    monkeypatch.setattr(layout, "_restore_top_bar_style", lambda: None)
     monkeypatch.setattr(layout, "ok", lambda message: None)
     monkeypatch.setattr(layout, "warn", lambda message: None)
     monkeypatch.setattr(layout.time, "sleep", lambda seconds: None)
@@ -324,6 +346,8 @@ def test_install_always_rebuilds_layout_from_user_pins(monkeypatch, tmp_path):
         layout.LAYOUT_SCRIPT,
         [
             "preferred://filemanager",
+            # macOS: Finder, then Apps.
+            layout.APPS_PIN,
             "applications:steam.desktop",
             "preferred://browser",
         ],

@@ -1,0 +1,261 @@
+/* ============================================================
+ * AquaDesktop — macOS Tahoe controls for every GTK4 / libadwaita
+ * app, matching the Kvantum theme of the Qt apps:
+ *   - push buttons are capsules with a regular-weight label,
+ *   - linked buttons share one capsule (Finder's back / forward),
+ *   - header bar buttons are glass capsules and circles,
+ *   - text fields are 8 px rounded, search fields are capsules,
+ *   - segmented controls are a capsule track with a grey pill on the
+ *     selected segment (macOS never paints it with the accent colour).
+ * Colours derive from the libadwaita palette, so this block serves the
+ * light and the dark variant alike.
+ * ============================================================ */
+
+/* Push buttons (text buttons; icon buttons and window controls keep their
+ * own shapes). Kept low in specificity so app blocks such as the Finder one
+ * still win. */
+button.text-button:not(.flat),
+dropdown > button,
+combobox > box > button {
+  border-radius: 999px;
+  min-height: 24px;
+  padding: 2px 14px;
+  font-weight: normal;
+}
+
+button.suggested-action,
+button.destructive-action,
+button.pill {
+  border-radius: 999px;
+}
+
+button.flat,
+button.suggested-action,
+button.destructive-action,
+button.pill {
+  font-weight: normal;
+}
+
+/* Linked groups: one capsule, no inner corners. */
+.linked:not(.vertical) > button:not(:first-child):not(:last-child),
+.linked:not(.vertical) > menubutton:not(:first-child):not(:last-child) > button {
+  border-radius: 0;
+}
+
+.linked:not(.vertical) > button:first-child,
+.linked:not(.vertical) > menubutton:first-child > button {
+  border-radius: 999px 0 0 999px;
+}
+
+.linked:not(.vertical) > button:last-child,
+.linked:not(.vertical) > menubutton:last-child > button {
+  border-radius: 0 999px 999px 0;
+}
+
+.linked:not(.vertical) > button:only-child,
+.linked:not(.vertical) > menubutton:only-child > button {
+  border-radius: 999px;
+}
+
+/* Header bar: glass capsules and round icon buttons. Only the buttons an
+ * app packs straight into the bar's start / end boxes: window controls
+ * (under windowcontrols) keep their traffic lights, and apps with their own
+ * toolbar blocks (Nautilus) are left to them. */
+headerbar box.start > button:not(.suggested-action):not(.destructive-action),
+headerbar box.start > menubutton > button:not(.suggested-action):not(.destructive-action),
+headerbar box.start > splitbutton > button:not(.suggested-action):not(.destructive-action),
+headerbar box.start > splitbutton > menubutton > button:not(.suggested-action):not(.destructive-action),
+headerbar box.start > .linked > button:not(.suggested-action):not(.destructive-action),
+headerbar box.start > .linked > menubutton > button:not(.suggested-action):not(.destructive-action),
+headerbar box.end > button:not(.suggested-action):not(.destructive-action),
+headerbar box.end > menubutton > button:not(.suggested-action):not(.destructive-action),
+headerbar box.end > splitbutton > button:not(.suggested-action):not(.destructive-action),
+headerbar box.end > splitbutton > menubutton > button:not(.suggested-action):not(.destructive-action),
+headerbar box.end > .linked > button:not(.suggested-action):not(.destructive-action),
+headerbar box.end > .linked > menubutton > button:not(.suggested-action):not(.destructive-action) {
+  min-height: 32px;
+  min-width: 32px;
+  padding: 0 8px;
+  background-color: alpha(@window_fg_color, 0.09);
+  box-shadow: inset 0 1px alpha(white, 0.06);
+  border: none;
+}
+
+headerbar box.start > button:not(.suggested-action):not(.destructive-action):hover,
+headerbar box.start > menubutton > button:not(.suggested-action):not(.destructive-action):hover,
+headerbar box.start > splitbutton > button:not(.suggested-action):not(.destructive-action):hover,
+headerbar box.start > splitbutton > menubutton > button:not(.suggested-action):not(.destructive-action):hover,
+headerbar box.start > .linked > button:not(.suggested-action):not(.destructive-action):hover,
+headerbar box.start > .linked > menubutton > button:not(.suggested-action):not(.destructive-action):hover,
+headerbar box.end > button:not(.suggested-action):not(.destructive-action):hover,
+headerbar box.end > menubutton > button:not(.suggested-action):not(.destructive-action):hover,
+headerbar box.end > splitbutton > button:not(.suggested-action):not(.destructive-action):hover,
+headerbar box.end > splitbutton > menubutton > button:not(.suggested-action):not(.destructive-action):hover,
+headerbar box.end > .linked > button:not(.suggested-action):not(.destructive-action):hover,
+headerbar box.end > .linked > menubutton > button:not(.suggested-action):not(.destructive-action):hover {
+  background-color: alpha(@window_fg_color, 0.14);
+}
+
+headerbar box.start > button:not(.suggested-action):not(.destructive-action):active,
+headerbar box.start > menubutton > button:not(.suggested-action):not(.destructive-action):active,
+headerbar box.start > splitbutton > button:not(.suggested-action):not(.destructive-action):active,
+headerbar box.start > splitbutton > menubutton > button:not(.suggested-action):not(.destructive-action):active,
+headerbar box.start > .linked > button:not(.suggested-action):not(.destructive-action):active,
+headerbar box.start > .linked > menubutton > button:not(.suggested-action):not(.destructive-action):active,
+headerbar box.end > button:not(.suggested-action):not(.destructive-action):active,
+headerbar box.end > menubutton > button:not(.suggested-action):not(.destructive-action):active,
+headerbar box.end > splitbutton > button:not(.suggested-action):not(.destructive-action):active,
+headerbar box.end > splitbutton > menubutton > button:not(.suggested-action):not(.destructive-action):active,
+headerbar box.end > .linked > button:not(.suggested-action):not(.destructive-action):active,
+headerbar box.end > .linked > menubutton > button:not(.suggested-action):not(.destructive-action):active,
+headerbar box.start > button:not(.suggested-action):not(.destructive-action):checked,
+headerbar box.start > menubutton > button:not(.suggested-action):not(.destructive-action):checked,
+headerbar box.start > splitbutton > button:not(.suggested-action):not(.destructive-action):checked,
+headerbar box.start > splitbutton > menubutton > button:not(.suggested-action):not(.destructive-action):checked,
+headerbar box.start > .linked > button:not(.suggested-action):not(.destructive-action):checked,
+headerbar box.start > .linked > menubutton > button:not(.suggested-action):not(.destructive-action):checked,
+headerbar box.end > button:not(.suggested-action):not(.destructive-action):checked,
+headerbar box.end > menubutton > button:not(.suggested-action):not(.destructive-action):checked,
+headerbar box.end > splitbutton > button:not(.suggested-action):not(.destructive-action):checked,
+headerbar box.end > splitbutton > menubutton > button:not(.suggested-action):not(.destructive-action):checked,
+headerbar box.end > .linked > button:not(.suggested-action):not(.destructive-action):checked,
+headerbar box.end > .linked > menubutton > button:not(.suggested-action):not(.destructive-action):checked {
+  background-color: alpha(@window_fg_color, 0.20);
+}
+
+/* Kept less specific than the linked-group corners below. */
+headerbar box.start > button,
+headerbar box.start > menubutton > button,
+headerbar box.start > splitbutton > button,
+headerbar box.start > splitbutton > menubutton > button,
+headerbar box.start > .linked > button,
+headerbar box.start > .linked > menubutton > button,
+headerbar box.end > button,
+headerbar box.end > menubutton > button,
+headerbar box.end > splitbutton > button,
+headerbar box.end > splitbutton > menubutton > button,
+headerbar box.end > .linked > button,
+headerbar box.end > .linked > menubutton > button {
+  border-radius: 999px;
+}
+
+headerbar .linked:not(.vertical) > button:not(:only-child) {
+  padding: 0 10px;
+  margin: 0;
+}
+
+headerbar .linked:not(.vertical) > button:not(:first-child):not(:last-child) {
+  border-radius: 0;
+}
+
+headerbar .linked:not(.vertical) > button:first-child:not(:only-child) {
+  border-radius: 999px 0 0 999px;
+}
+
+headerbar .linked:not(.vertical) > button:last-child:not(:only-child) {
+  border-radius: 0 999px 999px 0;
+}
+
+/* Text fields. */
+entry,
+spinbutton,
+passwordentry {
+  border-radius: 8px;
+  min-height: 26px;
+}
+
+entry.search,
+searchbar entry,
+searchentry {
+  border-radius: 999px;
+}
+
+dropdown > button,
+combobox > box > button.combo {
+  border-radius: 8px;
+}
+
+/* Segmented controls: a capsule track, a grey pill on the selection. */
+stackswitcher,
+viewswitcher:not(.wide),
+.linked.segmented {
+  padding: 2px;
+  border-radius: 999px;
+  background-color: alpha(@window_fg_color, 0.08);
+}
+
+stackswitcher > button,
+stackswitcher > button.toggle,
+.linked.segmented > button {
+  border-radius: 999px;
+  min-height: 22px;
+  padding: 0 14px;
+  margin: 0;
+  background: none;
+  box-shadow: none;
+  border: none;
+  font-weight: normal;
+  color: @window_fg_color;
+}
+
+stackswitcher > button:hover,
+.linked.segmented > button:hover {
+  background-color: alpha(@window_fg_color, 0.06);
+}
+
+stackswitcher > button:checked,
+stackswitcher > button.toggle:checked,
+.linked.segmented > button:checked {
+  background-color: alpha(@window_fg_color, 0.22);
+  color: @window_fg_color;
+  box-shadow: 0 1px 2px alpha(black, 0.15);
+}
+
+/* Check boxes: macOS rounds them 4 px. */
+checkbutton > check {
+  border-radius: 4px;
+}
+
+/* Lists in preference pages: Tahoe's 12 px rounded group boxes. */
+.boxed-list,
+list.boxed-list,
+.card {
+  border-radius: 12px;
+}
+
+/* Popover menus: 12 px panel, 6 px rounded highlights. */
+popover.menu > contents {
+  border-radius: 12px;
+  padding: 5px;
+}
+
+popover.menu modelbutton {
+  border-radius: 6px;
+  min-height: 22px;
+  padding: 0 10px;
+}
+
+popover.menu modelbutton:hover,
+popover.menu modelbutton:selected {
+  background-color: @accent_bg_color;
+  color: @accent_fg_color;
+}
+
+/* Sidebars: a grey rounded selection with the accent colour on the label
+ * and icon, like Finder (and the Kvantum theme). */
+.sidebar-pane .navigation-sidebar > row,
+.navigation-sidebar > row {
+  border-radius: 6px;
+}
+
+.sidebar-pane .navigation-sidebar:not(.view) > row:selected,
+.sidebar-pane .navigation-sidebar:not(.view) > row:selected:hover,
+.navigation-sidebar > row:selected {
+  background-color: alpha(@window_fg_color, 0.10);
+  color: @accent_bg_color;
+}
+
+.sidebar-pane .navigation-sidebar:not(.view) > row:selected image,
+.navigation-sidebar > row:selected image {
+  color: @accent_bg_color;
+}

@@ -1,0 +1,26 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Lester Cordero Murillo"
+            }
+        ],
+        "Category": "Date and Time",
+        "Category[es]": "Fecha y hora",
+        "Category[zh_CN]": "日期和时间",
+        "Description": "macOS Tahoe-style menu bar clock",
+        "Description[es]": "Reloj de la barra de menús con estilo macOS Tahoe",
+        "Description[zh_CN]": "macOS Tahoe 风格的菜单栏时钟",
+        "Icon": "preferences-system-time",
+        "Id": "org.kde.mac-tahoe-liquid-kde.clock",
+        "License": "GPL-3.0",
+        "Name": "Clock (AquaDesktop)",
+        "Name[es]": "Reloj (AquaDesktop)",
+        "Name[zh_CN]": "时钟 (AquaDesktop)"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-Provides": [
+        "org.kde.plasma.time"
+    ]
+}

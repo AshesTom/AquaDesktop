@@ -193,7 +193,7 @@ KCMUtils.SimpleKCM {
                 "plasma_applet_org.kde.mac.tahoe.liquid.taskmanager",
                 "Hover magnification:")
             from: 100
-            to: 150
+            to: 200
             stepSize: 5
             editable: true
 

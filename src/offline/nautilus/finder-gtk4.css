@@ -1,0 +1,253 @@
+/* ============================================================
+ * AquaDesktop — Nautilus as a macOS Tahoe Finder window.
+ * Measured on a Golden Gate Finder capture at 1x: the sidebar fills the
+ * window's left side edge to edge (no inset card, no frame around it),
+ * the traffic lights inside it, no toolbar background, capsule toolbar
+ * groups 36 px tall over a hairline, a bold folder title instead of a
+ * path bar, a round search button.
+ * Colours derive from the libadwaita palette, so this block serves the
+ * light and the dark variant alike.
+ * ============================================================ */
+
+/* Sidebar: a tinted glass column flush with the window edges; only its
+ * tint sets it apart from the content, no line in between. */
+.nautilus-window .sidebar-pane {
+  margin: 0;
+  min-width: 210px;
+  /* The window's 24 px corners, less its own 1 px rim. */
+  border-radius: 23px 0 0 23px;
+  background-color: alpha(@window_fg_color, 0.10);
+  background-image: none;
+  box-shadow: none;
+  border: none;
+}
+
+/* The base theme frames the pane through :dir() rules with a 1 px rim and
+ * a spread shadow in the view colour; Golden Gate has neither. */
+.nautilus-window .sidebar-pane:dir(ltr),
+.nautilus-window .sidebar-pane:dir(rtl) {
+  box-shadow: none;
+}
+
+.nautilus-window .sidebar-pane:dir(rtl) {
+  border-radius: 0 23px 23px 0;
+}
+
+.nautilus-window .sidebar-pane placessidebar,
+.nautilus-window .sidebar-pane .navigation-sidebar {
+  background: none;
+}
+
+/* Finder shows only the traffic lights at the top of the sidebar. */
+/* Golden Gate centres the lights on the toolbar line (the 52 px bar), the
+ * first one 25 px from the window edge. */
+.nautilus-window .sidebar-pane headerbar,
+.nautilus-window .sidebar-pane headerbar:backdrop {
+  background: none;
+  box-shadow: none;
+  min-height: 52px;
+  padding-left: 6px;
+}
+
+.nautilus-window .sidebar-pane headerbar windowtitle,
+.nautilus-window .sidebar-pane headerbar .title {
+  opacity: 0;
+}
+
+/* Sidebar rows: 32 px pitch, a 6 px rounded selection with the accent
+ * colour on the label and icon. */
+.nautilus-window .sidebar-pane .navigation-sidebar > row {
+  min-height: 32px;
+  margin: 0 8px;
+  padding: 0 8px;
+  border-radius: 6px;
+}
+
+.nautilus-window .sidebar-pane .navigation-sidebar > row:selected,
+.nautilus-window .sidebar-pane .navigation-sidebar > row:selected:hover {
+  background-color: alpha(@window_fg_color, 0.10);
+  color: @accent_bg_color;
+}
+
+.nautilus-window .sidebar-pane .navigation-sidebar > row:selected image {
+  color: @accent_bg_color;
+}
+
+/* Content toolbar: no bar background, only floating capsules. */
+.nautilus-window .content-pane headerbar,
+.nautilus-window .content-pane headerbar:backdrop {
+  background: none;
+  /* Golden Gate draws a hairline under the toolbar. */
+  box-shadow: inset 0 -1px alpha(@window_fg_color, 0.08);
+  min-height: 52px;
+}
+
+/* The path bar becomes the Finder's bold folder title: no capsule, the
+ * parent folders and "/" separators collapsed (GTK CSS cannot hide a
+ * widget), and no folder icon in front of the title. Nautilus 51 uses the
+ * .nautilus-pathbar / .nautilus-path-button classes. */
+.nautilus-window .nautilus-pathbar,
+.nautilus-window .nautilus-pathbar:backdrop {
+  background: none;
+  background-image: none;
+  box-shadow: none;
+  border: none;
+}
+
+/* Finder sets the title 13 px after the back / forward capsule; the bar
+ * puts 12 px of spacing and the path bar 11 px of its own before it. */
+.nautilus-window .nautilus-pathbar {
+  margin-left: -10px;
+}
+
+.nautilus-window .nautilus-pathbar .nautilus-path-button:not(.current-dir),
+.nautilus-window .nautilus-pathbar box > label.dim-label:first-child {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  font-size: 0.1px;
+  -gtk-icon-size: 0;
+  opacity: 0;
+}
+
+.nautilus-window .nautilus-pathbar .nautilus-path-button.current-dir,
+.nautilus-window .nautilus-pathbar .nautilus-path-button.current-dir:hover {
+  background: none;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+  font-size: 1.15em;
+}
+
+.nautilus-window .nautilus-pathbar .nautilus-path-button.current-dir image {
+  -gtk-icon-size: 0;
+  opacity: 0;
+}
+
+/* Finder has no folder menu next to the title. */
+.nautilus-window .nautilus-pathbar > menubutton {
+  opacity: 0;
+}
+
+/* The sidebar header keeps only the traffic lights: "Search Everywhere"
+ * and the main menu (still on F10) collapse out of the way. */
+.nautilus-window .sidebar-pane headerbar box.start > button,
+.nautilus-window .sidebar-pane headerbar box.end > menubutton,
+.nautilus-window .sidebar-pane headerbar box.end > menubutton > button {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  -gtk-icon-size: 0;
+  opacity: 0;
+}
+
+/* Toolbar capsules, measured on Finder (Tahoe, 1x): one 36 px glass layer,
+ * back / forward share a 72 x 36 capsule split by a 1 x 18 px hairline,
+ * the view controls are another 36 px capsule, search is a 36 px circle.
+ * The buttons inside a capsule draw nothing but their hover state. */
+.nautilus-window .content-pane headerbar splitbutton {
+  min-height: 36px;
+  /* Finder: 16 px between capsules, 8 px from the window edge. */
+  margin: 0 3px 0 4px;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background-color: alpha(@window_fg_color, 0.07);
+  background-image: none;
+  box-shadow: inset 0 1px alpha(white, 0.10), inset 0 0 0 1px alpha(white, 0.05);
+}
+
+/* Back / forward: Nautilus packs them in a GtkBox with a 6 px spacing
+ * that CSS cannot remove, so the box draws the capsule and the hairline
+ * in the middle of that gap, and each button is 33 px wide:
+ * 33 + 6 + 33 = Finder's 72 px. 3 px margins centre the 36 px capsule
+ * in the 42 px bar. */
+.nautilus-window .content-pane headerbar > windowhandle > box > widget > box.start > stack > widget > box,
+.nautilus-window .content-pane headerbar > windowhandle > box > widget > box.start > box > stack > widget > box {
+  min-height: 36px;
+  /* 2 px: Finder leaves 8 px between the sidebar and the capsule. */
+  margin: 3px 0 3px 2px;
+  padding: 0;
+  border-spacing: 0;
+  border: none;
+  border-radius: 9999px;
+  background-color: alpha(@window_fg_color, 0.07);
+  background-image: linear-gradient(alpha(@window_fg_color, 0.16), alpha(@window_fg_color, 0.16));
+  background-size: 1px 18px;
+  background-position: 35px center;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 1px alpha(white, 0.10), inset 0 0 0 1px alpha(white, 0.05);
+}
+
+.nautilus-window .content-pane headerbar > windowhandle > box > widget > box.start > stack > widget > box > button,
+.nautilus-window .content-pane headerbar > windowhandle > box > widget > box.start > box > stack > widget > box > button,
+.nautilus-window .content-pane headerbar splitbutton > button,
+.nautilus-window .content-pane headerbar splitbutton > menubutton > button {
+  min-height: 36px;
+  min-width: 36px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: none;
+  box-shadow: none;
+}
+
+.nautilus-window .content-pane headerbar > windowhandle > box > widget > box.start > stack > widget > box > button,
+.nautilus-window .content-pane headerbar > windowhandle > box > widget > box.start > box > stack > widget > box > button {
+  min-width: 33px;
+}
+
+.nautilus-window .content-pane headerbar splitbutton > button {
+  padding: 0 4px 0 10px;
+  border-radius: 9999px 0 0 9999px;
+}
+
+.nautilus-window .content-pane headerbar splitbutton > menubutton > button {
+  min-width: 26px;
+  padding: 0 10px 0 2px;
+  border-radius: 0 9999px 9999px 0;
+}
+
+.nautilus-window .content-pane headerbar > windowhandle > box > widget > box.start > stack > widget > box > button:hover,
+.nautilus-window .content-pane headerbar > windowhandle > box > widget > box.start > box > stack > widget > box > button:hover {
+  background-color: alpha(@window_fg_color, 0.07);
+}
+
+.nautilus-window .content-pane headerbar splitbutton > button:hover,
+.nautilus-window .content-pane headerbar splitbutton > menubutton > button:hover {
+  background-color: alpha(@window_fg_color, 0.07);
+}
+
+.nautilus-window .content-pane headerbar splitbutton > separator {
+  background: none;
+  min-width: 0;
+  margin: 0;
+}
+
+.nautilus-window .content-pane headerbar button.toggle:not(.nautilus-path-button),
+.nautilus-window .content-pane headerbar box.end > button:not(.nautilus-path-button) {
+  min-width: 36px;
+  min-height: 36px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background-color: alpha(@window_fg_color, 0.07);
+  background-image: none;
+  box-shadow: inset 0 1px alpha(white, 0.10), inset 0 0 0 1px alpha(white, 0.05);
+}
+
+/* The view menu arrow is a toggle too, but lives inside its capsule. */
+.nautilus-window .content-pane headerbar splitbutton > menubutton > button.toggle:not(.nautilus-path-button),
+.nautilus-window .content-pane headerbar splitbutton > menubutton > button.toggle:not(.nautilus-path-button):checked {
+  min-width: 26px;
+  background: none;
+  box-shadow: none;
+}
+
+.nautilus-window .content-pane headerbar button.toggle:not(.nautilus-path-button):checked {
+  background-color: alpha(@window_fg_color, 0.20);
+}

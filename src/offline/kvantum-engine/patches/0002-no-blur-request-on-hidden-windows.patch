@@ -1,0 +1,25 @@
+diff --color -ruN a/Kvantum-1.1.8/Kvantum/style/blur/blurhelper.cpp c/Kvantum-1.1.8/Kvantum/style/blur/blurhelper.cpp
+--- a/Kvantum/style/blur/blurhelper.cpp	2026-05-09 22:40:42.000000000 +0200
++++ b/Kvantum/style/blur/blurhelper.cpp	2026-10-12 16:02:43.568377150 +0200
+@@ -334,6 +334,12 @@
+   QWindow *win = widget->windowHandle();
+   if (win == nullptr)
+     return;
++  /* A hidden window has no Wayland surface any more: KWindowEffects would
++     still send a blur request for it, a protocol error that kills the app
++     (menus hidden and shown quickly). Its blur goes with the surface, and
++     the Show event updates it again. */
++  if (!win->isVisible())
++    return;
+ 
+   const QRegion region (blurRegion (widget));
+   if (region.isEmpty())
+@@ -389,7 +395,7 @@
+     XDeleteProperty (display, widget->internalWinId(), atom_blur_);
+ #else
+   QWindow *win = widget->windowHandle();
+-  if (win != nullptr)
++  if (win != nullptr && win->isVisible()) // see update()
+   {
+     KWindowEffects::enableBlurBehind (win, false);
+     if ((contrast_ != static_cast<qreal>(1)

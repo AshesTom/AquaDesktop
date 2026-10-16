@@ -59,7 +59,7 @@ ALL_FEATURES = [
     "wallpapers", "fonts", "cursors", "plasma_theme", "window_decorations",
     "kvantum", "color_schemes", "icons", "plasmoids", "globalmenu", "acrylic_glass",
     "rounded_corners",
-    "global_theme", "layout", "sounds", "gtk", "firefox", "sddm", "plymouth", "apps",
+    "global_theme", "layout", "sounds", "gtk", "firefox", "plymouth", "apps",
     "nautilus", "nautilus_bookmarks", "portals", "oled_care", "apply_theme",
     "kconf_update",
 ]
@@ -72,7 +72,7 @@ INSTALL_ORDER = [
     "sounds",
     "kconf_update",
     "plasmoids", "globalmenu", "acrylic_glass", "rounded_corners",
-    "layout", "nautilus", "portals", "plymouth",
+    "layout", "apps", "nautilus", "portals", "plymouth",
 ]
 
 FEATURE_DESC = {
@@ -86,14 +86,13 @@ FEATURE_DESC = {
     "icons": "App and system icons",
     "plasmoids": "Desktop widgets",
     "globalmenu": "Application menu bar",
-    "acrylic_glass": "Window blur",
+    "acrylic_glass": "Liquid Glass (Better Blur DX)",
     "rounded_corners": "Rounded windows",
     "global_theme": "Plasma look and feel",
     "layout": "Top bar and Dock",
     "sounds": "System sound theme",
     "gtk": "GTK app styling",
     "firefox": "Browser theme",
-    "sddm": "Login screen",
     "plymouth": "Boot animation",
     "apps": "Application settings",
     "nautilus": "File manager",
@@ -104,108 +103,64 @@ FEATURE_DESC = {
     "kconf_update": "Settings migrations",
 }
 
+
+def _feature_help() -> str:
+    return "\n".join(
+        f"    {'--' + feature.replace('_', '-'):<23} {FEATURE_DESC[feature]}"
+        for feature in ALL_FEATURES
+    )
+
+
 INSTALL_HELP = """\
-Usage: ./install [OPTIONS]
+AquaDesktop — Tahoe and Golden Gate for KDE Plasma
+Usage: sudo ./install [OPTIONS]
 
-Options:
-  --help, -h           Show this help message and exit
+Run without flags for the feature-selection wizard.
 
-  Theme mode:
-    --light            Force light theme
-    --dark             Force dark theme
-    --auto             Automatic switching via sunrise/sunset (default)
+Appearance:
+  --light / --dark / --auto   Choose the appearance (auto: 06:00 / 18:00)
 
-  Feature flags (prefix with --no- to disable):
-    --only             Disable all features first, then enable only those listed
-    --wallpapers       macOS wallpaper collection
-    --fonts            SF Pro and SF Mono typefaces
-    --cursors          macOS-style cursors
-    --plasma-theme     Translucent panels and dock
-    --window-decorations  Aurorae window title bars
-    --kvantum          Kvantum Qt widget style
-    --color-schemes    Light and Dark palettes
-    --icons            macOS-style icon set
-    --plasmoids        Custom Plasma widgets (Menu, Launcher, Trashcan)
-    --globalmenu       Global menu bar (app menus in the top panel)
-    --acrylic-glass    KWin blur + rounded corners effect
-    --rounded-corners  Download, build, and enable KDE Rounded Corners
-    --global-theme     Plasma global theme (look-and-feel package)
-    --layout           Panel layout (top bar + dock)
-    --sounds           Notification and event sounds
-    --gtk              GTK 2/3/4 theme
-    --firefox          Matching Firefox-family browser CSS (native, Flatpak,
-                       and Snap; backs up every profile before changing it)
-    --sddm             Login screen theme
-    --plymouth         Boot splash screen (Plymouth)
-    --apps             App configuration tweaks
-    --nautilus         Install Nautilus and set as default file manager
-    --nautilus-bookmarks  macOS-style sidebar bookmarks (backs up the
-                       existing bookmarks; uninstall restores them)
-    --portals          Route FileChooser/AppChooser to KDE (fixes stale dialogs)
-    --oled-care        OLED burn-in care: pixel-shift the panels every
-                       5 minutes (top bar height, dock offset). Default: off
-    --oled-interval=N  Minutes between pixel shifts (1-59, default 5)
-    --oled-max-shift=N Maximum shift distance in px (1-16, default 8;
-                       panels move in 2 px steps)
-    --no-apply-theme   Install all files but DON'T switch Plasma over to the
-                       new look (no look-and-feel apply, layout, or restart).
-                       Stage the install now; re-run with --apply-theme later.
-    --no-grub-modify   Don't auto-edit /etc/default/grub for the boot
-                       splash kernel cmdline (prints manual fix instead)
-    --reset-wallpapers Let timed theme changes manage the background again
-                       and apply the bundled wallpaper once
-  Persistence:
-    --save             Save current flags to features.json
-    --reset            Reset features.json to all-true defaults
-    --check-update     Check GitHub for a newer release and exit
-    --preflight        Run preflight checks (sudo, paths, Qt6, IDs) and exit
-    --restart          Restart Plasma shell. Standalone (no other flags)
-                       skips install entirely; combined with --only or
-                       --no-X the install runs first and restart happens
-                       at the end (the install always restarts anyway)
+Components (use --no-NAME to disable):
+  --only                     Start with no components, then enable your choices
+""" + _feature_help() + """
+
+Other options:
+  --save / --reset            Save choices / restore default choices
+  --oled-interval=N           Pixel-shift interval, 1–59 minutes (default 5)
+  --oled-max-shift=N          Pixel-shift distance, 1–16 px (default 8)
+  --no-apply-theme           Stage files without activating the desktop
+  --no-grub-modify           Leave the bootloader configuration alone
+  --reset-wallpapers         Let the theme manage your wallpapers again
+  --preflight                Check requirements and exit
+  --check-update             Check upstream releases and exit
+  --restart                  Restart Plasma (alone: skip installation)
+  --help, -h                 Show this help
 
 Examples:
-  ./install                              # install everything
-  ./install --no-gtk --no-sddm           # skip GTK and SDDM
-  ./install --only --fonts --icons       # install only fonts and icons
-  ./install --dark --save                # dark mode, remember setting
-  ./install --reset                      # restore defaults
-  ./install --check-update               # see if a newer release is out
-  ./install --restart                    # just kick plasmashell, don't reinstall
+  sudo ./install --dark
+  sudo ./install --no-plymouth --no-nautilus
+  sudo ./install --only --fonts --icons
+
+Graphical installer: ./installer
 """
 
 UNINSTALL_HELP = """\
-Usage: ./uninstall [OPTIONS]
+AquaDesktop
+Usage: sudo ./uninstall [OPTIONS]
+
+Run without flags for the removal wizard. Removal restores Breeze defaults.
+Use --only with component flags to select what to remove; --no-NAME skips it.
+The desktop layout is reset when uninstalling; pinned apps are preserved.
+
+Components:
+""" + _feature_help() + """
 
 Options:
-  --help, -h           Show this help message and exit
+  --only                     Start with no components selected
+  --help, -h                 Show this help
 
-  Feature flags (prefix with --no- to skip):
-    --only             Disable all features first, then enable only those listed
-    --wallpapers       Remove wallpaper collection
-    --fonts            Remove SF Pro and SF Mono fonts
-    --cursors          Remove macOS-style cursors
-    --plasma-theme     Remove Plasma desktop theme
-    --window-decorations  Remove Aurorae window decorations
-    --kvantum          Remove Kvantum theme
-    --color-schemes    Remove color schemes
-    --icons            Remove icon themes
-    --plasmoids        Remove custom Plasma widgets
-    --globalmenu       Remove the global menu bar
-    --acrylic-glass    Remove KWin blur effect
-    --rounded-corners  Remove KDE Rounded Corners effect
-    --global-theme     Remove Plasma global theme
-    --layout           Reset panel layout to default
-    --sounds           Remove notification sounds
-    --gtk              Remove GTK theme
-    --firefox          Restore every themed browser profile (backups retained)
-    --sddm             Remove login screen theme
-    --plymouth         Restore previous boot splash and rebuild initramfs
-    --apps             Reset app configuration
-
-Examples:
-  ./uninstall                       # uninstall everything
-  ./uninstall --icons --cursors     # only remove icons and cursors
+Example:
+  sudo ./uninstall --only --icons --cursors
 """
 
 
@@ -576,7 +531,7 @@ def verify_plasma() -> bool:
         return True
     if not have("plasmashell"):
         fail("KDE Plasma not found")
-        print("     MacTahoe Liquid KDE requires KDE Plasma 6.6+.", file=sys.stderr)
+        print("     AquaDesktop requires KDE Plasma 6.6+.", file=sys.stderr)
         return False
     ver = _detect_plasma_version()
     if not ver:
@@ -1018,8 +973,8 @@ def _print_done(verb: str) -> None:
     print()
     print(f"\033[0;32m\033[1m  ── Done\033[0m")
     if not errors:
-        ok(f"MacTahoe Liquid KDE {verb} successfully")
-        print(f"  \033[0;90mReport bugs at: https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new\033[0m")
+        ok(f"AquaDesktop {verb} successfully")
+        print(f"  \033[0;90mReport bugs at: https://github.com/AshesTom/AquaDesktop/issues/new\033[0m")
         print()
         return
     # Snapshot: fail() appends to errors, so iterating the live list while
@@ -1028,7 +983,7 @@ def _print_done(verb: str) -> None:
     warn(f"{len(issues)} issue(s):")
     for e in issues:
         print(f"  \033[0;31m✗\033[0m  {e}", file=sys.stderr)
-    print(f"  \033[0;90mReport bugs at: https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new\033[0m")
+    print(f"  \033[0;90mReport bugs at: https://github.com/AshesTom/AquaDesktop/issues/new\033[0m")
     print()
 
 
@@ -1115,6 +1070,7 @@ def _run_install_body(feat: dict[str, object]) -> int:
         step("Restarting Plasma")
         note("Restarts Plasma shell to load all changes")
         run_phase("apply", "restart_plasma")
+        run_phase("apply", "repair_colors")
 
         if feat.get("layout", True) and step_exists("layout") and not _layout_is_installed():
             step("Retrying Layout")

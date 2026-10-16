@@ -1,4 +1,4 @@
-// MacTahoe Liquid KDE — reset to default KDE layout
+// AquaDesktop — reset to default KDE layout
 
 var old = panels();
 for (var i = 0; i < old.length; i++) {

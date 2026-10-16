@@ -1,4 +1,4 @@
-# Project Guidelines — Codex
+# Project Guidelines — Codex (AquaDesktop)
 
 > Canonical guidance lives in [`AGENTS.md`](AGENTS.md). The OpenAI
 > Codex CLI conventionally reads `AGENTS.md`, but some workflows look

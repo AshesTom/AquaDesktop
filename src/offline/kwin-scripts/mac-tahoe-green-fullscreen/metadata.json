@@ -1,0 +1,21 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "AquaDesktop contributors"
+            }
+        ],
+        "Description": "The green title bar button puts the window in full screen, like macOS: the menu bar and title bar slide back in at the top edge",
+        "Description[es]": "El botón verde de la barra de título pone la ventana en pantalla completa, como en macOS: la barra de menús y la de título vuelven en el borde superior",
+        "Description[fr]": "Le bouton vert de la barre de titre passe la fenêtre en plein écran, comme sur macOS : la barre de menus et la barre de titre reviennent au bord supérieur",
+        "Icon": "view-fullscreen",
+        "Id": "mac-tahoe-green-fullscreen",
+        "License": "GPL-3.0-or-later",
+        "Name": "AquaDesktop Green Button Full Screen",
+        "Name[es]": "AquaDesktop: botón verde a pantalla completa",
+        "Name[fr]": "AquaDesktop : bouton vert en plein écran"
+    },
+    "X-Plasma-API": "declarativescript",
+    "X-Plasma-MainScript": "ui/main.qml"
+}

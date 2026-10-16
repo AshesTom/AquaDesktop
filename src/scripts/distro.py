@@ -618,6 +618,19 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "void":     "fontconfig",
         "gentoo":   "media-libs/fontconfig",
     },
+    # Applies the bundled sources' patches (Kvantum).
+    "patch": {
+        "arch":     "patch",
+        "debian":   "patch",
+        "ubuntu":   "patch",
+        "fedora":   "patch",
+        "rhel":     "patch",
+        "centos":   "patch",
+        "opensuse": "patch",
+        "alpine":   "patch",
+        "void":     "patch",
+        "gentoo":   "sys-devel/patch",
+    },
     # openSUSE splits cmake-full / cmake-mini; the ``cmake`` virtual
     # pulls full, so plain "cmake" stays safe everywhere.
     "cmake": {
@@ -696,6 +709,18 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "alpine":   "qt6-qtbase-private-dev",
         "void":     "qt6-base-devel",
         "gentoo":   "dev-qt/qtbase:6",
+    },
+    "qt6-waylandclient-cmake": {
+        "arch":     "qt6-wayland",
+        "debian":   "qt6-wayland-dev",
+        "ubuntu":   "qt6-wayland-dev",
+        "fedora":   "qt6-qtwayland-devel",
+        "rhel":     "qt6-qtwayland-devel",
+        "centos":   "qt6-qtwayland-devel",
+        "opensuse": "qt6-waylandclient-devel",
+        "alpine":   "qt6-qtwayland-dev",
+        "void":     "qt6-wayland-devel",
+        "gentoo":   "dev-qt/qtwayland:6",
     },
     "qt6-qml-cmake": {
         "arch":     "qt6-declarative",
@@ -845,6 +870,16 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "kf6-kcmutils-devel",
         "gentoo":   "kde-frameworks/kcmutils:6",
     },
+    "kf6-colorscheme-cmake": {
+        "arch":     "kcolorscheme",
+        "debian":   "libkf6colorscheme-dev",
+        "ubuntu":   "libkf6colorscheme-dev",
+        "fedora":   "kf6-kcolorscheme-devel",
+        "rhel":     "kf6-kcolorscheme-devel",
+        "centos":   "kf6-kcolorscheme-devel",
+        "opensuse": "kf6-kcolorscheme-devel",
+        "gentoo":   "kde-frameworks/kcolorscheme:6",
+    },
     "kf6-kio-cmake": {
         "arch":     "kio",
         "debian":   "libkf6kio-dev",
@@ -904,6 +939,47 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "centos":   "kf6-kitemmodels-devel",
         "opensuse": "kf6-kitemmodels-devel",
         "gentoo":   "kde-frameworks/kitemmodels:6",
+    },
+    # The system tray fork (steps/plasmoids.py).
+    "kf6-xmlgui-cmake": {
+        "arch":     "kxmlgui",
+        "debian":   "libkf6xmlgui-dev",
+        "ubuntu":   "libkf6xmlgui-dev",
+        "fedora":   "kf6-kxmlgui-devel",
+        "rhel":     "kf6-kxmlgui-devel",
+        "centos":   "kf6-kxmlgui-devel",
+        "opensuse": "kf6-kxmlgui-devel",
+        "gentoo":   "kde-frameworks/kxmlgui:6",
+    },
+    "kf6-statusnotifieritem-cmake": {
+        "arch":     "kstatusnotifieritem",
+        "debian":   "libkf6statusnotifieritem-dev",
+        "ubuntu":   "libkf6statusnotifieritem-dev",
+        "fedora":   "kf6-kstatusnotifieritem-devel",
+        "rhel":     "kf6-kstatusnotifieritem-devel",
+        "centos":   "kf6-kstatusnotifieritem-devel",
+        "opensuse": "kf6-kstatusnotifieritem-devel",
+        "gentoo":   "kde-frameworks/kstatusnotifieritem:6",
+    },
+    "kf6-iconthemes-cmake": {
+        "arch":     "kiconthemes",
+        "debian":   "libkf6iconthemes-dev",
+        "ubuntu":   "libkf6iconthemes-dev",
+        "fedora":   "kf6-kiconthemes-devel",
+        "rhel":     "kf6-kiconthemes-devel",
+        "centos":   "kf6-kiconthemes-devel",
+        "opensuse": "kf6-kiconthemes-devel",
+        "gentoo":   "kde-frameworks/kiconthemes:6",
+    },
+    "kf6-jobwidgets-cmake": {
+        "arch":     "kjobwidgets",
+        "debian":   "libkf6jobwidgets-dev",
+        "ubuntu":   "libkf6jobwidgets-dev",
+        "fedora":   "kf6-kjobwidgets-devel",
+        "rhel":     "kf6-kjobwidgets-devel",
+        "centos":   "kf6-kjobwidgets-devel",
+        "opensuse": "kf6-kjobwidgets-devel",
+        "gentoo":   "kde-frameworks/kjobwidgets:6",
     },
     # ── Plasma / KSysGuard / plasma-workspace ─────────────────────────
     "plasma-cmake": {
@@ -970,7 +1046,7 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "plasma6-workspace-devel",
         "gentoo":   "kde-plasma/plasma-workspace",
     },
-    # ── KWin + KDecoration (acrylic-glass effect) ─────────────────────
+    # ── KWin + KDecoration (Glass effect, feature acrylic_glass) ──────
     "kwin-cmake": {
         "arch":     "kwin",
         "debian":   "kwin-dev",

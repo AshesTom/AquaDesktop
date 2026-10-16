@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="371.004 19 32 32">
+ <defs>
+  <style type="text/css" id="current-color-scheme">.ColorScheme-Text {
+        color:#363636;
+      }
+      .ColorScheme-Background {
+        color:#efefef;
+      }
+      .ColorScheme-Highlight {
+        color:#3498db;
+      }
+      .ColorScheme-ViewText {
+        color:#363636;
+      }
+      .ColorScheme-ViewBackground {
+        color:#fcfcfc;
+      }
+      .ColorScheme-ViewHover {
+        color:#93cee9;
+      }
+      .ColorScheme-ViewFocus{
+        color:#3daee9;
+      }
+      .ColorScheme-ButtonText {
+        color:#363636;
+      }
+      .ColorScheme-ButtonBackground {
+        color:#efefef;
+      }
+      .ColorScheme-ButtonHover {
+        color:#93cee9;
+      }
+      .ColorScheme-ButtonFocus{
+        color:#3daee9;
+      }
+      .ColorScheme-NegativeText{
+        color:#e74c3c;
+      }</style>
+ </defs>
+ <g transform="matrix(1 0 0 1 0 0)">
+  <g id="network-wireless-connected-20" transform="translate(127.00426,18)">
+   <path d="m 260.00523,25 c 0.22755,0 0.42653,-0.104287 0.81521,-0.473983 l 2.32224,-2.23694 c 0.17062,-0.161122 0.20858,-0.426531 0.0568,-0.616124 -0.66346,-0.843571 -1.86724,-1.52602 -3.19428,-1.52602 -1.3649,0 -2.58766,0.710813 -3.24164,1.601836 -0.11377,0.170612 -0.0569,0.379186 0.10418,0.540308 l 2.32236,2.23694 C 259.5692,24.886223 259.77778,25 260.00523,25 Z" id="path13475" class="ColorScheme-Text" fill="currentColor" style="opacity:1" />
+   <rect id="rect13477" width="32" height="32" x="244" y="1" style="fill:none" />
+   <path d="m 254.37495,19.748766 c 0.22748,0.218065 0.5308,0.199084 0.74881,-0.03785 1.15636,-1.260719 3.00474,-2.151742 4.88147,-2.142251 1.88633,-0.0095 3.7346,0.900513 4.9195,2.170615 0.19897,0.227555 0.48336,0.218064 0.70132,0 l 1.48817,-1.459695 c 0.1801,-0.170612 0.19908,-0.40755 0.038,-0.597143 -1.47868,-1.791428 -4.18011,-3.080511 -7.14695,-3.080511 -2.97623,0 -5.67768,1.289083 -7.15635,3.080511 -0.16114,0.189593 -0.14218,0.41704 0.0379,0.597143 z" id="path13479" class="ColorScheme-Text" fill="currentColor" style="opacity:0.35" />
+   <path d="m 250.41287,15.805703 c 0.19905,0.217957 0.51185,0.208467 0.72038,-0.01898 2.34123,-2.473986 5.42177,-3.781995 8.86249,-3.781995 3.46919,0 6.5593,1.308009 8.89103,3.800975 0.19909,0.198976 0.50235,0.189486 0.70143,-0.01898 l 1.32694,-1.336535 c 0.18959,-0.189593 0.18959,-0.436021 0.038,-0.616124 C 268.66871,11.018951 264.41278,9 259.99574,9 c -4.40752,0 -8.67292,2.009472 -10.9478,4.834064 -0.15165,0.180103 -0.15165,0.426531 0.0284,0.616124 z" id="path13481" class="ColorScheme-Text" fill="currentColor" style="opacity:0.35" />
+  </g>
+ </g>
+</svg>

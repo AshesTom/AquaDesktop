@@ -1,4 +1,4 @@
-"""Test suite for MacTahoe Liquid KDE.
+"""Test suite for AquaDesktop.
 
 What is actually covered:
 
@@ -61,6 +61,59 @@ def never_touch_live_plasma_layout(monkeypatch):
 
     monkeypatch.setattr(layout, "_evaluate_layout_script", lambda script: False)
     monkeypatch.setattr(layout, "_reset_layout_builtin", lambda: False)
+    # plasmaparc's OSD keys: tests reach them through fakes of kw_read and
+    # kw_write, never the developer's real file.
+    monkeypatch.setattr(layout, "kw_write", lambda *args: False)
+    monkeypatch.setattr(layout, "kw_read", lambda *args: "")
+
+
+@pytest.fixture(autouse=True)
+def never_touch_live_theme_files(monkeypatch, tmp_path_factory):
+    """Steps and the theme switch write user files outside ~/.config
+    groups that kwriteconfig6 stubs cover: the untouched Kvantum themes the
+    accent colour is rebuilt from, and the Theme Settings app. A test that
+    installs Kvantum with fake files once replaced the real originals, and
+    the next accent change copied them over the live Kvantum themes. Tests
+    get an empty sandbox instead; those that need these paths patch them."""
+    import steps.kvantum as kvantum
+    import steps.theme_switch as switch_step
+    import steps.window_decorations as window_decorations
+    import theme_switch
+
+    sandbox = tmp_path_factory.mktemp("live-theme-files")
+    monkeypatch.setattr(window_decorations, "TABBOX_DIR", sandbox / "kwin-tabbox")
+    # kwinrc reads (the switcher, the Overview corner) never see the real file.
+    monkeypatch.setattr(window_decorations, "kw_read", lambda *args: "")
+    monkeypatch.setattr(kvantum, "ORIGINALS_DIR", sandbox / "kvantum-originals")
+    monkeypatch.setattr(kvantum, "USER_PLUGIN_ROOT", sandbox / "qt6/plugins")
+    monkeypatch.setattr(kvantum, "USER_ENGINE", sandbox / "qt6/plugins/styles/libkvantum.so")
+    monkeypatch.setattr(kvantum, "kvantum_env_path", lambda: sandbox / "env/mac-tahoe-kvantum.sh")
+    # The real one stays reachable for the test that fakes its commands.
+    monkeypatch.setattr(kvantum, "export_to_running_session_unpatched",
+                        kvantum._export_to_running_session, raising=False)
+    monkeypatch.setattr(kvantum, "_export_to_running_session", lambda *a, **k: None)
+    monkeypatch.setattr(theme_switch, "kvantum_originals_dir",
+                        lambda: sandbox / "kvantum-originals")
+    # The Dock veil is written into the installed Plasma themes and Plasma
+    # reloaded through plasmarc: never from a test (the real ones stay
+    # reachable for the tests that sandbox their paths).
+    monkeypatch.setattr(theme_switch, "apply_dock_tint_unpatched",
+                        theme_switch.apply_dock_tint, raising=False)
+    monkeypatch.setattr(theme_switch, "reload_plasma_theme_unpatched",
+                        theme_switch.reload_plasma_theme, raising=False)
+    monkeypatch.setattr(theme_switch, "apply_dock_tint", lambda *a, **k: False)
+    # Which screens show a non-image wallpaper is asked of plasmashell: the
+    # developer's session must not decide a test's outcome.
+    monkeypatch.setattr(theme_switch, "_foreign_wallpaper_screens_unpatched",
+                        theme_switch._foreign_wallpaper_screens, raising=False)
+    monkeypatch.setattr(theme_switch, "_foreign_wallpaper_screens", lambda: set())
+    monkeypatch.setattr(theme_switch, "reload_plasma_theme", lambda: True)
+    monkeypatch.setattr(switch_step, "_theme_settings_paths", lambda: {
+        "src": sandbox / "theme-settings-src",
+        "app": sandbox / "theme-settings",
+        "bin": sandbox / "bin/mac-tahoe-theme-settings",
+        "desktop": sandbox / "applications/theme-settings.desktop",
+    })
 
 
 @pytest.fixture(scope="session")

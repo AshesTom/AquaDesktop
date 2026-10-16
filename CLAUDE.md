@@ -1,4 +1,4 @@
-# Project Guidelines — Claude
+# Project Guidelines — Claude (AquaDesktop)
 
 > Canonical guidance lives in [`AGENTS.md`](AGENTS.md). Claude Code
 > reads `CLAUDE.md` by convention; this file is a thin pointer so the
@@ -9,7 +9,8 @@
 > **Read `AGENTS.md` in full before making changes.** It covers:
 >
 > - Naming conventions (PascalCase themes, kebab-case IDs)
-> - Plasmoid + branding rules (no "fork-of-X" language, no Pear OS refs)
+> - Fork goal (AquaDesktop: fork of macos-tahoe-liquid-kde, aiming
+>   for maximum macOS Tahoe accuracy) and branding rules (no Pear OS refs)
 > - macOS terminology mapping (Suggestions / Apps / Show All)
 > - Installer entry points (`install` / `uninstall` / `installer`,
 >   sudo policy, auto-update on install)

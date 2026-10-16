@@ -23,7 +23,7 @@ Tier 2 — the dep layer (per-distro package mapping):
 
 Tier 3 — cmake configure for every compiled component:
   * For each step that ships a CMakeLists.txt under src/offline (the
-    dock taskmanager, the globalmenu, the acrylic-glass KWin effect),
+    dock taskmanager, the globalmenu, the Glass KWin effect),
     run ``cmake -S <src> -B <build>`` with no manual hints. The
     configure step must succeed using ONLY packages discoverable via
     ``deps()``. This catches the class of regression where deps() is
@@ -374,12 +374,12 @@ _CMAKE_COMPONENTS = (
      "src/offline/plasmoids/org.kde.mac.tahoe.liquid.taskmanager"),
     ("globalmenu",
      "src/offline/plasmoids/org.kde.mac.tahoe.liquid.globalmenu"),
-    ("acrylic-glass",
-     "src/offline/kwin-effects/acrylic-glass"),
+    ("better-blur-dx",
+     "src/offline/kwin-effects/better-blur-dx"),
 )
 
 # Components that must be *compiled*, not just configured. The
-# acrylic-glass effect links KWin's private effect ABI, which is not
+# Better Blur DX effect links KWin's private effect ABI, which is not
 # stable across Plasma feature releases — a configure pass cannot catch
 # a removed header (wayland/blur.h) or a changed virtual signature
 # (prePaint* losing presentTime in 6.7). Compiling it here turns each
@@ -387,7 +387,7 @@ _CMAKE_COMPONENTS = (
 # matrix flags a 6.6→6.7-style break before a user hits it. Keep this
 # list tight: compiling is far slower than configuring, and only the
 # KWin-ABI component genuinely needs it.
-_COMPILE_COMPONENTS = frozenset({"acrylic-glass"})
+_COMPILE_COMPONENTS = frozenset({"better-blur-dx"})
 
 
 def _compile_component(label: str, build: Path) -> bool:

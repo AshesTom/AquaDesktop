@@ -10,7 +10,7 @@ def test_bundled_sound_theme_is_freedesktop_compatible(offline):
     stereo = theme / "stereo"
 
     assert "[Sound Theme]" in index
-    assert "Name=MacTahoe Liquid KDE" in index
+    assert "Name=AquaDesktop" in index
     assert "Directories=stereo" in index
     assert "Example=theme-demo" in index
     assert "stable macOS Tahoe 26.6" in notice
@@ -55,7 +55,7 @@ def _wire_step(monkeypatch, tmp_path):
     stereo = source / "stereo"
     stereo.mkdir(parents=True)
     (source / "index.theme").write_text(
-        "[Sound Theme]\nName=MacTahoe Liquid KDE\nDirectories=stereo\n"
+        "[Sound Theme]\nName=AquaDesktop\nDirectories=stereo\n"
     )
     (stereo / "bell.oga").write_bytes(b"OggS-test")
 

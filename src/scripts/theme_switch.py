@@ -6,8 +6,10 @@ plasma-apply-colorscheme (correct [Colors:*] groups + ColorSchemeHash so
 live Qt apps reload the palette); the manual [Colors:*] rewrite remains
 only as a fallback for systems without the tool."""
 
+import colorsys
 import datetime as _dt
 import fcntl
+import gzip
 import hashlib
 import json
 import os
@@ -84,6 +86,295 @@ def set_transparency(value: str) -> int:
             return 1
         mode = detect_mode_by_system() or detect_mode_by_time()
         return 0 if _apply_unlocked(mode) else 1
+
+# ── Dock tint ────────────────────────────────────────────────────────
+# The Dock's veil is the Plasma theme's (panel-background south-center):
+#   macos           no veil: the Better Blur DX Dock material (DockContrast,
+#                   DockSaturation, DockBrightness) gives Apple's colours;
+#   neutral         no veil, and the glass loses its colour: the blur behind
+#                   the Dock, menus and windows is grey (Saturation 0), so
+#                   the Dock is neutral and context menus plain black;
+#   accent          KDE's accent colour, 22 % on the Dock, and the context
+#                   menus (Kvantum) and menu bar popovers tinted with it.
+# The menu bar popovers' glass (GlassSurface.qml) follows it through
+# glass.ini: the context menus' own colour for macos and neutral (Kvantum's
+# menu fill at its opacity), the accent for accent.
+# Theme Settings picks it (`mac-tahoe-theme-switch dock-tint <tint>`); it
+# is kept in appearance.json and rewritten into the installed themes on
+# every apply, as a theme reinstall brings the shipped veil back.
+DOCK_TINTS = ("macos", "neutral", "accent")
+DEFAULT_DOCK_TINT = "macos"
+DEFAULT_GLASS_LEVEL = 50
+_DOCK_VEIL_ALPHA = 0.22
+_DOCK_VEIL_NEUTRAL = "#aaaaa1"
+# The frosted style (the Dock before Tahoe): a denser veil, dark grey in the
+# dark theme and white in the light one, over the heavier blur. Estimated:
+# no capture of a pre-Tahoe Dock measured yet. A chosen tint keeps its
+# colour at this density.
+_DOCK_VEIL_FROSTED_ALPHA = 0.45
+_DOCK_VEIL_FROSTED = {"Dark": "#1e1e20", "Light": "#f5f5f7"}
+# The accent's share of the Kvantum context menus' fill (dark #333333,
+# light white), so menu text stays legible.
+_MENU_ACCENT_MIX = {"Dark": 0.35, "Light": 0.20}
+_MENU_FILL = {"Dark": "#333333", "Light": "#ffffff"}
+_MENU_ELEMENTS = ("menu-normal", "menu-normal-left", "menu-normal-topleft")
+_DOCK_VEIL_RE = re.compile(r'(<rect\b[^>]*?)style="[^"]*"([^>]*\bid="south-center")')
+
+
+def dock_tint() -> str:
+    try:
+        state = json.loads(_appearance_path().read_text())
+    except (OSError, ValueError):
+        return DEFAULT_DOCK_TINT
+    tint = state.get("dock_tint") if isinstance(state, dict) else None
+    return tint if tint in DOCK_TINTS else DEFAULT_DOCK_TINT
+
+
+def glass_level() -> int:
+    """Golden Gate's Liquid Glass intensity, from clear (0) to tinted (100)."""
+    try:
+        state = json.loads(_appearance_path().read_text())
+    except (OSError, ValueError):
+        return DEFAULT_GLASS_LEVEL
+    value = state.get("glass_level") if isinstance(state, dict) else None
+    if isinstance(value, bool) or not isinstance(value, int):
+        return DEFAULT_GLASS_LEVEL
+    return max(0, min(100, value))
+
+
+def dock_veil_colour(tint: str | None = None) -> str:
+    tint = tint or dock_tint()
+    if tint == "accent":
+        return accent_color_hex() or scheme_accent_hex(
+            _kread("kdeglobals", "General", "ColorScheme")) or _DOCK_VEIL_NEUTRAL
+    return _DOCK_VEIL_NEUTRAL
+
+
+def dock_veil(theme: str, tint: str | None = None, glass: str | None = None) -> tuple[str, float]:
+    """(colour, opacity) of the Dock veil in the Plasma theme `theme`."""
+    tint = tint or dock_tint()
+    uncoloured = tint in ("macos", "neutral")
+    if (glass or glass_style()) == "frosted":
+        colour = (_DOCK_VEIL_FROSTED["Light" if "Light" in theme else "Dark"]
+                  if uncoloured else dock_veil_colour(tint))
+        return colour, _DOCK_VEIL_FROSTED_ALPHA
+    if uncoloured:
+        return _DOCK_VEIL_NEUTRAL, 0
+    return dock_veil_colour(tint), _DOCK_VEIL_ALPHA
+
+
+def write_glass_tint(tint: str | None = None) -> bool:
+    """glass.ini, read by the popovers' GlassSurface.qml (QSettings): the
+    tint name, the Golden Gate glass level and, for the accent tint, the
+    accent as rrggbb."""
+    tint = tint or dock_tint()
+    accent = ""
+    if tint == "accent":
+        accent = (accent_color_hex() or scheme_accent_hex(
+            _kread("kdeglobals", "General", "ColorScheme")) or "").lstrip("#")
+    path = _appearance_path().with_name("glass.ini")
+    text = f"Tint={tint}\nAccent={accent}\nGlassLevel={glass_level()}\n"
+    try:
+        if path.exists() and path.read_text() == text:
+            return False
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_suffix(f".{os.getpid()}.tmp")
+        temporary.write_text(text)
+        temporary.replace(path)
+        return True
+    except OSError as exc:
+        print(f"theme apply: glass tint not written ({path}: {exc})", file=sys.stderr)
+        return False
+
+
+def set_glass_level(value: str) -> int:
+    """Persist Golden Gate's clear-to-tinted control for menu-bar glass."""
+    try:
+        level = int(value)
+    except (TypeError, ValueError):
+        level = -1
+    if not 0 <= level <= 100:
+        print("Glass level must be an integer from 0 to 100", file=sys.stderr)
+        return 1
+    with _theme_transition_lock():
+        path = _appearance_path()
+        try:
+            if path.is_symlink():
+                print("Appearance is managed declaratively; change its source configuration.",
+                      file=sys.stderr)
+                return 1
+            state = json.loads(path.read_text()) if path.exists() else {}
+            if not isinstance(state, dict):
+                raise ValueError("appearance settings must be an object")
+            state["glass_level"] = level
+            path.parent.mkdir(parents=True, exist_ok=True)
+            temporary = path.with_suffix(f".{os.getpid()}.tmp")
+            temporary.write_text(json.dumps(state) + "\n")
+            temporary.replace(path)
+        except (OSError, ValueError) as exc:
+            print(f"Could not save appearance: {exc}", file=sys.stderr)
+            return 1
+        write_glass_tint()
+        return 0
+
+
+def apply_dock_tint(tint: str | None = None, glass: str | None = None) -> bool:
+    """Write the Dock veil of `tint` (default: the saved one) and of the
+    glass style into every installed AquaDesktop Plasma theme, and the tint
+    of the popovers' glass. True when a Plasma theme file changed."""
+    write_glass_tint(tint)
+    changed = False
+    for theme in sorted((_xdg_data() / "plasma/desktoptheme").glob("MacTahoeLiquidKde-*")):
+        # Reduced transparency keeps its own opaque Dock.
+        if theme.name.endswith(REDUCED_SUFFIX):
+            continue
+        colour, alpha = dock_veil(theme.name, tint, glass)
+        style = f'style="opacity:{alpha};fill:{colour}"'
+        path = theme / "widgets/panel-background.svgz"
+        try:
+            text = gzip.decompress(path.read_bytes()).decode("utf-8")
+        except (OSError, EOFError, gzip.BadGzipFile, UnicodeError):
+            continue
+        new = _DOCK_VEIL_RE.sub(lambda m: m.group(1) + style + m.group(2), text, count=1)
+        if new == text:
+            continue
+        try:
+            temporary = path.with_name(path.name + ".tmp")
+            temporary.write_bytes(gzip.compress(new.encode("utf-8"), mtime=0))
+            temporary.replace(path)
+            changed = True
+        except OSError as exc:
+            print(f"theme apply: Dock tint not written ({path}: {exc})", file=sys.stderr)
+    return changed
+
+
+def set_dock_tint(value: str) -> int:
+    """Save the Dock tint and apply it now (a theme apply reloads the
+    Plasma theme's SVGs)."""
+    if value not in DOCK_TINTS:
+        print("Dock tint must be " + ", ".join(DOCK_TINTS), file=sys.stderr)
+        return 1
+    with _theme_transition_lock():
+        path = _appearance_path()
+        try:
+            if path.is_symlink():
+                print("Appearance is managed declaratively; change its source configuration.",
+                      file=sys.stderr)
+                return 1
+            state = json.loads(path.read_text()) if path.exists() else {}
+            if not isinstance(state, dict):
+                raise ValueError("appearance settings must be an object")
+            state["dock_tint"] = value
+            path.parent.mkdir(parents=True, exist_ok=True)
+            temporary = path.with_suffix(f".{os.getpid()}.tmp")
+            temporary.write_text(json.dumps(state) + "\n")
+            temporary.replace(path)
+        except (OSError, ValueError) as exc:
+            print(f"Could not save appearance: {exc}", file=sys.stderr)
+            return 1
+        apply_dock_tint(value)
+        # The neutral tint also changes the blur's saturation.
+        apply_glass_preset(current_mode())
+        # The accent tint colours the context menus (Kvantum).
+        if apply_kvantum_accent():
+            cycle_widget_style_live(KVANTUM_STYLE)
+        return 0 if reload_plasma_theme() else 1
+
+
+def reload_plasma_theme() -> bool:
+    """Make Plasma reread the theme's SVGs (a rewritten Dock veil): its
+    theme watcher only reloads on a name change, so pass through the
+    theme's reduced-transparency twin (or back) for half a second."""
+    name = _kread("plasmarc", "Theme", "name")
+    if not name.startswith("MacTahoeLiquidKde-"):
+        return False
+    twin = name[:-len(REDUCED_SUFFIX)] if name.endswith(REDUCED_SUFFIX) else name + REDUCED_SUFFIX
+    if not (_xdg_data() / "plasma/desktoptheme" / twin).is_dir():
+        return False
+    cache = Path.home() / ".cache"
+    for pattern in ("ksvg-elements*", "plasma_theme_*"):
+        for f in cache.glob(pattern):
+            try:
+                f.unlink()
+            except OSError:
+                pass
+    ok = _kwrite("--file", "plasmarc", "--group", "Theme", "--key", "name", twin)
+    time.sleep(0.5)
+    return _kwrite("--file", "plasmarc", "--group", "Theme", "--key", "name", name) and ok
+
+# The window and Dock glass: the Better Blur DX KWin effect (bundled in
+# src/offline/kwin-effects/better-blur-dx): KWin effect id and its kwinrc
+# group. The names keep "glass" for the style and the presets.
+GLASS_EFFECT = "better_blur_dx"
+GLASS_GROUP = "Effect-better-blur-dx"
+# Per-mode blur. Two styles, chosen with
+# `mac-tahoe-theme-switch style {tahoe|frosted}`:
+#   tahoe   (default) macOS 26 Liquid Glass, measured on a macOS Tahoe
+#           desktop (~/Downloads/e7zirzb2o1ah1.png) over its bare wallpaper:
+#           the Dock keeps the wallpaper's texture (a blur of about 1 px,
+#           DockBlurStrength 1) under a lens at its edges (the effect's
+#           radial lens, docks only), the popovers and windows heavily
+#           blurred (strength 5, a Gaussian of sigma ~10 px at 1x). The
+#           Dock's 1 px rim is the Plasma theme's (panel-background
+#           south-*). The menu bar has no background.
+#           Dark mode: Apple's dark Dock, measured on a macOS Tahoe dark
+#           capture over its bare wallpaper (new-macos-tahoe-on-m1-macbook-
+#           air wallpaper, ~/Downloads/different-styles-on-macos-26-tahoe-
+#           v0-4u1ceglnuy5f1.webp aligned at scale 0.972): the desktop
+#           seen through a light blur (sigma 3-4 px at 1x: its pink
+#           reflections stay readable, DockBlurStrength 2) and kept about
+#           as dark as it is (brightness 0.87, contrast 0.84, saturation
+#           1.33: Apple keeps the desktop's chroma, x0.97, and lifts it
+#           by ~5/255 where the light calibration lifts it by 30). A soft
+#           lens (strength 15 over a 20 px band, gentle falloff): the
+#           light preset's steep 10 px band drew a second contour inside
+#           the rim, which Apple's dark Dock does not have. Measured on
+#           an empty Dock in the nested bench (build/bench/dock_empty.sh).
+#   frosted the macOS frosted material, the look before Tahoe, measured on
+#           a macOS dark Dock: the wallpaper heavily blurred and dimmed to
+#           about 85 %, no refraction. The menu bar gets its translucent,
+#           blurred background back, full width.
+# Every preset sets the same keys, so switching styles leaves
+# nothing of the other behind. Every light/dark switch rewrites them, so
+# tuning them in the effect's settings only lasts until the next change.
+_GLASS_BASE = {
+    # No grain: macOS glass shows none.
+    "NoiseStrength": "0",
+    "Contrast": "100",
+    # Our values for every window, Plasma surfaces included.
+    "ForceContrastParams": "true",
+    # The Dock's lens: upstream's radial lens, at the Dock's edges only
+    # (10 px band, steep falloff), the Dock's 20 px corners.
+    "RefractionMode": "1", "RefractionEdgeSize": "1",
+    "RefractionNormalPow": "4", "RefractionCornerRadius": "20",
+    "RefractionRGBFringing": "0", "RefractionTextureRepeatMode": "0",
+    "RefractionDocksOnly": "true",
+}
+
+
+def _glass_preset(blur: str, **keys: str) -> dict:
+    preset = dict(_GLASS_BASE)
+    # Docks have their own blur strength (0: the general one).
+    preset.update(BlurStrength=blur, DockBlurStrength="0", RefractionStrength="0",
+                  DockBrightness="0", DockContrast="0", DockSaturation="0")
+    preset.update(keys)
+    return preset
+
+
+GLASS_PRESETS = {
+    "dark-tahoe": _glass_preset(
+        "5", DockBlurStrength="2", RefractionStrength="15",
+        RefractionEdgeSize="2", RefractionNormalPow="2",
+        DockBrightness="87", DockContrast="84", DockSaturation="133",
+        Brightness="100", Saturation="100"),
+    "light-tahoe": _glass_preset(
+        "5", DockBlurStrength="1", RefractionStrength="30",
+        DockBrightness="104", DockContrast="68", DockSaturation="135",
+        Brightness="100", Saturation="100"),
+    "dark-frosted": _glass_preset("11", Brightness="85", Saturation="100"),
+    # No light frosted capture measured yet: the dark calibration mirrored.
+    "light-frosted": _glass_preset("11", Brightness="112", Saturation="100"),
+}
 
 
 def _have(cmd: str) -> bool:
@@ -404,13 +695,229 @@ def apply_color_scheme(scheme: str) -> bool:
     Fall back to the manual rewrite only when the binary is missing
     (minimal/CI systems)."""
     if _have("plasma-apply-colorscheme"):
+        # Without --accent-color the scheme's own colours come back, and the
+        # accent chosen in Theme Settings (or System Settings) is lost.
+        accent = accent_color_hex()
+        extra = ["--accent-color", accent] if accent else []
         try:
             return _run_user(
-                ["plasma-apply-colorscheme", scheme], timeout=15,
+                ["plasma-apply-colorscheme", scheme, *extra], timeout=15,
             ).returncode == 0
         except (subprocess.TimeoutExpired, OSError):
             return False
     return apply_color_groups_direct(scheme)
+
+
+def accent_color_hex() -> str:
+    """kdeglobals' custom accent colour ([General] AccentColor, "r,g,b") as
+    #rrggbb; empty when the colour scheme's own accent is used."""
+    return _rgb_text_to_hex(_kread("kdeglobals", "General", "AccentColor"))
+
+
+# ── Accent colour in Kvantum ─────────────────────────────────────────
+# Kvantum draws selections, checked boxes, sliders and default buttons from
+# its own SVG and kvconfig blues, not from the KDE palette. The kvantum
+# step keeps the untouched themes in DATA/mac-tahoe-liquid-kde/kvantum;
+# the user's copies in ~/.config/Kvantum are rewritten from them with every
+# accent-family blue moved to the accent (same lightness offsets).
+_KVANTUM_BASE_ACCENT = "#0088ff"
+_HEX_COLOUR = re.compile(r"#([0-9a-fA-F]{6})(?![0-9a-fA-F])")
+
+
+def kvantum_originals_dir() -> Path:
+    return _xdg_data() / "mac-tahoe-liquid-kde/kvantum"
+
+
+def _hex_to_rgb(colour: str) -> tuple[float, float, float]:
+    colour = colour.lstrip("#")
+    return tuple(int(colour[i:i + 2], 16) / 255 for i in (0, 2, 4))
+
+
+def recolor_accent(text: str, accent: str) -> str:
+    """Every accent-family blue of `text` (hue 195-232°, saturated, mid
+    lightness) in the hue of `accent`, keeping its offset from the theme's
+    own accent in lightness and its relative saturation."""
+    ah, al, as_ = colorsys.rgb_to_hls(*_hex_to_rgb(accent))
+    _bh, bl, bs = colorsys.rgb_to_hls(*_hex_to_rgb(_KVANTUM_BASE_ACCENT))
+
+    def swap(match: re.Match) -> str:
+        h, l, sat = colorsys.rgb_to_hls(*_hex_to_rgb(match.group(1)))
+        if not (195 / 360 <= h <= 232 / 360 and sat >= 0.5 and 0.3 <= l <= 0.75):
+            return match.group(0)
+        new_l = min(0.95, max(0.05, al + (l - bl)))
+        new_s = min(1.0, as_ * sat / bs)
+        r, g, b = colorsys.hls_to_rgb(ah, new_l, new_s)
+        return "#{:02x}{:02x}{:02x}".format(*(round(c * 255) for c in (r, g, b)))
+
+    return _HEX_COLOUR.sub(swap, text)
+
+
+def kvantum_engine_follows_accent() -> bool:
+    """The Tahoe Kvantum engine (steps/kvantum.py, USER_ENGINE) recolours the
+    themes itself, live, for any accent (the wallpaper's too) — once the
+    session loads it: QT_PLUGIN_PATH names its directory. Until then (just
+    installed, not logged in again) the themes are rewritten instead."""
+    root = _xdg_data() / "mac-tahoe-liquid-kde/qt6/plugins"
+    if not (root / "styles/libkvantum.so").is_file():
+        return False
+    return str(root) in os.environ.get("QT_PLUGIN_PATH", "").split(":")
+
+
+def menu_tint_colour(theme: str, tint: str | None = None) -> str:
+    """The Kvantum context menus' fill in `theme`: its own, or mixed with
+    the accent for the accent tint."""
+    variant = "Dark" if theme.endswith("Dark") else "Light"
+    base = _MENU_FILL[variant]
+    if (tint or dock_tint()) != "accent":
+        return base
+    accent = accent_color_hex() or scheme_accent_hex(
+        _kread("kdeglobals", "General", "ColorScheme"))
+    if not accent:
+        return base
+    share = _MENU_ACCENT_MIX[variant]
+    mixed = (round(b * (1 - share) + a * share)
+             for b, a in zip(_hex_to_rgb255(base), _hex_to_rgb255(accent)))
+    return "#" + "".join(f"{c:02x}" for c in mixed)
+
+
+def _hex_to_rgb255(value: str) -> tuple[int, int, int]:
+    value = value.lstrip("#")
+    return int(value[0:2], 16), int(value[2:4], 16), int(value[4:6], 16)
+
+
+def tint_kvantum_menus(svg: str, colour: str) -> str:
+    """The fills of Kvantum's menu frame (centre, edges, corners) in `colour`."""
+    for element in _MENU_ELEMENTS:
+        index = svg.find(f'id="{element}"')
+        if index < 0:
+            continue
+        start = svg.rfind("<", 0, index)
+        end = (svg.index("</g>", index) if svg.startswith("<g", start)
+               else svg.index(">", index))
+        block = re.sub(r"fill:#[0-9a-fA-F]{6}", f"fill:{colour}", svg[start:end])
+        svg = svg[:start] + block + svg[end:]
+    return svg
+
+
+def apply_kvantum_accent(accent: str | None = None) -> bool:
+    """Rewrite the user's Kvantum themes for `accent` (default: kdeglobals'
+    AccentColor; none restores the originals) and the glass tint's menu
+    colour. True when a file changed.
+    With the Tahoe Kvantum engine the themes stay untouched (it recolours
+    them as it loads them)."""
+    accent = accent_color_hex() if accent is None else accent
+    if kvantum_engine_follows_accent():
+        accent = ""
+    originals = kvantum_originals_dir()
+    changed = False
+    for theme in (KVANTUM_THEME_LIGHT, KVANTUM_THEME_DARK):
+        if not _kvantum_original_is_valid(originals, theme):
+            continue
+        for ext in (".kvconfig", ".svg"):
+            source = originals / f"{theme}{ext}"
+            target = _xdg_config() / "Kvantum" / theme / f"{theme}{ext}"
+            if not target.parent.is_dir():
+                continue
+            try:
+                text = source.read_text(encoding="utf-8")
+                if accent:
+                    text = recolor_accent(text, accent)
+                if ext == ".svg":
+                    # The accent tint (dock-tint accent) colours the menus.
+                    text = tint_kvantum_menus(text, menu_tint_colour(theme))
+                if target.is_file() and target.read_text(encoding="utf-8") == text:
+                    continue
+                target.write_text(text, encoding="utf-8")
+                changed = True
+            except (OSError, UnicodeError) as exc:
+                print(f"theme apply: Kvantum accent not written ({target}: {exc})",
+                      file=sys.stderr)
+    return changed
+
+
+def _kvantum_original_is_valid(originals: Path, theme: str) -> bool:
+    """A real Kvantum theme: a kvconfig with its [%General] group and an
+    SVG with drawing elements. Anything else would break every Qt app."""
+    try:
+        config = (originals / f"{theme}.kvconfig").read_text(encoding="utf-8")
+        svg = (originals / f"{theme}.svg").read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return False
+    if not config.startswith("[%General]") or "<svg" not in svg or len(svg) < 1024:
+        print(f"theme apply: Kvantum originals of {theme} look broken; "
+              "reinstall the Kvantum step", file=sys.stderr)
+        return False
+    return True
+
+
+def scheme_accent_hex(scheme: str) -> str:
+    """A colour scheme's own accent: its selection background."""
+    path = _find_scheme_file(scheme)
+    if path is None:
+        return ""
+    selection = _parse_ini(path).get("Colors:Selection", {})
+    return _rgb_text_to_hex(selection.get("BackgroundNormal", ""))
+
+
+def _rgb_text_to_hex(value: str) -> str:
+    try:
+        r, g, b = (int(p) for p in value.split(",")[:3])
+    except ValueError:
+        return ""
+    if not all(0 <= c <= 255 for c in (r, g, b)):
+        return ""
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+ACCENT_FROM_WALLPAPER_KEY = "accentColorFromWallpaper"
+
+
+def accent_from_wallpaper() -> bool:
+    return _kread("kdeglobals", "General", ACCENT_FROM_WALLPAPER_KEY).lower() == "true"
+
+
+def set_accent(accent: str) -> bool:
+    """The accent colour everywhere: KDE's palette (plasma-apply-colorscheme)
+    and Kvantum, reloaded live. "multicolour" brings the scheme's own
+    accent back and forgets the custom one; "wallpaper" lets Plasma derive
+    it from the wallpaper (and follow every wallpaper change; the Tahoe
+    Kvantum engine follows it live)."""
+    multicolour = accent == "multicolour"
+    wallpaper = accent == "wallpaper"
+    if not (multicolour or wallpaper) and not re.fullmatch(r"#[0-9a-fA-F]{6}", accent):
+        return False
+    # Plasma's shell watches this key and writes AccentColor itself.
+    _kwrite("--file", "kdeglobals", "--group", "General",
+            "--key", ACCENT_FROM_WALLPAPER_KEY, "true" if wallpaper else "false")
+    if wallpaper:
+        return True
+    if multicolour:
+        # An accent applied as the scheme's own blue is not the scheme
+        # (KDE derives darker selections from it): forget the accent, then
+        # re-apply the scheme itself. KDE skips a scheme it thinks is
+        # current, so pass through the other mode's scheme first.
+        ok = _kwrite("--file", "kdeglobals", "--group", "General",
+                     "--key", "AccentColor", "--delete")
+        scheme = _kread("kdeglobals", "General", "ColorScheme")
+        opposite = ("MacTahoeLiquidKdeLight" if scheme.endswith("Dark")
+                    else "MacTahoeLiquidKdeDark")
+        if scheme:
+            apply_color_scheme(opposite)
+            ok = apply_color_scheme(scheme) and ok
+    else:
+        ok = False
+        if _have("plasma-apply-colorscheme"):
+            try:
+                ok = _run_user(["plasma-apply-colorscheme", "--accent-color", accent],
+                               timeout=15).returncode == 0
+            except (subprocess.TimeoutExpired, OSError):
+                ok = False
+    if apply_kvantum_accent("" if multicolour else accent):
+        cycle_widget_style_live(KVANTUM_STYLE)
+    # A Dock tinted with the accent follows it.
+    if dock_tint() == "accent" and apply_dock_tint():
+        reload_plasma_theme()
+    return ok
 
 
 def _find_scheme_file(scheme: str) -> Path | None:
@@ -449,6 +956,64 @@ def apply_color_groups_direct(scheme: str) -> bool:
     digest = hashlib.sha1(scheme_file.read_bytes()).hexdigest()
     return _kwrite("--file", "kdeglobals", "--group", "General",
                    "--key", "ColorSchemeHash", digest)
+
+
+# Accent-independent keys that tell a scheme's palette from another one
+# (KDE rewrites the selection / focus / link colours with the accent).
+_PALETTE_PROBES = (
+    ("Colors:Window", "BackgroundNormal"),
+    ("Colors:Window", "ForegroundNormal"),
+    ("Colors:View", "BackgroundNormal"),
+    ("Colors:Button", "BackgroundNormal"),
+    ("Colors:Header", "BackgroundNormal"),
+)
+
+
+def palette_matches_scheme(scheme: str) -> bool | None:
+    """Whether kdeglobals' [Colors:*] groups hold `scheme`'s palette (None
+    when the scheme file is missing). The ColorScheme name alone proves
+    nothing: Breeze Light's colours were found under our Dark name after a
+    reinstall, and KDE skips re-applying a scheme it believes is current."""
+    scheme_file = _find_scheme_file(scheme)
+    if scheme_file is None:
+        return None
+    wanted = _parse_ini(scheme_file)
+    current = _parse_ini(_kdeglobals_path())
+    for group, key in _PALETTE_PROBES:
+        value = wanted.get(group, {}).get(key)
+        if value is not None and current.get(group, {}).get(key) != value:
+            return False
+    return True
+
+
+def ensure_color_scheme(scheme: str) -> bool:
+    """`scheme`'s palette in kdeglobals, verified: when it is not there,
+    apply the opposite scheme then this one (KDE then sees a real change),
+    and as a last resort write the groups straight from the scheme file."""
+    if palette_matches_scheme(scheme) is not False:
+        return True
+    opposite = ("MacTahoeLiquidKdeLight" if scheme.endswith("Dark")
+                else "MacTahoeLiquidKdeDark")
+    apply_color_scheme(opposite)
+    apply_color_scheme(scheme)
+    if palette_matches_scheme(scheme) is not False:
+        return True
+    accent = accent_color_hex()
+    ok = apply_color_groups_direct(scheme)
+    if ok and accent and _have("plasma-apply-colorscheme"):
+        try:
+            _run_user(["plasma-apply-colorscheme", "--accent-color", accent], timeout=15)
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+    return ok and palette_matches_scheme(scheme) is not False
+
+
+def repair_colors() -> bool:
+    """The current mode's palette, verified (the installer runs this after
+    its final Plasma restart)."""
+    scheme = ("MacTahoeLiquidKdeLight" if current_mode() == "light"
+              else "MacTahoeLiquidKdeDark")
+    return ensure_color_scheme(scheme)
 
 
 def detect_mode_by_time() -> str:
@@ -734,7 +1299,7 @@ def _wallpapers_from_config() -> list[dict[str, object]]:
     screens: dict[str, int] = {}
     for section, values in sections.items():
         match = _DESKTOP_SECTION_RE.fullmatch(section)
-        if not match or values.get("plugin") != "org.kde.plasma.folder":
+        if not match or values.get("plugin") not in _DESKTOP_PLUGINS:
             continue
         try:
             screen = int(values.get("lastScreen", ""))
@@ -754,6 +1319,53 @@ def _wallpapers_from_config() -> list[dict[str, object]]:
     return _normalize_wallpaper_snapshot(snapshot)
 
 
+# Desktop containments: Folder View and the plain Desktop.
+_DESKTOP_PLUGINS = ("org.kde.plasma.folder", "org.kde.desktopcontainment")
+
+
+def _build_wallpaper_plugin_script() -> str:
+    return """
+var out = [];
+var all = desktops();
+for (var i = 0; i < all.length; i++) {
+    out.push({screen: all[i].screen, plugin: all[i].wallpaperPlugin});
+}
+print(JSON.stringify(out));
+"""
+
+
+def _foreign_wallpaper_screens() -> set[int]:
+    """Screens whose wallpaper is not an image (Picture of the Day, a
+    colour, a slideshow...): the user's choice, whatever org.kde.image's
+    leftover Image key says. Live from plasmashell, else from its config."""
+    reply = _evaluate_plasma_script(_build_wallpaper_plugin_script())
+    for line in reversed((reply or "").strip().splitlines()):
+        line = line.strip()
+        if not line.startswith("["):
+            continue
+        try:
+            items = json.loads(line)
+        except json.JSONDecodeError:
+            break
+        return {item["screen"] for item in items
+                if isinstance(item, dict) and isinstance(item.get("screen"), int)
+                and not isinstance(item.get("screen"), bool) and item["screen"] >= 0
+                and item.get("plugin") not in (None, "", "org.kde.image")}
+    sections = _parse_ini(_xdg_config() / "plasma-org.kde.plasma.desktop-appletsrc")
+    screens: set[int] = set()
+    for section, values in sections.items():
+        if not _DESKTOP_SECTION_RE.fullmatch(section) \
+                or values.get("plugin") not in _DESKTOP_PLUGINS:
+            continue
+        try:
+            screen = int(values.get("lastScreen", ""))
+        except ValueError:
+            continue
+        if screen >= 0 and values.get("wallpaperplugin", "org.kde.image") != "org.kde.image":
+            screens.add(screen)
+    return screens
+
+
 def _current_wallpapers() -> list[dict[str, object]]:
     live = _parse_wallpaper_reply(
         _evaluate_plasma_script(_build_wallpaper_capture_script()))
@@ -761,7 +1373,7 @@ def _current_wallpapers() -> list[dict[str, object]]:
 
 
 def _build_wallpaper_apply_script(
-        snapshot: list[dict[str, object]]) -> str:
+        snapshot: list[dict[str, object]], skip: set[int] = frozenset()) -> str:
     by_screen = {
         str(item["screen"]): item["image"]
         for item in _normalize_wallpaper_snapshot(snapshot)
@@ -770,10 +1382,12 @@ def _build_wallpaper_apply_script(
     return f"""
 var wanted = {json.dumps(by_screen)};
 var fallback = {json.dumps(fallback)};
+var skip = {json.dumps(sorted(skip))};
 var all = desktops();
 var applied = 0;
 for (var i = 0; i < all.length; i++) {{
     var d = all[i];
+    if (skip.indexOf(d.screen) >= 0) continue;
     var image = wanted[String(d.screen)] || fallback;
     if (!image) continue;
     d.wallpaperPlugin = 'org.kde.image';
@@ -786,7 +1400,7 @@ print(applied > 0 ? 'applied' : 'no-desktops');
 
 
 def _write_wallpapers_to_config(
-        snapshot: list[dict[str, object]]) -> bool:
+        snapshot: list[dict[str, object]], skip: set[int] = frozenset()) -> bool:
     wanted = {
         int(item["screen"]): str(item["image"])
         for item in _normalize_wallpaper_snapshot(snapshot)
@@ -799,11 +1413,13 @@ def _write_wallpapers_to_config(
     writes: list[bool] = []
     for section, values in sections.items():
         match = _DESKTOP_SECTION_RE.fullmatch(section)
-        if not match or values.get("plugin") != "org.kde.plasma.folder":
+        if not match or values.get("plugin") not in _DESKTOP_PLUGINS:
             continue
         try:
             screen = int(values.get("lastScreen", ""))
         except ValueError:
+            continue
+        if screen in skip:
             continue
         image = wanted.get(screen, fallback)
         writes.append(_kwrite(
@@ -816,15 +1432,16 @@ def _write_wallpapers_to_config(
 
 
 def _apply_wallpaper_snapshot(
-        snapshot: list[dict[str, object]]) -> bool:
+        snapshot: list[dict[str, object]], skip: set[int] = frozenset()) -> bool:
     snapshot = _normalize_wallpaper_snapshot(snapshot)
     if not snapshot:
         return False
-    reply = _evaluate_plasma_script(_build_wallpaper_apply_script(snapshot))
+    reply = _evaluate_plasma_script(_build_wallpaper_apply_script(snapshot, skip))
     if any(line.strip() == "applied"
            for line in (reply or "").splitlines()):
         return True
-    return _write_wallpapers_to_config(snapshot)
+    return (_write_wallpapers_to_config(snapshot, skip) if skip
+            else _write_wallpapers_to_config(snapshot))
 
 
 def _theme_wallpaper_snapshot(
@@ -923,9 +1540,12 @@ def _apply_wallpaper(
                 # per screen instead of disabling every monitor.
                 user_screens.add(screen)
 
+    # A screen showing another wallpaper type (Picture of the Day...) is the
+    # user's even though org.kde.image's Image key still names ours.
+    foreign = set() if reset else _foreign_wallpaper_screens()
     state["user_screens"] = sorted(user_screens)
-    current_user_screens = user_screens.intersection(current_by_screen)
-    if current and current_user_screens == set(current_by_screen):
+    current_user_screens = user_screens.intersection(current_by_screen) | foreign
+    if current and current_user_screens >= set(current_by_screen):
         state["last_applied"] = current
         _save_wallpaper_state(state)
         return True
@@ -940,7 +1560,9 @@ def _apply_wallpaper(
         # Reapply even when the package URL is unchanged: MacTahoe contains
         # both images/ and images_dark/, so rewriting the mixed snapshot makes
         # Plasma refresh the managed screens after the color-mode transition.
-        success = bool(applied) and _apply_wallpaper_snapshot(applied)
+        applied = [item for item in applied if int(item["screen"]) not in foreign]
+        success = bool(applied) and (_apply_wallpaper_snapshot(applied, skip=foreign)
+                                     if foreign else _apply_wallpaper_snapshot(applied))
     else:
         success, wp = _apply_theme_wallpaper(mode)
         applied = _theme_wallpaper_snapshot(current, wp) if wp else []
@@ -1002,6 +1624,11 @@ def _set_kvantum_theme(mode: str) -> None:
         pass
 
 
+_GTK4_FINDER_START = ("/* >>> MacOS-Tahoe-KDE Finder block "
+                      "(src/offline/nautilus/finder-gtk4.css) >>> */")
+_GTK4_FINDER_END = "/* <<< MacOS-Tahoe-KDE Finder block <<< */"
+
+
 def _gtk4_css_is_replaceable(path: Path, themes_root: Path) -> bool:
     """Whether gtk.css is generated/project-owned rather than user CSS.
 
@@ -1028,6 +1655,11 @@ def _gtk4_css_is_replaceable(path: Path, themes_root: Path) -> bool:
         return True
     if text.endswith(import_line):
         text = text[:-len(import_line)].rstrip()
+    # A sheet carrying our Finder block is ours even when it no longer
+    # matches the installed one: kde-gtk-config re-expands the previous
+    # release's sheet, and that stale copy must not pin the old look.
+    if _GTK4_FINDER_START in text and _GTK4_FINDER_END in text:
+        return True
     for variant in ("MacTahoeLiquidKde-Light", "MacTahoeLiquidKde-Dark",
                     "MacTahoeLiquidKde-Light" + REDUCED_SUFFIX,
                     "MacTahoeLiquidKde-Dark" + REDUCED_SUFFIX):
@@ -1120,17 +1752,58 @@ def _apply_local_extras(mode: str) -> None:
         except OSError: pass
 
 
+def _xdg_data() -> Path:
+    return Path(os.environ.get("XDG_DATA_HOME") or str(Path.home() / ".local/share"))
+
+
+def custom_icon_theme(base: str) -> str:
+    """The Icon Manager's overlay of `base` when it has one (an icon theme
+    holding only the user's custom app icons, inheriting `base`)."""
+    overlay = f"{base}-custom"
+    theme = _xdg_data() / "icons" / overlay
+    # An overlay emptied while in use is removed once the session left it.
+    if (theme / "index.theme").is_file() and any((theme / "apps/512").glob("*.png")):
+        return overlay
+    return base
+
+
+def _notify_icon_theme_changed() -> bool:
+    """Tell running KDE applications to reload their icon theme.
+
+    KConfig's --notify flag only informs KConfig watchers. KIconLoader listens
+    for KGlobalSettings.notifyChange(IconChanged), so writing kdeglobals alone
+    leaves existing processes on the previous light/dark theme until restart.
+    """
+    if not _has_session_dbus() or not _have("dbus-send"):
+        return False
+    try:
+        result = _run_user(
+            ["dbus-send", "--session", "--type=signal", "/KGlobalSettings",
+             "org.kde.KGlobalSettings.notifyChange", "int32:4", "int32:0"],
+            timeout=5,
+        )
+        return result.returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+# macOS keeps its pointer in dark mode: the black arrow with a white outline
+# and white hands with a black one. The inverted MacTahoeLiquidKde-Dark set
+# stays installed for whoever picks it.
+MACOS_CURSORS = "MacTahoeLiquidKde"
+
+
 def write_kde_theme_config(
         mode: str, *, force_color_reload: bool = False) -> bool:
     if not _have("kwriteconfig6"):
         return False
 
     if mode == "dark":
-        laf, icon, cursor = LAF_DARK, "MacTahoeLiquidKde-Icons-dark", "MacTahoeLiquidKde-Dark"
+        laf, icon, cursor = LAF_DARK, "MacTahoeLiquidKde-Icons-dark", MACOS_CURSORS
         scheme, plasma = "MacTahoeLiquidKdeDark", "MacTahoeLiquidKde-Dark"
         widget, aurorae = KVANTUM_STYLE, "__aurorae__svg__MacTahoeLiquidKde-Dark"
     else:
-        laf, icon, cursor = LAF_LIGHT, "MacTahoeLiquidKde-Icons", "MacTahoeLiquidKde"
+        laf, icon, cursor = LAF_LIGHT, "MacTahoeLiquidKde-Icons", MACOS_CURSORS
         scheme, plasma = "MacTahoeLiquidKdeLight", "MacTahoeLiquidKde-Light"
         widget, aurorae = KVANTUM_STYLE, "__aurorae__svg__MacTahoeLiquidKde-Light"
 
@@ -1151,6 +1824,7 @@ def write_kde_theme_config(
                     else "MacTahoeLiquidKdeDark")
         apply_color_scheme(opposite)
     color_ok = apply_color_scheme(scheme)
+    icon = custom_icon_theme(icon)
 
     # AutomaticLookAndFeel=false: Plasma's sunrise/sunset scheduler must
     # not fight our 06:00 / 18:00 timer (idempotent).
@@ -1167,6 +1841,7 @@ def write_kde_theme_config(
         if not _kwrite("--file", file, "--group", group,
                        "--key", key, value):
             return False
+    _notify_icon_theme_changed()
     for key, value in (
         ("library", "org.kde.kwin.aurorae"),
         ("theme", aurorae),
@@ -1178,7 +1853,8 @@ def write_kde_theme_config(
                        "--key", key, value):
             return False
 
-    return color_ok
+    # The name is now stamped: make sure the palette under it is the scheme's.
+    return ensure_color_scheme(scheme) and color_ok
 
 
 def _live_tool_env() -> dict[str, str]:
@@ -1207,7 +1883,9 @@ _LAF_APPLY_RETRY_SLEEP_SECONDS = 6
 # as user effects to watch over. Everything else the user enabled in [Plugins]
 # is a third-party effect we must not silently break.
 _OWN_KWIN_EFFECT_KEYS = frozenset({
-    "liquidglassEnabled", "glassEnabled", "blurEnabled",
+    # glass / liquidglass: the Glass and Acrylic Glass effects of earlier
+    # releases.
+    "better_blur_dxEnabled", "liquidglassEnabled", "glassEnabled", "blurEnabled",
 })
 
 
@@ -1333,11 +2011,11 @@ def reconfigure_kwin_preserving_foreign_effects() -> list[str]:
 # Our own compiled effects are just as exposed to the reconfigure ABI-drop
 # risk documented on _snapshot_foreign_effects as any third-party one --
 # being "ours" doesn't make the .so any less likely to fall out of KWin's
-# loaded-effect list. apply.py's install() reloads liquidglass once at
+# loaded-effect list. The installer reloads the Glass effect once at
 # install time, but every routine light/dark switch reconfigures KWin too
 # (see above), so this path needs the same protection or the effect can go
 # dark until the next ./install.
-_OWN_COMPILED_EFFECTS = ("liquidglass",)
+_OWN_COMPILED_EFFECTS = (GLASS_EFFECT,)
 
 
 def _restore_own_compiled_effects() -> None:
@@ -1369,6 +2047,135 @@ def _restore_own_compiled_effects() -> None:
                 "absent.",
                 file=sys.stderr,
             )
+
+
+GLASS_STYLES = ("tahoe", "frosted")
+DEFAULT_GLASS_STYLE = "tahoe"
+
+
+def _glass_style_path() -> Path:
+    return _xdg_config() / "mac-tahoe-liquid-kde/glass-style"
+
+
+def glass_style() -> str:
+    try:
+        style = _glass_style_path().read_text(encoding="utf-8").strip()
+    except (OSError, UnicodeError):
+        return DEFAULT_GLASS_STYLE
+    return style if style in GLASS_STYLES else DEFAULT_GLASS_STYLE
+
+
+def glass_preset_name(mode: str, style: str | None = None) -> str:
+    style = style or glass_style()
+    return f"{mode}-{style}"
+
+
+def glass_preset(mode: str, style: str | None = None, tint: str | None = None) -> dict:
+    """The Better Blur DX keys of `mode` in the glass style, with the Dock
+    tint's: the neutral tint takes the colour out of all the glass (the
+    Dock's saturation of 0 falls back to the general one)."""
+    preset = dict(GLASS_PRESETS[glass_preset_name(mode, style)])
+    if (tint or dock_tint()) == "neutral":
+        preset.update(Saturation="0", DockSaturation="0")
+    return preset
+
+
+def set_glass_style(style: str) -> bool:
+    if style not in GLASS_STYLES:
+        return False
+    path = _glass_style_path()
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(style + "\n", encoding="utf-8")
+    except OSError:
+        return False
+    return True
+
+
+def current_mode() -> str:
+    laf = _kread("kdeglobals", "KDE", "LookAndFeelPackage")
+    return "light" if laf == LAF_LIGHT else "dark"
+
+
+COLORIZER_ID = "luisbocanegra.panel.colorizer"
+
+
+# The menu bar's text and icons: white in both appearances, as macOS draws
+# them over the wallpaper. Panel Colorizer only recolours the widgets'
+# foreground; their background stays off.
+TOP_BAR_FOREGROUND = "#ffffff"
+# Tahoe's dark veil behind the transparent menu bar, measured on a macOS
+# Tahoe capture over its bare wallpaper (Golden Gate, shown at 1920 px):
+# the desktop at 0.80 under the bar, back to 1.0 some 80 px down. A panel
+# cannot draw past its 30 px, so the veil fades from 20 % black at the top
+# edge to nothing at the bar's bottom edge (Panel Colorizer's panel layer,
+# a vertical gradient).
+TOP_BAR_SCRIM = '{"enabled": true, "backgroundColor": {"enabled": true, "sourceType": 5, "alpha": 1, "gradient": {"orientation": 1, "stops": [{"color": "#33000000", "position": 0}, {"color": "#2b000000", "position": 0.45}, {"color": "#12000000", "position": 0.8}, {"color": "#00000000", "position": 1}]}}}'
+
+
+def _top_bar_script(frosted: bool) -> str:
+    """Plasma script setting the menu bar's native background through its
+    Panel Colorizer: hidden for Tahoe (as the layout installs it), back on
+    for frosted; Tahoe's dark veil (TOP_BAR_SCRIM), off for frosted; and its
+    white text and icons. Only those settings change;
+    the rest of the user's Colorizer settings stay."""
+    background = ('{"enabled": true, "opacity": 1, "shadow": false}' if frosted
+                  else '{"enabled": false, "opacity": 0, "shadow": false}')
+    # Tahoe's veil only: frosted has its own translucent background.
+    scrim = '{"enabled": false}' if frosted else TOP_BAR_SCRIM
+    return (
+        "panels().forEach(function (panel) {\n"
+        "    if (panel.location !== \"top\") return;\n"
+        f"    panel.widgets(\"{COLORIZER_ID}\").forEach(function (widget) {{\n"
+        "        widget.currentConfigGroup = [\"General\"];\n"
+        "        var settings = {};\n"
+        "        try { settings = JSON.parse(widget.readConfig(\"globalSettings\", \"{}\")) || {}; }\n"
+        "        catch (e) { settings = {}; }\n"
+        "        settings.nativePanel = settings.nativePanel || {};\n"
+        f"        settings.nativePanel.background = {background};\n"
+        f"        settings.panel = settings.panel || {{}};\n"
+        f"        settings.panel.normal = {scrim};\n"
+        "        [\"widgets\", \"trayWidgets\"].forEach(function (key) {\n"
+        "            settings[key] = settings[key] || {};\n"
+        "            var normal = settings[key].normal = settings[key].normal || {};\n"
+        "            normal.enabled = true;\n"
+        "            normal.backgroundColor = normal.backgroundColor || {};\n"
+        "            normal.backgroundColor.enabled = false;\n"
+        "            normal.foregroundColor = normal.foregroundColor || {};\n"
+        "            normal.foregroundColor.enabled = true;\n"
+        "            normal.foregroundColor.sourceType = 0;\n"
+        "            normal.foregroundColor.alpha = 1;\n"
+        f"            normal.foregroundColor.custom = \"{TOP_BAR_FOREGROUND}\";\n"
+        "        });\n"
+        "        widget.writeConfig(\"globalSettings\", JSON.stringify(settings));\n"
+        "        print(\"ok\\n\");\n"
+        "    });\n"
+        "});\n"
+    )
+
+
+def apply_top_bar_style(style: str | None = None) -> bool:
+    """The menu bar of the style: no background (Tahoe) or the translucent,
+    blurred bar macOS had before Tahoe (frosted). Needs a running Plasma."""
+    style = style or glass_style()
+    out = _evaluate_plasma_script(_top_bar_script(style == "frosted"))
+    return bool(out) and "ok" in out
+
+
+def apply_glass_preset(mode: str) -> bool:
+    """Write the mode's Glass blur, in the chosen style, and have KWin
+    re-read it. Only while the effect is enabled: a user who turned it off
+    keeps it off."""
+    plugins = _parse_ini(_kwinrc_path()).get("Plugins", {})
+    if plugins.get(f"{GLASS_EFFECT}Enabled", "").strip().lower() != "true":
+        return False
+    written = True
+    for key, value in glass_preset(mode).items():
+        written = _kwrite("--file", "kwinrc", "--group", GLASS_GROUP,
+                          "--key", key, value) and written
+    _qdbus("org.kde.KWin", "/Effects",
+           "org.kde.kwin.Effects.reconfigureEffect", GLASS_EFFECT)
+    return written
 
 
 def _apply_lookandfeel_live(laf: str) -> bool:
@@ -1481,7 +2288,7 @@ def _apply_unlocked(mode: str, context: str = "user") -> bool:
     core config writes fail (kwriteconfig6 missing or a write error).
     Live LAF is skipped during install — Plasma restarts anyway and
     running both races plasmashell's QML teardown."""
-    cursor = "MacTahoeLiquidKde-Dark" if mode == "dark" else "MacTahoeLiquidKde"
+    cursor = MACOS_CURSORS
     widget = KVANTUM_STYLE
     laf = LAF_DARK if mode == "dark" else LAF_LIGHT
 
@@ -1505,6 +2312,13 @@ def _apply_unlocked(mode: str, context: str = "user") -> bool:
             print("theme apply: live look-and-feel apply skipped",
                   file=sys.stderr)
 
+    try:
+        # Before the Kvantum profile is (re)selected below, so it loads in
+        # the accent colour.
+        apply_kvantum_accent()
+    except Exception as exc:
+        print(f"theme apply: Kvantum accent failed, continuing: {exc!r}",
+              file=sys.stderr)
     config_ok = write_kde_theme_config(
         mode, force_color_reload=context == "install",
     )
@@ -1512,9 +2326,17 @@ def _apply_unlocked(mode: str, context: str = "user") -> bool:
         print("theme apply: core KDE config writes failed, theme not "
               "fully applied", file=sys.stderr)
     try:
+        # Before the SVG caches are dropped (in the extras), so the Plasma
+        # theme reload picks it up.
+        apply_dock_tint()
         _apply_local_extras(mode)
     except Exception as exc:
         print(f"theme apply: extras step failed, continuing: {exc!r}",
+              file=sys.stderr)
+    try:
+        apply_glass_preset(mode)
+    except Exception as exc:
+        print(f"theme apply: glass preset failed, continuing: {exc!r}",
               file=sys.stderr)
     try:
         _apply_wallpaper(mode, context=context,
@@ -1558,9 +2380,158 @@ def follow_system() -> int:
         return 0 if _apply_unlocked(mode, context="user") else 1
 
 
+# ── Desktop & Dock ───────────────────────────────────────────────────
+# What macOS' Desktop & Dock settings offer, on the Plasma Dock and KWin.
+# Plasma keeps the Dock's own settings (its panel and its task manager's
+# `dockMagnification`), KWin the rest: nothing is duplicated in a state
+# file, so `dock` / `minimize` / `hot-corners` without a value print what
+# is in use.
+DOCK_SIZE_RANGE = (40, 96)
+DOCK_MAGNIFICATION_RANGE = (100, 200)
+_DOCK_TASKS_RE = r"/^org\.kde\.(mac\.tahoe\.liquid\.(icon)?task|plasma\.icontasks)/"
+# Theme Settings shows `dock` output: {"autohide": bool, "size": int,
+# "magnification": int}, one line of JSON, or nothing without a Dock.
+_DOCK_SCRIPT = (
+    "var out = null;\n"
+    "panels().forEach(function (panel) {\n"
+    "    if (out !== null || panel.location !== \"bottom\") return;\n"
+    "    var tasks = panel.widgets().filter(function (w) {\n"
+    f"        return {_DOCK_TASKS_RE}.test(w.type);\n"
+    "    });\n"
+    "    if (!tasks.length) return;\n"
+    "    %s\n"
+    "    tasks[0].currentConfigGroup = [\"General\"];\n"
+    "    out = {autohide: panel.hiding === \"autohide\", size: panel.height,\n"
+    "           magnification: parseInt(tasks[0].readConfig(\"dockMagnification\", 160)) || 160};\n"
+    "});\n"
+    "print(out === null ? \"\" : JSON.stringify(out));\n"
+)
+
+
+def _dock_script(change: str = "") -> str:
+    return _DOCK_SCRIPT % change
+
+
+def dock_settings() -> dict | None:
+    out = _evaluate_plasma_script(_dock_script())
+    try:
+        settings = json.loads(out.strip()) if out and out.strip() else None
+    except ValueError:
+        return None
+    return settings if isinstance(settings, dict) else None
+
+
+def set_dock(key: str, value: str) -> bool:
+    """autohide on|off, size N (px), magnification N (%, 100: off)."""
+    if key == "autohide" and value in ("on", "off"):
+        change = f"panel.hiding = \"{'autohide' if value == 'on' else 'none'}\";"
+    elif key in ("size", "magnification") and value.isdigit():
+        low, high = DOCK_SIZE_RANGE if key == "size" else DOCK_MAGNIFICATION_RANGE
+        number = max(low, min(high, int(value)))
+        if key == "size":
+            change = f"panel.height = {number};"
+        else:
+            # Every task manager of the Dock: the minimized-windows one too.
+            change = ("tasks.forEach(function (w) { w.currentConfigGroup = [\"General\"]; "
+                      f"w.writeConfig(\"dockMagnification\", {number}); }});")
+    else:
+        return False
+    out = _evaluate_plasma_script(_dock_script(change))
+    return bool(out and out.strip())
+
+
+# Minimize windows using: Genie (KWin's Magic Lamp) or Scale (Squash, KWin's
+# default).
+MINIMIZE_EFFECTS = {"genie": "magiclamp", "scale": "squash"}
+
+
+def minimize_effect() -> str:
+    plugins = _parse_ini(_kwinrc_path()).get("Plugins", {})
+    return "genie" if plugins.get("magiclampEnabled", "").strip().lower() == "true" else "scale"
+
+
+def set_minimize_effect(name: str) -> bool:
+    if name not in MINIMIZE_EFFECTS:
+        return False
+    ok = True
+    for other, effect in MINIMIZE_EFFECTS.items():
+        on = other == name
+        ok = _kwrite("--file", "kwinrc", "--group", "Plugins",
+                     "--key", f"{effect}Enabled", "true" if on else "false") and ok
+        _qdbus("org.kde.KWin", "/Effects",
+               f"org.kde.kwin.Effects.{'loadEffect' if on else 'unloadEffect'}", effect)
+    return ok
+
+
+# Hot corners, macOS' actions on KWin's screen edges. KWin's border ids:
+# 1 top right, 3 bottom right, 5 bottom left, 7 top left, 9 none.
+HOT_CORNERS = {"top-left": ("7", "TopLeft"), "top-right": ("1", "TopRight"),
+               "bottom-left": ("5", "BottomLeft"), "bottom-right": ("3", "BottomRight")}
+# Effect actions: (kwinrc group, key, KWin's default corners). Overview is on
+# the top-left corner by default; the theme leaves that corner to the Apple
+# menu (BorderActivate=9, steps/window_decorations.py).
+_HOT_CORNER_EFFECTS = {
+    "mission-control": ("Effect-overview", "BorderActivate", "7"),
+    "app-windows": ("Effect-windowview", "BorderActivateClass", ""),
+    "all-windows": ("Effect-windowview", "BorderActivateAll", ""),
+}
+# KWin's own edge actions ([ElectricBorders]).
+_HOT_CORNER_ACTIONS = {"desktop": "ShowDesktop", "lock-screen": "LockScreen",
+                       "launchpad": "ApplicationLauncher"}
+HOT_CORNER_CHOICES = ("none", *_HOT_CORNER_EFFECTS, *_HOT_CORNER_ACTIONS)
+
+
+def _corner_list(value: str) -> list[str]:
+    return [part.strip() for part in value.split(",") if part.strip() not in ("", "9")]
+
+
+def hot_corners() -> dict[str, str]:
+    kwinrc = _parse_ini(_kwinrc_path())
+    corners = {name: "none" for name in HOT_CORNERS}
+    for name, (border, key) in HOT_CORNERS.items():
+        action = kwinrc.get("ElectricBorders", {}).get(key, "None")
+        for choice, kwin in _HOT_CORNER_ACTIONS.items():
+            if action == kwin:
+                corners[name] = choice
+    for choice, (group, key, default) in _HOT_CORNER_EFFECTS.items():
+        for border in _corner_list(kwinrc.get(group, {}).get(key, default)):
+            for name, (corner_border, _key) in HOT_CORNERS.items():
+                if border == corner_border:
+                    corners[name] = choice
+    return corners
+
+
+def set_hot_corner(corner: str, choice: str) -> bool:
+    """Give `corner` the action `choice` (none clears it), taking it from
+    whatever action had it."""
+    if corner not in HOT_CORNERS or choice not in HOT_CORNER_CHOICES:
+        return False
+    border, key = HOT_CORNERS[corner]
+    kwinrc = _parse_ini(_kwinrc_path())
+    ok = _kwrite("--file", "kwinrc", "--group", "ElectricBorders", "--key", key,
+                 _HOT_CORNER_ACTIONS.get(choice, "None"))
+    for effect, (group, effect_key, default) in _HOT_CORNER_EFFECTS.items():
+        borders = [b for b in _corner_list(kwinrc.get(group, {}).get(effect_key, default))
+                   if b != border]
+        if effect == choice:
+            borders.append(border)
+        ok = _kwrite("--file", "kwinrc", "--group", group, "--key", effect_key,
+                     ",".join(borders) or "9") and ok
+    _qdbus("org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure")
+    return ok
+
+
 USAGE = ("Usage: mac-tahoe-theme-switch "
          "{light|dark|auto|follow-system} [install]\n"
+         "       mac-tahoe-theme-switch repair-colors\n"
+         "       mac-tahoe-theme-switch style [tahoe|frosted]\n"
+         "       mac-tahoe-theme-switch accent [#rrggbb|multicolour|wallpaper]\n"
          "       mac-tahoe-theme-switch transparency {standard|reduced}\n"
+         "       mac-tahoe-theme-switch dock-tint [macos|neutral|accent]\n"
+         "       mac-tahoe-theme-switch glass-level [0-100]\n"
+         "       mac-tahoe-theme-switch dock [autohide on|off | size N | magnification N]\n"
+         "       mac-tahoe-theme-switch minimize [genie|scale]\n"
+         "       mac-tahoe-theme-switch hot-corners [CORNER ACTION]\n"
          "       mac-tahoe-theme-switch patch-dock")
 
 
@@ -1573,11 +2544,62 @@ def main(argv: list[str]) -> int:
     mode = argv[0]
     if mode == "transparency":
         return set_transparency(argv[1]) if len(argv) == 2 else 1
+    if mode == "dock-tint":
+        if len(argv) == 1:
+            print(dock_tint())
+            return 0
+        return set_dock_tint(argv[1]) if len(argv) == 2 else 1
+    if mode == "glass-level":
+        if len(argv) == 1:
+            print(glass_level())
+            return 0
+        return set_glass_level(argv[1]) if len(argv) == 2 else 1
+    if mode == "dock":
+        if len(argv) == 1:
+            settings = dock_settings()
+            print(json.dumps(settings) if settings else "")
+            return 0 if settings else 1
+        return 0 if len(argv) == 3 and set_dock(argv[1], argv[2]) else 1
+    if mode == "minimize":
+        if len(argv) == 1:
+            print(minimize_effect())
+            return 0
+        return 0 if len(argv) == 2 and set_minimize_effect(argv[1]) else 1
+    if mode == "hot-corners":
+        if len(argv) == 1:
+            print(json.dumps(hot_corners()))
+            return 0
+        return 0 if len(argv) == 3 and set_hot_corner(argv[1], argv[2]) else 1
     if mode == "patch-dock" and len(argv) == 1:
         patch_dock_transparency()
         return 0
+    if mode == "style":
+        # Without a value: print the current window blur style.
+        if len(argv) == 1:
+            print(glass_style())
+            return 0
+        if not set_glass_style(argv[1]):
+            print(USAGE, file=sys.stderr)
+            return 1
+        apply_glass_preset(current_mode())
+        apply_top_bar_style(argv[1])
+        # The Dock's veil follows the style too.
+        if apply_dock_tint(glass=argv[1]):
+            reload_plasma_theme()
+        return 0
+    if mode == "accent":
+        # Without a value: print the accent in use.
+        if len(argv) == 1:
+            print("wallpaper" if accent_from_wallpaper() else accent_color_hex() or "multicolour")
+            return 0
+        if not re.fullmatch(r"#[0-9a-fA-F]{6}|multicolour|wallpaper", argv[1]):
+            print(USAGE, file=sys.stderr)
+            return 1
+        return 0 if set_accent(argv[1]) else 1
     if mode == "follow-system":
         return follow_system()
+    if mode == "repair-colors":
+        return 0 if repair_colors() else 1
     if mode == "auto":
         mode = detect_mode_by_time()
     if mode not in ("light", "dark"):

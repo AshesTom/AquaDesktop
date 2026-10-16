@@ -3,16 +3,16 @@
     "KPlugin": {
         "Authors": [
             {
-                "Name": "Lester Cordero Murillo"
+                "Name": "AquaDesktop contributors"
             }
         ],
         "Category": "Global Themes (Plasma 6)",
-        "Description": "macOS Tahoe Liquid dark theme for KDE Plasma",
+        "Description": "AquaDesktop: Tahoe and Golden Gate for KDE Plasma (dark)",
         "EnabledByDefault": true,
         "Id": "org.kde.mac-tahoe-liquid-kde.dark",
         "License": "GPL-3.0",
-        "Name": "MacTahoe Liquid (Dark)",
-        "Website": "https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde"
+        "Name": "AquaDesktop (Dark)",
+        "Website": "https://github.com/AshesTom/AquaDesktop"
     },
     "Keywords": "Desktop;Workspace;Appearance;Look and Feel;macOS;Tahoe;Dark;",
     "X-KDE-fallbackPackage": "org.kde.breezedark.desktop",

@@ -198,6 +198,6 @@ def banner(version: str) -> None:
     for extra in art[len(_APPLE_RAINBOW):]:
         print(f"  {_APPLE_RAINBOW[-1]}{BOLD}{extra}{RESET}")
     print()
-    print(f"  {GREEN}{BOLD}        MacTahoe Liquid KDE {WHITE}v{version}{RESET}")
+    print(f"  {GREEN}{BOLD}        AquaDesktop {WHITE}v{version}{RESET}")
     print(f"  {WHITE}            Developed by Lester{RESET}")
     print()

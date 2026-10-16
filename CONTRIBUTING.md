@@ -23,8 +23,8 @@ KDE Plasma 6.6+ is required to actually exercise the desktop pieces. Most static
 ### Install / uninstall / test
 
 ```sh
-git clone https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde
-cd macos-tahoe-liquid-kde
+git clone https://github.com/AshesTom/AquaDesktop
+cd AquaDesktop
 
 sudo ./install       # installs user assets plus compiled system Qt6 plugins
 sudo ./uninstall     # removes current and legacy system Qt6 plugins
@@ -72,7 +72,7 @@ src/
     kvantum/            Kvantum widget style
     gtk/                GTK 2/3/4 themes
     plymouth/           Boot splash assets
-    kwin-effects/       Acrylic Glass C++ effect source
+    kwin-effects/       Glass KWin effect source (kwin-effects-glass)
     wallpapers/         Bundled MacTahoe wallpaper packs
   build/                Compiled artefacts (gitignored)
 tests/                  Pytest suite
@@ -117,26 +117,16 @@ compiles the effect and KCM, and checks both plugins and shaders without
 installing or loading them. Test both a stable SDK and the reported failing
 SDK when fixing an API incompatibility (issue #94: KWin 6.7.91).
 
-For Acrylic Glass rendering changes, run the opt-in pixel probe as well:
+For Glass effect changes, build it on its own first (it links KWin's
+private effect API, so a configure pass alone proves little):
 
 ```sh
-cmake -S src/offline/kwin-effects/acrylic-glass -B build/capture-build -DCMAKE_BUILD_TYPE=Release
-cmake --build build/capture-build -j 2
-python tests/acrylic_glass_capture.py --plugin build/capture-build/src/liquidglass.so --output build/acrylic-capture --scale 2
+cmake -S src/offline/kwin-effects/glass -B build/glass-check -DCMAKE_BUILD_TYPE=Release
+cmake --build build/glass-check -j 2
 ```
 
-It starts a separate KWin/Wayland compositor with private configuration and
-D-Bus, loads the specified plugin without installing it, and captures a
-synthetic transparent `VirtualBoxVM` surface with the effect off and on.
-KWin, Spectacle, qdbus6, PyQt6 and Pillow are required. The output directory
-must be new. PNGs, plugin identity, compositor logs and pixel counts remain
-there for review. A fixed build must leave every pixel unchanged; run a
-reviewed pre-fix build with `--expect changed` as the positive control.
-Add `--backend xcb` to exercise Xwayland clients (requires Xwayland), or
-`--identity VirtualBox --expect changed` to verify that the manager's identity
-still receives glass. The probe checks the compositor's D-Bus owner PID
-before toggling effects. This checks the glass interference from #90, not
-a real VirtualBox guest or the separate rounded-corner reports.
+Its local changes to upstream are listed in
+`src/offline/kwin-effects/glass/UPSTREAM.md`; keep that list current.
 
 ## Branching and commits
 
@@ -147,7 +137,7 @@ a real VirtualBox guest or the separate rounded-corner reports.
 ```
 Release v0.13.9 — fix corner-rendered shutdown splash detection
 README: move Tahoe Finder above Menu
-acrylic-glass: softer blur, more grain, stronger RGB drift defaults
+glass: softer blur, more grain, stronger RGB drift defaults
 plymouth: tighter logo+bar layout + render harness fix
 ```
 

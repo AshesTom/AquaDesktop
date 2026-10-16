@@ -47,6 +47,7 @@ def test_kvantum_warns_when_kwriteconfig6_missing(tmp_path, monkeypatch):
     dest_dark = tmp_path / "home/.config/Kvantum/mac-tahoe-liquid-kdeDark"
     monkeypatch.setattr(kvantum, "DEST_DIR", dest)
     monkeypatch.setattr(kvantum, "DEST_DIR_DARK", dest_dark)
+    monkeypatch.setattr(kvantum, "ORIGINALS_DIR", tmp_path / "home/.local/share/kvantum")
     monkeypatch.setattr(kvantum, "offline", lambda *_a: fake_src)
 
     # kwriteconfig6 missing → kw_write returns False.
@@ -253,20 +254,20 @@ def test_fonts_runs_fc_cache_when_present(tmp_path, monkeypatch):
     assert not any("fc-cache not found" in w for w in warnings), warnings
 
 
-# ── acrylic_glass.py: build() must not mutate the source checkout ─────
+# ── acrylic_glass.py (Glass): build() must not mutate the source checkout ─
 
 
 def test_acrylic_glass_build_leaves_source_tree_untouched(tmp_path, monkeypatch):
     """Shader preprocessing stages into the build dir; the installer
-    must never write or delete anything (e.g. glass{,_core}.frag under
-    src/shaders) in the bundled source tree."""
+    must never write or delete anything (e.g. src/generated/*.frag) in the
+    bundled source tree."""
     from steps import acrylic_glass
 
-    src = tmp_path / "acrylic-glass"
+    src = tmp_path / "glass"
     shaders = src / "src/shaders"
     shaders.mkdir(parents=True)
     (src / "CMakeLists.txt").write_text("# stub\n")
-    for fn in ("glass.frag", "glass_core.frag", "glass.glsl", "sdf.glsl"):
+    for fn in ("glass.glsl", "rim.glsl", "downsample.glsl", "vertex.glsl"):
         (shaders / fn).write_text(f"// {fn}\n")
 
     def snapshot():

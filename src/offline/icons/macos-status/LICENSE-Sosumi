@@ -1,0 +1,6 @@
+The *-symbolic.svg files in this directory are cut out of the icon sheets
+of the Sosumi Plasma desktop theme (Sosumi-Dark, version 2.3.6) by
+import_sosumi.py. That theme is distributed under the GNU Lesser General
+Public License (LGPL), which permits use within this GPL-3.0 project.
+Changes: each glyph was extracted into a standalone SVG; battery icons are
+composed from the theme's outline, fill-level and charger elements.
