@@ -17,9 +17,25 @@ by [Lester Cordero Murillo](https://github.com/lestercorderomurillo). It builds 
 upstream's theme pack and installer with its own widgets, glass tuning and
 measured desktop details.
 
+## Glass styles
+
+### Liquid Glass
+
 ![AquaDesktop desktop with its glass Dock and menu bar](src/screenshots/aquadesktop.png)
 
-*Desktop capture from the local Plasma calibration session.*
+*Liquid Glass — desktop capture from the local Plasma calibration session.*
+
+### Frosted
+
+Frosted brings back the softer glass style of macOS before Tahoe: deeper blur,
+no edge refraction, and a translucent menu bar.
+
+![AquaDesktop in Frosted mode, inspired by macOS before Tahoe](src/screenshots/aquadesktop-frosted.png)
+
+*Frosted material preview in an isolated Plasma session, using compatibility
+fallbacks for Plasma 6.8.*
+
+Select **Frosted** in Theme Settings, or run `mac-tahoe-theme-switch style frosted`.
 
 > [!WARNING]
 > Experimental software. Installation changes desktop settings and installs
