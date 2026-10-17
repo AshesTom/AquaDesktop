@@ -287,7 +287,7 @@ def test_panel_colorizer_bundled_offline(offline):
     assert (bundle / "contents").is_dir(), f"missing {bundle / 'contents'}"
     data = json.loads(metadata.read_text())
     assert data["KPlugin"]["Id"] == bundle.name
-    assert data["KPlugin"]["Version"] == "7.3.0"
+    assert data["KPlugin"]["Version"] == "8.0.0"
 
 
 # ── single-source-of-truth pins on the theme-switcher rewrite ─────────

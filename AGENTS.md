@@ -350,6 +350,21 @@ PipeWire previews and uses an icon fallback; do not reintroduce the removed
 QML type. Regression coverage lives in `tests/test_acrylic_glass_cmake.py`
 and `tests/test_taskmanager_qml.py`.
 
+KWin 6.7+ loads shader filenames verbatim and translates modern GLSL for the
+active context; select the `_core` variants explicitly. KWin 6.8's GLES 3
+context rejects the legacy `attribute`/`varying` shaders. Keep the legacy
+selection on 6.6/X11. Disable blending during intermediate Kawase passes;
+only the final surface is composited. Offset client blur regions by the
+content origin only for server-decorated windows.
+
+The pinned Rounded Corners v0.10.0 source receives the reviewed orientation
+backport in `rounded_corners_compat.py` before compilation, also in Nix.
+On Wayland 6.8 it derives texture orientation from `position0` derivatives;
+never hardcode a vertical flip by version. Older SDKs retain the original
+shader trait. The pixel probe accepts `--rounded-shaders` to verify the
+outline against the client bottom and `--renderer hardware` for 6.8's
+render-device requirement. Run a pre-fix control as well as the fixed build.
+
 ## Architecture — Live Theme Switching
 
 `mac-tahoe-theme-switch {light|dark|auto}` is the single entry point.
@@ -509,6 +524,16 @@ when its options change. `tests/test_nix.py` checks lock integrity and asset
 assembly without requiring Nix on the imperative installer's host.
 
 ## Architecture — Wallpapers
+
+Tahoe and Golden Gate share this implementation and bundled wallpaper set.
+`src/scripts/defaults.json` selects the edition's default package (`MacTahoe`
+or `MacGoldenGate`); Tahoe remains the default here. The theme-switch install
+step embeds that choice in the standalone binary, so login, systemd/OpenRC
+schedules and manual switches retain it without the checkout or environment.
+The Nix package carries the same defaults beside its switcher. Preserve
+per-screen ownership: selecting an edition never resets custom wallpapers;
+`--reset-wallpapers` remains the explicit opt-in. Golden Gate is a download
+wrapper selecting `MacGoldenGate`, not a separate theme implementation.
 
 Wallpapers are fully bundled. Every entry under
 `src/offline/wallpapers/<id>/` is a JPEG q90 (re-encoded from 6K PNG

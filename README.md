@@ -4,7 +4,7 @@
 
 # macOS Tahoe Liquid Theme for Plasma 6.6+
 
-[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1417_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
+[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1435_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
 
 macOS Tahoe-inspired glass, Dock, global menu and app themes for KDE Plasma 6.6–6.8.
 
@@ -172,6 +172,9 @@ sudo ./install --reset
 - `--no-grub-modify` leaves `/etc/default/grub` unchanged.
 - Theme changes keep any wallpaper you've chosen for each monitor.
 - `--reset-wallpapers` returns all monitors to the bundled light/dark wallpapers.
+- Both Tahoe and Golden Gate light/dark wallpapers are bundled. Tahoe is the default;
+  the [Golden Gate edition](https://github.com/lestercorderomurillo/macos-golden-gate-liquid-kde)
+  downloads this implementation and selects Golden Gate through `src/scripts/defaults.json`.
 - `./legacy-install` and `./legacy-uninstall` use the classic prompt instead of the terminal wizard.
 
 </details>
@@ -179,6 +182,7 @@ sudo ./install --reset
 <details>
 <summary><b>Glass and rounded-corner troubleshooting</b></summary>
 
+- **Plasma 6.8:** reinstall to rebuild the effects and install the shader fixes, then log out and back in. An enabled checkbox alone does not confirm Acrylic Glass is rendering; the installer warns when activation cannot be verified.
 - **Corner artifacts:** adjust window, Dock and popup radii in **System Settings → Window Management → Desktop Effects → Acrylic Glass**. A radius of `28` resolved [#89](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/89); reinstall preserves custom values.
 - **Desktop-edit overlay:** disabling KDE Rounded Corners is a reported workaround; [#77](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/77) remains unresolved.
 - VirtualBox VM windows are excluded from glass to preserve seamless cutouts ([#90](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/90)). The manager is unaffected.
@@ -415,6 +419,11 @@ validation; live installation testing is pending.
   <a href="https://github.com/kozeki-uii"><img src="src/screenshots/contributors/kozeki-uii.svg" width="40" height="40" alt="@kozeki-uii" title="@kozeki-uii"></a>
   <a href="https://github.com/imightbelosthere"><img src="src/screenshots/contributors/imightbelosthere.svg" width="40" height="40" alt="@imightbelosthere" title="@imightbelosthere"></a>
   <a href="https://github.com/evaildev"><img src="src/screenshots/contributors/evaildev.svg" width="40" height="40" alt="@evaildev" title="@evaildev"></a>
+  <a href="https://github.com/xarblu"><img src="src/screenshots/contributors/xarblu.svg" width="40" height="40" alt="@xarblu" title="@xarblu"></a>
+  <a href="https://github.com/PKMNPlatin"><img src="src/screenshots/contributors/PKMNPlatin.svg" width="40" height="40" alt="@PKMNPlatin" title="@PKMNPlatin"></a>
+  <a href="https://github.com/matinlotfali"><img src="src/screenshots/contributors/matinlotfali.svg" width="40" height="40" alt="@matinlotfali" title="@matinlotfali"></a>
+  <a href="https://github.com/luisbocanegra"><img src="src/screenshots/contributors/luisbocanegra.svg" width="40" height="40" alt="@luisbocanegra" title="@luisbocanegra"></a>
+  <a href="https://github.com/OliverChase2003"><img src="src/screenshots/contributors/OliverChase2003.svg" width="40" height="40" alt="@OliverChase2003" title="@OliverChase2003"></a>
 </p>
 
 **[Report a bug](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)** or use **Apple menu → About This Computer → Report a Bug…**.

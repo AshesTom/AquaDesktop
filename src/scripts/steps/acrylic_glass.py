@@ -210,13 +210,16 @@ def install() -> None:
                             "org.kde.kwin.Effects.activeEffects"],
                            check=False, capture_output=True, text=True,
                            timeout=10)
-            active = res.stdout or ""
-        except subprocess.TimeoutExpired:
+            if res.returncode == 0:
+                active = res.stdout or ""
+        except (OSError, subprocess.TimeoutExpired):
             pass
-    if "liquidglass" in active:
+    if "liquidglass" in active.splitlines():
         ok("Acrylic Glass loaded")
     else:
-        ok("Acrylic Glass installed (log out and back in to activate)")
+        warn("Acrylic Glass installed but activation was not confirmed. "
+             "Log out and back in after a KWin upgrade; if it remains inactive, "
+             "check the KWin log for liquidglass shader or plugin errors.")
 
 
 def uninstall() -> None:

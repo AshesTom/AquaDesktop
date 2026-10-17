@@ -29,6 +29,21 @@ KVANTUM_THEME_DARK = "mac-tahoe-liquid-kdeDark"
 KVANTUM_STYLE = "kvantum"
 _PROC_ROOT = Path("/proc")
 REDUCED_SUFFIX = "-ReducedTransparency"
+DEFAULT_WALLPAPER = "MacTahoe"
+
+
+def default_wallpaper() -> str:
+    """Source/Nix editions use adjacent defaults; installed scripts bake them in."""
+    if Path(__file__).name != "theme_switch.py":
+        return DEFAULT_WALLPAPER
+    try:
+        value = json.loads(Path(__file__).with_name("defaults.json").read_text())
+        wallpaper = value.get("wallpaper") if isinstance(value, dict) else None
+        if wallpaper in ("MacTahoe", "MacGoldenGate"):
+            return wallpaper
+    except (OSError, ValueError):
+        pass
+    return DEFAULT_WALLPAPER
 
 
 def _appearance_path() -> Path:
@@ -562,7 +577,7 @@ def _wallpaper_path(mode: str) -> Path | None:
     data_home = Path(os.environ.get("XDG_DATA_HOME") or
                      str(Path.home() / ".local/share"))
     base = data_home / "wallpapers"
-    auto = base / "MacTahoe"
+    auto = base / default_wallpaper()
     if auto.is_dir():
         return auto
     legacy = base / ("MacTahoe-Dark" if mode == "dark" else "MacTahoe-Light")
@@ -852,7 +867,7 @@ def _wallpaper_image_is_theme_managed(
     base = Path(os.environ.get("XDG_DATA_HOME") or
                 str(Path.home() / ".local/share")) / "wallpapers"
     managed = [str(base / name).rstrip("/") for name in (
-        "MacTahoe", "MacTahoe-Light", "MacTahoe-Dark")]
+        "MacTahoe", "MacGoldenGate", "MacTahoe-Light", "MacTahoe-Dark")]
     if image.startswith("file://"):
         image = image[7:]
     image = image.rstrip("/")

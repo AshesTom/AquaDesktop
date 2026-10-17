@@ -1,6 +1,7 @@
 """Installer step: copy the Python theme-switch + schedulers into ~/.local."""
 
 import os
+import json
 import signal
 import shutil
 import subprocess
@@ -14,6 +15,7 @@ from steps._scheduler import (
     RemovalStatus, cron_command, install_at_times, is_systemd, remove_periodic,
 )
 from utils import run_user
+from theme_switch import default_wallpaper
 
 BIN_DEST = HOME / ".local/bin/mac-tahoe-theme-switch"
 SVC_DIR = HOME / ".config/systemd/user"
@@ -251,6 +253,12 @@ def install() -> None:
     BIN_DEST.parent.mkdir(parents=True, exist_ok=True)
     if PY_SRC.is_file():
         shutil.copy2(PY_SRC, BIN_DEST)
+        # Bake the edition into the standalone executable so login, cron and
+        # manual switches keep it without an environment variable or checkout.
+        source = BIN_DEST.read_text()
+        BIN_DEST.write_text(source.replace(
+            'DEFAULT_WALLPAPER = "MacTahoe"',
+            f'DEFAULT_WALLPAPER = {json.dumps(default_wallpaper())}', 1))
         BIN_DEST.chmod(0o755)
     SVC_DIR.mkdir(parents=True, exist_ok=True)
 

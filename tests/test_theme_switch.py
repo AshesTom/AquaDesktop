@@ -887,7 +887,8 @@ def _smart_wallpaper_env(monkeypatch, tmp_path):
     data = home / ".local/share"
     state = home / ".local/state"
     config = home / ".config"
-    for path in (data / "wallpapers/MacTahoe", state, config):
+    wallpaper = data / "wallpapers" / theme_switch.default_wallpaper()
+    for path in (wallpaper, state, config):
         path.mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("HOME", str(home))
     monkeypatch.setenv("XDG_DATA_HOME", str(data))
@@ -897,7 +898,7 @@ def _smart_wallpaper_env(monkeypatch, tmp_path):
     monkeypatch.delenv("MTTKDE_RESET_WALLPAPERS", raising=False)
     monkeypatch.delenv("MTTKDE_EXISTING_INSTALL", raising=False)
     monkeypatch.setattr(theme_switch.time, "sleep", lambda _s: None)
-    return theme_switch, data / "wallpapers/MacTahoe"
+    return theme_switch, wallpaper
 
 
 def _wp(image, screen=0):

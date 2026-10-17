@@ -69,7 +69,14 @@ def test_acrylic_glass_preset_fits_kcm_ranges():
         assert float(preset[key]) <= float(maximum.text)
 
 
-def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path):
+@pytest.mark.parametrize("active,returncode,confirmed", [
+    ("liquidglass\n", 0, True),
+    ("other-liquidglass\n", 0, False),
+    ("liquidglass\n", 1, False),
+    ("", 0, False),
+])
+def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path, capsys,
+                                                       active, returncode, confirmed):
     """The real install path must not replace the KCM default with strength 5."""
     from steps import acrylic_glass
     from subprocess import CompletedProcess
@@ -84,16 +91,20 @@ def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path):
     monkeypatch.setattr(acrylic_glass, "LEGACY_USER_PLUGIN_DIR", tmp_path / "legacy")
     monkeypatch.setattr(acrylic_glass, "sudo_install_file", lambda *args: True)
     monkeypatch.setattr(acrylic_glass, "qdbus_call", lambda *args: True)
-    monkeypatch.setattr(acrylic_glass, "qdbus_cmd", lambda: None)
+    monkeypatch.setattr(acrylic_glass, "qdbus_cmd", lambda: "probe-qdbus")
     monkeypatch.setattr(acrylic_glass, "have", lambda command: True)
     monkeypatch.setattr(acrylic_glass, "run_user",
-                        lambda command, **kwargs: CompletedProcess(command, 0, "28\n"))
+                        lambda command, **kwargs: CompletedProcess(command, returncode, active)
+                        if command[0] == "probe-qdbus" else CompletedProcess(command, 0, "28\n"))
     monkeypatch.setattr(acrylic_glass.time, "sleep", lambda seconds: None)
     writes = []
     monkeypatch.setattr(acrylic_glass, "kw_write",
                         lambda *args: writes.append(args) or True)
 
     acrylic_glass.install()
+    output = capsys.readouterr().out
+    assert ("Acrylic Glass loaded" in output) == confirmed
+    assert ("activation was not confirmed" in output) != confirmed
 
     config = ET.parse(ROOT / "src/glass.kcfg").getroot()
     entry = config.find(".//{*}entry[@name='BlurStrength']/{*}default")

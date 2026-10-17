@@ -389,7 +389,12 @@ Rectangle {
 
     Component.onDestruction: {
         if (main.panelColorizer) {
-            main.panelColorizer.popLastVisibleMaskRegion();
+            // The optional system plugin may still expose the 7.x API.
+            if (typeof main.panelColorizer.removeMaskRegion === "function") {
+                main.panelColorizer.removeMaskRegion(maskIndex);
+            } else {
+                main.panelColorizer.popLastVisibleMaskRegion();
+            }
         }
         main.recolorCountChanged.disconnect(recolorTimer.restart);
         main.updateMasks.disconnect(updateMaskDebounced);
@@ -1101,14 +1106,13 @@ Rectangle {
 
     property bool hovered: hoverHandler.hovered
     onHoveredChanged: {
-        if (hovered) {
+        if (hovered && rect.inTray && (rect.iconName || rect.trayIconHash)) {
             logTrayIcon();
         }
     }
     HoverHandler {
         id: hoverHandler
         parent: rect.target
-        enabled: rect.inTray && (rect.iconName || rect.trayIconHash)
     }
 
     Rectangle {

@@ -34,6 +34,7 @@ from steps._helpers import (
     warn,
 )
 from utils import fetch, qdbus_cmd, run_user
+from rounded_corners_compat import apply as apply_compatibility_patch
 
 
 # v0.10.0 handles KWin 6.7.80+'s bool drawWindow API while retaining
@@ -200,6 +201,11 @@ def _plugin_dir() -> Path:
 def build() -> None:
     if not (SOURCE / "CMakeLists.txt").is_file():
         fail("KDE Rounded Corners source missing — online phase did not complete")
+        return
+    try:
+        apply_compatibility_patch(SOURCE)
+    except (OSError, ValueError) as exc:
+        fail(f"KDE Rounded Corners compatibility patch failed ({exc})")
         return
     cmake_build(SOURCE, BUILD, "KDE Rounded Corners")
 

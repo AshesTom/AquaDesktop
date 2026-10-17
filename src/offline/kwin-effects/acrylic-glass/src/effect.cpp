@@ -62,6 +62,18 @@ static void ensureResources()
     Q_INIT_RESOURCE(liquidglass);
 }
 
+static QString shaderPath(const QString& name, const QString& extension)
+{
+    // KWin 6.7+ loads the requested file verbatim and translates modern
+    // GLSL for the active context. Legacy attribute/varying syntax fails
+    // on the GLES 3 context used by KWin 6.8.
+#if ACRYLIC_GLASS_KWIN_6_7
+    return QStringLiteral(":/effects/liquidglass/shaders/") + name + QStringLiteral("_core.") + extension;
+#else
+    return QStringLiteral(":/effects/liquidglass/shaders/") + name + QStringLiteral(".") + extension;
+#endif
+}
+
 namespace KWin {
 
 #if ACRYLIC_GLASS_KWIN_6_7
@@ -150,7 +162,7 @@ BlurEffect::BlurEffect()
 
     // Onscreen pass: SDF + drift + lens + rim, the user-facing surface
     m_roundedOnscreenPass.shader = ShaderManager::instance()->generateShaderFromFile(
-        ShaderTrait::MapTexture, QStringLiteral(":/effects/liquidglass/shaders/glass.vert"), QStringLiteral(":/effects/liquidglass/shaders/glass.frag"));
+        ShaderTrait::MapTexture, shaderPath(QStringLiteral("glass"), QStringLiteral("vert")), shaderPath(QStringLiteral("glass"), QStringLiteral("frag")));
     if (!m_roundedOnscreenPass.shader) {
         qCWarning(KWIN_BLUR) << "Failed to load onscreen pass shader (null)";
         return;
@@ -186,7 +198,7 @@ BlurEffect::BlurEffect()
 
     // Dual Kawase downsample pass
     m_downsamplePass.shader = ShaderManager::instance()->generateShaderFromFile(
-        ShaderTrait::MapTexture, QStringLiteral(":/effects/liquidglass/shaders/vertex.vert"), QStringLiteral(":/effects/liquidglass/shaders/downsample.frag"));
+        ShaderTrait::MapTexture, shaderPath(QStringLiteral("vertex"), QStringLiteral("vert")), shaderPath(QStringLiteral("downsample"), QStringLiteral("frag")));
     if (!m_downsamplePass.shader) {
         qCWarning(KWIN_BLUR) << "Failed to load downsampling pass shader";
         return;
@@ -198,7 +210,7 @@ BlurEffect::BlurEffect()
 
     // Dual Kawase upsample pass
     m_upsamplePass.shader = ShaderManager::instance()->generateShaderFromFile(
-        ShaderTrait::MapTexture, QStringLiteral(":/effects/liquidglass/shaders/vertex.vert"), QStringLiteral(":/effects/liquidglass/shaders/upsample.frag"));
+        ShaderTrait::MapTexture, shaderPath(QStringLiteral("vertex"), QStringLiteral("vert")), shaderPath(QStringLiteral("upsample"), QStringLiteral("frag")));
     if (!m_upsamplePass.shader) {
         qCWarning(KWIN_BLUR) << "Failed to load upsampling pass shader";
         return;
@@ -210,7 +222,7 @@ BlurEffect::BlurEffect()
 
     // Noise pass (grain over the blurred result)
     m_noisePass.shader = ShaderManager::instance()->generateShaderFromFile(
-        ShaderTrait::MapTexture, QStringLiteral(":/effects/liquidglass/shaders/vertex.vert"), QStringLiteral(":/effects/liquidglass/shaders/noise.frag"));
+        ShaderTrait::MapTexture, shaderPath(QStringLiteral("vertex"), QStringLiteral("vert")), shaderPath(QStringLiteral("noise"), QStringLiteral("frag")));
     if (!m_noisePass.shader) {
         qCWarning(KWIN_BLUR) << "Failed to load noise pass shader";
         return;
@@ -734,8 +746,10 @@ Region BlurEffect::blurRegion(EffectWindow* w) const
             if (content->isEmpty()) {
                 // Empty optional → "blur everything inside the content rect".
                 region = Rect(w->contentsRect().toRect());
-            } else {
+            } else if (w->decoration()) {
                 region = content->translated(w->contentsRect().topLeft().toPoint()) & w->contentsRect().toRect();
+            } else {
+                region = *content & w->contentsRect().toRect();
             }
 
             if (frame.has_value()) {
@@ -1202,6 +1216,9 @@ void BlurEffect::blur(
     // At zero offset the final onscreen pass reads from framebuffers[0] (the
     // unblurred original) directly, so the Kawase chain is wasted GPU work.
     if (m_offset > 0.0f) {
+        // Intermediate passes replace their target; inherited blending
+        // would accumulate stale translucent pixels on subsequent frames.
+        glDisable(GL_BLEND);
         // The downsample pass of the dual Kawase algorithm: the background will be scaled down 50% every iteration.
         {
             ShaderManager::instance()->pushShader(m_downsamplePass.shader.get());

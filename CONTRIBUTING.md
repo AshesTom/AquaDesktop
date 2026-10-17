@@ -136,7 +136,19 @@ Add `--backend xcb` to exercise Xwayland clients (requires Xwayland), or
 `--identity VirtualBox --expect changed` to verify that the manager's identity
 still receives glass. The probe checks the compositor's D-Bus owner PID
 before toggling effects. This checks the glass interference from #90, not
-a real VirtualBox guest or the separate rounded-corner reports.
+a real VirtualBox guest.
+
+For a general blur regression, use `--identity AcrylicProbe --expect changed`.
+Use `--renderer hardware` and expose a render node in containers when KWin
+requires one (6.8); this does not connect to the host's desktop session.
+The probe builds a private desktop-entry cache for Spectacle authorization.
+
+For Rounded Corners, pass its built plugin with
+`--rounded-shaders /path/to/build/src/shaders`. The probe draws an opaque
+window with an asymmetric decoration shadow and a red outline, then checks
+that the outline meets the window bottom. Run the unpatched v0.10.0 control
+as well: on the affected 6.8 path it displaces the outline by 24 pixels.
+The patched shader must align the outline on 6.6, 6.7 and 6.8.
 
 ## Branching and commits
 

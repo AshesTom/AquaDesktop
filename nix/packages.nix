@@ -57,6 +57,7 @@ in rec {
     version = capture "UPSTREAM_VERSION";
     # Upstream has an informational /usr header probe, not a build dependency.
     postPatch = ''
+      ${pkgs.python3}/bin/python ${../src/scripts/rounded_corners_compat.py} .
       substituteInPlace cmake/info.cmake --replace-fail /usr/include/ ${kde.kwin.dev}/include/
     '';
   };
@@ -68,6 +69,7 @@ in rec {
     installPhase = ''
       mkdir -p "$out/bin" "$out/libexec"
       cp ${../src/scripts/theme_switch.py} "$out/libexec/theme_switch.py"
+      cp ${../src/scripts/defaults.json} "$out/libexec/defaults.json"
       cp ${../src/scripts/oled_care.py} "$out/libexec/oled_care.py"
       for tool in theme-switch oled-care; do
         script="$(echo "$tool" | tr - _)"

@@ -76,6 +76,7 @@ def test_verified_release_builds_against_host_kwin(monkeypatch, tmp_path):
     )
     rounded.download()
     assert rounded.download_ready()
+    rounded.apply_compatibility_patch(rounded.SOURCE)
 
     for command in (
         ["cmake", "-S", str(rounded.SOURCE), "-B", str(rounded.BUILD),

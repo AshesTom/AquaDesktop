@@ -3551,30 +3551,6 @@
      style="fill:#0860f2;fill-opacity:1;fill-rule:evenodd;stroke-width:0.547723;paint-order:normal"
      id="menubaritem-pressed-top"
      d="m 490,359 h 20 v 6 h -20 z" />
-  <use
-     height="100%"
-     width="100%"
-     transform="translate(0,26)"
-     id="use2412"
-     xlink:href="#path2410"
-     y="0"
-     x="0" />
-  <use
-     height="100%"
-     width="100%"
-     transform="rotate(90,228,413)"
-     id="use2414"
-     xlink:href="#use2412"
-     y="0"
-     x="0" />
-  <use
-     height="100%"
-     width="100%"
-     transform="translate(-26)"
-     id="use2416"
-     xlink:href="#use2414"
-     y="0"
-     x="0" />
   <g
      transform="translate(285,-25)"
      id="menubaritem-pressed-topleft">
