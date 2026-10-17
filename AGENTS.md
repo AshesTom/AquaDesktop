@@ -594,6 +594,19 @@ bootloader probe.
 | `tests/containers/run_in_container.py` | Per-distro probe: qmake6 resolves, the distro layer agrees with what qmake6 reports, every `package_for()` token resolves in the distro's repo (with a "transient network" skip so flaky upstream CDN edges don't tank CI), preflight destination checks, pytest. |
 | `tests/containers/run_matrix.sh` | Local runner. CI runs the same workflow via `.github/workflows/test.yml`. |
 
+The Gentoo base workflow uses separate configured, toolchain, Qt base, Qt tools,
+Frameworks, Plasma and verification jobs. Each completed stage is stored in GHCR;
+a failed package stage also saves a partial image after its package manager has
+stopped. Rerun failed jobs to resume installed packages and generated binary
+packages. Stage keys include the configuration and preceding recipes, so changing
+a later stage preserves earlier checkpoints. Recovery tags retain completed
+package work across recipe fixes; changed profiles are reapplied before reuse.
+Only a successful verification stage promotes the image to `latest`. Checkpoints
+are not installer releases or CI base images. The monthly recovery series can be
+overridden with the workflow's `checkpoint_epoch` input. Do not cancel an active
+legacy build just to switch it to this workflow: its unexported build state cannot
+be recovered retroactively. The workflow always uploads per-stage logs.
+
 When a probe fails, the script scans stderr for transient-network
 markers (`"Failed to retrieve"`, `"Could not resolve host"`, repo
 metadata errors) and emits `SKIP` instead of `FAIL`. Anything else is

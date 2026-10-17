@@ -1,0 +1,63 @@
+name: Gentoo SDK stage
+
+on:
+  workflow_call:
+    inputs:
+      phase:
+        required: true
+        type: string
+      epoch:
+        required: true
+        type: string
+    outputs:
+      epoch:
+        value: ${{ jobs.stage.outputs.epoch }}
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      epoch: ${{ steps.metadata.outputs.epoch }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Select recovery series
+        id: metadata
+        env:
+          REQUESTED_EPOCH: ${{ inputs.epoch }}
+        run: |
+          python3 - <<'PY'
+          import datetime, os, re
+          epoch = os.environ['REQUESTED_EPOCH'] or datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m')
+          if not re.fullmatch(r'[a-z0-9][a-z0-9.-]{0,31}', epoch):
+              raise SystemExit('Invalid checkpoint epoch')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
+              stream.write(f'epoch={epoch}\n')
+          PY
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Restore, build and checkpoint stage
+        # The in-container five-hour timeout leaves an hour to push recovery
+        # state and logs, including when emerge fails or reaches its deadline.
+        env:
+          SDK_PHASE: ${{ inputs.phase }}
+          SDK_EPOCH: ${{ steps.metadata.outputs.epoch }}
+          SDK_REGISTRY: ghcr.io/${{ github.repository_owner }}/mttkde-gentoo-base
+        run: |
+          mkdir -p build/gentoo-sdk-logs
+          set -o pipefail
+          python3 tests/containers/gentoo_sdk_checkpoint.py \
+            --registry "$SDK_REGISTRY" --epoch "$SDK_EPOCH" --phase "$SDK_PHASE" \
+            2>&1 | tee "build/gentoo-sdk-logs/$SDK_PHASE.log"
+      - name: Preserve stage logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gentoo-sdk-${{ inputs.phase }}-${{ github.run_attempt }}
+          path: build/gentoo-sdk-logs
+          if-no-files-found: ignore

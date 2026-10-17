@@ -1,18 +1,19 @@
 # Gentoo base image with Qt6 pre-emerged. Built ONCE (manually or
 # monthly) by .github/workflows/build-gentoo-base.yml and pushed to
 # GHCR. The lightweight tests/containers/Dockerfile.gentoo FROMs this
-# so every PR runs in seconds instead of 25 minutes of qtbase compile.
+# so ordinary CI does not rebuild the SDK from source.
 #
 # This Dockerfile is intentionally heavy: it emerges qtbase + qttools
 # with all the autounmask + USE flag fixes the source build needs.
 # Don't reference it from the cross-distro CI matrix directly — that
 # would defeat the whole point.
 
-FROM gentoo/stage3:systemd
+ARG GENTOO_BASE=gentoo/stage3:systemd
+FROM ${GENTOO_BASE} AS configured
 
 RUN emerge-webrsync && \
     eselect profile set default/linux/amd64/23.0/desktop/plasma/systemd && \
-    echo 'FEATURES="${FEATURES} getbinpkg binpkg-multi-instance"' >> /etc/portage/make.conf && \
+    echo 'FEATURES="${FEATURES} getbinpkg binpkg-multi-instance buildpkg"' >> /etc/portage/make.conf && \
     # Disable 32-bit ABI globally. The default multilib stage3 has
     # ABI_X86="64 32" which causes fontconfig / harfbuzz / freetype
     # to demand expat[abi_x86_32]; expat's local USE doesn't expose
@@ -64,41 +65,17 @@ RUN emerge-webrsync && \
         'llvm-runtimes/libclc spirv' \
         'dev-util/mesa_clc -debug' \
         > /etc/portage/package.use/mttkde-plasma && \
-    getuto && \
-    emerge --autounmask --autounmask-write --autounmask-continue=y \
-           --getbinpkg --usepkg --quiet --backtrack=100 \
-           --autounmask-backtrack=y \
-           --binpkg-respect-use=y --binpkg-changed-deps=n \
-           --keep-going=y \
-        dev-lang/python \
-        dev-python/pytest \
-        dev-build/cmake \
-        dev-build/make \
-        sys-devel/gcc \
-        kde-frameworks/extra-cmake-modules \
-        dev-qt/qtbase:6 \
-        dev-qt/qttools:6 \
-        dev-qt/qtdeclarative:6 \
-        dev-util/pkgconf \
-        # KF6 frameworks required by deps() of the compiled steps.
-        kde-frameworks/kconfig:6 kde-frameworks/kconfigwidgets:6 \
-        kde-frameworks/kcoreaddons:6 kde-frameworks/kcrash:6 \
-        kde-frameworks/kglobalaccel:6 kde-frameworks/kguiaddons:6 \
-        kde-frameworks/ki18n:6 kde-frameworks/kio:6 \
-        kde-frameworks/kcmutils:6 kde-frameworks/knotifications:6 \
-        kde-frameworks/kservice:6 kde-frameworks/kwidgetsaddons:6 \
-        kde-frameworks/kwindowsystem:6 kde-frameworks/kitemmodels:6 \
-        # Plasma / KSysGuard / plasma-workspace cmake configs.
-        kde-plasma/libplasma kde-plasma/plasma-activities \
-        kde-plasma/plasma-activities-stats kde-plasma/libksysguard \
-        kde-plasma/plasma-workspace \
-        # KWin + KDecoration3 (acrylic-glass effect).
-        kde-plasma/kwin kde-plasma/kdecoration \
-        # libepoxy + X11/XCB headers used by the acrylic-glass effect.
-        media-libs/libepoxy x11-libs/libX11 x11-libs/libxcb && \
-    # Package-resolution probes need the repository's ebuild metadata.
-    # Keep it, and verify the SDK before publishing a reusable base.
-    portageq has_version / kde-frameworks/extra-cmake-modules && \
-    portageq has_version / kde-plasma/kwin && \
-    portageq has_version / kde-plasma/libplasma && \
-    rm -rf /var/cache/distfiles/* /var/cache/binpkgs/*
+    getuto
+
+RUN printf 'gentoo-sdk\n' > /etc/mttkde-sdk-build
+COPY tests/containers/gentoo_sdk_stage.py /usr/local/libexec/gentoo_sdk_stage.py
+
+FROM configured AS sdk
+COPY tests/containers/gentoo-sdk-packages.json /usr/local/share/gentoo-sdk-packages.json
+ENV MTTKDE_GENTOO_SDK_BUILD=1
+RUN python3 /usr/local/libexec/gentoo_sdk_stage.py toolchain
+RUN python3 /usr/local/libexec/gentoo_sdk_stage.py qtbase
+RUN python3 /usr/local/libexec/gentoo_sdk_stage.py qttools
+RUN python3 /usr/local/libexec/gentoo_sdk_stage.py frameworks
+RUN python3 /usr/local/libexec/gentoo_sdk_stage.py plasma
+RUN python3 /usr/local/libexec/gentoo_sdk_stage.py verify

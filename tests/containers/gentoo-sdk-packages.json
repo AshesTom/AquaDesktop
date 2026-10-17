@@ -1,0 +1,47 @@
+{
+  "toolchain": [
+    "dev-lang/python",
+    "dev-python/pytest",
+    "dev-build/cmake",
+    "dev-build/make",
+    "sys-devel/gcc",
+    "dev-util/pkgconf",
+    "kde-frameworks/extra-cmake-modules"
+  ],
+  "qtbase": [
+    "dev-qt/qtbase:6"
+  ],
+  "qttools": [
+    "dev-qt/qttools:6",
+    "dev-qt/qtdeclarative:6"
+  ],
+  "frameworks": [
+    "kde-frameworks/kconfig:6",
+    "kde-frameworks/kconfigwidgets:6",
+    "kde-frameworks/kcoreaddons:6",
+    "kde-frameworks/kcrash:6",
+    "kde-frameworks/kglobalaccel:6",
+    "kde-frameworks/kguiaddons:6",
+    "kde-frameworks/ki18n:6",
+    "kde-frameworks/kio:6",
+    "kde-frameworks/kcmutils:6",
+    "kde-frameworks/knotifications:6",
+    "kde-frameworks/kservice:6",
+    "kde-frameworks/kwidgetsaddons:6",
+    "kde-frameworks/kwindowsystem:6",
+    "kde-frameworks/kitemmodels:6"
+  ],
+  "plasma": [
+    "kde-plasma/libplasma",
+    "kde-plasma/plasma-activities",
+    "kde-plasma/plasma-activities-stats",
+    "kde-plasma/libksysguard",
+    "kde-plasma/plasma-workspace",
+    "kde-plasma/kwin",
+    "kde-plasma/kdecoration",
+    "media-libs/libepoxy",
+    "x11-libs/libX11",
+    "x11-libs/libxcb"
+  ],
+  "verify": []
+}
