@@ -95,18 +95,13 @@ jobs:
           - arch-kdeunstable
     steps:
       - uses: actions/checkout@v5
-      # Gentoo's container FROMs a GHCR image that's built by a
-      # separate workflow. Until that image exists / for the brief
-      # window between Qt6 upstream bumps and the next monthly base
-      # rebuild, treat a Gentoo failure as a warning rather than a
-      # red X — every other distro still gates the merge.
-      #
       # arch-kdeunstable tracks Arch's [kde-unstable] staging repo, which
       # can ship a transiently half-migrated Plasma that breaks the build
       # through no fault of ours. It's a forward-looking signal, not a
-      # merge gate, so it's non-blocking too.
+      # merge gate, so it's non-blocking. Every supported distro,
+      # including Gentoo, must pass; refresh its SDK base when needed.
       - name: Build and run ${{ matrix.distro }} container
-        continue-on-error: ${{ matrix.distro == 'gentoo' || matrix.distro == 'arch-kdeunstable' }}
+        continue-on-error: ${{ matrix.distro == 'arch-kdeunstable' }}
         run: |
           # Retry the build: pulling the base image from Docker Hub can
           # transiently time out / rate-limit from GitHub runners, which

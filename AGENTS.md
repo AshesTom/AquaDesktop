@@ -572,7 +572,7 @@ bootloader probe.
 | File                         | Role |
 | ---------------------------- | ---- |
 | `tests/containers/Dockerfile.<distro>` | One per supported distro. CachyOS pulls both `archlinux-keyring` and `cachyos-keyring` after `pacman-key --init && pacman-key --populate archlinux cachyos`. |
-| `tests/containers/Dockerfile.arch-kdeunstable` | Canary against Arch's `[kde-unstable]` staging repo — catches the next Plasma release early. `continue-on-error` in CI (like Gentoo). |
+| `tests/containers/Dockerfile.arch-kdeunstable` | Canary against Arch's `[kde-unstable]` staging repo — catches the next Plasma release early. Only this staging target uses `continue-on-error`; Gentoo and every supported distro must pass. |
 | `tests/containers/Dockerfile.gentoo-base` | Builds the GHCR base image `ghcr.io/lestercorderomurillo/mttkde-gentoo-base` so qtbase doesn't compile from source on every PR. |
 | `tests/containers/run_in_container.py` | Per-distro probe: qmake6 resolves, the distro layer agrees with what qmake6 reports, every `package_for()` token resolves in the distro's repo (with a "transient network" skip so flaky upstream CDN edges don't tank CI), preflight destination checks, pytest. |
 | `tests/containers/run_matrix.sh` | Local runner. CI runs the same workflow via `.github/workflows/test.yml`. |

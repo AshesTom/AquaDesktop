@@ -11,6 +11,7 @@
 FROM gentoo/stage3:systemd
 
 RUN emerge-webrsync && \
+    eselect profile set default/linux/amd64/23.0/desktop/plasma/systemd && \
     echo 'FEATURES="${FEATURES} getbinpkg binpkg-multi-instance"' >> /etc/portage/make.conf && \
     # Disable 32-bit ABI globally. The default multilib stage3 has
     # ABI_X86="64 32" which causes fontconfig / harfbuzz / freetype
@@ -34,7 +35,7 @@ RUN emerge-webrsync && \
     # front. Sourced from the autounmask output of the first build
     # against a fresh ::gentoo snapshot.
     printf '%s\n' \
-        'dev-qt/qtbase opengl wayland cups libproxy' \
+        'dev-qt/qtbase opengl wayland cups libproxy icu' \
         'dev-qt/qttools qml qdoc llvm_slot_22 -llvm_slot_17 -llvm_slot_18 -llvm_slot_19 -llvm_slot_20 -llvm_slot_21' \
         'dev-qt/qt5compat qml' \
         'dev-qt/qtmultimedia qml opengl' \
