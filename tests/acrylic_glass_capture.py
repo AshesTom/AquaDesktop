@@ -65,6 +65,10 @@ def client(role):
                                          QColor("#214263" if (x // 16 + y // 16) % 2 else "#e1c787"))
             elif rounded:
                 painter.fillRect(self.rect(), QColor("#3778aa"))
+                if os.environ.get("MTTKDE_CAPTURE_COMPANION"):
+                    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+                    painter.fillRect(self.width() // 4, self.height() // 4,
+                                     self.width() // 2, self.height() // 2, QColor(55, 120, 170, 100))
             else:
                 painter.fillRect(self.width() // 3, self.height() // 3,
                                  self.width() // 3, self.height() // 3, QColor("#3778aa"))
@@ -76,6 +80,10 @@ def client(role):
     if role != "desktop":
         window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
     window.setWindowTitle("Synthetic VM surface" if role == "vm" else "Capture background")
+    if role == "vm" and os.environ.get("MTTKDE_CAPTURE_DESKTOP"):
+        # Set the actual X11 desktop type before mapping on this private Xwayland.
+        subprocess.run(["xprop", "-id", str(int(window.winId())), "-f", "_NET_WM_WINDOW_TYPE", "32a",
+                        "-set", "_NET_WM_WINDOW_TYPE", "_NET_WM_WINDOW_TYPE_DESKTOP"], check=True, timeout=5)
     window.resize(960, 640)
     if role != "desktop" and rounded:
         window.resize(480, 320)
@@ -144,9 +152,10 @@ def inside(output):
         env = json.loads((output / "session-env.json").read_text())
         env["QT_QPA_PLATFORM"] = "wayland"
         with (output / "clients.log").open("w") as log:
-            background = subprocess.Popen([sys.executable, script, "--client", "desktop",
-                                           "-name", "capture-desktop"], env=env,
-                                          stdout=log, stderr=subprocess.STDOUT)
+            if not os.environ.get("MTTKDE_CAPTURE_DESKTOP"):
+                background = subprocess.Popen([sys.executable, script, "--client", "desktop",
+                                               "-name", "capture-desktop"], env=env,
+                                              stdout=log, stderr=subprocess.STDOUT)
             time.sleep(1)
             vm_env = env | {"QT_QPA_PLATFORM": os.environ["MTTKDE_CAPTURE_BACKEND"]}
             vm = subprocess.Popen([sys.executable, script, "--client", "vm", "-name", os.environ["MTTKDE_CAPTURE_IDENTITY"]],
@@ -178,15 +187,29 @@ def inside(output):
                 [str(output / "bin/kwin_wayland"), "--version"], text=True, timeout=5).strip(),
         }, indent=2))
         assert loaded == "true" and effect in active.splitlines(), "Effect did not activate"
-        assert vm.poll() is None and background.poll() is None, "Test client exited"
+        assert vm.poll() is None and (background is None or background.poll() is None), "Test client exited"
         capture("effect-on.png")
+        if os.environ.get("MTTKDE_CAPTURE_COMPANION"):
+            assert dbus("/Effects", "org.kde.kwin.Effects.loadEffect", "liquidglass") == "true"
+            assert "liquidglass" in dbus("/Effects", "org.kde.kwin.Effects.activeEffects").splitlines()
+            companion = output / "plugins/kwin/effects/plugins/liquidglass.so"
+            mappings = [line for line in Path(f"/proc/{kwin.pid}/maps").read_text().splitlines()
+                        if "/liquidglass.so" in line]
+            assert mappings and all(line.split(maxsplit=5)[5] == str(companion)
+                                    and int(line.split()[4]) == companion.stat().st_ino for line in mappings)
+            (output / "companion.json").write_text(json.dumps({
+                "plugin_mappings": mappings, "sha256": hashlib.sha256(companion.read_bytes()).hexdigest(),
+                "active": True}, indent=2))
+            capture("combined.png")
+            dbus("/Effects", "org.kde.kwin.Effects.unloadEffect", "liquidglass")
+            capture("restored.png")
     finally:
         stop(vm)
         stop(background)
         stop(kwin)
 
 
-def run(plugin, output, scale, expected, backend, identity, renderer="software", shader_dir=None):
+def run(plugin, output, scale, expected, backend, identity, renderer="software", shader_dir=None, companion=None, desktop_surface=False, squircle_blend=0.0):
     effect = "kwin4_effect_shapecorners" if shader_dir else "liquidglass"
     output.mkdir(parents=True, exist_ok=False)
     for subdir in ("home", "config", "data", "cache"):
@@ -200,6 +223,9 @@ def run(plugin, output, scale, expected, backend, identity, renderer="software",
     dest = output / f"plugins/kwin/effects/plugins/{effect}.so"
     dest.parent.mkdir(parents=True)
     shutil.copy2(plugin, dest)
+    if companion:
+        assert shader_dir, "The companion probe requires Rounded Corners"
+        shutil.copy2(companion, dest.parent / "liquidglass.so")
     if shader_dir:
         shaders = output / "data/kwin/shaders"
         shaders.mkdir(parents=True)
@@ -222,6 +248,19 @@ def run(plugin, output, scale, expected, backend, identity, renderer="software",
                 "ActiveOutlineUsePalette=false\nInactiveOutlineUsePalette=false\n"
                 "ActiveOutlineUseCustom=true\nInactiveOutlineUseCustom=true\n"
                 "SecondOutlineThickness=0\nInactiveSecondOutlineThickness=0\n")
+    if squircle_blend:
+        assert shader_dir and 0.0 <= squircle_blend <= 1.0
+        with (output / "config/kwinrc").open("a") as config:
+            config.write(f"[Round-Corners]\nUseSquircleShape=true\nSquircleness={squircle_blend}\n")
+    if desktop_surface:
+        assert backend == "xcb" and shader_dir and not companion
+        with (output / "config/kwinrc").open("a") as config:
+            config.write("[Round-Corners]\nInclusions=" + identity + "\n")
+    if companion:
+        with (output / "config/kwinrc").open("a") as config:
+            config.write("[Effect-liquidglass]\nNoiseStrength=16\n"
+                         "[Round-Corners]\nOutlineThickness=0\nInactiveOutlineThickness=0\n"
+                         "ShadowSize=0\nInactiveShadowSize=0\n")
     env = {key: value for key, value in os.environ.items()
            if key in ("PATH", "LANG", "LC_ALL", "USER", "LOGNAME")}
     # UNIX sockets have a 108-byte path limit; repository paths may be longer.
@@ -234,7 +273,7 @@ def run(plugin, output, scale, expected, backend, identity, renderer="software",
                LIBGL_ALWAYS_SOFTWARE="1" if renderer == "software" else "0", KWIN_COMPOSE="O2",
                MTTKDE_CAPTURE_DIR=str(output), MTTKDE_CAPTURE_SCALE=str(scale),
                MTTKDE_CAPTURE_BACKEND=backend, MTTKDE_CAPTURE_IDENTITY=identity,
-               MTTKDE_CAPTURE_EFFECT=effect)
+               MTTKDE_CAPTURE_DESKTOP="1" if desktop_surface else "", MTTKDE_CAPTURE_EFFECT=effect, MTTKDE_CAPTURE_COMPANION="1" if companion else "")
     command = ["dbus-run-session", "--", sys.executable, str(Path(__file__).resolve()),
                "--inside", str(output)]
     # Screenshot authorization on older KWin uses the desktop-entry cache.
@@ -266,10 +305,50 @@ def run(plugin, output, scale, expected, backend, identity, renderer="software",
         except ProcessLookupError:
             pass
         runtime.cleanup()
-    if shader_dir:
+    if desktop_surface:
+        from PIL import Image, ImageChops
+        original = Image.open(output / "effect-off.png").convert("RGB")
+        rendered = Image.open(output / "effect-on.png").convert("RGB")
+        assert original.getcolors(original.width * original.height) and sum(
+            count for count, color in original.getcolors(original.width * original.height)
+            if color == (55, 120, 170)) > 30000, "Desktop surface missing"
+        passed = ImageChops.difference(original, rendered).getbbox() is None
+        (output / "pixels.json").write_text(json.dumps({"desktop_unchanged": passed}) + "\n")
+        assert passed, "ShapeCorners changed a desktop surface"
+    elif companion:
+        compare_corners(output)
+    elif shader_dir:
         compare_outline(output)
     else:
         compare(output, expected)
+
+
+def compare_corners(output):
+    """Glass and grain must not fill the pixels removed by ShapeCorners."""
+    from PIL import Image
+    images = [Image.open(output / name).convert("RGB") for name in
+              ("effect-off.png", "effect-on.png", "combined.png", "restored.png")]
+    original, rounded, combined, restored = images
+    blue = (55, 120, 170)
+    background = {(33, 66, 99), (225, 199, 135)}
+    cutouts = [(x, y) for y in range(original.height) for x in range(original.width)
+               if original.getpixel((x, y)) == blue and rounded.getpixel((x, y)) in background]
+    assert len(cutouts) > 20, "Rounded corner cutouts were not visible"
+    changed = sum(combined.getpixel(p) != rounded.getpixel(p) for p in cutouts)
+    assert all(restored.getpixel(p) == rounded.getpixel(p) for p in cutouts), "Unload did not restore corners"
+    body = [(x, y) for y in range(original.height) for x in range(original.width)
+            if original.getpixel((x, y)) == blue]
+    left, right = min(x for x, y in body), max(x for x, y in body)
+    top, bottom = min(y for x, y in body), max(y for x, y in body)
+    center_changes = sum(combined.getpixel((x, y)) != rounded.getpixel((x, y))
+                         for y in range(top + (bottom-top)//3, top + 2*(bottom-top)//3)
+                         for x in range(left + (right-left)//3, left + 2*(right-left)//3))
+    assert center_changes > 100, "Glass was not visibly rendered inside the translucent client"
+    metrics = {"cutout_pixels": len(cutouts), "leaked_pixels": changed,
+               "interior_changed_pixels": center_changes, "passed": changed == 0}
+    (output / "pixels.json").write_text(json.dumps(metrics, indent=2) + "\n")
+    print(json.dumps(metrics))
+    assert metrics["passed"], "Glass or grain leaked outside the rounded window"
 
 
 def compare_outline(output):
@@ -336,6 +415,9 @@ if __name__ == "__main__":
     parser.add_argument("--renderer", choices=("software", "hardware"), default="software")
     parser.add_argument("--expect", choices=("unchanged", "changed"), default="unchanged")
     parser.add_argument("--rounded-shaders", type=Path, help="Test Rounded Corners using these built shaders")
+    parser.add_argument("--squircle-blend", type=float, choices=(0.0, 0.55, 1.0), default=0.0)
+    parser.add_argument("--desktop-surface", action="store_true", help="Probe an Xwayland desktop window, including forced inclusions")
+    parser.add_argument("--companion-plugin", type=Path, help="Also test Acrylic Glass with Rounded Corners")
     parser.add_argument("--inside", type=Path)
     parser.add_argument("--session", action="store_true")
     parser.add_argument("--client", choices=("desktop", "vm"))
@@ -348,6 +430,7 @@ if __name__ == "__main__":
         inside(args.inside)
     elif args.plugin and args.output:
         run(args.plugin.resolve(), args.output.resolve(), args.scale, args.expect, args.backend, args.identity, args.renderer,
-            args.rounded_shaders.resolve() if args.rounded_shaders else None)
+            args.rounded_shaders.resolve() if args.rounded_shaders else None,
+            args.companion_plugin.resolve() if args.companion_plugin else None, args.desktop_surface, args.squircle_blend)
     else:
         parser.error("--plugin and --output required")

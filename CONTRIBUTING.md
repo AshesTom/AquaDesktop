@@ -103,6 +103,24 @@ If you add a step that talks to the live session (`user_service_manager_command`
 MAC_TAHOE_SKIP_LIVE_SAFETY_NET=1 ./test         # CI / no-live-session
 ```
 
+For the desktop-redirection and corner-overlap regressions (#77/#89), the
+isolated capture probe also supports these modes (use a new output directory
+for every run):
+
+```sh
+python tests/acrylic_glass_capture.py --plugin /path/to/kwin4_effect_shapecorners.so --rounded-shaders /path/to/built/shaders --companion-plugin /path/to/liquidglass.so --identity org.kde.dolphin --output /tmp/corners-combined
+python tests/acrylic_glass_capture.py --plugin /path/to/kwin4_effect_shapecorners.so --rounded-shaders /path/to/built/shaders --desktop-surface --backend xcb --identity plasmashell --output /tmp/corners-desktop
+```
+
+The combined probe verifies visible glass inside a translucent client and zero
+leakage into the corner cutouts, with grain enabled. Repeat with `--scale 2`
+and an unpatched Acrylic Glass control. The desktop probe uses a synthetic
+Xwayland desktop surface explicitly included in ShapeCorners; it must remain
+pixel-identical with the effect enabled. An unpatched Rounded Corners control
+must fail. This does not reproduce Plasma's complete edit-mode UI or qualify
+NVIDIA hardware. `MTTKDE_ROUNDED_CORNERS_ARCHIVE` also enables the native
+eligibility regression in `tests/test_corner_rendering.py`.
+
 For a Rounded Corners release-pin update, review the full upstream diff and
 verify the tag, commit and archive SHA-256 together. Run the opt-in native
 build test in an unprivileged, network-disabled container with the target

@@ -258,6 +258,7 @@ private:
         int halfpixelLocation;
         int boxLocation;
         int cornerRadiusLocation;
+        int cornerSquircleLocation;
         int opacityLocation;
 
         int blurSizeLocation;
@@ -294,6 +295,11 @@ private:
         std::unique_ptr<GLShader> shader;
         int mvpMatrixLocation;
         int noiseTextureSizeLocation;
+        int boxLocation;
+        int blurSizeLocation;
+        int cornerRadiusLocation;
+        int cornerSquircleLocation;
+        int opacityLocation;
 
         std::unique_ptr<GLTexture> noiseTexture;
         qreal noiseTextureScale = 1.0;

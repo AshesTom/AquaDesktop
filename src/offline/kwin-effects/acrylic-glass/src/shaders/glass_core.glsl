@@ -29,7 +29,7 @@ out vec4 fragColor;
 void main()
 {
     vec2 halfSize = blurSize * 0.5;
-    vec2 pos = uv * blurSize - halfSize;
+    vec2 pos = vertex - box.xy;
 
     // Inset by 1 px so highlight/refraction never bleed outside the window.
     vec2 insetHalf = max(halfSize - vec2(1.0), vec2(0.5));
@@ -70,5 +70,5 @@ void main()
     }
 
     float mask = 1.0 - smoothstep(-3.0, 0.0, d);
-    LG_OUT = vec4(col, mask) * colorMatrix * opacity;
+    LG_OUT = (vec4(col, 1.0) * colorMatrix) * (mask * opacity);
 }

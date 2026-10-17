@@ -240,6 +240,16 @@ overwrite existing values on reinstall: this preserves custom tuning and the
 corner-artifact workaround from issue #89. An empty value or failed read does
 not authorize a default write. Retired Menu/Dialog/Tooltip/Bottom radius keys
 are no longer written; the current renderer uses the three supported controls.
+At render time, patched Rounded Corners publishes its animated logical radius
+and squircle blend on the EffectWindow property `_mttkde_corner_shape_v1`.
+Acrylic Glass uses this per-frame shape for glass and grain only while present;
+never synchronize the stored settings. Clear the property on exclusion and
+unload. Mask geometry uses frame-local vertex coordinates, not background
+texture UVs, and glass output must be premultiplied for `GL_ONE` blending.
+Rounded Corners must reject desktop surfaces before management/redirection and
+in `hasEffect()`, even when explicitly included. Only `drawWindow()` may start
+redirection after eligibility checks; widget configuration dialogs remain eligible.
+
 VirtualBox VM surfaces (`VirtualBoxVM`, class or resource name, ignoring case)
 are excluded directly in Acrylic Glass's render gate, before either match-list
 mode, so existing installs and custom filters cannot fill seamless cutouts with

@@ -179,6 +179,7 @@ BlurEffect::BlurEffect()
         m_roundedOnscreenPass.offsetLocation = m_roundedOnscreenPass.shader->uniformLocation("offset");
         m_roundedOnscreenPass.halfpixelLocation = m_roundedOnscreenPass.shader->uniformLocation("halfpixel");
         m_roundedOnscreenPass.boxLocation = m_roundedOnscreenPass.shader->uniformLocation("box");
+        m_roundedOnscreenPass.cornerSquircleLocation = m_roundedOnscreenPass.shader->uniformLocation("cornerSquircle");
         m_roundedOnscreenPass.cornerRadiusLocation = m_roundedOnscreenPass.shader->uniformLocation("cornerRadius");
         m_roundedOnscreenPass.opacityLocation = m_roundedOnscreenPass.shader->uniformLocation("opacity");
         m_roundedOnscreenPass.blurSizeLocation = m_roundedOnscreenPass.shader->uniformLocation("blurSize");
@@ -222,12 +223,17 @@ BlurEffect::BlurEffect()
 
     // Noise pass (grain over the blurred result)
     m_noisePass.shader = ShaderManager::instance()->generateShaderFromFile(
-        ShaderTrait::MapTexture, shaderPath(QStringLiteral("vertex"), QStringLiteral("vert")), shaderPath(QStringLiteral("noise"), QStringLiteral("frag")));
+        ShaderTrait::MapTexture, shaderPath(QStringLiteral("glass"), QStringLiteral("vert")), shaderPath(QStringLiteral("noise"), QStringLiteral("frag")));
     if (!m_noisePass.shader) {
         qCWarning(KWIN_BLUR) << "Failed to load noise pass shader";
         return;
     } else {
         m_noisePass.mvpMatrixLocation = m_noisePass.shader->uniformLocation("modelViewProjectionMatrix");
+        m_noisePass.boxLocation = m_noisePass.shader->uniformLocation("box");
+        m_noisePass.blurSizeLocation = m_noisePass.shader->uniformLocation("blurSize");
+        m_noisePass.cornerRadiusLocation = m_noisePass.shader->uniformLocation("cornerRadius");
+        m_noisePass.cornerSquircleLocation = m_noisePass.shader->uniformLocation("cornerSquircle");
+        m_noisePass.opacityLocation = m_noisePass.shader->uniformLocation("opacity");
         m_noisePass.noiseTextureSizeLocation = m_noisePass.shader->uniformLocation("noiseTextureSize");
     }
 
@@ -1315,6 +1321,18 @@ void BlurEffect::blur(
         }
     }
 
+    // ShapeCorners publishes its animated geometry during prePaintWindow.
+    // Follow the actual cutout, including inactive/maximized/excluded states,
+    // without changing either effect's saved preferences (#89).
+    float cornerSquircle = 0.0f;
+    const auto shape = w->property("_mttkde_corner_shape_v1").toList();
+    if (shape.size() == 2) {
+        topCornerRadius = bottomCornerRadius = std::max(0.0f, shape[0].toFloat());
+        cornerSquircle = std::clamp(shape[1].toFloat(), 0.0f, 1.0f);
+        cornerRadius = BorderRadius(topCornerRadius, topCornerRadius,
+                                    bottomCornerRadius, bottomCornerRadius);
+    }
+
     // Clamp the radius for narrow / short windows so the SDF doesn't
     // wrap around onto itself when r > half-dimension.
     if (topCornerRadius > 0 || bottomCornerRadius > 0) {
@@ -1380,6 +1398,7 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.boxLocation,
         QVector4D(nativeBox.x() + nativeBox.width() * 0.5, nativeBox.y() + nativeBox.height() * 0.5, nativeBox.width() * 0.5, nativeBox.height() * 0.5));
 
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.cornerSquircleLocation, cornerSquircle);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.cornerRadiusLocation, nativeCornerRadius.toVector());
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.opacityLocation, modulation);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.blurSizeLocation, QVector2D(nativeBox.width(), nativeBox.height()));
@@ -1407,11 +1426,7 @@ void BlurEffect::blur(
         // that show up in smooth gradients after heavy blur.
 
         glEnable(GL_BLEND);
-        if (opacity < 1.0) {
-            glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE);
-        } else {
-            glBlendFunc(GL_ONE, GL_ONE);
-        }
+        glBlendFunc(GL_ONE, GL_ONE);
 
         if (GLTexture* noiseTexture = ensureNoiseTexture()) {
             ShaderManager::instance()->pushShader(m_noisePass.shader.get());
@@ -1422,6 +1437,11 @@ void BlurEffect::blur(
             m_noisePass.shader->setUniform(m_noisePass.mvpMatrixLocation, projectionMatrix);
             m_noisePass.shader->setUniform(m_noisePass.noiseTextureSizeLocation, QVector2D(noiseTexture->width(), noiseTexture->height()));
 
+            m_noisePass.shader->setUniform(m_noisePass.boxLocation, QVector4D(nativeBox.center().x(), nativeBox.center().y(), nativeBox.width() * 0.5, nativeBox.height() * 0.5));
+            m_noisePass.shader->setUniform(m_noisePass.blurSizeLocation, QVector2D(nativeBox.width(), nativeBox.height()));
+            m_noisePass.shader->setUniform(m_noisePass.cornerRadiusLocation, nativeCornerRadius.toVector());
+            m_noisePass.shader->setUniform(m_noisePass.cornerSquircleLocation, cornerSquircle);
+            m_noisePass.shader->setUniform(m_noisePass.opacityLocation, modulation);
             noiseTexture->bind();
 
             vbo->draw(GL_TRIANGLES, 6, vertexCount);
