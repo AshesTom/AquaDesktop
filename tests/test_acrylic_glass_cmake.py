@@ -231,6 +231,9 @@ def test_acrylic_glass_selects_abi_per_backend(tmp_path):
         script = tmp_path / "versions.cmake"
         result = tmp_path / "result"
         script.write_text(
+            # Match the project's policy baseline: older CMake otherwise
+            # treats TRUE as a variable name rather than a boolean (CMP0012).
+            "cmake_minimum_required(VERSION 3.16.0)\n"
             "macro(find_package)\nendmacro()\n"
             f"set(GLASS_WAYLAND {'ON' if wayland else 'OFF'})\n"
             f"set(GLASS_X11 {'ON' if x11 else 'OFF'})\n"

@@ -34,6 +34,10 @@ def test_kvantum_warns_when_kwriteconfig6_missing(tmp_path, monkeypatch):
     must surface an actionable warn()."""
     from steps import kvantum
 
+    # Engine installation has separate lifecycle tests. This guard must
+    # reach the config write even on hosts requiring the bundled engine.
+    monkeypatch.setattr(kvantum, "_install_bundled_engine", lambda: True)
+
     # Point kvantum at an offline source it can read.
     fake_src = tmp_path / "fake-offline" / "kvantum/mac-tahoe-liquid-kde"
     fake_src.mkdir(parents=True)
@@ -69,6 +73,10 @@ def test_kvantum_does_not_warn_when_kwriteconfig6_present(tmp_path, monkeypatch)
     """Positive control: when kw_write succeeds, no spurious warn()
     about kwriteconfig6 — the success path stays clean."""
     from steps import kvantum
+
+    # Engine installation has separate lifecycle tests. This guard must
+    # reach the config write even on hosts requiring the bundled engine.
+    monkeypatch.setattr(kvantum, "_install_bundled_engine", lambda: True)
 
     fake_src = tmp_path / "fake-offline" / "kvantum/mac-tahoe-liquid-kde"
     fake_src.mkdir(parents=True)
