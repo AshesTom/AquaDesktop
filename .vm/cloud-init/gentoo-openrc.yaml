@@ -524,6 +524,8 @@ write_files:
       if ! id tester >/dev/null 2>&1; then
           useradd -m -G wheel,users,video,audio,plugdev -s /bin/bash tester
       fi
+      # Gentoo restricts access to the user crontab spool to the cron group.
+      usermod -aG cron tester
       echo 'tester:tester' | chpasswd
       echo 'root:tester'   | chpasswd
       # Passwordless sudo for the smoke tester.
