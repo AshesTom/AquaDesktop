@@ -2,13 +2,13 @@
   <img src="src/screenshots/banner_v3.svg" alt="tahoe 26" width="360">
 </p>
 
-# macOS Tahoe Liquid Theme for Plasma 6.6/6.7+
+# macOS Tahoe Liquid Theme for Plasma 6.6+
 
 [![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1417_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
 
 Bring a little Tahoe to your Linux desktop.
 
-A macOS Tahoe-inspired theme for KDE Plasma 6.6 and 6.7+, with liquid glass, a top menu bar, a Dock, matching app themes, sounds, and a boot screen. Pick the parts you like in the installer.
+A macOS Tahoe-inspired theme for KDE Plasma 6.6, 6.7 and 6.8, with liquid glass, a top menu bar, a Dock, matching app themes, sounds, and a boot screen. Pick the parts you like in the installer.
 
 > [!CAUTION]
 > This project is experimental and under active development. Don't use it on a production system yet. KDE, KWin, or Kvantum updates may temporarily break parts of the theme; running `sudo ./install` again usually restores them. If something goes wrong, please [open an issue](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new).
@@ -403,7 +403,8 @@ the existing per-user cron support and require a running cron daemon.
 |--------|---------|-------|
 | 6.5 and older | Not supported | Not applicable |
 | 6.6 | Supported | v0.1.0 |
-| 6.7+ | Supported | v0.19.0 |
+| 6.7 | Supported | v0.19.0 |
+| 6.8 | Supported | v0.54.1 |
 
 </details>
 
