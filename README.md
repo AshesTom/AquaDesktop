@@ -256,7 +256,7 @@ Use the flake modules, **not `sudo ./install`**. Live desktop validation is pend
 
 ```nix
 inputs.mac-tahoe = {
-  url = "github:lestercorderomurillo/macos-tahoe-liquid-kde/v0.54.4";
+  url = "github:lestercorderomurillo/macos-tahoe-liquid-kde/v0.54.5";
   inputs.nixpkgs.follows = "nixpkgs";
   inputs.home-manager.follows = "home-manager";
 };
