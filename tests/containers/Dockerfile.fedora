@@ -1,5 +1,4 @@
-# Fedora — uses /usr/lib64/qt6 like Gentoo, but reaches it via dnf
-# (different package name from Gentoo, different os-release id).
+# Fedora SDK and native build validation.
 FROM fedora:latest
 
 # Dep groups (do NOT inline comments inside the `\`-continued arg list

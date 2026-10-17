@@ -71,11 +71,6 @@ jobs:
   # works on every distro the README claims support for. Each leg
   # runs the same container test from tests/containers/, so a regression
   # that breaks one distro can't silently sneak through CI.
-  #
-  # Gentoo's Dockerfile FROMs a pre-built GHCR base image
-  # (ghcr.io/.../mttkde-gentoo-base) so the matrix leg runs in seconds
-  # instead of waiting for a source build of qtbase. The base image is
-  # built + refreshed by .github/workflows/build-gentoo-base.yml.
   cross-distro:
     runs-on: ubuntu-latest
     strategy:
@@ -87,7 +82,6 @@ jobs:
           - manjaro
           - endeavouros
           - garuda
-          - gentoo
           - fedora
           - nobara
           - opensuse
@@ -101,13 +95,8 @@ jobs:
           - arch-kdeunstable
     steps:
       - uses: actions/checkout@v5
-      # arch-kdeunstable tracks Arch's [kde-unstable] staging repo, which
-      # can ship a transiently half-migrated Plasma that breaks the build
-      # through no fault of ours. It's a forward-looking signal, not a
-      # merge gate, so it's non-blocking. Every supported distro,
-      # including Gentoo, must pass; refresh its SDK base when needed.
+      # Every matrix target is required, including the staging SDK.
       - name: Build and run ${{ matrix.distro }} container
-        continue-on-error: ${{ matrix.distro == 'arch-kdeunstable' }}
         run: |
           # Retry the build: pulling the base image from Docker Hub can
           # transiently time out / rate-limit from GitHub runners, which

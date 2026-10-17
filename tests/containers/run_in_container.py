@@ -265,7 +265,6 @@ def step_package_manager_layer() -> bool:
     # better to know now.
     probers = {
         "arch":     ["pacman", "-Si"],
-        "gentoo":   ["emerge", "--search-",  ],  # gentoo uses --search; handled below
         "fedora":   ["dnf", "info", "--quiet"],
         "rhel":     ["dnf", "info", "--quiet"],
         "centos":   ["dnf", "info", "--quiet"],
@@ -294,21 +293,6 @@ def step_package_manager_layer() -> bool:
             ok = False
             continue
         print(f"  ── probe {cmd_token!r} → {pkg!r}")
-        if d == "gentoo":
-            # Gentoo doesn't have a clean info-only command; check
-            # /var/db/repos/gentoo/<category>/<name> instead.
-            cat, _, name = pkg.partition("/")
-            if not cat or not name:
-                print(f"     FAIL: cannot parse gentoo atom {pkg!r}")
-                ok = False
-                continue
-            ebuild_dir = Path(f"/var/db/repos/gentoo/{cat}/{name.split(':')[0]}")
-            if ebuild_dir.is_dir():
-                print(f"     PASS: {ebuild_dir} exists")
-            else:
-                print(f"     FAIL: no ebuild at {ebuild_dir}")
-                ok = False
-            continue
         res = subprocess.run(
             [*probe, pkg], check=False, capture_output=True, text=True,
         )
@@ -541,7 +525,7 @@ def step_pytest() -> bool:
     res = subprocess.run(
         ["python3", "-m", "pytest", "tests/", "-q",
          # Skip tests that need the live KDE session — none of those
-         # work inside a stage3 / stripped-down container.
+         # work inside a stripped-down container.
          "--ignore=tests/test_vm_harness.py",
          "-x"],
         check=False, cwd=str(REPO),

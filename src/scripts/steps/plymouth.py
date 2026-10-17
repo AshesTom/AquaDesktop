@@ -134,7 +134,7 @@ def _patch_grub_add_splash() -> bool:
     return True
 
 
-# grub-mkconfig (Arch/Gentoo/openSUSE) vs grub2-mkconfig (Fedora/RHEL);
+# grub-mkconfig (Arch/openSUSE) vs grub2-mkconfig (Fedora/RHEL);
 # either tool can own either output path, so try every combination.
 _GRUB_REGENERATE_CANDIDATES = (
     ("grub-mkconfig",  "/boot/grub/grub.cfg"),

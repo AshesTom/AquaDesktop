@@ -158,7 +158,7 @@ def test_no_hardcoded_qt6_libdir(repo):
     through ``distro.qt6_plugins_dir()`` / ``distro.qt6_qml_dir()``.
 
     Assuming Arch's ``/usr/lib/qt6`` everywhere breaks installs on
-    Gentoo + Debian (different libdirs).
+    openSUSE + Debian (different libdirs).
 
     Comment lines and docstrings are allowed to mention the example
     paths — that's how we document the per-distro variation."""

@@ -118,7 +118,7 @@ def test_globalmenu_dest_paths_anchor_to_qmake6_libdir(monkeypatch, tmp_path):
     plugin / QML dirs resolve to (qmake6-reported, per distro). The
     suffix is pinned so a refactor that mangles the package id can't
     silently ship to the wrong applet path; the prefix comes from the
-    paths.py helper so this works on Arch (/usr/lib/qt6), Gentoo
+    paths.py helper so this works on Arch (/usr/lib/qt6), openSUSE
     (/usr/lib64/qt6), and Debian-multiarch alike."""
     fake_plugins, fake_qml = _stub_qt6_paths(monkeypatch, tmp_path)
     assert globalmenu.DEST_SO == fake_plugins / (

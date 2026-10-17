@@ -307,7 +307,7 @@ def test_qt6_raises_when_no_tools_and_no_fallback_dir(monkeypatch, tmp_path):
 
 
 def test_install_destinations_anchor_to_qmake6_libdir(monkeypatch, tmp_path):
-    """Failure mode (Gentoo): qmake6 reports
+    """Failure mode (openSUSE): qmake6 reports
     ``/usr/lib64/qt6/plugins`` but the installer hardcodes
     ``/usr/lib/qt6/plugins`` for its writes. Every Qt destination
     must be rooted at the qmake6-reported dir; this test

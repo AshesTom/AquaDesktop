@@ -742,7 +742,7 @@ def _require_root_and_drop_to_user(op: str = "install") -> bool:
             os.environ.pop(key, None)
 
     # Replace sudo's root supplementary groups with the user's memberships
-    # before dropping privileges (Gentoo's crontab requires the cron group).
+    # before dropping privileges (crontab access may require the cron group).
     os.initgroups(sudo_user, sudo_gid)
     # Reversible drop — real UID stays 0 for the root hop-back. GID first:
     # switching euid can lose the right to call setegid.

@@ -33,12 +33,12 @@ minimum supported version. Build compiled components against the host SDK.
 The init system is a supported *dimension*, not a distro boundary — the two scheduled features (OLED care, timed theme switch)
 install a systemd user timer under systemd and a per-user `crontab`
 line under OpenRC, chosen by `init_system()` in the distro layer.
-OpenRC is supported generically across distros; it is verified by hand
-in a Gentoo OpenRC VM (`./vm`), not in the container matrix. The
+OpenRC scheduling remains available generically; Gentoo support was retired in
+v0.54.7 and its VM/SDK workflows have been removed. The
 Artix package mapping uses the Arch family even when `ID_LIKE` is absent;
 Artix OpenRC remains testing and is not part of the container matrix. The
 container matrix covers Arch, CachyOS, Manjaro, EndeavourOS, Garuda,
-Gentoo, Fedora, Nobara, openSUSE Tumbleweed, and KDE neon on their default
+Fedora, Nobara, openSUSE Tumbleweed, and KDE neon on their default
 (systemd) profiles. The README marks CachyOS heavily tested, Arch stable,
 Fedora and EndeavourOS relatively stable, and KDE neon container + VM
 qualified. The other listed distros need more testing. Container checks
@@ -210,7 +210,7 @@ doesn't walk `~/.local/lib/qt6` in a default Plasma session.
   `SUDO_USER` via `os.setegid(SUDO_GID); os.seteuid(SUDO_UID)`. Files
   written from then on land with normal user ownership.
   First call `os.initgroups(SUDO_USER, SUDO_GID)` while privileged so
-  children inherit the user's supplementary groups, including Gentoo's
+  children inherit the user's supplementary groups, including the
   `cron` membership, instead of retaining sudo's root groups.
 - The `sudo_install_file` / `sudo_install_tree` / `sudo_remove`
   helpers in `steps/_helpers.py` re-elevate via the `_as_root()`
@@ -303,12 +303,12 @@ install`, or probe for systemd/OpenRC themselves — call
 
 | Function                              | Returns |
 | ------------------------------------- | ------- |
-| `current_distro()`                    | Lowercase `/etc/os-release` ID (`arch`, `cachyos`, `gentoo`, `fedora`, `opensuse-tumbleweed`, ...). |
+| `current_distro()`                    | Lowercase `/etc/os-release` ID (`arch`, `cachyos`, `fedora`, `opensuse-tumbleweed`, ...). |
 | `distro_id_like()`                    | ID_LIKE chain so downstream distros (Nobara → fedora, Garuda → arch) inherit the parent's package map. |
 | `init_system()`                       | `"systemd"` when `/run/systemd/system` is present, else `"openrc"`. The ONLY sanctioned init probe — the scheduled-feature steps branch on it to pick a systemd user timer vs. a per-user crontab line. |
 | `user_service_manager_command(*args)` | A `systemctl --user ...` argv only when systemd is the running init; `None` on OpenRC. All user-service operations go through this wrapper and provide an init-agnostic fallback. |
 | `qt6_plugins_dir()` / `qt6_qml_dir()` | Asks `qmake6` → `qtpaths6` → `pkg-config Qt6Core` in that order. Falls back to the per-distro libdir table only when that dir actually exists on disk. Otherwise raises `Qt6PathsMissing` with the distro-appropriate install hint. |
-| `package_for(token)`                  | Translates an Arch package name from a step's `deps()` token into the equivalent on the current distro (`g++:gcc` → `gcc-c++` on Fedora, `sys-devel/gcc` on Gentoo). |
+| `package_for(token)`                  | Translates an Arch package name from a step's `deps()` token into the equivalent on the current distro (`g++:gcc` → `gcc-c++` on Fedora). |
 | `package_installed(pkg)`              | Direct package-database probe (`pacman -Q`, `rpm -q`, ...) so dep resolution installs only what's actually missing. |
 | `package_manager_install_cmd()`       | Non-interactive install prefix for the current distro. |
 
@@ -589,23 +589,16 @@ bootloader probe.
 | File                         | Role |
 | ---------------------------- | ---- |
 | `tests/containers/Dockerfile.<distro>` | One per supported distro. CachyOS pulls both `archlinux-keyring` and `cachyos-keyring` after `pacman-key --init && pacman-key --populate archlinux cachyos`. |
-| `tests/containers/Dockerfile.arch-kdeunstable` | Canary against Arch's `[kde-unstable]` staging repo — catches the next Plasma release early. Only this staging target uses `continue-on-error`; Gentoo and every supported distro must pass. |
-| `tests/containers/Dockerfile.gentoo-base` | Builds the GHCR base image `ghcr.io/lestercorderomurillo/mttkde-gentoo-base` so qtbase doesn't compile from source on every PR. |
+| `tests/containers/Dockerfile.arch-kdeunstable` | Canary against Arch's `[kde-unstable]` staging repo — catches the next Plasma release early. Every matrix target, including staging, must pass. |
 | `tests/containers/run_in_container.py` | Per-distro probe: qmake6 resolves, the distro layer agrees with what qmake6 reports, every `package_for()` token resolves in the distro's repo (with a "transient network" skip so flaky upstream CDN edges don't tank CI), preflight destination checks, pytest. |
 | `tests/containers/run_matrix.sh` | Local runner. CI runs the same workflow via `.github/workflows/test.yml`. |
 
-The Gentoo base workflow uses separate configured, toolchain, Qt base, Qt tools,
-Frameworks, Plasma and verification jobs. Each completed stage is stored in GHCR;
-a failed package stage also saves a partial image after its package manager has
-stopped. Rerun failed jobs to resume installed packages and generated binary
-packages. Stage keys include the configuration and preceding recipes, so changing
-a later stage preserves earlier checkpoints. Recovery tags retain completed
-package work across recipe fixes; changed profiles are reapplied before reuse.
-Only a successful verification stage promotes the image to `latest`. Checkpoints
-are not installer releases or CI base images. The monthly recovery series can be
-overridden with the workflow's `checkpoint_epoch` input. Do not cancel an active
-legacy build just to switch it to this workflow: its unexported build state cannot
-be recovered retroactively. The workflow always uploads per-stage logs.
+Gentoo is no longer a supported installation target. Package-manager entry
+points reject Gentoo and its derivatives before dependency resolution. Its
+package mappings, path fallbacks, container builds and VM provisioners are removed.
+The former SDK and VM tooling can be
+recovered from the immutable v0.54.6 tag by a separate community maintainer.
+Do not restore its CI jobs or scheduled SDK builds without a support decision.
 
 When a probe fails, the script scans stderr for transient-network
 markers (`"Failed to retrieve"`, `"Could not resolve host"`, repo
@@ -723,7 +716,6 @@ green   yellow   orange   red   purple   blue
 | Legacy `/usr/lib/qt6/.../*.so`                 | Pre-current-release installs wrote compiled plasmoids to `/usr/lib/qt6`. New installs don't, but uninstall has to remove those leftovers to leave the system in a clean Breeze state. That's why `./uninstall` also requires sudo. |
 | Stale `/etc/default/grub`                      | A user who switched from GRUB to systemd-boot / Limine / rEFInd may have the file lying around. `GRUB_DEFAULT.is_file()` alone is NOT proof GRUB is active — `_grub_is_active_bootloader()` requires a regen binary on PATH too. |
 | Layout race after plasmashell restart          | Applying the panel layout immediately after `plasmashell --replace` sometimes races plasmashell's plugin discovery. `layout.py` is retried once after `restart_plasma`. |
-| GHCR Gentoo base                               | Gentoo Dockerfile pulls a pre-built base image. If qtbase changes major version upstream, rebuild the base via the dedicated workflow, NOT in the per-PR matrix run. |
 | zip / xz / zstd on JPEG-or-PNG                 | Saves 0%. Don't add a wrapped-archive transport for wallpapers — re-encode to JPEG q90 instead. |
 | `plasma-apply-lookandfeel` `--keep-auto`       | Required so the LaF apply doesn't blow away the user's color-scheme follow-the-system preference. |
 | `pacman-key` on stale CachyOS images           | Container Dockerfile must run `pacman-key --init && pacman-key --populate archlinux cachyos` before `pacman -Sy archlinux-keyring cachyos-keyring`. |

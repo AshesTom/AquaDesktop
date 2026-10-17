@@ -112,7 +112,6 @@ def test_debian_family_predicate_stays_in_distro_layer(
     ("neon", ("ubuntu", "debian"), ("Next", "Flow")),
     ("nobara", ("fedora",), ("Next", "Flow", "Opal")),
     ("opensuse-tumbleweed", ("opensuse",), ("Next", "Flow", "Opal")),
-    ("gentoo", (), ("Next", "Flow", "Opal")),
 ])
 def test_wallpaper_fallback_ids_cover_common_distro_families(
         monkeypatch, distro_id, id_like, expected_prefix):
@@ -282,7 +281,6 @@ def test_unmapped_dependency_may_use_fallback_on_arch_family(
     ("nobara", ("fedora",), "kf6-kconfig"),
     ("opensuse", (), "kf6-kconfig"),
     ("opensuse-tumbleweed", ("opensuse",), "kf6-kconfig"),
-    ("gentoo", (), "kde-frameworks/kconfig:6"),
     ("debian", (), "libkf6config-bin"),
     ("ubuntu", (), "libkf6config-bin"),
     ("neon", ("ubuntu", "debian"), "libkf6config-bin"),
@@ -350,7 +348,6 @@ def test_neon_uses_native_plasma_activities_development_packages(
     ("opensuse-tumbleweed", ("opensuse",), "qt6-tools-qdbus"),
     ("alpine",              (),           "qt6-qttools"),
     ("void",                (),           "qt6-tools"),
-    ("gentoo",              (),           "dev-qt/qttools"),
 ])
 def test_qdbus6_package_per_distro(monkeypatch, distro_id, id_like, expected):
     _force_distro(monkeypatch, distro_id, id_like)
@@ -375,7 +372,6 @@ def test_qdbus6_package_per_distro(monkeypatch, distro_id, id_like, expected):
     ("opensuse",            (),            "kvantum-manager"),
     ("opensuse-tumbleweed", ("opensuse",), "kvantum-manager"),
     ("alpine",              (),            "kvantum-qt6"),
-    ("gentoo",              (),            "x11-themes/kvantum"),
 ])
 def test_kvantum_package_per_distro(monkeypatch, distro_id, id_like, expected):
     _force_distro(monkeypatch, distro_id, id_like)
@@ -394,7 +390,6 @@ def test_kvantum_package_per_distro(monkeypatch, distro_id, id_like, expected):
     ("nobara",  ("fedora",),  "plymouth-scripts"),
     ("opensuse", (),          "plymouth"),
     ("alpine",  (),           "plymouth"),
-    ("gentoo",  (),           "sys-boot/plymouth"),
 ])
 def test_plymouth_package_per_distro(monkeypatch, distro_id, id_like, expected):
     _force_distro(monkeypatch, distro_id, id_like)
@@ -411,7 +406,6 @@ def test_plymouth_package_per_distro(monkeypatch, distro_id, id_like, expected):
     ("nobara",  ("fedora",),  "plymouth-plugin-script"),
     ("opensuse", (),          "plymouth-plugin-script"),
     ("opensuse-tumbleweed", ("opensuse",), "plymouth-plugin-script"),
-    ("gentoo",  (),           "sys-boot/plymouth"),
 ])
 def test_plymouth_script_plugin_package_per_distro(
     monkeypatch, distro_id, id_like, expected,
@@ -484,7 +478,6 @@ def test_cmake_is_cmake_everywhere(monkeypatch, distro_id):
     ("opensuse", "kf6-extra-cmake-modules"),
     ("alpine", "extra-cmake-modules"),
     ("rhel", "extra-cmake-modules"),
-    ("gentoo", "kde-frameworks/extra-cmake-modules"),
 ])
 def test_ecm_package_per_distro(monkeypatch, distro_id, expected):
     _force_distro(monkeypatch, distro_id)
@@ -499,7 +492,6 @@ def test_ecm_package_per_distro(monkeypatch, distro_id, expected):
     ("opensuse", "qt6-gui-devel"),
     ("alpine", "qt6-qtbase-dev"),
     ("rhel", "qt6-qtbase-devel"),
-    ("gentoo", "dev-qt/qtbase:6"),
 ])
 def test_qt6_gui_cmake_package_per_distro(monkeypatch, distro_id, expected):
     _force_distro(monkeypatch, distro_id)
@@ -514,7 +506,6 @@ def test_qt6_gui_cmake_package_per_distro(monkeypatch, distro_id, expected):
     ("opensuse", "qt6-widgets-devel"),
     ("alpine", "qt6-qtbase-dev"),
     ("rhel", "qt6-qtbase-devel"),
-    ("gentoo", "dev-qt/qtbase:6"),
 ])
 def test_qt6_widgets_cmake_package_per_distro(monkeypatch, distro_id, expected):
     _force_distro(monkeypatch, distro_id)
@@ -530,7 +521,6 @@ def test_qt6_widgets_cmake_package_per_distro(monkeypatch, distro_id, expected):
     ("opensuse", "qt6-dbus-devel"),
     ("alpine", "qt6-qtbase-dev"),
     ("rhel", "qt6-qtbase-devel"),
-    ("gentoo", "dev-qt/qtbase:6"),
 ])
 def test_qt6_dbus_cmake_package_per_distro(monkeypatch, distro_id, expected):
     _force_distro(monkeypatch, distro_id)
@@ -545,7 +535,6 @@ def test_qt6_dbus_cmake_package_per_distro(monkeypatch, distro_id, expected):
     ("opensuse", "qt6-qml-devel"),
     ("alpine", "qt6-qtdeclarative-dev"),
     ("rhel", "qt6-qtdeclarative-devel"),
-    ("gentoo", "dev-qt/qtdeclarative:6"),
 ])
 def test_qt6_qml_cmake_package_per_distro(monkeypatch, distro_id, expected):
     _force_distro(monkeypatch, distro_id)
@@ -560,7 +549,6 @@ def test_qt6_qml_cmake_package_per_distro(monkeypatch, distro_id, expected):
     ("opensuse", "qt6-uitools-devel"),
     ("alpine", "qt6-qttools-dev"),
     ("rhel", "qt6-qttools-devel"),
-    ("gentoo", "dev-qt/qttools:6"),
 ])
 def test_qt6_uitools_cmake_package_per_distro(monkeypatch, distro_id, expected):
     _force_distro(monkeypatch, distro_id)
@@ -575,7 +563,6 @@ def test_qt6_uitools_cmake_package_per_distro(monkeypatch, distro_id, expected):
     ("opensuse", "qt6-svg-devel"),
     ("alpine", "qt6-qtsvg-dev"),
     ("rhel", "qt6-qtsvg-devel"),
-    ("gentoo", "dev-qt/qtsvg:6"),
 ])
 def test_qt6_svg_cmake_package_per_distro(monkeypatch, distro_id, expected):
     _force_distro(monkeypatch, distro_id)
@@ -590,7 +577,6 @@ def test_qt6_svg_cmake_package_per_distro(monkeypatch, distro_id, expected):
     ("opensuse", "make"),
     ("alpine", "make"),
     ("rhel", "make"),
-    ("gentoo", "dev-build/make"),
 ])
 def test_make_package_per_distro(monkeypatch, distro_id, expected):
     _force_distro(monkeypatch, distro_id)
@@ -697,50 +683,49 @@ def test_no_arch_fallback_leaks_to_fedora(monkeypatch, token, arch_fallback):
 #   Arch (pacman -F):          ``k<name>``           (kcoreaddons, ki18n, …)
 #   Fedora (dnf repoquery):    ``kf6-k<name>-devel``
 #   openSUSE (zypper search):  ``kf6-k<name>-devel`` (same as Fedora)
-#   Gentoo:                    ``kde-frameworks/k<name>:6``
 # Don't re-shape the per-distro names from convention — every value
 # below was probed; the openSUSE prefix is ``kf6-`` (not ``kf6-k``),
 # so e.g. KIO is ``kf6-kio-devel`` not ``kf6-io-devel``.
 
 _KF6_TOKENS = [
     ("kf6-config-cmake",        "kconfig",
-     "kf6-kconfig-devel",        "kde-frameworks/kconfig:6"),
+     "kf6-kconfig-devel"),
     ("kf6-configwidgets-cmake", "kconfigwidgets",
-     "kf6-kconfigwidgets-devel", "kde-frameworks/kconfigwidgets:6"),
+     "kf6-kconfigwidgets-devel"),
     ("kf6-coreaddons-cmake",    "kcoreaddons",
-     "kf6-kcoreaddons-devel",    "kde-frameworks/kcoreaddons:6"),
+     "kf6-kcoreaddons-devel"),
     ("kf6-crash-cmake",         "kcrash",
-     "kf6-kcrash-devel",         "kde-frameworks/kcrash:6"),
+     "kf6-kcrash-devel"),
     ("kf6-globalaccel-cmake",   "kglobalaccel",
-     "kf6-kglobalaccel-devel",   "kde-frameworks/kglobalaccel:6"),
+     "kf6-kglobalaccel-devel"),
     ("kf6-guiaddons-cmake",     "kguiaddons",
-     "kf6-kguiaddons-devel",     "kde-frameworks/kguiaddons:6"),
+     "kf6-kguiaddons-devel"),
     ("kf6-i18n-cmake",          "ki18n",
-     "kf6-ki18n-devel",          "kde-frameworks/ki18n:6"),
+     "kf6-ki18n-devel"),
     ("kf6-kcmutils-cmake",      "kcmutils",
-     "kf6-kcmutils-devel",       "kde-frameworks/kcmutils:6"),
+     "kf6-kcmutils-devel"),
     ("kf6-kio-cmake",           "kio",
-     "kf6-kio-devel",            "kde-frameworks/kio:6"),
+     "kf6-kio-devel"),
     ("kf6-notifications-cmake", "knotifications",
-     "kf6-knotifications-devel", "kde-frameworks/knotifications:6"),
+     "kf6-knotifications-devel"),
     ("kf6-service-cmake",       "kservice",
-     "kf6-kservice-devel",       "kde-frameworks/kservice:6"),
+     "kf6-kservice-devel"),
     ("kf6-widgetsaddons-cmake", "kwidgetsaddons",
-     "kf6-kwidgetsaddons-devel", "kde-frameworks/kwidgetsaddons:6"),
+     "kf6-kwidgetsaddons-devel"),
     ("kf6-windowsystem-cmake",  "kwindowsystem",
-     "kf6-kwindowsystem-devel",  "kde-frameworks/kwindowsystem:6"),
+     "kf6-kwindowsystem-devel"),
     # KItemModels: required by the dock-taskmanager + globalmenu plasmoid
     # CMakeLists. Arch's `kcoreaddons` meta pulls it transitively so
     # missing it from the Dockerfile silently worked there; Fedora's
     # `kf6-kcoreaddons-devel` does NOT, which is how the regression
     # surfaced as a `FindKF6ItemModels.cmake` failure in CI.
     ("kf6-itemmodels-cmake",    "kitemmodels",
-     "kf6-kitemmodels-devel",    "kde-frameworks/kitemmodels:6"),
+     "kf6-kitemmodels-devel"),
 ]
 
 
-@pytest.mark.parametrize("token,arch,fedora,gentoo", _KF6_TOKENS)
-def test_kf6_framework_packages_per_distro(monkeypatch, token, arch, fedora, gentoo):
+@pytest.mark.parametrize("token,arch,fedora", _KF6_TOKENS)
+def test_kf6_framework_packages_per_distro(monkeypatch, token, arch, fedora):
     # Arch / CachyOS / Manjaro / EndeavourOS / Garuda all share the
     # Arch row through current_distro() or ID_LIKE; we pick the parent
     # explicitly so the test fails loudly when the row is missing
@@ -755,44 +740,36 @@ def test_kf6_framework_packages_per_distro(monkeypatch, token, arch, fedora, gen
     assert distro.package_for(token, arch) == fedora
     _force_distro(monkeypatch, "opensuse-tumbleweed", ("opensuse",))
     assert distro.package_for(token, arch) == fedora
-    _force_distro(monkeypatch, "gentoo")
-    assert distro.package_for(token, arch) == gentoo
 
 
 # ── Plasma / KSysGuard / plasma-workspace cmake configs ──────────────
 
 
 _PLASMA_TOKENS = [
-    # token, arch, fedora, opensuse, gentoo
+    # token, arch, fedora, opensuse
     ("plasma-cmake",
-     "libplasma", "libplasma-devel", "libplasma6-devel",
-     "kde-plasma/libplasma"),
+     "libplasma", "libplasma-devel", "libplasma6-devel"),
     ("plasma-activities-cmake",
-     "plasma-activities", "plasma-activities-devel", "plasma6-activities-devel",
-     "kde-plasma/plasma-activities"),
+     "plasma-activities", "plasma-activities-devel", "plasma6-activities-devel"),
     ("plasma-activities-stats-cmake",
      "plasma-activities-stats", "plasma-activities-stats-devel",
-     "plasma6-activities-stats-devel",
-     "kde-plasma/plasma-activities-stats"),
+     "plasma6-activities-stats-devel"),
     ("ksysguard-cmake",
-     "libksysguard", "libksysguard-devel", "libksysguard6-devel",
-     "kde-plasma/libksysguard"),
+     "libksysguard", "libksysguard-devel", "libksysguard6-devel"),
     # LibNotificationManager and LibTaskManager both live in
     # plasma-workspace's -devel package — preserved as two logical
     # tokens so the deps() in plasmoids.py / globalmenu.py reads
     # naturally and a failure names the right cmake config.
     ("libnotificationmanager-cmake",
-     "plasma-workspace", "plasma-workspace-devel", "plasma6-workspace-devel",
-     "kde-plasma/plasma-workspace"),
+     "plasma-workspace", "plasma-workspace-devel", "plasma6-workspace-devel"),
     ("libtaskmanager-cmake",
-     "plasma-workspace", "plasma-workspace-devel", "plasma6-workspace-devel",
-     "kde-plasma/plasma-workspace"),
+     "plasma-workspace", "plasma-workspace-devel", "plasma6-workspace-devel"),
 ]
 
 
-@pytest.mark.parametrize("token,arch,fedora,opensuse,gentoo", _PLASMA_TOKENS)
+@pytest.mark.parametrize("token,arch,fedora,opensuse", _PLASMA_TOKENS)
 def test_plasma_packages_per_distro(
-    monkeypatch, token, arch, fedora, opensuse, gentoo,
+    monkeypatch, token, arch, fedora, opensuse,
 ):
     _force_distro(monkeypatch, "arch")
     assert distro.package_for(token, arch) == arch
@@ -802,8 +779,6 @@ def test_plasma_packages_per_distro(
     assert distro.package_for(token, arch) == fedora
     _force_distro(monkeypatch, "opensuse")
     assert distro.package_for(token, arch) == opensuse
-    _force_distro(monkeypatch, "gentoo")
-    assert distro.package_for(token, arch) == gentoo
 
 
 # ── KWin + KDecoration (acrylic-glass effect only) ───────────────────
@@ -816,7 +791,6 @@ def test_plasma_packages_per_distro(
     ("nobara",              ("fedora",),    "kwin-devel"),
     ("opensuse",            (),             "kwin6-devel"),
     ("opensuse-tumbleweed", ("opensuse",),  "kwin6-devel"),
-    ("gentoo",              (),             "kde-plasma/kwin"),
 ])
 def test_kwin_cmake_package_per_distro(monkeypatch, distro_id, id_like, expected):
     _force_distro(monkeypatch, distro_id, id_like)
@@ -830,7 +804,6 @@ def test_kwin_cmake_package_per_distro(monkeypatch, distro_id, id_like, expected
     ("nobara",              ("fedora",),    "kdecoration-devel"),
     ("opensuse",            (),             "kdecoration6-devel"),
     ("opensuse-tumbleweed", ("opensuse",),  "kdecoration6-devel"),
-    ("gentoo",              (),             "kde-plasma/kdecoration"),
 ])
 def test_kdecoration_cmake_package_per_distro(
     monkeypatch, distro_id, id_like, expected,
@@ -846,7 +819,6 @@ def test_kdecoration_cmake_package_per_distro(
     ("arch",     "libepoxy"),
     ("fedora",   "libepoxy-devel"),
     ("opensuse", "libepoxy-devel"),
-    ("gentoo",   "media-libs/libepoxy"),
 ])
 def test_epoxy_cmake_package_per_distro(monkeypatch, distro_id, expected):
     _force_distro(monkeypatch, distro_id)
@@ -857,7 +829,6 @@ def test_epoxy_cmake_package_per_distro(monkeypatch, distro_id, expected):
     ("arch",     "libx11"),
     ("fedora",   "libX11-devel"),
     ("opensuse", "libX11-devel"),
-    ("gentoo",   "x11-libs/libX11"),
 ])
 def test_x11_cmake_package_per_distro(monkeypatch, distro_id, expected):
     _force_distro(monkeypatch, distro_id)
@@ -870,7 +841,6 @@ def test_x11_cmake_package_per_distro(monkeypatch, distro_id, expected):
     ("ubuntu",   "libxext-dev"),
     ("fedora",   "libXext-devel"),
     ("opensuse", "libXext-devel"),
-    ("gentoo",   "x11-libs/libXext"),
 ])
 def test_xext_cmake_package_per_distro(monkeypatch, distro_id, expected):
     _force_distro(monkeypatch, distro_id)
@@ -881,7 +851,6 @@ def test_xext_cmake_package_per_distro(monkeypatch, distro_id, expected):
     ("arch",     "libxcb"),
     ("fedora",   "libxcb-devel"),
     ("opensuse", "libxcb-devel"),
-    ("gentoo",   "x11-libs/libxcb"),
 ])
 def test_xcb_cmake_package_per_distro(monkeypatch, distro_id, expected):
     _force_distro(monkeypatch, distro_id)
@@ -896,7 +865,6 @@ def test_xcb_cmake_package_per_distro(monkeypatch, distro_id, expected):
     ("cachyos", ("arch",), "libxcb"),
     ("fedora", (), "libxcb-devel"),
     ("opensuse-tumbleweed", ("opensuse",), "libxcb-devel"),
-    ("gentoo", (), "x11-libs/libxcb"),
 ])
 @pytest.mark.parametrize("feature", ["acrylic_glass", "rounded_corners"])
 def test_kwin_effect_dependencies_include_xcb_extension_headers(
@@ -932,7 +900,6 @@ def test_kwin_effect_dependencies_include_xcb_extension_headers(
     ("cachyos",  ("arch",),  "vulkan-icd-loader"),   # the reported box
     ("fedora",   (),         "vulkan-loader-devel"),
     ("opensuse", (),         "vulkan-devel"),   # NOT vulkan-loader (404 on zypper)
-    ("gentoo",   (),         "media-libs/vulkan-loader"),
 ])
 def test_vulkan_loader_package_per_distro(
         monkeypatch, distro_id, id_like, expected):
@@ -946,7 +913,6 @@ def test_vulkan_loader_package_per_distro(
     ("cachyos",  ("arch",),  "vulkan-headers"),
     ("fedora",   (),         "vulkan-headers"),
     ("opensuse", (),         "vulkan-headers"),
-    ("gentoo",   (),         "dev-util/vulkan-headers"),
 ])
 def test_vulkan_headers_package_per_distro(
         monkeypatch, distro_id, id_like, expected):
@@ -966,7 +932,6 @@ def test_vulkan_headers_package_per_distro(
     ("nobara",              ("fedora",),   ["dnf", "install", "-y"]),
     ("rhel",                (),            ["dnf", "install", "-y"]),
     ("opensuse-tumbleweed", ("opensuse",), ["zypper", "--non-interactive", "install", "--no-recommends"]),
-    ("gentoo",              (),            ["emerge", "--ask=n", "--quiet", "--noreplace"]),
     ("debian",              (),            ["apt-get", "install", "-y"]),
     ("ubuntu",              (),            ["apt-get", "install", "-y"]),
     ("neon",                ("ubuntu", "debian"), ["apt-get", "install", "-y"]),
@@ -983,7 +948,6 @@ _NONINTERACTIVE_FLAGS = {
     "pacman": "--noconfirm",
     "dnf":    "-y",
     "zypper": "--non-interactive",
-    "emerge": "--ask=n",
     "apt-get": "-y",
 }
 
@@ -991,7 +955,7 @@ _NONINTERACTIVE_FLAGS = {
 @pytest.mark.parametrize("distro_id, id_like", [
     ("arch", ()), ("cachyos", ("arch",)), ("fedora", ()),
     ("nobara", ("fedora",)), ("rhel", ()), ("centos", ()),
-    ("opensuse-tumbleweed", ("opensuse",)), ("gentoo", ()),
+    ("opensuse-tumbleweed", ("opensuse",)),
     ("debian", ()), ("ubuntu", ()), ("neon", ("ubuntu", "debian")),
 ])
 def test_install_cmd_is_always_non_interactive(monkeypatch, distro_id, id_like):
@@ -1011,7 +975,6 @@ def test_install_cmd_is_always_non_interactive(monkeypatch, distro_id, id_like):
     ("cachyos",             ("arch",),     ["pacman", "-Sy", "--noconfirm"]),
     ("fedora",              (),            None),
     ("opensuse-tumbleweed", ("opensuse",), None),
-    ("gentoo",              (),            None),
     ("debian",              (),            ["apt-get", "update"]),
     ("ubuntu",              (),            ["apt-get", "update"]),
     ("neon",                ("ubuntu", "debian"), ["apt-get", "update"]),
@@ -1075,3 +1038,14 @@ def test_kde_libexec_binary_rejects_paths_as_helper_names(monkeypatch):
 
     monkeypatch.setattr(distro.shutil, "which", unexpected_lookup)
     assert distro.kde_libexec_binary("../plasma-changeicons") is None
+
+
+@pytest.mark.parametrize("distro_id,id_like", [
+    ("gentoo", ()), ("gentoo", ("arch",)), ("calculate", ("gentoo",)),
+    ("derivative", ("gentoo", "arch")),
+])
+def test_retired_gentoo_rejects_package_changes(monkeypatch, distro_id, id_like):
+    _force_distro(monkeypatch, distro_id, id_like)
+    for command in (distro.package_manager_install_cmd, distro.package_manager_sync_cmd):
+        with pytest.raises(distro.UnsupportedDistroError, match="Gentoo support was retired"):
+            command()

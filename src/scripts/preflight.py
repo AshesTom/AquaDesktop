@@ -89,7 +89,7 @@ def _allowed_roots() -> tuple[re.Pattern, ...]:
         re.compile(rf"^{re.escape(str(root))}(/|$)")
         for root in sorted(user_roots, key=str)
     )
-    # Qt roots come from qmake6 so nonstandard libdirs (Gentoo /usr/lib64,
+    # Qt roots come from qmake6 so nonstandard libdirs (openSUSE /usr/lib64,
     # Debian multiarch) validate without a hand-maintained list.
     try:
         qt_plugins = re.escape(str(qt6_plugins_dir()))
@@ -181,7 +181,7 @@ def _check_paths() -> bool:
 def _check_qt_paths() -> bool:
     """Cross-check every compiled-step destination against qmake6's
     reported plugin / QML dirs so a hardcoded libdir can't regress past
-    the distro layer — Gentoo reports /usr/lib64 while others report /usr/lib."""
+    the distro layer — openSUSE reports /usr/lib64 while others report /usr/lib."""
     try:
         plugins = qt6_plugins_dir()
         qml = qt6_qml_dir()
