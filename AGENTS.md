@@ -1,9 +1,13 @@
 # AGENTS.md
 
-## #1 — Código autoexplicativo
+## #1 — Self-explanatory code
 
-No expliques qué hace un comando de la terminal si ya es obvio (por ejemplo,
-`npm install`). Añade explicaciones solo cuando sean necesarias o se pidan.
+Do not explain what a terminal command does when it is already obvious
+(for example, `npm install`). Add explanations only when needed or requested.
+
+Match the user's language in replies and avoid mixing English and Spanish
+prose. Keep commands, code identifiers, file paths and product names unchanged.
+Keep this document in English.
 
 This file is the authoritative reference for working on
 **macos-tahoe-liquid-kde**. Mirrors at `CLAUDE.md`, `CODEX.md`, and
