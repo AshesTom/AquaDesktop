@@ -113,7 +113,7 @@ Options:
   Theme mode:
     --light            Force light theme
     --dark             Force dark theme
-    --auto             Automatic switching via sunrise/sunset (default)
+    --auto             Automatic switching at 06:00 and 18:00 (default)
 
   Feature flags (prefix with --no- to disable):
     --only             Disable all features first, then enable only those listed

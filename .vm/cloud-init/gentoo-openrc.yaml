@@ -464,7 +464,7 @@ write_files:
       # target disk /dev/vdb so both boot paths work whichever way ./vm
       # attaches it.
       echo "--- grub ---"
-      append_make_conf 'GRUB_PLATFORMS="efi pc"'
+      append_make_conf 'GRUB_PLATFORMS="efi-64 pc"'
       emerge_binpkg_with_autounmask sys-boot/grub
 
       # Desktop stack. Single meta target instead of individually-pinned
@@ -537,8 +537,7 @@ write_files:
       # then BIOS, so the disk boots under either QEMU firmware.
       echo "--- grub-install + grub-mkconfig ---"
       grub-install --target=x86_64-efi --efi-directory=/efi \
-          --removable "$DISK" \
-          || echo "WARNING: EFI grub-install failed" >&2
+          --removable "$DISK"
       grub-install --target=i386-pc "$DISK" \
           || echo "WARNING: BIOS grub-install failed" >&2
       grub-mkconfig -o /boot/grub/grub.cfg

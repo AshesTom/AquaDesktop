@@ -139,6 +139,26 @@ def test_gentoo_openrc_accepts_only_the_required_firmware_license():
     assert "ACCEPT_LICENSE=" not in script
 
 
+def test_gentoo_openrc_requires_working_efi_bootloader():
+    script = _provision_script()
+    assert 'GRUB_PLATFORMS="efi-64 pc"' in script
+    bootloader = script.split('echo "--- grub-install + grub-mkconfig ---"', 1)[1]
+    bootloader = bootloader.split('grub-mkconfig', 1)[0]
+    result = subprocess.run(
+        ["bash", "-e"],
+        input=(
+            'DISK=/dev/fixture\n'
+            'grub-install() { return 42; }\n'
+            + bootloader
+            + '\necho incorrectly-continued\n'
+        ),
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 42
+    assert "incorrectly-continued" not in result.stdout
+
+
 def test_gentoo_openrc_preseeds_binary_kernel_initramfs_use_flag():
     assert "sys-kernel/installkernel dracut" in _provision_script()
 
