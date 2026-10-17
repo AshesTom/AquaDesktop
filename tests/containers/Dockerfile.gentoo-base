@@ -35,6 +35,7 @@ RUN emerge-webrsync && \
     # against a fresh ::gentoo snapshot.
     printf '%s\n' \
         'dev-qt/qtbase opengl wayland cups' \
+        'dev-qt/qttools qml qdoc llvm_slot_22 -llvm_slot_17 -llvm_slot_18 -llvm_slot_19 -llvm_slot_20 -llvm_slot_21' \
         'dev-qt/qt5compat qml' \
         'dev-qt/qtmultimedia qml opengl' \
         'dev-qt/qtquick3d opengl' \
