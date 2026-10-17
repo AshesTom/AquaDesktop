@@ -22,6 +22,9 @@ RUN emerge-webrsync && \
     # 32-bit anywhere, so forcing the no-multilib ABI is the
     # honest fix instead of papering over individual packages.
     echo 'ABI_X86="64"' >> /etc/portage/make.conf && \
+    mkdir -p /etc/portage/package.mask && \
+    # Mesa's current compiler requires the LLVM 22 libclc series.
+    echo '>=llvm-runtimes/libclc-23' > /etc/portage/package.mask/mttkde-sdk && \
     echo '*/*  ~amd64' > /etc/portage/package.accept_keywords/all && \
     echo 'x11-libs/libxkbcommon X' > /etc/portage/package.use/libxkbcommon && \
     # libcanberra is a kde-plasma/kwin dep; its USE="udev" requires
@@ -35,6 +38,7 @@ RUN emerge-webrsync && \
     # front. Sourced from the autounmask output of the first build
     # against a fresh ::gentoo snapshot.
     printf '%s\n' \
+        'dev-python/pillow -truetype' \
         'dev-qt/qtbase opengl wayland cups libproxy icu' \
         'dev-qt/qttools qml qdoc llvm_slot_22 -llvm_slot_17 -llvm_slot_18 -llvm_slot_19 -llvm_slot_20 -llvm_slot_21' \
         'dev-qt/qt5compat qml' \
@@ -57,7 +61,7 @@ RUN emerge-webrsync && \
         'sys-apps/dbus X' \
         'sys-apps/systemd policykit' \
         'sys-auth/polkit systemd' \
-        'llvm-core/libclc spirv' \
+        'llvm-runtimes/libclc spirv' \
         'dev-util/mesa_clc -debug' \
         > /etc/portage/package.use/mttkde-plasma && \
     getuto && \
