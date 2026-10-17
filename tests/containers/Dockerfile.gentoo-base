@@ -89,8 +89,9 @@ RUN emerge-webrsync && \
         kde-plasma/kwin kde-plasma/kdecoration \
         # libepoxy + X11/XCB headers used by the acrylic-glass effect.
         media-libs/libepoxy x11-libs/libX11 x11-libs/libxcb && \
-    # Trim build artefacts to keep the published image small. The
-    # distfiles + binpkg cache + portage tree aren't needed at runtime
-    # (the tests only call qmake6 / cmake / kreadconfig6 — no further
-    # emerges).
-    rm -rf /var/cache/distfiles/* /var/cache/binpkgs/* /var/db/repos/gentoo
+    # Package-resolution probes need the repository's ebuild metadata.
+    # Keep it, and verify the SDK before publishing a reusable base.
+    portageq has_version / kde-frameworks/extra-cmake-modules && \
+    portageq has_version / kde-plasma/kwin && \
+    portageq has_version / kde-plasma/libplasma && \
+    rm -rf /var/cache/distfiles/* /var/cache/binpkgs/*
