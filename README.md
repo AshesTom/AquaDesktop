@@ -6,12 +6,10 @@
 
 [![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1417_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
 
-Bring a little Tahoe to your Linux desktop.
-
-A macOS Tahoe-inspired theme for KDE Plasma 6.6, 6.7 and 6.8, with liquid glass, a top menu bar, a Dock, matching app themes, sounds, and a boot screen. Pick the parts you like in the installer.
+macOS Tahoe-inspired glass, Dock, global menu and app themes for KDE Plasma 6.6–6.8.
 
 > [!CAUTION]
-> This project is experimental and under active development. Don't use it on a production system yet. KDE, KWin, or Kvantum updates may temporarily break parts of the theme; running `sudo ./install` again usually restores them. If something goes wrong, please [open an issue](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new).
+> Experimental. Desktop updates may break compatibility. Avoid production systems; [report issues here](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new).
 
 <br>
 
@@ -19,7 +17,7 @@ A macOS Tahoe-inspired theme for KDE Plasma 6.6, 6.7 and 6.8, with liquid glass,
 
 ### Acrylic Glass Tahoe Launcher
 
-Find an app with a quick search, keep your favorites close, or browse with a choice of two views.
+Search, favorites and two app views.
 
 <p align="center">
   <img src="src/screenshots/launcher_v4.png" alt="Application launcher in light mode" width="415">
@@ -30,7 +28,7 @@ Find an app with a quick search, keep your favorites close, or browse with a cho
 
 ### Acrylic Glass Tahoe Dock
 
-Your apps sit on a glass Dock that refracts the wallpaper, with hover zoom and notification badges to show what needs your attention.
+Glass refraction, hover zoom, notification badges and auto-hide.
 
 <p align="center">
   <img src="src/screenshots/dock_1_v4.png" alt="Glass Dock with pinned applications" width="840">
@@ -40,18 +38,18 @@ Your apps sit on a glass Dock that refracts the wallpaper, with hover zoom and n
 
 ### Acrylic Glass Tahoe Finder
 
-Give Nautilus a familiar Finder feel, with a macOS-style sidebar and a simpler toolbar in both light and dark modes.
+Finder-style Nautilus in light and dark.
 
 <p align="center">
-  <img src="src/screenshots/finder_v4.png" alt="Nautilus with the light Finder-style theme and sample folders" width="415">
-  <img src="src/screenshots/finder_dark_v4.png" alt="Nautilus with the dark Finder-style theme and sample folders" width="415">
+  <img src="src/screenshots/finder_v4.png" alt="Finder-style Nautilus in light mode" width="415">
+  <img src="src/screenshots/finder_dark_v4.png" alt="Finder-style Nautilus in dark mode" width="415">
 </p>
 
 <br>
 
 ### Acrylic Glass Tahoe Menu
 
-Keep the system menu, active app name, and window controls together in the top bar, with app menus available for applications that support the global menu.
+System controls and global menus for compatible apps.
 
 <p align="center">
   <img src="src/screenshots/menu_v4.png" alt="System menu in light mode" width="415">
@@ -62,18 +60,14 @@ Keep the system menu, active app name, and window controls together in the top b
 
 ### System Information
 
-Check your computer's details in a glass window that fits the rest of the desktop.
-
 <p align="center">
-  <img src="src/screenshots/about_v4.png" alt="About This Computer in light mode, with private identifiers hidden" width="415">
-  <img src="src/screenshots/about_dark_v4.png" alt="About This Computer in dark mode, with private identifiers hidden" width="415">
+  <img src="src/screenshots/about_v4.png" alt="About This Computer in light mode" width="415">
+  <img src="src/screenshots/about_dark_v4.png" alt="About This Computer in dark mode" width="415">
 </p>
 
 <br>
 
 ### Plasma Theme
-
-Even the desktop's right-click menu gets the glass treatment, with a translucent background and blur.
 
 <p align="center">
   <img src="src/screenshots/context_menu_v4.png" alt="Desktop context menu in light mode" width="415">
@@ -84,7 +78,7 @@ Even the desktop's right-click menu gets the glass treatment, with a translucent
 
 ### Boot Splash
 
-An Apple-style logo sits at the center of each monitor, scaling to fit displays from 1080p to 4K. A progress bar appears during startup; shutdown and reboot keep the same layout without it. If your disk uses LUKS2 encryption, Plymouth shows a masked passphrase field below the logo.
+Plymouth startup and shutdown theme with LUKS2 unlock support.
 
 <p align="center">
   <img src="src/screenshots/boot_v4.png" alt="Plymouth startup splash with a progress bar" width="415">
@@ -95,22 +89,20 @@ An Apple-style logo sits at the center of each monitor, scaling to fit displays 
 
 ![Getting started](https://img.shields.io/badge/getting-started-3B7B5B?style=for-the-badge&logo=gnubash&logoColor=white)
 
-Open the graphical installer and choose what you'd like to install or remove:
+**Graphical installer**
 
 ```bash
 ./installer
 ```
 
-For the same choices in a terminal wizard:
+**Terminal wizard**
 
 ```bash
 sudo ./install
 sudo ./uninstall
 ```
 
-Both installers show live progress and support English, Spanish, and Simplified Chinese. Run `sudo ./install --help` for all options.
-
-<br>
+English, Spanish and Simplified Chinese. All options: `sudo ./install --help`.
 
 <details>
 <summary><b>Requirements</b></summary>
@@ -124,7 +116,7 @@ Both installers show live progress and support English, Spanish, and Simplified 
 - `dbus-send`
 - `systemctl` or `crontab` for scheduled features
 
-Theme assets are bundled. The optional KDE Rounded Corners effect needs an internet connection; the rest installs without it.
+Assets are bundled. Missing dependencies and optional KDE Rounded Corners require internet access.
 
 | Distro | Qt 6 tools | KDE Plasma 6 development packages |
 |--------|------------|-----------------------------------|
@@ -138,7 +130,7 @@ Theme assets are bundled. The optional KDE Rounded Corners effect needs an inter
 <details>
 <summary><b>Choose features and theme mode</b></summary>
 
-Any flag skips the terminal wizard. Use `--no-<name>` to leave out a component, or `--only` to install or remove selected components:
+Flags skip the wizard. Exclude components with `--no-<name>` or select them with `--only`:
 
 ```bash
 sudo ./install --no-gtk --no-sddm
@@ -146,19 +138,19 @@ sudo ./install --only --fonts --icons
 sudo ./uninstall --only --cursors
 ```
 
-Available feature names:
+**Features**
 
 `wallpapers`, `fonts`, `cursors`, `plasma-theme`, `window-decorations`, `kvantum`, `color-schemes`, `icons`, `plasmoids`, `globalmenu`, `acrylic-glass`, `rounded-corners`, `global-theme`, `layout`, `sounds`, `gtk`, `firefox`, `sddm`, `apps`, `nautilus`, `nautilus-bookmarks`, `portals`, `oled-care`, `plymouth`.
 
-Choose the initial theme mode:
+**Theme mode**
 
 ```bash
-sudo ./install          # automatic light/dark schedule
+sudo ./install          # auto: light at 06:00, dark at 18:00
 sudo ./install --light
 sudo ./install --dark
 ```
 
-Switch later with:
+**Live switching**
 
 ```bash
 mac-tahoe-theme-switch light
@@ -166,14 +158,14 @@ mac-tahoe-theme-switch dark
 mac-tahoe-theme-switch auto
 ```
 
-Save or reset installer choices:
+**Saved choices**
 
 ```bash
 sudo ./install --no-gtk --dark --save
 sudo ./install --reset
 ```
 
-Useful maintenance options:
+**Maintenance**
 
 - `--preflight` checks the system without installing.
 - `--no-apply-theme` stages files without switching the desktop.
@@ -187,36 +179,24 @@ Useful maintenance options:
 <details>
 <summary><b>Glass and rounded-corner troubleshooting</b></summary>
 
-VirtualBox VM surfaces are excluded from Acrylic Glass in v0.53.0 to prevent
-glass from filling fullscreen or seamless windows. The VirtualBox manager
-keeps its normal appearance ([#90](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/90)).
-
-If small triangles appear at window corners with both effects enabled, open
-**System Settings → Window Management → Desktop Effects → Acrylic Glass**
-and adjust the window, dock, and popup corner radii. Setting them to `28`
-resolved the reported case. Starting with v0.53.0, reinstall preserves these
-adjustments. The effects retain independent defaults; this release does not
-automatically change existing radii ([#89](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/89)).
-
-The desktop-edit overlay reported with ShapeCorners remains under investigation.
-Disabling **KDE Rounded Corners** in Desktop Effects was the reporter's
-workaround ([#77](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/77)).
+- **Corner artifacts:** adjust window, Dock and popup radii in **System Settings → Window Management → Desktop Effects → Acrylic Glass**. A radius of `28` resolved [#89](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/89); reinstall preserves custom values.
+- **Desktop-edit overlay:** disabling KDE Rounded Corners is a reported workaround; [#77](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/77) remains unresolved.
+- VirtualBox VM windows are excluded from glass to preserve seamless cutouts ([#90](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/90)). The manager is unaffected.
 
 </details>
 
 <details>
-<summary><b>Firefox theme and profile safety</b></summary>
+<summary><b>Firefox theme</b></summary>
 
-The Firefox theme works with native, Flatpak, and Snap profiles. Your browser data and existing customizations are preserved. Restart the browser to see the changes.
-
-UI settings are backed up before changes, and uninstall removes the theme's additions. Backups remain in `~/.local/state/mac-tahoe-liquid-kde/firefox/snapshots/` for recovery.
+Supports native, Flatpak and Snap profiles. Restart Firefox after installation.
+Browser data and customizations are preserved; uninstall removes the theme's additions. UI backups: `~/.local/state/mac-tahoe-liquid-kde/firefox/snapshots/`.
 
 </details>
 
 <details>
 <summary><b>OLED care</b></summary>
 
-OLED care is off by default. Enable it in the graphical feature picker or from the command line:
+Optional panel shifts; disabled by default.
 
 ```bash
 sudo ./install --oled-care
@@ -225,7 +205,7 @@ sudo ./install --no-oled-care
 sudo ./install --oled-care --oled-interval=3 --oled-max-shift=4
 ```
 
-Manual controls:
+**Manual controls**
 
 ```bash
 mac-tahoe-oled-care shift
@@ -238,37 +218,27 @@ mac-tahoe-oled-care status
 <details>
 <summary><b>Test in a virtual machine</b></summary>
 
-Try the theme in a disposable Plasma VM:
-
 ```bash
 ./vm <os>
 ```
 
-**Choose your OS:** `cachyos` · `arch` · `manjaro` · `endeavouros` · `garuda` · `fedora` · `nobara` · `opensuse` · `neon` · `gentoo` · `gentoo-openrc`
+**OS:** `cachyos` · `arch` · `manjaro` · `endeavouros` · `garuda` · `fedora` · `nobara` · `opensuse` · `neon` · `gentoo` · `gentoo-openrc`
 
-Use `all` to launch every distro.
+`all` launches every distro.
 
 </details>
-
-<br>
 
 <details>
 <summary><b>Reduced transparency</b></summary>
 
-After installing the current Plasma, GTK and Kvantum themes, open `./installer`,
-click **Features** (the gear), choose **Transparency → Standard / Reduced**,
-and click **Apply now**. You can also run:
+`./installer` → **Features → Transparency → Standard / Reduced → Apply now**.
 
 ```sh
 mac-tahoe-theme-switch transparency reduced
 ```
 
-This selects approximately 96%-opaque panel, Dock, popup and application
-surfaces while retaining rounded shapes, highlights, shadows and blur. The
-preference persists across light/dark changes and login. It covers the bundled
-Plasma, Kvantum and GTK themes; applications drawing their own surfaces may
-need their own appearance settings. Some GTK applications need reopening.
-Restore the original appearance with
+Applies to bundled Plasma, Kvantum and GTK themes and persists across theme
+switches and login. Reopen GTK apps if needed. Restore with
 `mac-tahoe-theme-switch transparency standard`.
 
 </details>
@@ -276,13 +246,9 @@ Restore the original appearance with
 <details>
 <summary><b>NixOS and Home Manager (testing)</b></summary>
 
-Use the flake and declarative modules on NixOS, **not `sudo ./install`**.
-Packages build against your selected Nixpkgs Qt/KWin SDK in the Nix store.
-Rounded Corners uses the installer's verified upstream pin, fetched at build
-time; activation performs no downloads. A booted NixOS desktop has not yet
-been qualified, so this installation path remains **testing**.
+Use the flake modules, **not `sudo ./install`**. Live desktop validation is pending.
 
-Add this input to a flake already using Nixpkgs and Home Manager:
+**Flake input** (requires Nixpkgs and Home Manager):
 
 ```nix
 inputs.mac-tahoe = {
@@ -292,7 +258,7 @@ inputs.mac-tahoe = {
 };
 ```
 
-Import `inputs.mac-tahoe.nixosModules.default` in your NixOS configuration:
+**NixOS:** import `inputs.mac-tahoe.nixosModules.default`.
 
 ```nix
 services.desktopManager.plasma6.enable = true;
@@ -300,8 +266,7 @@ services.mac-tahoe.enable = true;
 # services.mac-tahoe.plymouth.enable = true; # optional boot splash
 ```
 
-Import `inputs.mac-tahoe.homeManagerModules.default` in your Home Manager
-configuration and enable:
+**Home Manager:** import `inputs.mac-tahoe.homeManagerModules.default`.
 
 ```nix
 programs.mac-tahoe = {
@@ -313,42 +278,32 @@ programs.mac-tahoe = {
 };
 ```
 
-Apple fonts, wallpapers and sounds are a separate non-free package, disabled
-by default. To enable `appleAssets`, explicitly allow it in your Nixpkgs policy:
+**Apple assets:** optional non-free fonts, wallpapers and sounds. Enabling
+`appleAssets` also requires:
 
 ```nix
 nixpkgs.config.allowUnfreePredicate = pkg:
   builtins.elem (lib.getName pkg) [ "mac-tahoe-apple-assets" ];
 ```
 
-For panels, import `inputs.mac-tahoe.homeManagerModules.plasma-manager`
-**alongside your own plasma-manager module and the default MacTahoe module**.
-Set `programs.mac-tahoe.panels.enable = true` and provide Dock pins explicitly
-in `programs.mac-tahoe.panels.launchers`, for example
-`[ "applications:org.kde.dolphin.desktop" ]`. This replaces the panel layout;
-existing pins are not imported. The Dock auto-hides. Plasma-manager is not a
-required flake input.
+**Panels:** also import your own plasma-manager module and
+`inputs.mac-tahoe.homeManagerModules.plasma-manager`. Enable
+`programs.mac-tahoe.panels.enable` and set `programs.mac-tahoe.panels.launchers`,
+e.g. `[ "applications:org.kde.dolphin.desktop" ]`. This replaces the layout
+without importing existing pins.
 
-Keep `kdeglobals`, `kwinrc`, `plasmarc`, `plasmashellrc`, `kcminputrc`,
-`plasma-org.kde.plasma.desktop-appletsrc`, `Kvantum/kvantum.kvconfig` and live GTK
-configuration writable. The module rejects whole-file Home Manager ownership
-of these paths. Avoid immutable plasma-manager keys for properties controlled
-by the theme switcher. Leave `reducedTransparency = null` (the default) to
-control it with the command above; a boolean makes Home Manager its owner.
+**Writable settings:** keep `kdeglobals`, `kwinrc`, `plasmarc`, `plasmashellrc`,
+`kcminputrc`, `plasma-org.kde.plasma.desktop-appletsrc`,
+`Kvantum/kvantum.kvconfig` and live GTK configuration writable. Avoid immutable
+plasma-manager keys managed by the theme switcher. `reducedTransparency = null`
+allows CLI control; a boolean gives Home Manager control.
 
-Log out and back in after activation to pick up the plugin/QML paths. The Nix
-path does not modify Firefox profiles, GTK bookmarks, or SDDM. Qt global menus
-are packaged; GTK global menus require an optional native GTK3 module supplied
-through `programs.mac-tahoe.gtkAppmenuModule`. Before disabling OLED care, run
-`mac-tahoe-oled-care restore`; before removing the theme modules, select Breeze
-in System Settings. User-owned runtime settings are not deleted on removal.
-
-Run `nix flake check` for native package builds, installed-artifact checks,
-Home Manager generation builds and module evaluation. Evaluate both exported
-architectures with `nix flake check --no-build --all-systems`.
+Log out and back in after activation. Firefox profiles, GTK bookmarks and SDDM
+are not configured. GTK global menus need `programs.mac-tahoe.gtkAppmenuModule`.
+Before disabling OLED care, run `mac-tahoe-oled-care restore`; before removing
+the modules, select Breeze. Removal leaves user settings in place.
 
 </details>
-
 
 <br>
 
@@ -373,8 +328,6 @@ architectures with `nix flake check --no-build --all-systems`.
 
 </details>
 
-<br>
-
 <details>
 <summary><b>Init systems</b></summary>
 
@@ -383,16 +336,10 @@ architectures with `nix flake check --no-build --all-systems`.
 | systemd | Supported | Completed |
 | OpenRC | Supported | In progress |
 
-Artix uses the Arch package mappings even when its `os-release` omits
-`ID_LIKE=arch`. Dependency installation, all three C++ builds, the full test
-suite, and crontab operations have been checked in an Artix OpenRC container.
-Live installation testing is still needed; Artix is not yet included in the
-automated container matrix. Scheduled theme changes and OLED care use
-the existing per-user cron support and require a running cron daemon.
+OpenRC scheduled features require a running cron daemon. Artix has container
+validation; live installation testing is pending.
 
 </details>
-
-<br>
 
 <details>
 <summary><b>Plasma versions</b></summary>
@@ -410,47 +357,45 @@ the existing per-user cron support and require a running cron daemon.
 
 ![Roadmap](https://img.shields.io/badge/project-roadmap-6B4B8A?style=for-the-badge&logo=github&logoColor=white)
 
-Still to come: icon polish, broader distro testing, and more app themes and widgets.
-
 <details>
-<summary><b>Open the full roadmap</b></summary>
+<summary><b>Component status</b></summary>
 
-| Component | Description | Status |
-|-----------|-------------|:------:|
-| Color Schemes | Light and dark colors that carry across the desktop | Available |
-| Wallpapers | Bundled Tahoe Iridescence and Landscape wallpapers | Available |
-| Fonts | SF Pro Display, Text, Rounded, and Mono | Available |
-| Cursors | Tahoe-style pointers to match the desktop | Available |
-| Plasma Theme | Glass panels and desktop menus | Available |
-| Kvantum Theme | A matching look for Qt apps in light and dark modes | Available |
-| GTK Theme | Matching themes for GTK 2, 3, and 4 apps | Available |
-| Acrylic Glass | Blur and wallpaper refraction for the glass look | Available |
-| KDE Rounded Corners | Rounded window corners | Available |
-| Auto Theme Switcher | Light at 06:00, dark at 18:00, while keeping wallpapers you choose | Available |
-| OLED Care | Small, optional panel shifts to help reduce burn-in risk | Available |
-| Installer UI | Choose what to install or remove in a graphical window | Available |
-| Installer TUI | Make the same choices in the terminal and follow live progress | Available |
-| Localization | Installers and widgets in English, Spanish, and Simplified Chinese | Available |
-| Aurorae Decorations | macOS-style title bars and window buttons | Available |
-| Global Menu | Menus from compatible apps in the top bar | Available |
-| Dock Task Manager | Your pinned apps, hover zoom, and notification badges | Available |
-| Nautilus | A Finder-style layout for browsing your files | Available |
-| Launcher | Search for apps or browse the grid | Available |
-| Trash | Open or empty the Trash from the Dock | Available |
-| Sounds | Matching notification and system sounds | Available |
-| Boot Screen | A logo on every monitor, a progress bar, and a masked LUKS2 unlock prompt | Available |
-| Shutdown Screen | The same splash during shutdown and reboot, without the progress bar | Available |
-| Firefox Theme | Matching browser styling, with backups and cleanup for each profile | Available |
-| Icons | Light and dark icons are bundled; coverage and consistency still need polish | In progress |
-| Multi-Distro Support | More desktop testing across the listed distros, including KDE neon | In progress |
-| OpenRC Testing | Scheduled theme changes and OLED care on OpenRC | In progress |
-| Konsole Theme | A terminal profile that matches the desktop | Planned |
-| Kate Theme | Matching colors for the text editor | Planned |
-| SDDM Theme | A matching login screen | Planned |
-| Calendar | A calendar you can open from the top bar | Planned |
-| Control Center | Quick access to common desktop settings | Planned |
-| System Preferences | A macOS-style launcher for system settings | Planned |
-| OS Selector | A boot menu for choosing your operating system | Planned |
+| Component | Status |
+|-----------|--------|
+| Color Schemes | Available |
+| Wallpapers | Available |
+| Fonts | Available |
+| Cursors | Available |
+| Plasma Theme | Available |
+| Kvantum Theme | Available |
+| GTK Theme | Available |
+| Acrylic Glass | Available |
+| KDE Rounded Corners | Available |
+| Auto Theme Switcher | Available |
+| OLED Care | Available |
+| Installer UI | Available |
+| Installer TUI | Available |
+| Localization | Available |
+| Aurorae Decorations | Available |
+| Global Menu | Available |
+| Dock Task Manager | Available |
+| Nautilus | Available |
+| Launcher | Available |
+| Trash | Available |
+| Sounds | Available |
+| Boot Screen | Available |
+| Shutdown Screen | Available |
+| Firefox Theme | Available |
+| Icons | In progress |
+| Multi-Distro Support | In progress |
+| OpenRC Testing | In progress |
+| Konsole Theme | Planned |
+| Kate Theme | Planned |
+| SDDM Theme | Planned |
+| Calendar | Planned |
+| Control Center | Planned |
+| System Preferences | Planned |
+| OS Selector | Planned |
 
 </details>
 
@@ -472,18 +417,16 @@ Still to come: icon polish, broader distro testing, and more app themes and widg
   <a href="https://github.com/evaildev"><img src="src/screenshots/contributors/evaildev.svg" width="40" height="40" alt="@evaildev" title="@evaildev"></a>
 </p>
 
-Thanks to everyone helping with code, translations, bug reports, and testing. You don't need to write code to contribute.
+**[Report a bug](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)** or use **Apple menu → About This Computer → Report a Bug…**.
 
-Bug reports are the most valuable contribution right now: **[open an issue](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)** or choose **Apple menu → About This Computer → Report a Bug…** from the desktop.
-
-Please include:
+Include:
 
 - Your Plasma version: `plasmashell --version`
 - Your distro: `grep PRETTY_NAME /etc/os-release`
 - The theme version: `cat VERSION`
 - A screenshot or recording for visual issues
 
-Pull requests are welcome. Keep them focused and test them with the `./vm` harness before submitting. See [CONTRIBUTING.md](CONTRIBUTING.md) for the project workflow.
+Keep pull requests focused and validate with `./vm`. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 <br>
 
