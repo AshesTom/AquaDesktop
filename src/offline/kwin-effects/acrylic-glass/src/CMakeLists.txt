@@ -66,6 +66,7 @@ if(GLASS_WAYLAND)
         KDecoration3::KDecoration
         KF6::ConfigGui
         KWin::kwin
+        XCB::XCB
     )
     # GLASS_KWIN_67 drives the 6.6-vs-6.7 ABI gating in kwin_version_compat.h.
     if(GLASS_KWIN_67_WAYLAND)

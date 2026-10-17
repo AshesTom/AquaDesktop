@@ -121,6 +121,33 @@ must fail. This does not reproduce Plasma's complete edit-mode UI or qualify
 NVIDIA hardware. `MTTKDE_ROUNDED_CORNERS_ARCHIVE` also enables the native
 eligibility regression in `tests/test_corner_rendering.py`.
 
+For menu and SVG visual checks, build the two unprivileged probe helpers:
+
+```sh
+cmake -S tests/native -B build/menu-probe
+cmake --build build/menu-probe -j 2
+python tests/menu_visual_probe.py --glass /path/to/liquidglass.so --rounded /path/to/kwin4_effect_shapecorners.so --shaders /path/to/built/shaders --output build/menu-capture
+QT_QPA_PLATFORM=offscreen build/menu-probe/menu-svg-frames "$PWD/src/offline/plasma-theme/MacTahoeLiquidKde-Light" build/plasma-frames.png
+```
+
+The menu probe requires KWayland, KSvg, PyQt6, GTK3/GTK4 introspection,
+KWin, Xwayland, Spectacle, qdbus6 and kbuildsycoca6. It stages bundled assets
+and the installer preset in a private home/configuration and D-Bus session;
+it never installs plugins or changes the running desktop. The pointer helper
+verifies the private compositor's D-Bus PID before sending input. Output must
+be a new directory. `--pointer` can select a helper built elsewhere.
+
+Repeat with `--mode Dark`, `--reduced`, `--backend xcb` and `--scale 1.25`.
+`--cases` selects individual menu, context, submenu, combo, tooltip, dialog,
+Plasma, GTK3 menu/popover and GTK4 popover cases. Each successful case records
+real effect-on/off screenshots; the probe also verifies the mapped plugin's
+path and inode. The Qt clients request a second paint after asynchronous
+blur-capability discovery, so these are settled-state captures, not a claim
+that every external application's first frame already requests blur correctly.
+The SVG helper renders five frame families through KSvg, including tooltip,
+dialog and panel backgrounds. See [recorded validation](tests/native/menu_visual_validation.md)
+for results and limits.
+
 For a Rounded Corners release-pin update, review the full upstream diff and
 verify the tag, commit and archive SHA-256 together. Run the opt-in native
 build test in an unprivileged, network-disabled container with the target

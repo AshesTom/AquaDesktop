@@ -45,6 +45,7 @@
 #include <QWindow>
 #include <cmath> // for ceil()
 #include <cstdlib>
+#include <climits>
 
 #include <KConfigGroup>
 #include <KSharedConfig>
@@ -481,29 +482,34 @@ void BlurEffect::updateBlurRegion(EffectWindow* w)
     std::optional<qreal> saturation;
     std::optional<qreal> contrast;
 
-    // X11: read the _KDE_NET_WM_BLUR_BEHIND_REGION cardinal array.
-    // Layout is repeating (x, y, w, h) tuples of 32-bit cardinals.
-    // EffectWindow::readProperty() was removed from the Wayland build in
-    // 6.7, so this client-property path only compiles where it still
-    // exists: any pre-6.7 build, or a dedicated X11 (GLASS_X11) target.
-#if KWIN_BUILD_X11 && (!ACRYLIC_GLASS_KWIN_6_7 || defined(GLASS_X11))
-    if (net_wm_blur_region != XCB_ATOM_NONE) {
-        const QByteArray value = w->readProperty(net_wm_blur_region, XCB_ATOM_CARDINAL, 32);
-        Region region;
-
-        if (value.size() > 0 && !(value.size() % (4 * sizeof(uint32_t)))) {
-            const uint32_t* cardinals = reinterpret_cast<const uint32_t*>(value.constData());
-            for (unsigned int i = 0; i < value.size() / sizeof(uint32_t);) {
-                int x = cardinals[i++];
-                int y = cardinals[i++];
-                int w = cardinals[i++];
-                int h = cardinals[i++];
-                region += Xcb::fromXNative(Rect(x, y, w, h)).toRect();
+    // Xwayland still advertises blur through the X11 property on KWin 6.7+,
+    // even though EffectWindow::readProperty was removed from that SDK.
+#if KWIN_BUILD_X11
+    if (net_wm_blur_region != XCB_ATOM_NONE && effects->xcbConnection() && w->windowId()) {
+        // Bound the response and reject malformed/truncated properties instead
+        // of treating them as the empty "blur the entire window" request.
+        const auto cookie = xcb_get_property(effects->xcbConnection(), false,
+            xcb_window_t(w->windowId()), net_wm_blur_region, XCB_ATOM_CARDINAL, 0, 16384);
+        const std::unique_ptr<xcb_get_property_reply_t, decltype(&std::free)> reply(
+            xcb_get_property_reply(effects->xcbConnection(), cookie, nullptr), &std::free);
+        if (reply && reply->type == XCB_ATOM_CARDINAL && reply->format == 32
+            && reply->bytes_after == 0 && reply->value_len % 4 == 0) {
+            Region region;
+            const auto *cardinals = static_cast<const uint32_t *>(xcb_get_property_value(reply.get()));
+            for (uint32_t i = 0; i < reply->value_len; i += 4) {
+                const int x = int32_t(cardinals[i]);
+                const int y = int32_t(cardinals[i + 1]);
+                const uint32_t width = cardinals[i + 2];
+                const uint32_t height = cardinals[i + 3];
+                if (width > INT_MAX || height > INT_MAX
+                    || int64_t(x) + width > INT_MAX || int64_t(y) + height > INT_MAX) {
+                    region = Region();
+                    break;
+                }
+                region += Xcb::fromXNative(Rect(x, y, int(width), int(height))).toRect();
             }
-        }
-
-        if (!value.isNull()) {
-            content = region;
+            // Invalid sizes must not authorize a full-window fallback.
+            if (reply->value_len == 0 || !region.isEmpty()) content = region;
         }
     }
 #endif
@@ -550,7 +556,7 @@ void BlurEffect::updateBlurRegion(EffectWindow* w)
     // own opaque chrome doesn't double-blur).
     if (m_blurDecorations && w->decorationHasAlpha() && decorationSupportsBlurBehind(w)) {
         frame = decorationBlurRegion(w);
-    } else if (m_blurDecorations && !(w->isDock() || w->isMenu() || w->isDropdownMenu() || w->isPopupMenu() || w->isPopupWindow())) {
+    } else if (m_blurDecorations && !(w->isDock() || w->isTooltip() || w->isMenu() || w->isDropdownMenu() || w->isPopupMenu() || w->isPopupWindow())) {
         frame = Rect(w->frameGeometry().translated(-w->x(), -w->y()).toRect());
     }
 
