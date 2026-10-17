@@ -17,8 +17,6 @@ A macOS Tahoe-inspired theme for KDE Plasma 6.6, 6.7 and 6.8, with liquid glass,
 
 ![Features and screenshots](https://img.shields.io/badge/features-%26%20screenshots-4B6B8A?style=for-the-badge&logo=kde&logoColor=white)
 
-Captured from a running Plasma session with standard transparency. The file manager uses sample folders, and private hardware identifiers are hidden. Boot and shutdown previews are rendered with Plymouth.
-
 ### Acrylic Glass Tahoe Launcher
 
 Find an app with a quick search, keep your favorites close, or browse with a choice of two views.
