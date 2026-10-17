@@ -36,7 +36,9 @@ def test_light_and_dark_menu_surfaces_have_equal_effective_opacity(repo):
 
 
 def test_gtk4_stylesheets_parse_without_errors(repo, tmp_path):
-    pytest.importorskip("gi")
+    gi = pytest.importorskip("gi")
+    if not callable(getattr(gi, "require_version", None)):
+        pytest.skip("PyGObject required; the gi namespace alone is insufficient")
     script = """
 import gi, pathlib, sys
 try: gi.require_version('Gtk','4.0')

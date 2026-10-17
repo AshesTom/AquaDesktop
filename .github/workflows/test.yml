@@ -40,7 +40,8 @@ jobs:
         #   - libepoxy + libdrm + libX11 + libxcb (acrylic-glass effect)
         run: |
           pacman -Syu --noconfirm \
-            python python-pytest bash git diffutils findutils \
+            python python-pytest python-gobject python-pyqt6 gtk4 \
+            qt6-svg xorg-server-xvfb nodejs bash git diffutils findutils \
             base-devel cmake extra-cmake-modules pkgconf \
             qt6-base qt6-declarative qt6-wayland qt6-tools \
             kconfig kconfigwidgets kcoreaddons kcrash kglobalaccel \
@@ -51,6 +52,11 @@ jobs:
             libksysguard plasma-workspace \
             kwin kdecoration \
             libepoxy libdrm libx11 libxcb
+      - name: Verify native popup test prerequisites
+        run: |
+          python -c "import gi; gi.require_version('Gtk', '4.0'); from gi.repository import Gtk; from PyQt6 import QtSvg"
+          command -v Xvfb
+          command -v node
       - name: Run tests
         run: |
           output=$(python -m pytest tests -q --ignore=tests/containers 2>&1) || exit_code=$?
