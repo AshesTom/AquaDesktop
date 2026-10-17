@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import threading
 
@@ -56,7 +57,7 @@ def test_shift_script_embeds_state_and_deltas():
     # fill panels get the height knob, everything else the offset knob
     assert 'p.lengthMode == "fill"' in script
     # the rebased base map must be printed back for persistence
-    assert "print(JSON.stringify(out))" in script
+    assert 'print(JSON.stringify(out) + "\\n")' in script
     assert 'print(normalize ? "normalized" : "shifted")' in script
 
 
@@ -68,6 +69,26 @@ def test_shift_script_does_not_mutate_an_unjournaled_or_rebased_panel():
     assert "if (!item.known || !item.matched) continue" in script
     assert "normalize ? 0 : nextH" in script
     assert "normalize ? 0 : nextOff" in script
+
+
+def test_shift_reply_parses_when_plasma_concatenates_print_calls():
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node required for Plasma script execution")
+    base = {"5": {"offset": 0, "height": 32}}
+    for known in (False, True):
+        script = """
+let reply = '';
+function print(value) { reply += String(value); }
+function panels() { return [{id: 5, offset: 0, height: 32, lengthMode: 'fill'}]; }
+""" + oled_care.build_shift_script(base if known else {}, 0, 0, 2, 2)
+        script += "\nprocess.stdout.write(reply);"
+        result = subprocess.run(
+            [node, "-e", script], capture_output=True, text=True,
+            check=True, timeout=10,
+        )
+        assert oled_care._parse_panel_map(result.stdout) == base
+        assert oled_care._shift_was_normalized(result.stdout) is (not known)
 
 
 def test_restore_script_only_undoes_our_delta():
@@ -506,7 +527,7 @@ def test_restore_waits_for_inflight_shift_and_consumes_its_state(
 
     def evaluate(script):
         scripts.append(script)
-        if "print(JSON.stringify(out))" in script:
+        if "print(JSON.stringify(out)" in script:
             entered.set()
             assert release.wait(2)
             return reply
