@@ -88,7 +88,9 @@ if(GLASS_X11)
     )
     if (${KWinX11_FOUND})
         find_package(KWinX11DBusInterface CONFIG REQUIRED)
-        set(KWin_VERSION ${KWinX11_VERSION})
+        if(NOT GLASS_WAYLAND)
+            set(KWin_VERSION ${KWinX11_VERSION})
+        endif()
     else()
         set(GLASS_X11 OFF)
     endif()
@@ -119,6 +121,10 @@ endif()
 # the flag is evaluated per backend below.
 set(GLASS_KWIN_67_WAYLAND OFF)
 set(GLASS_KWIN_67_X11 OFF)
+# 6.8 (6.7.90 beta onwards) made Effect::drawWindow() return bool; GLASS_KWIN_68
+# switches the override signature in kwin_version_compat.h.
+set(GLASS_KWIN_68_WAYLAND OFF)
+set(GLASS_KWIN_68_X11 OFF)
 # Nest the version test so the *_VERSION variable is only dereferenced
 # when its backend is actually enabled (and thus set). CMake's `AND`
 # does not short-circuit at parse time, so a single combined condition
@@ -128,13 +134,19 @@ if(GLASS_WAYLAND)
     if(${KWin_VERSION} VERSION_GREATER_EQUAL 6.7)
         set(GLASS_KWIN_67_WAYLAND ON)
     endif()
+    if(${KWin_VERSION} VERSION_GREATER_EQUAL 6.7.90)
+        set(GLASS_KWIN_68_WAYLAND ON)
+    endif()
 endif()
 if(GLASS_X11)
     if(${KWinX11_VERSION} VERSION_GREATER_EQUAL 6.7)
         set(GLASS_KWIN_67_X11 ON)
     endif()
+    if(${KWinX11_VERSION} VERSION_GREATER_EQUAL 6.7.90)
+        set(GLASS_KWIN_68_X11 ON)
+    endif()
 endif()
-message(STATUS "Acrylic Glass: KWin ${KWin_VERSION} (6.7 ABI: Wayland=${GLASS_KWIN_67_WAYLAND} X11=${GLASS_KWIN_67_X11})")
+message(STATUS "Acrylic Glass: KWin ${KWin_VERSION} (6.7 ABI: Wayland=${GLASS_KWIN_67_WAYLAND} X11=${GLASS_KWIN_67_X11}; 6.8 ABI: Wayland=${GLASS_KWIN_68_WAYLAND} X11=${GLASS_KWIN_68_X11})")
 
 find_package(KDecoration3 REQUIRED)
 

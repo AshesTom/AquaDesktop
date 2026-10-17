@@ -1,5 +1,10 @@
 """Static guards for the Acrylic Glass CMake fallback paths."""
 
+import re
+import shutil
+import subprocess
+
+import pytest
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -180,3 +185,63 @@ def test_corner_defaults_warn_on_failed_write(monkeypatch, capsys):
     monkeypatch.setattr(acrylic_glass, "kw_write", lambda *args: False)
     acrylic_glass._install_corner_defaults()
     assert "kwriteconfig6" in capsys.readouterr().out
+
+
+def test_acrylic_glass_gates_kwin_68_draw_window_api():
+    """KWin 6.8 (6.7.90 beta onwards) made Effect::drawWindow() return
+    bool and dropped snapToPixelGrid/snapToPixelGridF. The effect must
+    switch its override signature on GLASS_KWIN_68 and keep its own pixel
+    snapping helpers so it builds on 6.6, 6.7 and 6.8."""
+    top = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
+    assert "VERSION_GREATER_EQUAL 6.7.90" in top
+    src = (ROOT / "src/CMakeLists.txt").read_text(encoding="utf-8")
+    assert "target_compile_definitions(liquidglass PRIVATE GLASS_KWIN_68)" in src
+    assert "target_compile_definitions(liquidglass_x11 PRIVATE GLASS_KWIN_68)" in src
+
+    compat = (ROOT / "src/kwin_version_compat.h").read_text(encoding="utf-8")
+    assert "#ifdef GLASS_KWIN_68" in compat
+    assert "using AcrylicGlassDrawWindowResult = bool;" in compat
+    assert "using AcrylicGlassDrawWindowResult = void;" in compat
+
+    header = (ROOT / "src/effect.h").read_text(encoding="utf-8")
+    assert "AcrylicGlassDrawWindowResult drawWindow(" in header
+
+    effect = (ROOT / "src/effect.cpp").read_text(encoding="utf-8")
+    assert "AcrylicGlassDrawWindowResult BlurEffect::drawWindow(" in effect
+    # KWin's helpers are gone on 6.8; only the local copies may be called.
+    assert re.search(r"(?<![A-Za-z_])snapToPixelGridF?\(", effect) is None
+    assert "inline QRect agSnapToPixelGrid(" in effect
+    assert "inline QRectF agSnapToPixelGridF(" in effect
+
+
+def test_acrylic_glass_selects_abi_per_backend(tmp_path):
+    if not shutil.which("cmake"):
+        pytest.skip("cmake not available")
+    source = (ROOT / "CMakeLists.txt").read_text()
+    start = source.index("if(GLASS_WAYLAND)\n    find_package(KWin")
+    end = source.index("find_package(KDecoration3 REQUIRED)", start)
+    # Run the actual discovery/version logic with synthetic SDK versions.
+    for wayland, x11, expected in [
+        ("6.6.5", "", "OFF;OFF;OFF;OFF"),
+        ("6.7.4", "", "ON;OFF;OFF;OFF"),
+        ("6.7.90", "", "ON;OFF;ON;OFF"),
+        ("6.8.0", "6.7.4", "ON;ON;ON;OFF"),
+        ("", "6.8.0", "OFF;ON;OFF;ON"),
+    ]:
+        script = tmp_path / "versions.cmake"
+        result = tmp_path / "result"
+        script.write_text(
+            "macro(find_package)\nendmacro()\n"
+            f"set(GLASS_WAYLAND {'ON' if wayland else 'OFF'})\n"
+            f"set(GLASS_X11 {'ON' if x11 else 'OFF'})\n"
+            "set(KWin_FOUND TRUE)\nset(KWinX11_FOUND TRUE)\n"
+            f'set(KWin_VERSION "{wayland}")\n'
+            f'set(KWinX11_VERSION "{x11}")\n'
+            + source[start:end]
+            + f'file(WRITE "{result}" "${{GLASS_KWIN_67_WAYLAND}};'
+              '${GLASS_KWIN_67_X11};${GLASS_KWIN_68_WAYLAND};'
+              '${GLASS_KWIN_68_X11}")\n')
+        proc = subprocess.run(["cmake", "-P", str(script)],
+                              capture_output=True, text=True)
+        assert proc.returncode == 0, proc.stdout + proc.stderr
+        assert result.read_text() == expected

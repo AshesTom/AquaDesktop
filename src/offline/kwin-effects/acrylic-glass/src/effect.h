@@ -146,7 +146,7 @@ public:
     /// The main entry point — KWin asks us to paint window ``w``; we
     /// either delegate to ``blur()`` (when blur is wanted) or fall back
     /// to the default opaque draw.
-    void drawWindow(const RenderTarget& renderTarget, const RenderViewport& viewport, EffectWindow* w, int mask, const Region& deviceRegion,
+    AcrylicGlassDrawWindowResult drawWindow(const RenderTarget& renderTarget, const RenderViewport& viewport, EffectWindow* w, int mask, const Region& deviceRegion,
         WindowPaintData& data) override;
 
     /// Tells KWin we provide the ``Blur`` Feature — kcm/effects UI

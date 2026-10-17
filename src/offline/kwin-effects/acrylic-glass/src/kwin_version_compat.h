@@ -55,3 +55,13 @@
 #define ACRYLIC_GLASS_PRESENT_TIME_PARAM , std::chrono::milliseconds presentTime
 #define ACRYLIC_GLASS_PRESENT_TIME_ARG , presentTime
 #endif
+
+/// 6.8 changed Effect::drawWindow() to return bool ([[nodiscard]]):
+/// true when the window was actually painted.
+#ifdef GLASS_KWIN_68
+#define ACRYLIC_GLASS_KWIN_6_8 1
+using AcrylicGlassDrawWindowResult = bool;
+#else
+#define ACRYLIC_GLASS_KWIN_6_8 0
+using AcrylicGlassDrawWindowResult = void;
+#endif

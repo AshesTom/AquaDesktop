@@ -67,13 +67,29 @@ namespace KWin {
 #if ACRYLIC_GLASS_KWIN_6_7
 /// 6.7 removed the global scaledRect() helper (it lived in
 /// effect/globals.h pre-6.7). Re-provide it verbatim so the three call
-/// sites below stay version-agnostic; snapToPixelGrid* are still in the
-/// KWin headers.
+/// sites below stay version-agnostic.
 inline QRectF scaledRect(const QRectF& rect, qreal scale)
 {
     return QRectF{rect.x() * scale, rect.y() * scale, rect.width() * scale, rect.height() * scale};
 }
 #endif
+
+/// 6.8 removed snapToPixelGrid / snapToPixelGridF (replaced by the
+/// scale-aware snapToPixels in core/pixelgrid.h). Re-provide the old
+/// round-both-corners semantics under local names so every KWin
+/// version resolves the same implementation.
+inline QRectF agSnapToPixelGridF(const QRectF& rect)
+{
+    return QRectF(QPointF(std::round(rect.left()), std::round(rect.top())),
+                  QPointF(std::round(rect.right()), std::round(rect.bottom())));
+}
+
+inline QRect agSnapToPixelGrid(const QRectF& rect)
+{
+    const QPoint topLeft(std::round(rect.left()), std::round(rect.top()));
+    const QPoint bottomRight(std::round(rect.right()), std::round(rect.bottom()));
+    return QRect(topLeft.x(), topLeft.y(), bottomRight.x() - topLeft.x(), bottomRight.y() - topLeft.y());
+}
 
 /// X11 atom name we listen to for the blur-behind property protocol.
 static const QByteArray s_blurAtomName = QByteArrayLiteral("_KDE_NET_WM_BLUR_BEHIND_REGION");
@@ -875,12 +891,16 @@ bool BlurEffect::shouldBlur(const EffectWindow* w, int mask, const WindowPaintDa
 /// Delegate to ``blur()`` (which handles its own shouldBlur gate
 /// internally), then defer to KWin's default to draw the actual window
 /// content on top of the blurred background.
-void BlurEffect::drawWindow(
+AcrylicGlassDrawWindowResult BlurEffect::drawWindow(
     const RenderTarget& renderTarget, const RenderViewport& viewport, EffectWindow* w, int mask, const Region& deviceRegion, WindowPaintData& data)
 {
     blur(renderTarget, viewport, w, mask, deviceRegion, data);
 
+#if ACRYLIC_GLASS_KWIN_6_8
+    return effects->drawWindow(renderTarget, viewport, w, mask, deviceRegion, data);
+#else
     effects->drawWindow(renderTarget, viewport, w, mask, deviceRegion, data);
+#endif
 }
 
 // Noise grain texture
@@ -979,8 +999,8 @@ void BlurEffect::blur(
     }
 
     const QRect backgroundRect = blurShape.boundingRect();
-    const QRect scaledBackgroundRect = snapToPixelGrid(scaledRect(backgroundRect, viewport.scale()));
-    const QRect deviceBackgroundRect = snapToPixelGrid(viewport.mapToDeviceCoordinates(backgroundRect));
+    const QRect scaledBackgroundRect = agSnapToPixelGrid(scaledRect(backgroundRect, viewport.scale()));
+    const QRect deviceBackgroundRect = agSnapToPixelGrid(viewport.mapToDeviceCoordinates(backgroundRect));
     const auto opacity = data.opacity();
 
     // Intersect the shape with the deviceRegion clip — empty after the
@@ -1066,7 +1086,7 @@ void BlurEffect::blur(
     // so map dirtyRect through viewport.scale() before translating.
     const Region dirtyRegion = viewport.mapFromDeviceCoordinatesContained(deviceRegion) & backgroundRect;
     for (const Rect& dirtyRect : dirtyRegion.rects()) {
-        const QRect deviceDirtyRect = snapToPixelGrid(scaledRect(QRectF(dirtyRect), viewport.scale()));
+        const QRect deviceDirtyRect = agSnapToPixelGrid(scaledRect(QRectF(dirtyRect), viewport.scale()));
         renderInfo.framebuffers[0]->blitFromRenderTarget(renderTarget, viewport, dirtyRect, deviceDirtyRect.translated(-scaledBackgroundRect.topLeft()));
     }
 
@@ -1327,7 +1347,7 @@ void BlurEffect::blur(
     // Floor to integer device pixels so the SDF rounded corners are always
     // pixel-aligned — prevents subpixel border artifacts that shift with
     // window position.
-    const QRectF nativeBoxF = snapToPixelGridF(scaledRect(transformedRect, viewport.scale())).translated(-scaledBackgroundRect.topLeft());
+    const QRectF nativeBoxF = agSnapToPixelGridF(scaledRect(transformedRect, viewport.scale())).translated(-scaledBackgroundRect.topLeft());
     const QRectF nativeBox(std::floor(nativeBoxF.x()), std::floor(nativeBoxF.y()), std::floor(nativeBoxF.width()), std::floor(nativeBoxF.height()));
     const BorderRadius nativeCornerRadius = cornerRadius.scaled(viewport.scale()).rounded();
 

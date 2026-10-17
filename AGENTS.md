@@ -361,6 +361,9 @@ background on one screen, that is treated as a user choice and login plus the
 06:00/18:00 transitions leave that screen untouched while still updating the
 managed screens. A user opts every screen back into managed bundled wallpapers
 only with the installer's explicit `--reset-wallpapers` action.
+Empty captures are retried before applying the look-and-feel.
+If capture still fails on an existing desktop, preserve wallpapers and ownership
+state; only a fresh install or explicit reset may apply without a snapshot.
 
 **Kvantum cycle.** Kvantum is a Qt style plugin and cannot reload its
 kvconfig in a running app — only `QApplication::setStyle()`

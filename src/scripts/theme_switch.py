@@ -760,6 +760,18 @@ def _current_wallpapers() -> list[dict[str, object]]:
     return live or _wallpapers_from_config()
 
 
+def _capture_wallpapers_with_retry(*, attempts: int = 4,
+                                   wait_seconds: int = 5) -> list[dict[str, object]]:
+    # Plasma may answer before its desktop containments finish restoring.
+    for attempt in range(attempts):
+        if attempt:
+            time.sleep(wait_seconds)
+        current = _current_wallpapers()
+        if current:
+            return current
+    return []
+
+
 def _build_wallpaper_apply_script(
         snapshot: list[dict[str, object]]) -> str:
     by_screen = {
@@ -886,7 +898,8 @@ def _apply_wallpaper(
     existing_env = _env_bool("MTTKDE_EXISTING_INSTALL")
     existing = (was_initialized or context != "install") \
         if existing_env is None else existing_env
-    current = (_current_wallpapers() if current_snapshot is None
+    current = (_capture_wallpapers_with_retry()
+               if current_snapshot is None
                else _normalize_wallpaper_snapshot(current_snapshot))
     last_applied = _normalize_wallpaper_snapshot(state.get("last_applied"))
     user_screens = set(_normalize_wallpaper_screens(
@@ -897,6 +910,16 @@ def _apply_wallpaper(
     last_by_screen = {
         int(item["screen"]): str(item["image"]) for item in last_applied
     }
+
+    # An unreadable existing desktop is not evidence that we own its
+    # wallpapers. Keep the persisted ownership intact until capture succeeds.
+    # An explicit reset is permission to replace wallpapers even without it.
+    appletsrc = _xdg_config() / "plasma-org.kde.plasma.desktop-appletsrc"
+    if not current and not reset and (was_initialized or
+                                     (existing and appletsrc.exists())):
+        print("wallpaper: capture failed after retries — desktop state "
+              "unknown, leaving wallpapers untouched", file=sys.stderr)
+        return True
 
     state["initialized"] = True
     state["enabled"] = bool(enabled)
@@ -1494,7 +1517,7 @@ def _apply_unlocked(mode: str, context: str = "user") -> bool:
     # Capture before the live look-and-feel apply.  Even if a third-party LAF
     # carries wallpaper defaults, it must not erase the outgoing custom choice
     # before our per-mode state has seen it.
-    wallpaper_before = _current_wallpapers()
+    wallpaper_before = _capture_wallpapers_with_retry()
 
     # Apply the live look-and-feel while Plasma still sees the outgoing
     # package in kdeglobals.  Writing the target package first can make the
