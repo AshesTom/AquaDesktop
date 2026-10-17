@@ -1,5 +1,10 @@
 # AGENTS.md
 
+## #1 — Código autoexplicativo
+
+No expliques qué hace un comando de la terminal si ya es obvio (por ejemplo,
+`npm install`). Añade explicaciones solo cuando sean necesarias o se pidan.
+
 This file is the authoritative reference for working on
 **macos-tahoe-liquid-kde**. Mirrors at `CLAUDE.md`, `CODEX.md`, and
 `GEMINI.md` point back here so each agent finds the same content under
