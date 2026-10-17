@@ -177,12 +177,13 @@ def test_cli_recovers_env_before_oled_and_theme_service_operations(
                         lambda uid: SimpleNamespace(pw_dir=str(tmp_path)))
     monkeypatch.setattr(os, "geteuid", lambda: 0)
     dropped = []
+    monkeypatch.setattr(os, "initgroups", lambda user, gid: dropped.append("groups"))
     monkeypatch.setattr(os, "setegid", lambda gid: dropped.append("gid"))
     monkeypatch.setattr(os, "seteuid", lambda uid: dropped.append("uid"))
     calls = []
 
     def run(argv, **kwargs):
-        assert dropped == ["gid", "uid"]
+        assert dropped == ["groups", "gid", "uid"]
         assert kwargs["preexec_fn"] is utils.drop_privs_in_child
         assert os.environ["XDG_RUNTIME_DIR"] == str(session.runtime)
         assert os.environ["DBUS_SESSION_BUS_ADDRESS"] == f"unix:path={session.runtime}/bus"

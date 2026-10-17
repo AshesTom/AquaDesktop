@@ -205,6 +205,9 @@ doesn't walk `~/.local/lib/qt6` in a default Plasma session.
 - After the euid check passes, the CLI drops effective UID to
   `SUDO_USER` via `os.setegid(SUDO_GID); os.seteuid(SUDO_UID)`. Files
   written from then on land with normal user ownership.
+  First call `os.initgroups(SUDO_USER, SUDO_GID)` while privileged so
+  children inherit the user's supplementary groups, including Gentoo's
+  `cron` membership, instead of retaining sudo's root groups.
 - The `sudo_install_file` / `sudo_install_tree` / `sudo_remove`
   helpers in `steps/_helpers.py` re-elevate via the `_as_root()`
   context manager (`seteuid(0)`) for the one operation that needs
