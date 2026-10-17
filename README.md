@@ -17,13 +17,15 @@ A macOS Tahoe-inspired theme for KDE Plasma 6.6 and 6.7+, with liquid glass, a t
 
 ![Features and screenshots](https://img.shields.io/badge/features-%26%20screenshots-4B6B8A?style=for-the-badge&logo=kde&logoColor=white)
 
+Captured from a running Plasma session with standard transparency. The file manager uses sample folders, and private hardware identifiers are hidden. Boot and shutdown previews are rendered with Plymouth.
+
 ### Acrylic Glass Tahoe Launcher
 
 Find an app with a quick search, keep your favorites close, or browse with a choice of two views.
 
 <p align="center">
-  <img src="src/screenshots/launcher_v3.png" width="415">
-  <img src="src/screenshots/launcher_dark_v3.png" width="415">
+  <img src="src/screenshots/launcher_v4.png" alt="Application launcher in light mode" width="415">
+  <img src="src/screenshots/launcher_dark_v4.png" alt="Application launcher in dark mode" width="415">
 </p>
 
 <br>
@@ -33,7 +35,7 @@ Find an app with a quick search, keep your favorites close, or browse with a cho
 Your apps sit on a glass Dock that refracts the wallpaper, with hover zoom and notification badges to show what needs your attention.
 
 <p align="center">
-  <img src="src/screenshots/dock_1_v3.png" width="840">
+  <img src="src/screenshots/dock_1_v4.png" alt="Glass Dock with pinned applications" width="840">
 </p>
 
 <br>
@@ -43,8 +45,8 @@ Your apps sit on a glass Dock that refracts the wallpaper, with hover zoom and n
 Give Nautilus a familiar Finder feel, with a macOS-style sidebar and a simpler toolbar in both light and dark modes.
 
 <p align="center">
-  <img src="src/screenshots/finder_v3.png" width="415">
-  <img src="src/screenshots/finder_dark_v3.png" width="415">
+  <img src="src/screenshots/finder_v4.png" alt="Nautilus with the light Finder-style theme and sample folders" width="415">
+  <img src="src/screenshots/finder_dark_v4.png" alt="Nautilus with the dark Finder-style theme and sample folders" width="415">
 </p>
 
 <br>
@@ -54,8 +56,8 @@ Give Nautilus a familiar Finder feel, with a macOS-style sidebar and a simpler t
 Keep the system menu, active app name, and window controls together in the top bar, with app menus available for applications that support the global menu.
 
 <p align="center">
-  <img src="src/screenshots/menu_v3.png" width="415">
-  <img src="src/screenshots/menu_dark_v3.png" width="415">
+  <img src="src/screenshots/menu_v4.png" alt="System menu in light mode" width="415">
+  <img src="src/screenshots/menu_dark_v4.png" alt="System menu in dark mode" width="415">
 </p>
 
 <br>
@@ -65,8 +67,8 @@ Keep the system menu, active app name, and window controls together in the top b
 Check your computer's details in a glass window that fits the rest of the desktop.
 
 <p align="center">
-  <img src="src/screenshots/about_v3.png" width="415">
-  <img src="src/screenshots/about_dark_v3.png" width="415">
+  <img src="src/screenshots/about_v4.png" alt="About This Computer in light mode, with private identifiers hidden" width="415">
+  <img src="src/screenshots/about_dark_v4.png" alt="About This Computer in dark mode, with private identifiers hidden" width="415">
 </p>
 
 <br>
@@ -76,8 +78,8 @@ Check your computer's details in a glass window that fits the rest of the deskto
 Even the desktop's right-click menu gets the glass treatment, with a translucent background and blur.
 
 <p align="center">
-  <img src="src/screenshots/context_menu_v3.png" width="415">
-  <img src="src/screenshots/context_menu_dark_v3.png" width="415">
+  <img src="src/screenshots/context_menu_v4.png" alt="Desktop context menu in light mode" width="415">
+  <img src="src/screenshots/context_menu_dark_v4.png" alt="Desktop context menu in dark mode" width="415">
 </p>
 
 <br>
@@ -87,8 +89,8 @@ Even the desktop's right-click menu gets the glass treatment, with a translucent
 An Apple-style logo sits at the center of each monitor, scaling to fit displays from 1080p to 4K. A progress bar appears during startup; shutdown and reboot keep the same layout without it. If your disk uses LUKS2 encryption, Plymouth shows a masked passphrase field below the logo.
 
 <p align="center">
-  <img src="src/screenshots/boot_v3.png" width="415">
-  <img src="src/screenshots/boot_shutdown_v3.png" width="415">
+  <img src="src/screenshots/boot_v4.png" alt="Plymouth startup splash with a progress bar" width="415">
+  <img src="src/screenshots/boot_shutdown_v4.png" alt="Plymouth shutdown splash without a progress bar" width="415">
 </p>
 
 <br>
@@ -252,7 +254,8 @@ Use `all` to launch every distro.
 
 <br>
 
-### Reduced transparency
+<details>
+<summary><b>Reduced transparency</b></summary>
 
 After installing the current Plasma, GTK and Kvantum themes, open `./installer`,
 click **Features** (the gear), choose **Transparency → Standard / Reduced**,
@@ -270,7 +273,10 @@ need their own appearance settings. Some GTK applications need reopening.
 Restore the original appearance with
 `mac-tahoe-theme-switch transparency standard`.
 
-### NixOS and Home Manager (testing)
+</details>
+
+<details>
+<summary><b>NixOS and Home Manager (testing)</b></summary>
 
 Use the flake and declarative modules on NixOS, **not `sudo ./install`**.
 Packages build against your selected Nixpkgs Qt/KWin SDK in the Nix store.
@@ -282,7 +288,7 @@ Add this input to a flake already using Nixpkgs and Home Manager:
 
 ```nix
 inputs.mac-tahoe = {
-  url = "github:lestercorderomurillo/macos-tahoe-liquid-kde/v0.54.1";
+  url = "github:lestercorderomurillo/macos-tahoe-liquid-kde/v0.54.2";
   inputs.nixpkgs.follows = "nixpkgs";
   inputs.home-manager.follows = "home-manager";
 };
@@ -343,11 +349,15 @@ Run `nix flake check` for native package builds, installed-artifact checks,
 Home Manager generation builds and module evaluation. Evaluate both exported
 architectures with `nix flake check --no-build --all-systems`.
 
+</details>
+
+
 <br>
 
 ![Compatibility](https://img.shields.io/badge/compatibility-system%20support-4B6B8A?style=for-the-badge&logo=linux&logoColor=white)
 
-**Distributions**
+<details>
+<summary><b>Distributions</b></summary>
 
 | | Name | Status |
 |:--:|------|---------|
@@ -363,9 +373,12 @@ architectures with `nix flake check --no-build --all-systems`.
 | <img src="https://cdn.simpleicons.org/gentoo" alt="Gentoo" width="22"> | Gentoo | ![Needs more testing](https://img.shields.io/badge/needs%20more%20testing-B42318) |
 | <img src="https://cdn.simpleicons.org/kde" alt="KDE" width="22"> | KDE neon | ![Container + VM qualified](https://img.shields.io/badge/container%20%2B%20VM%20qualified-D4A72C) |
 
+</details>
+
 <br>
 
-**Init systems**
+<details>
+<summary><b>Init systems</b></summary>
 
 | Init system | Support | Testing |
 |-------------|---------|---------|
@@ -379,15 +392,20 @@ Live installation testing is still needed; Artix is not yet included in the
 automated container matrix. Scheduled theme changes and OLED care use
 the existing per-user cron support and require a running cron daemon.
 
+</details>
+
 <br>
 
-**Plasma versions**
+<details>
+<summary><b>Plasma versions</b></summary>
 
 | Plasma | Support | Since |
 |--------|---------|-------|
 | 6.5 and older | Not supported | Not applicable |
 | 6.6 | Supported | v0.1.0 |
 | 6.7+ | Supported | v0.19.0 |
+
+</details>
 
 <details>
 <summary><b>Chromium-based app crashes with Global Menu</b></summary>
@@ -519,6 +537,9 @@ Licensed [GPL-3.0](LICENSE).
 
 ![Credits and inspiration](https://img.shields.io/badge/credits-%26%20inspiration-8A6B4B?style=for-the-badge&logo=apple&logoColor=white)
 
+<details>
+<summary><b>Projects, assets and acknowledgements</b></summary>
+
 Thanks to the open-source projects that inspired this one or fed assets into it. Everything here is maintained independently:
 
 - **[EliverLara](https://github.com/EliverLara/TahoeLauncher)**: `TahoeLauncher`, the inspiration for the Launcher plasmoid.
@@ -534,3 +555,5 @@ Thanks to the open-source projects that inspired this one or fed assets into it.
 Please support their efforts too: star their repos, report bugs upstream, and contribute back when you can.
 
 If a credit is missing, please [open an issue](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new).
+
+</details>
