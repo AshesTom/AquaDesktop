@@ -26,10 +26,16 @@ import QtQuick.Controls as QQC2
 import QtQuick.Window
 
 import org.kde.kirigami as Kirigami
+import org.kde.ki18n as KI18n
 import org.kde.plasma.plasma5support as P5Support
 
 Window {
     id: aboutWindow
+
+    KI18n.KI18nContext {
+        id: translations
+        translationDomain: "plasma_applet_org.kde.mac.tahoe.liquid.globalmenu"
+    }
 
     // Whether to render in the active Plasma system font or in the
     // SF Pro fallback. Passed in from main.qml (which reads it from
@@ -45,7 +51,7 @@ Window {
     property string fetcherCommand:
         "sh -c 'PATH=\"$HOME/.local/bin:$PATH\" mac-tahoe-about-info'"
 
-    title: i18n("About This Computer")
+    title: translations.i18n("About This Computer")
     width: 360
     height: 700
     minimumWidth: 360
@@ -121,17 +127,17 @@ Window {
                 console.warn("[AboutWindow] failed to parse helper output:", e);
                 return;
             }
-            aboutWindow.vendorDisplay = info.vendor || i18n("Personal Computer");
+            aboutWindow.vendorDisplay = info.vendor || translations.i18n("Personal Computer");
             aboutWindow.modelDisplay = info.model || "";
             aboutWindow.yearDisplay = info.year || "";
-            aboutWindow.chipDisplay = info.chip || i18n("Unknown");
-            aboutWindow.coresDisplay = info.cores || i18n("Unknown");
-            aboutWindow.memoryDisplay = info.memory || i18n("Unknown");
-            aboutWindow.graphicsDisplay = info.graphics || i18n("Unknown");
-            aboutWindow.diskDisplay = info.disk || i18n("Unknown");
-            aboutWindow.networkDisplay = info.network || i18n("Unknown");
-            aboutWindow.serialDisplay = info.serial || i18n("Not Available");
-            aboutWindow.osDisplay = info.os || i18n("Unknown");
+            aboutWindow.chipDisplay = info.chip || translations.i18n("Unknown");
+            aboutWindow.coresDisplay = info.cores || translations.i18n("Unknown");
+            aboutWindow.memoryDisplay = info.memory || translations.i18n("Unknown");
+            aboutWindow.graphicsDisplay = info.graphics || translations.i18n("Unknown");
+            aboutWindow.diskDisplay = info.disk || translations.i18n("Unknown");
+            aboutWindow.networkDisplay = info.network || translations.i18n("Unknown");
+            aboutWindow.serialDisplay = info.serial || translations.i18n("Not Available");
+            aboutWindow.osDisplay = info.os || translations.i18n("Unknown");
             aboutWindow.themeVersionDisplay =
                 info.theme_version || aboutWindow._placeholder;
             aboutWindow.infoReady = true;
@@ -177,14 +183,14 @@ Window {
             header += " (" + sub.join(", ") + ")";
 
         const rows = [
-            [i18n("Chip"), aboutWindow.chipDisplay],
-            [i18n("Cores"), aboutWindow.coresDisplay],
-            [i18n("Memory"), aboutWindow.memoryDisplay],
-            [i18n("Graphics"), aboutWindow.graphicsDisplay],
-            [i18n("Startup disk"), aboutWindow.diskDisplay],
-            [i18n("Network"), aboutWindow.networkDisplay],
-            [i18n("Serial number"), aboutWindow.serialDisplay],
-            [i18n("OS"), aboutWindow.osDisplay],
+            [translations.i18n("Chip"), aboutWindow.chipDisplay],
+            [translations.i18n("Cores"), aboutWindow.coresDisplay],
+            [translations.i18n("Memory"), aboutWindow.memoryDisplay],
+            [translations.i18n("Graphics"), aboutWindow.graphicsDisplay],
+            [translations.i18n("Startup disk"), aboutWindow.diskDisplay],
+            [translations.i18n("Network"), aboutWindow.networkDisplay],
+            [translations.i18n("Serial number"), aboutWindow.serialDisplay],
+            [translations.i18n("OS"), aboutWindow.osDisplay],
         ];
         let lines = [header, ""];
         for (const [label, value] of rows)
@@ -351,7 +357,7 @@ Window {
 
                 // Chip
                 Text {
-                    text: i18n("Chip")
+                    text: translations.i18n("Chip")
                     color: Kirigami.Theme.disabledTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
@@ -372,7 +378,7 @@ Window {
 
                 // Cores
                 Text {
-                    text: i18n("Cores")
+                    text: translations.i18n("Cores")
                     color: Kirigami.Theme.disabledTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
@@ -390,7 +396,7 @@ Window {
 
                 // Memory
                 Text {
-                    text: i18n("Memory")
+                    text: translations.i18n("Memory")
                     color: Kirigami.Theme.disabledTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
@@ -408,7 +414,7 @@ Window {
 
                 // Graphics
                 Text {
-                    text: i18n("Graphics")
+                    text: translations.i18n("Graphics")
                     color: Kirigami.Theme.disabledTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
@@ -429,7 +435,7 @@ Window {
 
                 // Startup disk
                 Text {
-                    text: i18n("Startup disk")
+                    text: translations.i18n("Startup disk")
                     color: Kirigami.Theme.disabledTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
@@ -450,7 +456,7 @@ Window {
 
                 // Network address
                 Text {
-                    text: i18n("Network")
+                    text: translations.i18n("Network")
                     color: Kirigami.Theme.disabledTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
@@ -469,7 +475,7 @@ Window {
 
                 // Serial number
                 Text {
-                    text: i18n("Serial number")
+                    text: translations.i18n("Serial number")
                     color: Kirigami.Theme.disabledTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
@@ -488,7 +494,7 @@ Window {
 
                 // OS
                 Text {
-                    text: i18n("OS")
+                    text: translations.i18n("OS")
                     color: Kirigami.Theme.disabledTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
@@ -515,7 +521,7 @@ Window {
                 spacing: 8
 
                 QQC2.Button {
-                    text: i18n("More Info…")
+                    text: translations.i18n("More Info…")
                     onClicked: {
                         launcher.exec("kinfocenter");
                         aboutWindow.close();
@@ -523,7 +529,7 @@ Window {
                 }
 
                 QQC2.Button {
-                    text: i18n("Report a Bug…")
+                    text: translations.i18n("Report a Bug…")
                     onClicked: {
                         launcher.exec("xdg-open https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new");
                         aboutWindow.close();
@@ -535,7 +541,7 @@ Window {
                     property bool justCopied: false
                     enabled: aboutWindow.infoReady
                     display: QQC2.AbstractButton.IconOnly
-                    QQC2.ToolTip.text: justCopied ? i18n("Copied") : i18n("Copy details")
+                    QQC2.ToolTip.text: justCopied ? translations.i18n("Copied") : translations.i18n("Copy details")
                     QQC2.ToolTip.visible: hovered
                     QQC2.ToolTip.delay: 400
                     onClicked: {
