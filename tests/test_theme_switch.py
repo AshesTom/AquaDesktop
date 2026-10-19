@@ -343,6 +343,35 @@ def test_apply_no_warn_for_user_disabled_effect(monkeypatch, tmp_path, capsys):
     assert ts._parse_ini(kwinrc)["Plugins"]["shapecornersEnabled"] == "false"
 
 
+@pytest.mark.parametrize("enabled", [True, False])
+def test_glass_refresh_replaces_stale_instance_without_changing_settings(
+        monkeypatch, tmp_path, enabled):
+    ts, kwinrc = _prep_effect_warn_case(
+        monkeypatch, tmp_path,
+        f"[Plugins]\nliquidglassEnabled={str(enabled).lower()}\n"
+        "shapecornersEnabled=true\n[Effect-liquidglass]\n"
+        "PopupCornerRadius=6\nWindowCornerRadius=22\nDockCornerRadius=20\n")
+    before = kwinrc.read_bytes()
+    instances = {"liquidglass": "stale", "shapecorners": "unchanged"}
+    monkeypatch.setattr(ts, "_kwin_loaded_effects", lambda: set(instances))
+
+    def effect_request(_service, _path, method, effect):
+        if method.endswith(".unloadEffect"):
+            instances.pop(effect, None)
+        elif method.endswith(".loadEffect"):
+            instances.setdefault(effect, "fresh")
+        return True
+
+    monkeypatch.setattr(ts, "_qdbus", effect_request)
+    ts.refresh_acrylic_glass()
+
+    assert instances == {
+        "liquidglass": "fresh" if enabled else "stale",
+        "shapecorners": "unchanged",
+    }
+    assert kwinrc.read_bytes() == before
+
+
 def test_apply_no_warn_when_loaded_set_unreadable(monkeypatch, tmp_path, capsys):
     """No session bus / qdbus / a timeout means the loaded set is unknown. We
     degrade to SILENCE — never a false 'your effect broke' on headless CI or a

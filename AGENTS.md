@@ -584,6 +584,10 @@ shader antialiasing without expanding the blur region or changing saved radius
 settings. Reject custom cutouts; the Rounded Corners shape property still takes
 precedence. The native helper generates the missing Plasma shell protocol headers
 from the bundled XML; Qt Wayland and wayland-scanner are build dependencies.
+After a transparency change, and after the installer's final Plasma restart,
+refresh enabled Acrylic Glass so its popup masks follow the replacement
+surfaces. A KWin reconfigure alone did not clear the stale capsule geometry
+observed at 150% scale. Preserve disabled effects and saved radius settings.
 
 Wallpapers are fully bundled. Every entry under
 `src/offline/wallpapers/<id>/` is a JPEG q90 (re-encoded from 6K PNG

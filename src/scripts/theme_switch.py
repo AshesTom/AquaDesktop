@@ -98,7 +98,9 @@ def set_transparency(value: str) -> int:
             print(f"Could not save appearance: {exc}", file=sys.stderr)
             return 1
         mode = detect_mode_by_system() or detect_mode_by_time()
-        return 0 if _apply_unlocked(mode) else 1
+        applied = _apply_unlocked(mode)
+        refresh_acrylic_glass()
+        return 0 if applied else 1
 
 
 def _have(cmd: str) -> bool:
@@ -1378,7 +1380,17 @@ def reconfigure_kwin_preserving_foreign_effects() -> list[str]:
 _OWN_COMPILED_EFFECTS = ("liquidglass",)
 
 
-def _restore_own_compiled_effects() -> None:
+def refresh_acrylic_glass() -> None:
+    """Recreate enabled glass after Plasma has replaced its popup surfaces.
+
+    Reconfigure alone can leave stale popup geometry after an appearance
+    transition, observed on a 150% desktop. Reloading rebuilds the surface
+    subscriptions and masks without changing the user's radius settings.
+    """
+    _restore_own_compiled_effects(refresh=True)
+
+
+def _restore_own_compiled_effects(*, refresh: bool = False) -> None:
     plugins = _parse_ini(_kwinrc_path()).get("Plugins", {})
     enabled = [
         effect for effect in _OWN_COMPILED_EFFECTS
@@ -1391,7 +1403,10 @@ def _restore_own_compiled_effects() -> None:
         return
     for effect in enabled:
         if _effect_is_loaded(effect, loaded):
-            continue
+            if not refresh:
+                continue
+            _qdbus("org.kde.KWin", "/Effects",
+                   "org.kde.kwin.Effects.unloadEffect", effect)
         _qdbus("org.kde.KWin", "/Effects",
                "org.kde.kwin.Effects.loadEffect", effect)
         for attempt in range(3):

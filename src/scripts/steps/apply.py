@@ -28,6 +28,7 @@ from theme_switch import (
     _theme_wallpaper_snapshot,
     _apply_lookandfeel_live,
     reconfigure_kwin_preserving_foreign_effects,
+    refresh_acrylic_glass,
 )
 
 # Cache files / dirs flushed during install + uninstall before Plasma reloads.
@@ -491,6 +492,10 @@ def restart_plasma() -> None:
             started = _wait_for_plasma_start(attempts=10)
     time.sleep(4)
     if started:
+        # The install-time effect load preceded the new Plasma surfaces.
+        # Refresh their masks only after the replacement shell is running.
+        if feat_enabled("ACRYLIC_GLASS"):
+            refresh_acrylic_glass()
         ok("Plasma restarted ")
     else:
         warn("Plasma restart did not produce a running shell")

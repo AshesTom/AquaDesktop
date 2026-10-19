@@ -2,7 +2,7 @@
 """Opt-in, isolated KWin/Wayland pixel probe. Never installs on the desktop.
 
 Uses a synthetic transparent VM surface; this is not a VirtualBox guest test.
-Requires KWin, Spectacle, qdbus6, PyQt6, Pillow and a compiled effect.
+Requires KWin, Spectacle, kscreen-doctor, qdbus6, PyQt6, Pillow and a compiled effect.
 Use --backend xcb for Xwayland (also requires Xwayland).
 Use --identity VirtualBox --expect changed to check the manager is not excluded.
 Use --expect changed for an unpatched control; unchanged is the default.
@@ -151,6 +151,15 @@ def inside(output):
         assert_compositor_owner(kwin.pid)
         env = json.loads((output / "session-env.json").read_text())
         env["QT_QPA_PLATFORM"] = "wayland"
+        # The virtual backend's --scale can change pixel dimensions while
+        # leaving the output at 1x. Set and verify the actual compositor scale.
+        scale = float(os.environ["MTTKDE_CAPTURE_SCALE"])
+        subprocess.run(["kscreen-doctor", f"output.Virtual-0.scale.{scale:g}"],
+                       env=env, check=True, timeout=10, stdout=subprocess.DEVNULL)
+        outputs = json.loads(subprocess.check_output(
+            ["kscreen-doctor", "-j"], env=env, text=True, timeout=10))["outputs"]
+        assert any(output["name"] == "Virtual-0" and output["scale"] == scale
+                   for output in outputs), "Virtual output scale was not applied"
         with (output / "clients.log").open("w") as log:
             if not os.environ.get("MTTKDE_CAPTURE_DESKTOP"):
                 background = subprocess.Popen([sys.executable, script, "--client", "desktop",
@@ -409,7 +418,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plugin", type=Path)
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--scale", type=int, choices=(1, 2), default=1)
+    parser.add_argument("--scale", type=float, choices=(1, 1.25, 1.5, 1.75, 2), default=1)
     parser.add_argument("--identity", default="VirtualBoxVM")
     parser.add_argument("--backend", choices=("wayland", "xcb"), default="wayland")
     parser.add_argument("--renderer", choices=("software", "hardware"), default="software")
