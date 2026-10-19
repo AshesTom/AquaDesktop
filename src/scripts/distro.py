@@ -872,6 +872,16 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "centos":   "kf6-kitemmodels-devel",
         "opensuse": "kf6-kitemmodels-devel",
     },
+    "kf6-itemmodels-qml": {
+        "arch":     "kitemmodels",
+        "debian":   "qml6-module-org-kde-kitemmodels",
+        "ubuntu":   "qml6-module-org-kde-kitemmodels",
+        "neon":     "kf6-kitemmodels",
+        "fedora":   "kf6-kitemmodels",
+        "rhel":     "kf6-kitemmodels",
+        "centos":   "kf6-kitemmodels",
+        "opensuse": "kf6-kitemmodels-imports",
+    },
     # ── Plasma / KSysGuard / plasma-workspace ─────────────────────────
     "plasma5support-qml": {
         "arch":     "plasma5support",

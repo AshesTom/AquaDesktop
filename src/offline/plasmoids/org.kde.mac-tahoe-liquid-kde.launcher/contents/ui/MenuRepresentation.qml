@@ -8,6 +8,7 @@ import org.kde.kirigami as Kirigami
 
 PlasmaCore.Dialog {
 	id: root
+	readonly property bool goldenGate: kicker.launcherPreset === 2
 
 	objectName: "popupWindow"
 	flags: Qt.WindowStaysOnTopHint
@@ -43,7 +44,7 @@ PlasmaCore.Dialog {
 
 	Plasmoid.status: root.visible ? PlasmaCore.Types.RequiresAttentionStatus : PlasmaCore.Types.PassiveStatus
 
-	property int iconSize: { 
+	readonly property int configuredIconSize: {
 		switch(Plasmoid.configuration.appsIconSize){
 			case 0: return Kirigami.Units.iconSizes.smallMedium;
 			case 1: return Kirigami.Units.iconSizes.medium;
@@ -52,17 +53,20 @@ PlasmaCore.Dialog {
 			default: return 64
 		}
 	}
+	readonly property int iconSize: Math.round(configuredIconSize * (goldenGate ? 1.3125 : 1))
 
-	property int columns: Plasmoid.configuration.numberColumns
+	property int columns: goldenGate ? Plasmoid.configuration.goldenGateColumns : Plasmoid.configuration.numberColumns
 
-	property int cellSizeHeight: iconSize
+	// Reference proportions: 7 columns, icons 60% of the column pitch,
+	// and a row pitch slightly shorter than the column pitch.
+	property int cellSizeHeight: goldenGate ? Math.round(configuredIconSize * 1.9375) : iconSize
 								+ Kirigami.Units.gridUnit * 2
 								+ (2 * Math.max(
 												highlightItemSvg.margins.top + highlightItemSvg.margins.bottom,
 												highlightItemSvg.margins.left + highlightItemSvg.margins.right
 												)
 								  )
-	property int cellSizeWidth: cellSizeHeight //+ Kirigami.Units.gridUnit
+	property int cellSizeWidth: goldenGate ? Math.round(configuredIconSize * 2.1875) : cellSizeHeight
 	property int rows: plasmoid.configuration.numberOfRows
 	
 	onVisibleChanged: {
@@ -152,13 +156,17 @@ PlasmaCore.Dialog {
 	FocusScope {
 		id: fs
 		focus: true
-		width:  (root.cellSizeWidth * Plasmoid.configuration.numberColumns)+ innerPadding*2//Kirigami.Units.gridUnit*2
+		width: root.cellSizeWidth * root.columns + innerPadding * 2
+			- (root.goldenGate ? dialogSvg.margins.left + dialogSvg.margins.right : 0)
 		// Searchbar + separator + categories + grid
-		height: (main.detachedSearch ? 0 : 40 + 2 + 12) + 40 + (root.cellSizeHeight * rows) + innerPadding
+		height: root.goldenGate
+			? innerPadding * 3 + main.categoryHeight + main.gridTopSpacing + root.cellSizeHeight * rows
+				- dialogSvg.margins.top - dialogSvg.margins.bottom
+			: 40 + 2 + 12 + 40 + root.cellSizeHeight * rows + innerPadding
 		
 		
 		// We want the MainView to have an uniform margin through different plasma themes
-		property real innerPadding: 15 
+		property real innerPadding: root.goldenGate ? root.configuredIconSize * 0.375 : 15
 
 		Item {
 			id: mainItem
@@ -169,7 +177,7 @@ PlasmaCore.Dialog {
 
 			MainView {
 				id: main
-				width:  mainItem.width - (fs.innerPadding)
+				width: mainItem.width - fs.innerPadding * (root.goldenGate ? 2 : 1)
 				height: mainItem.height - (fs.innerPadding*2)
 				x: fs.innerPadding
 				y: fs.innerPadding

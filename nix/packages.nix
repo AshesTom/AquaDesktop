@@ -108,7 +108,7 @@ in rec {
   };
   default = pkgs.symlinkJoin {
     name = "mac-tahoe-liquid-kde-${version}";
-    paths = [ theme-assets global-menu task-manager acrylic-glass rounded-corners tools kde.plasma5support ];
+    paths = [ theme-assets global-menu task-manager acrylic-glass rounded-corners tools kde.plasma5support kde.kitemmodels ];
     inherit meta;
   };
 }

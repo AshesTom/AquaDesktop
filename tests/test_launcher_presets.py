@@ -132,6 +132,16 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
     entry = ui / "main.qml"
     entry.write_text(entry.read_text().replace(
         "mergeResults: true", 'mergeResults: true\n        runners: ["services"]', 1))
+    # More favorites than columns exercise the single-row reference layout.
+    favorites = '\n'.join(
+        f'ListElement {{ display: "Favorite {i}"; name: "Favorite {i}"; '
+        'decoration: "application-x-executable"; favoriteId: "test"; '
+        'hasActionList: false }' for i in range(9))
+    entry.write_text(entry.read_text().replace(
+        'property QtObject globalFavorites: rootModel.favoritesModel',
+        'property QtObject globalFavorites: ListModel { '
+        'property var favorites: []; function trigger(index, action, argument) {}\n'
+        + favorites + '\n}', 1))
     shutil.copy2(repo / "tests/qml/LauncherPresetProbe.qml", ui)
     main = ui / "MainView.qml"
     source = main.read_text()

@@ -566,6 +566,10 @@ rebuilds per screen in all three layouts. Both presets remain available in
 the Launcher's options menu and General settings. Preset 2 uses a separate
 native Plasma search popup above the app panel; treat both popups and their
 options menu as one focus group for dismissal.
+Preset 2 starts with seven columns, a single favorites row and a flat app grid.
+Its column setting (`goldenGateColumns`) is independent of preset 1's
+`numberColumns`; typography scales from the system font and geometry from the
+selected icon size. The favorites row requires the KItemModels QML module.
 The `org.kde.mac.tahoe.launcher` QML module, built alongside the Dock, exports
 `LauncherSearchPopup`, a native
 `PopupPlasmaWindow` using `dialogs/launcher-search.svgz`. Keep its capsule

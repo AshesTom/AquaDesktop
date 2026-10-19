@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import org.kde.kirigami as Kirigami
 
 Item {
     id: scrollview
@@ -11,7 +12,7 @@ Item {
 
     ListView {
         id: categorySwitcher
-        spacing: 7
+        spacing: main.detachedSearch ? Kirigami.Units.smallSpacing * 2.5 : 7
         orientation: ListView.Horizontal
         interactive: contentWidth > width
         boundsBehavior: Flickable.StopAtBounds

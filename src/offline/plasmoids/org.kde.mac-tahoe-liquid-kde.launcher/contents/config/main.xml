@@ -65,6 +65,10 @@
       <label>Number of columns to favorites apps grid</label>
       <default>5</default>
     </entry>
+    <entry name="goldenGateColumns" type="Int">
+      <label>Number of columns in the Golden Gate preset.</label>
+      <default>7</default>
+    </entry>
     <entry name="numberOfRows" type="Int">
       <label>Number of rows to app grid</label>
       <default>4</default>

@@ -32,7 +32,9 @@ KCM.SimpleKCM {
     property alias cfg_useSystemFontSettings: useSystemFontSettings.checked
 
     property alias cfg_appsIconSize: appsIconSize.currentIndex
-    property alias cfg_numberColumns: numberColumns.value
+    property int cfg_numberColumns: Plasmoid.configuration.numberColumns
+    property int cfg_goldenGateColumns: Plasmoid.configuration.goldenGateColumns
+    readonly property bool goldenGate: (cfg_launcherPreset || Plasmoid.configuration.defaultLauncherPreset) === 2
     property alias cfg_numberOfRows: numberOfRows.value
 
     property alias cfg_compactListItems: compactListItems.checked
@@ -228,6 +230,14 @@ KCM.SimpleKCM {
 
       from: 4
       to: 8
+      value: configGeneral.goldenGate ? configGeneral.cfg_goldenGateColumns : configGeneral.cfg_numberColumns
+      onValueModified: {
+        if (configGeneral.goldenGate) {
+          configGeneral.cfg_goldenGateColumns = value;
+        } else {
+          configGeneral.cfg_numberColumns = value;
+        }
+      }
       Kirigami.FormData.label: i18n("Number of columns in grid")
     }
     SpinBox{

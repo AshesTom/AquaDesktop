@@ -297,6 +297,7 @@ def test_kwriteconfig6_package_per_distro(
     ("kf6-kio-cmake", "kio", "libkf6kio-dev"),
     ("plasma-cmake", "libplasma", "libplasma-dev"),
     ("plasma5support-qml", "plasma5support", "qml6-module-org-kde-plasma-plasma5support"),
+    ("kf6-itemmodels-qml", "kitemmodels", "qml6-module-org-kde-kitemmodels"),
     ("libtaskmanager-cmake", "plasma-workspace", "plasma-workspace-dev"),
     ("kwin-cmake", "kwin", "kwin-dev"),
     ("kdecoration-cmake", "kdecoration", "libkdecorations3-dev"),
@@ -311,6 +312,7 @@ def test_debian_family_development_packages(
 
 @pytest.mark.parametrize("token, fallback, expected", [
     ("plasma5support-qml", "plasma5support", "plasma5support"),
+    ("kf6-itemmodels-qml", "kitemmodels", "kf6-kitemmodels"),
     ("plasma-activities-cmake", "plasma-activities", "plasma-activities-dev"),
     (
         "plasma-activities-stats-cmake",
@@ -749,6 +751,8 @@ def test_kf6_framework_packages_per_distro(monkeypatch, token, arch, fedora):
 
 _PLASMA_TOKENS = [
     # token, arch, fedora, opensuse
+    ("kf6-itemmodels-qml",
+     "kitemmodels", "kf6-kitemmodels", "kf6-kitemmodels-imports"),
     ("plasma5support-qml",
      "plasma5support", "plasma5support", "plasma5support6"),
     ("plasma-cmake",

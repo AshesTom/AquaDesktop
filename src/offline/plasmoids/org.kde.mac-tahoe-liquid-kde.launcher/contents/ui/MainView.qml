@@ -16,7 +16,9 @@ Item {
 	property bool searching: (searchBar.textField.text != "")
 	readonly property bool detachedSearch: kicker.launcherPreset === 2
 	readonly property real searchPopupHeight: searchPopup.height
-	readonly property real searchPopupGap: Kirigami.Units.largeSpacing * 2
+	readonly property real searchPopupGap: Kirigami.Units.gridUnit * 0.75
+	readonly property real categoryHeight: detachedSearch ? Kirigami.Units.gridUnit * 16 / 9 : 40
+	readonly property real gridTopSpacing: detachedSearch ? Kirigami.Units.gridUnit * 16 / 9 : 0
 	readonly property bool searchPopupActive: searchPopup.visible && searchPopup.hasFocus
 	readonly property bool menuOpen: searchBar.menuOpen
 
@@ -53,10 +55,8 @@ Item {
 		transientParent: root
 		visible: root.visible && main.detachedSearch
 		hideOnWindowDeactivate: false
-		width: Math.max(Kirigami.Units.gridUnit * 16, main.width * 0.62) + leftPadding + rightPadding
-		height: Math.max(Kirigami.Units.gridUnit * 3, 56) + topPadding + bottomPadding
-		x: root.x + (root.width - width) / 2
-		y: root.y - height - main.searchPopupGap
+		width: root.width * 0.617
+		height: Kirigami.Units.iconSizes.huge * 1.625
 		onHasFocusChanged: root.checkDismissal()
 
 		mainItem: FocusScope {
@@ -67,6 +67,7 @@ Item {
 	readonly property color textColor: isDarkTheme ? Kirigami.Theme.textColor : "#555555"
 	readonly property string textFont: Kirigami.Theme.defaultFont.family
 	readonly property real textSize: Kirigami.Theme.defaultFont.pointSize
+	readonly property real appTextSize: textSize * (detachedSearch ? 1.25 : 1)
 	readonly property color bgColor: Kirigami.Theme.backgroundColor
 	readonly property color highlightColor: Kirigami.Theme.highlightColor
 	readonly property color highlightedTextColor: Kirigami.Theme.highlightedTextColor

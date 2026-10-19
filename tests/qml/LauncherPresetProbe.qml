@@ -71,6 +71,21 @@ Timer {
             case 6:
                 verify(!root.visible && !searchPopup.visible && searchBar.textField.text === "", "outside focus closes both popups and resets query");
                 outsideProbe.close();
+                plasmoid.configuration.showAllAppsInList = false;
+                plasmoid.configuration.showAllAppsInGrid = true;
+                root.visible = true;
+                break;
+            case 7:
+                verify(root.columns === 7, "Golden Gate starts with seven columns");
+                verify(searchBar.textField.font.pointSize > main.appTextSize, "search text has its own hierarchy");
+                const view = appList.viewItem;
+                verify(view.headerItem !== null, "favorites row shown above all apps");
+                verify(view.headerItem.favoritesView.count === 7, "favorites limited to one row");
+                verify(view.contentY <= view.headerItem.y, "opening shows the favorites header");
+                plasmoid.configuration.goldenGateColumns = 6;
+                break;
+            case 8:
+                verify(appList.viewItem.headerItem.favoritesView.count === 6, "favorites follow the column setting");
                 console.log("LAUNCHER_PROBE_OK");
                 stop();
                 break;
