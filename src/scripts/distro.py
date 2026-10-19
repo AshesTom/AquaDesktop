@@ -873,6 +873,16 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "kf6-kitemmodels-devel",
     },
     # ── Plasma / KSysGuard / plasma-workspace ─────────────────────────
+    "plasma5support-qml": {
+        "arch":     "plasma5support",
+        "debian":   "qml6-module-org-kde-plasma-plasma5support",
+        "ubuntu":   "qml6-module-org-kde-plasma-plasma5support",
+        "neon":     "plasma5support",
+        "fedora":   "plasma5support",
+        "rhel":     "plasma5support",
+        "centos":   "plasma5support",
+        "opensuse": "plasma5support6",
+    },
     "plasma-cmake": {
         "arch":     "libplasma",
         "debian":   "libplasma-dev",

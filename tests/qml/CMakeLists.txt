@@ -19,4 +19,9 @@ if(NOT TARGET Plasma::PlasmaQuick OR NOT TARGET Qt6::Quick
     message(STATUS "LAUNCHER_POPUP_SDK_MISSING")
     return()
 endif()
+# Fedora's Qt Wayland target advertises metatypes that its SDK does not ship.
+# The launcher only needs the scanner; importing these unused QML types must
+# fail here too, even on hosts whose Qt Wayland package includes the JSON.
+set_property(TARGET Qt6::WaylandClient APPEND PROPERTY INTERFACE_SOURCES
+    "$<$<BOOL:$<TARGET_PROPERTY:QT_CONSUMES_METATYPES>>:${CMAKE_CURRENT_BINARY_DIR}/unused-wayland-metatypes.json>")
 add_subdirectory("${LAUNCHER_NATIVE_SOURCE}/launcher" launcher)

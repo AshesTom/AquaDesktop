@@ -63,6 +63,7 @@ def deps():
         "qt6-widgets-cmake:qt6-base",
         "qt6-dbus-cmake:qt6-base",
         "qt6-qml-cmake:qt6-declarative",
+        "plasma5support-qml:plasma5support",
         "qt6-wayland-cmake:qt6-wayland",
         "wayland-cmake:wayland",
         "cmake",

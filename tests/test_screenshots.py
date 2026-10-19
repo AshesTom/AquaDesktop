@@ -63,11 +63,13 @@ class EmptyTranslations(QObject):
         return ''
 app = QGuiApplication([])
 engine = QQmlApplicationEngine()
+errors = []
+engine.warnings.connect(lambda warnings: errors.extend(w.toString() for w in warnings))
 context = EmptyTranslations()
 engine.rootContext().setContextObject(context)
 engine.setInitialProperties({'visible': False, 'fetcherCommand': 'true'})
 engine.load(QUrl.fromLocalFile(sys.argv[1]))
-assert engine.rootObjects(), 'About window failed to load'
+assert engine.rootObjects(), 'About window failed to load: ' + '\n'.join(errors)
 texts = set()
 def visit(item):
     text = item.property('text')

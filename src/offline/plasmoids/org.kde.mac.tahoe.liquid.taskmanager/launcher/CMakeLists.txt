@@ -21,7 +21,9 @@ qt_add_qml_module(mactahoelauncher
     OUTPUT_DIRECTORY "${launcher_module_dir}"
     SOURCES launchersearchpopup.cpp launchersearchpopup.h
 )
-target_link_libraries(mactahoelauncher PRIVATE Qt6::Quick Qt6::WaylandClient Plasma::Plasma Plasma::PlasmaQuick KF6::WindowSystem)
+# Only the scanner is needed from Qt Wayland. PlasmaQuick owns the client;
+# linking it here also pulls unused Wayland metatypes into QML registration.
+target_link_libraries(mactahoelauncher PRIVATE Qt6::Quick Plasma::Plasma Plasma::PlasmaQuick KF6::WindowSystem)
 # The installer copies this module directly from the build tree.
 set_target_properties(mactahoelauncher PROPERTIES PREFIX "lib" BUILD_WITH_INSTALL_RPATH TRUE)
 target_include_directories(mactahoelauncher PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
