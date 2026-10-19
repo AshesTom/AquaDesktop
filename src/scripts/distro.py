@@ -708,6 +708,17 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "alpine":   "qt6-qtsvg-dev",
         "void":     "qt6-svg-devel",
     },
+    "qt6-wayland-cmake": {
+        "arch":     "qt6-wayland",
+        "debian":   "qt6-wayland-dev",
+        "ubuntu":   "qt6-wayland-dev",
+        "fedora":   "qt6-qtwayland-devel",
+        "rhel":     "qt6-qtwayland-devel",
+        "centos":   "qt6-qtwayland-devel",
+        "opensuse": "qt6-wayland-devel",
+        "alpine":   "qt6-qtwayland-dev",
+        "void":     "qt6-wayland-devel",
+    },
     "make": {
         "arch":     "make",
         "debian":   "make",

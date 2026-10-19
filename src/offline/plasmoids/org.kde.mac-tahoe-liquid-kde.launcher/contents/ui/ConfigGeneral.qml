@@ -25,6 +25,7 @@ KCM.SimpleKCM {
 
     property alias cfg_floating: floating.checked
     property alias cfg_launcherPosition: launcherPosition.currentIndex
+    property int cfg_launcherPreset: Plasmoid.configuration.launcherPreset
     property alias cfg_offsetX: screenOffset.value
     property alias cfg_offsetY: panelOffset.value
 
@@ -141,6 +142,14 @@ KCM.SimpleKCM {
               }
           }
       }
+    }
+
+    ComboBox {
+        Kirigami.FormData.label: i18n("Launcher preset:")
+        model: [i18n("Preset 1 — Tahoe"), i18n("Preset 2 — Golden Gate")]
+        currentIndex: (configGeneral.cfg_launcherPreset === 0
+            ? Plasmoid.configuration.defaultLauncherPreset : configGeneral.cfg_launcherPreset) - 1
+        onActivated: index => configGeneral.cfg_launcherPreset = index + 1
     }
 
     ComboBox {

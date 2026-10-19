@@ -64,6 +64,9 @@ struct BlurEffectData
     /** Subregion of the server-side decoration marked as blur-able. */
     std::optional<Region> frame;
 
+    /** Rounded client curve used to antialias Plasma popup glass. */
+    std::optional<float> popupRadius;
+
     /**
      * Render scratch space keyed by the view it belongs to. Different
      * outputs can have different colour spaces / scales, so one shared

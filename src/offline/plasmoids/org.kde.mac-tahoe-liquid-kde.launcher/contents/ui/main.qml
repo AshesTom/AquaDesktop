@@ -20,6 +20,9 @@ PlasmoidItem {
 
     property bool isDash: false
 
+    readonly property int launcherPreset: Plasmoid.configuration.launcherPreset === 0
+        ? Plasmoid.configuration.defaultLauncherPreset : Plasmoid.configuration.launcherPreset
+
     preferredRepresentation: fullRepresentation
 
     compactRepresentation: null

@@ -4,7 +4,7 @@
 
 # macOS Tahoe Liquid Theme for Plasma 6.6+
 
-[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1414_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
+[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1433_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
 
 macOS Tahoe-inspired glass, Dock, global menu and app themes for KDE Plasma 6.6–6.8.
 
@@ -17,11 +17,13 @@ macOS Tahoe-inspired glass, Dock, global menu and app themes for KDE Plasma 6.6�
 
 ### Acrylic Glass Tahoe Launcher
 
-Search, favorites and two app views.
+Installs **Preset 1 — Tahoe**, with search inside the app panel. Search,
+favorites and two app views. Switch to **Preset 2 — Golden Gate** from the
+Launcher's **…** menu or **Configure Launcher → General → Launcher preset**.
 
 <p align="center">
-  <img src="src/screenshots/launcher_v4.png" alt="Application launcher in light mode" width="415">
-  <img src="src/screenshots/launcher_dark_v4.png" alt="Application launcher in dark mode" width="415">
+  <img src="src/screenshots/launcher_preset_1_light.png" alt="Default Tahoe preset 1 in light mode, with integrated search and Tahoe wallpaper" width="415">
+  <img src="src/screenshots/launcher_preset_1_dark.png" alt="Default Tahoe preset 1 in dark mode, with integrated search and Tahoe wallpaper" width="415">
 </p>
 
 <br>
@@ -174,6 +176,10 @@ sudo ./install --reset
 - Both Tahoe and Golden Gate light/dark wallpapers are bundled. Tahoe is the default;
   the [Golden Gate edition](https://github.com/lestercorderomurillo/macos-golden-gate-liquid-kde)
   downloads this implementation and selects Golden Gate through `src/scripts/defaults.json`.
+- Open the Launcher's **…** menu or **Configure Launcher → General → Launcher preset**
+  to choose **Preset 1 — Tahoe** (search inside the panel) or
+  **Preset 2 — Golden Gate** (separate search capsule above it). New launchers use
+  preset 1 in Tahoe and preset 2 in Golden Gate. Reinstalling preserves your selection.
 - `./legacy-install` and `./legacy-uninstall` use the classic prompt instead of the terminal wizard.
 
 </details>

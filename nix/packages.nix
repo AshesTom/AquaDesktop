@@ -13,8 +13,8 @@ let
   buildPlugin = name: src: extra: pkgs.stdenv.mkDerivation ({
     pname = "mac-tahoe-${name}";
     inherit version src meta;
-    nativeBuildInputs = [ pkgs.cmake kde.extra-cmake-modules pkgs.pkg-config kde.wrapQtAppsHook ];
-    buildInputs = with kde; [ qtbase qtdeclarative qttools kconfig kconfigwidgets
+    nativeBuildInputs = [ pkgs.cmake kde.extra-cmake-modules pkgs.pkg-config pkgs.wayland-scanner kde.wrapQtAppsHook ];
+    buildInputs = with kde; [ qtbase qtdeclarative qtwayland qttools kconfig kconfigwidgets
       kcoreaddons kcrash kglobalaccel kguiaddons ki18n kio kcmutils knotifications
       kservice kwidgetsaddons kwindowsystem kcolorscheme libplasma plasma-activities
       plasma-activities-stats libksysguard plasma-workspace kwin kdecoration ]

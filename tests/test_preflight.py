@@ -328,6 +328,7 @@ def test_install_destinations_anchor_to_qmake6_libdir(monkeypatch, tmp_path):
         ("globalmenu QML",       globalmenu.DEST_QML_DIR,        fake_qml),
         ("taskmanager .so",      plasmoids.TASKMANAGER_DEST_SO,  fake_plugins),
         ("taskmanager QML",      plasmoids.TASKMANAGER_DEST_QML, fake_qml),
+        ("launcher QML",         plasmoids.LAUNCHER_DEST_QML, fake_qml),
         ("acrylic-glass plugin", acrylic_glass._plugin_dir(),    fake_plugins),
         ("kvantum plugin",       kvantum._engine_destination(), fake_plugins),
         ("rounded-corners plugin", rounded_corners._plugin_dir(), fake_plugins),

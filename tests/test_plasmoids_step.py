@@ -69,6 +69,10 @@ def test_install_copies_taskmanager_runtime_package(tmp_path, monkeypatch):
         "module plasma.applet.org.kde.mac.tahoe.liquid.taskmanager\n"
     )
     (runtime_qml / "main.qml").write_text("import QtQuick\nItem {}\n")
+    launcher_module = taskmanager / "build/bin/org/kde/mac/tahoe/launcher"
+    launcher_module.mkdir(parents=True)
+    (launcher_module / "libmactahoelauncher.so").write_bytes(b"launcher")
+    (launcher_module / "qmldir").write_text("module org.kde.mac.tahoe.launcher\nplugin mactahoelauncher\n")
     (taskmanager / "metadata.json").write_text(
         '{"KPlugin":{"Id":"org.kde.mac.tahoe.liquid.taskmanager"}}\n'
     )
@@ -116,10 +120,15 @@ def test_install_copies_taskmanager_runtime_package(tmp_path, monkeypatch):
     assert expected_so.is_file()
     assert (expected_qml / "qmldir").is_file()
     assert expected_so.read_bytes() == b"so"
+    installed_launcher = fake_qml / "org/kde/mac/tahoe/launcher"
+    assert (installed_launcher / "libmactahoelauncher.so").read_bytes() == b"launcher"
+    assert (installed_launcher / "qmldir").is_file()
     assert not failures, failures
     assert (runtime / "metadata.json").is_file()
     assert (runtime / "contents/ui/main.qml").is_file()
     assert not (runtime / "build").exists()
+    plasmoids.uninstall()
+    assert not installed_launcher.exists()
 
 
 def test_taskmanager_dest_paths_anchor_to_qmake6_libdir(monkeypatch, tmp_path):

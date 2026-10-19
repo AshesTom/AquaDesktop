@@ -76,3 +76,15 @@ msgid "Edit Applications…"
 msgstr "Editar aplicaciones…"
 msgid "General"
 msgstr "General"
+
+msgid "Launcher preset:"
+msgstr "Preajuste del lanzador:"
+
+msgid "Preset 1 — Tahoe"
+msgstr "Preajuste 1 — Tahoe"
+
+msgid "Preset 2 — Golden Gate"
+msgstr "Preajuste 2 — Golden Gate"
+
+msgid "Launcher options"
+msgstr "Opciones del lanzador"

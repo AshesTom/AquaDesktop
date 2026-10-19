@@ -13,7 +13,33 @@ PlasmaCore.Dialog {
 	flags: Qt.WindowStaysOnTopHint
 
 	location: Plasmoid.configuration.floating || Plasmoid.configuration.launcherPosition == 2 ? "Floating" : Plasmoid.location
-	hideOnWindowDeactivate: true
+	hideOnWindowDeactivate: false
+	onActiveChanged: checkDismissal()
+
+	function checkDismissal() {
+		if (visible) {
+			dismissTimer.restart();
+		}
+	}
+
+	readonly property Timer dismissTimer: Timer {
+		// Focus can pass between the app panel, search capsule and options menu.
+		interval: 150
+		onTriggered: {
+			if (root.visible && !root.active && !main.searchPopupActive && !main.menuOpen) {
+				root.visible = false;
+			}
+		}
+	}
+
+	function reposition() {
+		if (!parent || !main) {
+			return;
+		}
+		var pos = popupPosition(width, height);
+		x = pos.x;
+		y = pos.y;
+	}
 
 	Plasmoid.status: root.visible ? PlasmaCore.Types.RequiresAttentionStatus : PlasmaCore.Types.PassiveStatus
 
@@ -43,24 +69,14 @@ PlasmaCore.Dialog {
 		if (!visible) {
 			reset();
 		} else {
-			var pos = popupPosition(width, height);
-			x = pos.x;
-			y = pos.y;
+			reposition();
 			requestActivate();
+			Qt.callLater(main.focusSearch);
 		}
 	}
 
-	onHeightChanged: {
-		var pos = popupPosition(width, height);
-		x = pos.x;
-		y = pos.y;
-	}
-
-	onWidthChanged: {
-		var pos = popupPosition(width, height);
-		x = pos.x;
-		y = pos.y;
-	}
+	onHeightChanged: reposition()
+	onWidthChanged: reposition()
 
 	function toggle() {
 		root.visible = false;
@@ -71,6 +87,8 @@ PlasmaCore.Dialog {
 	}
 
 	function popupPosition(width, height) {
+		var searchHeight = main.detachedSearch ? main.searchPopupHeight + main.searchPopupGap : 0;
+		height += searchHeight;
 		var screenAvail = Plasmoid.availableScreenRect;
 		var screen/*Geom*/ = kicker.screenGeometry;
 		//QtBug - QTBUG-64115
@@ -128,7 +146,7 @@ PlasmaCore.Dialog {
 			y = vertMidPoint - height / 2
 		}
 
-		return Qt.point(x, y);
+		return Qt.point(x, y + searchHeight);
 	}
 
 	FocusScope {
@@ -136,7 +154,7 @@ PlasmaCore.Dialog {
 		focus: true
 		width:  (root.cellSizeWidth * Plasmoid.configuration.numberColumns)+ innerPadding*2//Kirigami.Units.gridUnit*2
 		// Searchbar + separator + categories + grid
-		height: 40 + 2 + 12 + 40 + (root.cellSizeHeight * rows) + innerPadding
+		height: (main.detachedSearch ? 0 : 40 + 2 + 12) + 40 + (root.cellSizeHeight * rows) + innerPadding
 		
 		
 		// We want the MainView to have an uniform margin through different plasma themes

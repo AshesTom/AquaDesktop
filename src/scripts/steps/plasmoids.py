@@ -2,6 +2,7 @@ import shutil
 from pathlib import Path
 
 from distro import qt6_plugins_dir, qt6_qml_dir
+from launcher_defaults import LAUNCHER_ID, apply_launcher_default
 from steps._helpers import (
     DATA_HOME, HOME, build_dir, cmake_build, fail, info, install_tree, ok, offline,
     remove_tree,
@@ -18,6 +19,7 @@ TASKMANAGER_BUILD = build_dir("plasmoids/org.kde.mac.tahoe.liquid.taskmanager")
 # failure, not a module-import crash.
 _TASKMANAGER_SO_RELPATH = "plasma/applets/org.kde.mac.tahoe.liquid.taskmanager.so"
 _TASKMANAGER_QML_RELPATH = "plasma/applet/org/kde/mac/tahoe/liquid/taskmanager"
+_LAUNCHER_QML_RELPATH = "org/kde/mac/tahoe/launcher"
 
 
 def __getattr__(name: str):
@@ -25,6 +27,8 @@ def __getattr__(name: str):
         return qt6_plugins_dir() / _TASKMANAGER_SO_RELPATH
     if name == "TASKMANAGER_DEST_QML":
         return qt6_qml_dir() / _TASKMANAGER_QML_RELPATH
+    if name == "LAUNCHER_DEST_QML":
+        return qt6_qml_dir() / _LAUNCHER_QML_RELPATH
     raise AttributeError(name)
 # Leftover from old sudoless installs under the user path.
 LEGACY_TASKMANAGER_USER_SO = HOME / (
@@ -59,6 +63,8 @@ def deps():
         "qt6-widgets-cmake:qt6-base",
         "qt6-dbus-cmake:qt6-base",
         "qt6-qml-cmake:qt6-declarative",
+        "qt6-wayland-cmake:qt6-wayland",
+        "wayland-cmake:wayland",
         "cmake",
         "ecm:extra-cmake-modules",
         "make",
@@ -87,6 +93,7 @@ def build_artifacts() -> list[Path]:
     return [
         TASKMANAGER_BUILD / "bin/plasma/applets/org.kde.mac.tahoe.liquid.taskmanager.so",
         TASKMANAGER_BUILD / "bin/plasma/applet/org/kde/mac/tahoe/liquid/taskmanager",
+        TASKMANAGER_BUILD / "bin" / _LAUNCHER_QML_RELPATH / "libmactahoelauncher.so",
     ]
 
 
@@ -136,6 +143,14 @@ def _install_taskmanager_qml() -> bool:
     )
 
 
+def _install_launcher_package(widget: Path) -> bool:
+    with temp_dir("mttkde-launcher-package") as tmp:
+        staged = tmp / widget.name
+        shutil.copytree(widget, staged, symlinks=True)
+        apply_launcher_default(staged)
+        return install_tree(staged, DEST_DIR / widget.name, widget.name)
+
+
 def install() -> None:
     DEST_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -168,6 +183,13 @@ def install() -> None:
     else:
         fail("org.kde.mac.tahoe.liquid.taskmanager (missing build artifact)")
 
+    launcher_module = TASKMANAGER_BUILD / "bin" / _LAUNCHER_QML_RELPATH
+    if (launcher_module / "libmactahoelauncher.so").is_file():
+        sudo_install_tree(launcher_module, qt6_qml_dir() / _LAUNCHER_QML_RELPATH,
+                          "Launcher (installed native search popup)")
+    else:
+        fail("Launcher (missing native search popup build artifact)")
+
     n = 0
     for widget in sorted(SRC_DIR.glob("*/")):
         if not widget.is_dir():
@@ -182,7 +204,9 @@ def install() -> None:
         if not (widget / "metadata.json").is_file():
             fail(f"{widget.name} (no metadata.json — skipping)")
             continue
-        if install_tree(widget, DEST_DIR / widget.name):
+        installed = (_install_launcher_package(widget) if widget.name == LAUNCHER_ID
+                     else install_tree(widget, DEST_DIR / widget.name))
+        if installed:
             n += 1
     label = "plasmoid" if n == 1 else "plasmoids"
     info(f"{n} {label} installed/reinstalled")
@@ -195,6 +219,8 @@ def uninstall() -> None:
     if sudo_remove(dest_so, dest_so.name):
         n += 1
     if sudo_remove(dest_qml, dest_qml.name):
+        n += 1
+    if sudo_remove(qt6_qml_dir() / _LAUNCHER_QML_RELPATH, "Launcher native search popup"):
         n += 1
     if LEGACY_TASKMANAGER_USER_SO.is_file():
         try:

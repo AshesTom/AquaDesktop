@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+#pragma once
+
+#include <QPainterPath>
+#include <QRegion>
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <optional>
+
+// Recover a rounded popup's curve from its integer blur region. The shader
+// can then fade along the curve instead of exposing the region's stair steps.
+inline std::optional<float> roundedBlurRadius(const QRegion &region, const QRect &bounds)
+{
+    if (region.isEmpty() || region.boundingRect() != bounds || bounds.height() < 4) {
+        return std::nullopt;
+    }
+    const QRect firstRow = region.intersected(QRect(bounds.x(), bounds.y(), bounds.width(), 1)).boundingRect();
+    const int inset = firstRow.left() - bounds.left();
+    if (inset < 1 || bounds.right() - firstRow.right() != inset) {
+        return std::nullopt;
+    }
+    const int estimate = qRound(inset + 0.5 + std::sqrt(inset));
+    const int maximum = std::min(bounds.width(), bounds.height()) / 2;
+    std::optional<float> bestRadius;
+    qint64 bestError = std::numeric_limits<qint64>::max();
+    // SVG alpha masks include partially covered pixels; thresholded masks
+    // round differently. Fit nearby curves instead of trusting one scanline.
+    for (int radius = std::max(1, estimate - 2); radius <= std::min(maximum, estimate + 3); ++radius) {
+        QPainterPath inner, outer, curve;
+        inner.addRoundedRect(QRectF(bounds).adjusted(1, 1, -1, -1), radius - 1, radius - 1);
+        outer.addRoundedRect(QRectF(bounds).adjusted(-1, -1, 1, 1), radius + 1, radius + 1);
+        // Allow rasterization rounding only. Holes, asymmetric corners and
+        // other custom cutouts keep their original configured radius.
+        if (!(QRegion(inner.toFillPolygon().toPolygon()) - region).isEmpty()
+            || !(region - QRegion(outer.toFillPolygon().toPolygon())).isEmpty()) {
+            continue;
+        }
+        curve.addRoundedRect(QRectF(bounds), radius, radius);
+        const QRegion difference = region ^ QRegion(curve.toFillPolygon().toPolygon());
+        qint64 error = 0;
+        for (const QRect &rect : difference) {
+            error += qint64(rect.width()) * rect.height();
+        }
+        if (error < bestError) {
+            bestRadius = radius;
+            bestError = error;
+        }
+    }
+    return bestRadius;
+}

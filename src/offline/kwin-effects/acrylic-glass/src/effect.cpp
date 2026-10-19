@@ -9,6 +9,7 @@
 #include "effect.h"
 // KConfigSkeleton
 #include "glassconfig.h"
+#include "roundedblurshape.h"
 
 #include "core/pixelgrid.h"
 #include "core/rendertarget.h"
@@ -556,7 +557,7 @@ void BlurEffect::updateBlurRegion(EffectWindow* w)
     // own opaque chrome doesn't double-blur).
     if (m_blurDecorations && w->decorationHasAlpha() && decorationSupportsBlurBehind(w)) {
         frame = decorationBlurRegion(w);
-    } else if (m_blurDecorations && !(w->isDock() || w->isTooltip() || w->isMenu() || w->isDropdownMenu() || w->isPopupMenu() || w->isPopupWindow())) {
+    } else if (m_blurDecorations && !(w->isDock() || w->isTooltip() || w->isMenu() || w->isDropdownMenu() || w->isPopupMenu() || w->isPopupWindow() || w->isAppletPopup())) {
         frame = Rect(w->frameGeometry().translated(-w->x(), -w->y()).toRect());
     }
 
@@ -565,6 +566,14 @@ void BlurEffect::updateBlurRegion(EffectWindow* w)
         BlurEffectData& data = m_windows[w];
         data.content = content;
         data.frame = frame;
+        data.popupRadius.reset();
+        if ((w->isAppletPopup() || w->isPopupWindow()) && content.has_value() && !frame.has_value()) {
+            QRegion clientRegion;
+            for (const Rect &rect : content->rects()) {
+                clientRegion += QRect(rect);
+            }
+            data.popupRadius = roundedBlurRadius(clientRegion, w->contentsRect().toRect());
+        }
         data.colorMatrix = colorTransformMatrix(saturation.value_or(1.0), contrast.value_or(1.0), 1.0);
         data.windowEffect = ItemEffect(w->windowItem());
     } else {
@@ -1308,7 +1317,7 @@ void BlurEffect::blur(
         topCornerRadius = BlurConfig::dockCornerRadius();
         bottomCornerRadius = BlurConfig::dockCornerRadius();
 
-    } else if (w->isTooltip() || w->isPopupWindow() || w->isMenu() || w->isDropdownMenu() || w->isPopupMenu()) {
+    } else if (w->isTooltip() || w->isPopupWindow() || w->isMenu() || w->isDropdownMenu() || w->isPopupMenu() || w->isAppletPopup()) {
         topCornerRadius = BlurConfig::popupCornerRadius();
         bottomCornerRadius = BlurConfig::popupCornerRadius();
 
@@ -1325,6 +1334,10 @@ void BlurEffect::blur(
             topCornerRadius = BlurConfig::windowCornerRadius();
             bottomCornerRadius = BlurConfig::windowCornerRadius();
         }
+    }
+
+    if (blurInfo.popupRadius.has_value()) {
+        topCornerRadius = bottomCornerRadius = *blurInfo.popupRadius;
     }
 
     // ShapeCorners publishes its animated geometry during prePaintWindow.

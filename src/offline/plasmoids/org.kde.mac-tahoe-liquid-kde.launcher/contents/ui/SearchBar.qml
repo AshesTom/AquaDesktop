@@ -7,6 +7,7 @@ RowLayout {
 
     property alias textField: textField
     property alias showMenuButton: menuButton.visible
+    readonly property bool menuOpen: menuButton.menuOpen
 
     Kirigami.Icon {
         id: searchIcon
@@ -20,7 +21,7 @@ RowLayout {
         id: textField
         Layout.fillHeight: true
         Layout.fillWidth: true
-        font.pointSize: 18
+        font: Kirigami.Theme.defaultFont
 
         placeholderText: i18n("Apps")
         placeholderTextColor: main.dimmedTextColor

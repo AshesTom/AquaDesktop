@@ -15,10 +15,15 @@ def test_client_regions_only_move_for_server_decorations(repo, tmp_path):
         pytest.skip('Qt6 development files required')
     text = (repo / 'src/offline/kwin-effects/acrylic-glass/src/effect.cpp').read_text()
     method = text[text.index('Region BlurEffect::blurRegion('):text.index('// Per-frame entry points')]
+    frame_logic = text[text.index('    if (m_blurDecorations && w->decorationHasAlpha()'):
+                       text.index('    // Commit (or evict).')]
     source = tmp_path / 'regions.cpp'
     source.write_text('''
 #include <QRegion>
 #include <QRectF>
+#include <QImage>
+#include <QPainter>
+#include "roundedblurshape.h"
 #include <optional>
 #include <unordered_map>
 #include <cassert>
@@ -26,15 +31,58 @@ using Region = QRegion;
 using Rect = QRect;
 struct EffectWindow {
     bool decorated = false;
+    enum Type { Normal, Popup, AppletPopup } type = Normal;
     QRectF contentsRect() const { return QRectF(10, 20, 100, 80); }
     bool decoration() const { return decorated; }
+    bool decorationHasAlpha() const { return false; }
+    QRectF frameGeometry() const { return QRectF(0, 0, 120, 120); }
+    int x() const { return 0; }
+    int y() const { return 0; }
+    bool isDock() const { return false; }
+    bool isTooltip() const { return false; }
+    bool isMenu() const { return false; }
+    bool isDropdownMenu() const { return false; }
+    bool isPopupMenu() const { return false; }
+    bool isPopupWindow() const { return type == Popup; }
+    bool isAppletPopup() const { return type == AppletPopup; }
 };
 struct BlurEffectData { std::optional<Region> content, frame; };
 struct BlurEffect {
     std::unordered_map<EffectWindow*, BlurEffectData> m_windows;
     Region blurRegion(EffectWindow*) const;
+    bool m_blurDecorations = true;
+    bool decorationSupportsBlurBehind(EffectWindow*) const { return false; }
+    Region decorationBlurRegion(EffectWindow*) const { return {}; }
+    std::optional<Region> implicitFrame(EffectWindow* w) const {
+        std::optional<Region> frame;
+''' + frame_logic + '''
+        return frame;
+    }
 };
 ''' + method + '''
+QRegion rasterizedRoundedRect(const QRect &bounds, int radius, int alphaThreshold = 128) {
+    QImage image(bounds.size(), QImage::Format_ARGB32_Premultiplied);
+    image.fill(Qt::transparent);
+    QPainter painter(&image);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(Qt::white);
+    painter.drawRoundedRect(QRectF(image.rect()), radius, radius);
+    painter.end();
+    QRegion region;
+    for (int y = 0; y < image.height(); ++y) {
+        int start = -1;
+        for (int x = 0; x <= image.width(); ++x) {
+            const bool opaque = x < image.width() && qAlpha(image.pixel(x, y)) >= alphaThreshold;
+            if (opaque && start < 0) start = x;
+            if (!opaque && start >= 0) {
+                region += QRect(start, y, x - start, 1);
+                start = -1;
+            }
+        }
+    }
+    return region.translated(bounds.topLeft());
+}
 int main() {
     BlurEffect effect;
     EffectWindow window;
@@ -50,9 +98,41 @@ int main() {
     assert(effect.blurRegion(&window) == *state.frame);
     state.content = Region(QRect(0, 0, 200, 200));
     assert(effect.blurRegion(&window) == (*state.frame | Region(QRect(10, 20, 100, 80))));
+    window.decorated = false;
+    const Region capsule = Region(QRect(10, 20, 80, 80), QRegion::Ellipse)
+        | Region(QRect(30, 20, 80, 80), QRegion::Ellipse) | Region(QRect(50, 20, 20, 80));
+    state.content = capsule;
+    for (auto type : {EffectWindow::Popup, EffectWindow::AppletPopup}) {
+        window.type = type;
+        state.frame = effect.implicitFrame(&window);
+        assert(!state.frame.has_value());
+        assert(effect.blurRegion(&window) == capsule);
+    }
+    window.type = EffectWindow::Normal;
+    assert(effect.implicitFrame(&window) == Region(QRect(0, 0, 120, 120)));
+
+    // Recover the client curve for both the detached capsule and popup panel.
+    // Keep custom cutouts and asymmetric shapes on the existing render path.
+    for (int radius : {22, 23, 36}) {
+        const QRect bounds(0, 0, 640, radius == 36 ? 72 : 600);
+        const QRegion rounded = rasterizedRoundedRect(bounds, radius);
+        const auto inferred = roundedBlurRadius(rounded, bounds);
+        assert(inferred && std::abs(*inferred - radius) <= 1);
+        const QRegion alphaMask = rasterizedRoundedRect(bounds, radius, 1);
+        const auto alphaRadius = roundedBlurRadius(alphaMask, bounds);
+        assert(alphaRadius && std::abs(*alphaRadius - radius) <= 3);
+        const QRegion hole = rounded - QRect(200, 20, 10, 10);
+        assert(!roundedBlurRadius(hole, bounds));
+        const QRegion asymmetric = rounded | QRect(0, bounds.height() - radius, radius, radius);
+        assert(!roundedBlurRadius(asymmetric, bounds));
+        assert(!roundedBlurRadius(rounded, bounds.adjusted(0, 0, 1, 0)));
+    }
+    assert(!roundedBlurRadius(QRegion(), QRect(0, 0, 640, 72)));
+    assert(!roundedBlurRadius(QRegion(QRect(0, 0, 640, 72)), QRect(0, 0, 640, 72)));
 }
 ''')
     binary = tmp_path / 'regions'
     subprocess.run(['c++', '-std=c++20', '-fPIC', str(source), '-o', str(binary),
+                    '-I', str(repo / 'src/offline/kwin-effects/acrylic-glass/src'),
                     *shlex.split(flags.stdout)], check=True, capture_output=True, timeout=60)
     subprocess.run([str(binary)], check=True, capture_output=True, timeout=10)

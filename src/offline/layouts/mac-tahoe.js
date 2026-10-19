@@ -5,6 +5,20 @@
 
 // ── remove existing panels ──────────────────────
 var old = panels();
+var launcherPresets = {};
+for (var p = 0; p < old.length; p++) {
+    var widgets = old[p].widgetIds;
+    for (var w = 0; w < widgets.length; w++) {
+        var widget = old[p].widgetById(widgets[w]);
+        if (widget && widget.type === "org.kde.mac-tahoe-liquid-kde.launcher") {
+            widget.currentConfigGroup = ["General"];
+            var preset = Number(widget.readConfig("launcherPreset", 0));
+            if (preset === 1 || preset === 2) {
+                launcherPresets[old[p].screen] = preset;
+            }
+        }
+    }
+}
 for (var i = 0; i < old.length; i++) {
     old[i].remove();
 }
@@ -83,6 +97,9 @@ for (var screen = 0; screen < screenCount; screen++) {
     var launcher = dock.addWidget("org.kde.mac-tahoe-liquid-kde.launcher");
     launcher.currentConfigGroup = ["General"];
     launcher.writeConfig("icon", "view-app-grid");
+    if (launcherPresets[dock.screen] !== undefined) {
+        launcher.writeConfig("launcherPreset", launcherPresets[dock.screen]);
+    }
     dock.addWidget("org.kde.plasma.marginsseparator");
 
     var tasks = dock.addWidget("org.kde.mac.tahoe.liquid.icontasks");

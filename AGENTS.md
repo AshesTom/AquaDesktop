@@ -552,6 +552,29 @@ per-screen ownership: selecting an edition never resets custom wallpapers;
 `--reset-wallpapers` remains the explicit opt-in. Golden Gate is a download
 wrapper selecting `MacGoldenGate`, not a separate theme implementation.
 
+The same defaults file selects `launcher_preset` (Tahoe: 1, Golden Gate: 2).
+`launcher_defaults.py` stamps only the staged launcher's `defaultLauncherPreset`
+schema default, also during Nix asset assembly. `launcherPreset=0` follows that
+edition default; explicit 1/2 choices persist per applet and survive panel
+rebuilds per screen in all three layouts. Both presets remain available in
+the Launcher's options menu and General settings. Preset 2 uses a separate
+native Plasma search popup above the app panel; treat both popups and their
+options menu as one focus group for dismissal.
+The `org.kde.mac.tahoe.launcher` QML module, built alongside the Dock, exports
+`LauncherSearchPopup`, a native
+`PopupPlasmaWindow` using `dialogs/launcher-search.svgz`. Keep its capsule
+surface, blur/input mask and shadow geometry aligned, including the generated
+reduced-transparency variant. Do not reach into Plasma's private background
+items to change only the surface: that leaves a rectangular shadow behind.
+Register the search window as an AppletPopup on X11 and Wayland so window
+rounding effects do not override its capsule. Acrylic Glass must preserve
+applet popups' client blur regions without adding a rectangular decoration
+region. For symmetric rounded popup regions, recover the client curve for
+shader antialiasing without expanding the blur region or changing saved radius
+settings. Reject custom cutouts; the Rounded Corners shape property still takes
+precedence. The native helper generates the missing Plasma shell protocol headers
+from the bundled XML; Qt Wayland and wayland-scanner are build dependencies.
+
 Wallpapers are fully bundled. Every entry under
 `src/offline/wallpapers/<id>/` is a JPEG q90 (re-encoded from 6K PNG
 originals) plus `metadata.json`. Total bundled is ~50 MB.
