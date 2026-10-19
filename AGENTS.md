@@ -552,6 +552,12 @@ per-screen ownership: selecting an edition never resets custom wallpapers;
 `--reset-wallpapers` remains the explicit opt-in. Golden Gate is a download
 wrapper selecting `MacGoldenGate`, not a separate theme implementation.
 
+Publish Tahoe and Golden Gate with matching release versions and `v<version>`
+tags. Golden Gate's `VERSION` must match the Tahoe release it downloads; pin
+its `upstream.json` to the published Tahoe release commit and verified archive
+SHA-256 before publishing the corresponding Golden Gate release. Each README
+shows its own default launcher preset and wallpaper in light and dark mode.
+
 The same defaults file selects `launcher_preset` (Tahoe: 1, Golden Gate: 2).
 `launcher_defaults.py` stamps only the staged launcher's `defaultLauncherPreset`
 schema default, also during Nix asset assembly. `launcherPreset=0` follows that
