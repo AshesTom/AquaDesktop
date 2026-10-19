@@ -17,10 +17,6 @@ macOS Tahoe-inspired glass, Dock, global menu and app themes for KDE Plasma 6.6�
 
 ### Acrylic Glass Tahoe Launcher
 
-Installs **Preset 1 — Tahoe**, with search inside the app panel. Search,
-favorites and two app views. Switch to **Preset 2 — Golden Gate** from the
-Launcher's **…** menu or **Configure Launcher → General → Launcher preset**.
-
 <p align="center">
   <img src="src/screenshots/launcher_preset_1_light.png" alt="Default Tahoe preset 1 in light mode, with integrated search and Tahoe wallpaper" width="415">
   <img src="src/screenshots/launcher_preset_1_dark.png" alt="Default Tahoe preset 1 in dark mode, with integrated search and Tahoe wallpaper" width="415">
@@ -176,10 +172,7 @@ sudo ./install --reset
 - Both Tahoe and Golden Gate light/dark wallpapers are bundled. Tahoe is the default;
   the [Golden Gate edition](https://github.com/lestercorderomurillo/macos-golden-gate-liquid-kde)
   downloads this implementation and selects Golden Gate through `src/scripts/defaults.json`.
-- Open the Launcher's **…** menu or **Configure Launcher → General → Launcher preset**
-  to choose **Preset 1 — Tahoe** (search inside the panel) or
-  **Preset 2 — Golden Gate** (separate search capsule above it). New launchers use
-  preset 1 in Tahoe and preset 2 in Golden Gate. Reinstalling preserves your selection.
+- Choose **1 — Tahoe** or **2 — Golden Gate** from the Launcher's **…** menu.
 - `./legacy-install` and `./legacy-uninstall` use the classic prompt instead of the terminal wizard.
 
 </details>
