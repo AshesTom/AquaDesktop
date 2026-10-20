@@ -208,9 +208,9 @@ def test_glass_surface_is_the_tahoe_glass_face(offline):
     surface, frag = first[0].decode(), first[1].decode()
     # The context menus' colour (Kvantum's menu fill at its opacity), or the
     # accent with the accent tint of Theme Settings.
-    assert 'readonly property color tint: accentTint ? "#" + accentHex : dark ? "#333333" : "#ffffff"' in surface
-    # Neutral by default: the slider's clear end, no grey veil.
-    assert "readonly property real defaultTintAlpha: accentTint ? (dark ? 0.35 : 0.20) : dark ? 0.08 : 0.05" in surface
+    assert 'readonly property color tint: accentTint ? "#" + accentHex : dark ? "#1c1c1e" : "#ffffff"' in surface
+    # Dark mode stays dark (near-black, no grey cast); light mode is clear.
+    assert "readonly property real defaultTintAlpha: accentTint ? (dark ? 0.35 : 0.20) : dark ? 0.50 : 0.05" in surface
     assert 'glassTint.value("GlassLevel", 50)' in surface
     assert '+ "/mac-tahoe-liquid-kde/glass.ini"' in surface
     assert 'glassTint.value("Tint", "macos")' in surface

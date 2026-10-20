@@ -264,11 +264,12 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   edge faces the top left. The light is premultiplied with no alpha of its
   own, so KWin adds it to the desktop and it keeps the desktop's colour;
   never composite or screenshot it through a step that unpremultiplies
-  (QPainter skips alpha-0 pixels). By default the face is neutral: the
-  glass level slider's clear end (#333333 at 8 % with white content, white
-  at 5 % with dark content; the earlier 55 % / 33 % veil, the context menus'
-  colour, tinted the glass, and the user dropped it), its tinted half adding
-  the veil back, or the accent with the accent glass tint.
+  (QPainter skips alpha-0 pixels). With white content (dark mode) the face
+  is Apple's near-black #1c1c1e at 50 %: a lighter veil let a bright
+  wallpaper light the dark glass up, and the earlier #333333 at 55 % gave
+  it a grey cast the user dropped. With dark content (light mode) it is the
+  glass level slider's clear end, white at 5 %. The slider tints from
+  there, or the accent glass tint takes over.
   No cursor-following highlight: macOS has none.
   Rebuild the `.qsb` with `qsb --glsl "300 es,330" --hlsl 50 --msl 12`
   after editing the shader (`tests/test_control_center.py` reads its

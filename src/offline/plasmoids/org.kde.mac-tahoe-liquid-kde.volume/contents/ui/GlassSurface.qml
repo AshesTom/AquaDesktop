@@ -28,10 +28,11 @@ Item {
     // macOS' Control Center next to the menu bar's menus. Theme Settings
     // writes the tint and Golden Gate's clear-to-tinted level to glass.ini.
     readonly property bool accentTint: tintName === "accent" && accentHex.length === 6
-    readonly property color tint: accentTint ? "#" + accentHex : dark ? "#333333" : "#ffffff"
-    // Neutral glass by default: the slider's clear end (no grey veil over
-    // the blur, which coloured the glass); its tinted half still adds one.
-    readonly property real defaultTintAlpha: accentTint ? (dark ? 0.35 : 0.20) : dark ? 0.08 : 0.05
+    readonly property color tint: accentTint ? "#" + accentHex : dark ? "#1c1c1e" : "#ffffff"
+    // Dark mode: Apple's near-black #1c1c1e at 50 %, so the glass stays
+    // dark over a bright wallpaper without the old #333333 veil's grey cast.
+    // Light mode: the slider's clear end.
+    readonly property real defaultTintAlpha: accentTint ? (dark ? 0.35 : 0.20) : dark ? 0.50 : 0.05
     readonly property real tintAlpha: {
         const level = glassLevel;
         const clear = dark ? 0.08 : 0.05;
