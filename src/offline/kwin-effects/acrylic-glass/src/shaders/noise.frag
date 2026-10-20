@@ -13,11 +13,11 @@ void main(void)
 {
     vec2 halfSize = blurSize * 0.5;
     vec2 pos = vertex - box.xy;
-    float d = lgRoundedRectDistance(pos, max(halfSize - vec2(1.0), vec2(0.5)), cornerRadius);
-    if (d > 0.0) {
+    float d = lgRoundedRectDistance(pos, halfSize, cornerRadius);
+    float mask = lgRoundedRectCoverage(d);
+    if (mask <= 0.0) {
         discard;
     }
-    float mask = 1.0 - smoothstep(-3.0, 0.0, d);
     vec2 uvNoise = vec2(gl_FragCoord.xy / noiseTextureSize);
 
     gl_FragColor = vec4(texture2D(texUnit, uvNoise).rrr * (mask * opacity), 0);

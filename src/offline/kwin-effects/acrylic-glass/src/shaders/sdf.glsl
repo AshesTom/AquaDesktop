@@ -23,6 +23,13 @@ float lgRoundedRectDistance(vec2 p, vec2 halfSize, vec4 cornerRadius)
     return min(max(q.x, q.y), 0.0) + lgCornerLength(max(q, 0.0)) - r;
 }
 
+float lgRoundedRectCoverage(float distance)
+{
+    // Geometry is in device pixels. Cover the first interior pixel fully;
+    // a wider inward fade exposes the untinted wallpaper as a bright rim.
+    return 1.0 - smoothstep(-0.5, 0.5, distance);
+}
+
 vec2 lgRoundedRectNormal(vec2 p, vec2 halfSize, vec4 cornerRadius)
 {
     float r = p.x > 0.0
