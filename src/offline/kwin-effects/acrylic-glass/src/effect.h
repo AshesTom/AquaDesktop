@@ -67,6 +67,9 @@ struct BlurEffectData
     /** Rounded client curve used to antialias Plasma popup glass. */
     std::optional<float> popupRadius;
 
+    /** AquaDesktop: bubbles drawn on the last frame (0: the window box). */
+    int lastBubbles = 0;
+
     /**
      * Render scratch space keyed by the view it belongs to. Different
      * outputs can have different colour spaces / scales, so one shared
@@ -268,6 +271,7 @@ private:
         int blurSizeLocation;
         int rgbDriftStrengthLocation;
         int magnifyGlassStrengthLocation;
+        int lensCenterLocation; // AquaDesktop
         int refractionWidthLocation;
         int highlightWidthLocation;
         int highlightStrengthLocation;

@@ -395,16 +395,24 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   the module and the link exist (`tests/test_qqc2_style.py`). KWin's title
   bar and each KCM's own layout stay KDE's.
 - The window and Dock glass is upstream's Acrylic Glass KWin effect
-  (`liquidglass`), bundled unchanged in `src/offline/kwin-effects/acrylic-glass`
-  and installed by upstream's `steps/acrylic_glass.py` with two AquaDesktop
-  changes: its install and uninstall retire the Better Blur DX effect earlier
+  (`liquidglass`), bundled in `src/offline/kwin-effects/acrylic-glass` with one
+  AquaDesktop change, marked in the source: a client region that does not fill
+  its undecorated window (the Control Center's bubbles, a popover's
+  transparent room) is drawn bubble by bubble. `glass_shapes.hpp` recovers
+  each bubble (box and radius) from the region, and the glass and grain
+  passes take each bubble's box, radius and lens centre (`lensCenter`, 0.5 /
+  0.5 on upstream's path), so the refraction and highlight follow the bubble,
+  not the window's invisible edge. `qdbus6 org.kde.KWin /Effects
+  org.kde.kwin.Effects.debug liquidglass windows` lists each window's region,
+  popup radius and bubble count from the last frame. It is installed by
+  upstream's `steps/acrylic_glass.py` with two AquaDesktop changes: its install and uninstall retire the Better Blur DX effect earlier
   AquaDesktop releases bundled (`_remove_better_blur_dx`: `better_blur_dx`,
   `[Effect-better-blur-dx]`, its settings module and any hashed
   `.better_blur_dx-*` copy), and its build never touches the live desktop
   (the stock blur and Glass are disabled in `install()`). Keep the effect's
   sources, step and tests as upstream's so merges stay clean: an earlier
   merge paired the fork's renamed effect directory with upstream's and
-  silently broke the blur. The feature keeps its id `acrylic_glass`
+  silently broke the blur. Keep AquaDesktop's change small and marked. The feature keeps its id `acrylic_glass`
   (`--acrylic-glass`, features.json). KWin effect id `liquidglass`, settings
   in kwinrc `[Effect-liquidglass]`. Per-mode glass lives in
   `theme_switch.py` `GLASS_PRESETS` and is rewritten on every light/dark

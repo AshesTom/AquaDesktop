@@ -17,6 +17,8 @@ uniform vec4 cornerRadius;
 uniform float opacity;
 uniform float rgbDriftStrength;
 uniform float magnifyGlassStrength;
+// AquaDesktop: the lens centre in texture coordinates.
+uniform vec2 lensCenter;
 uniform float refractionWidth;
 uniform float highlightWidth;
 uniform float highlightStrength;
@@ -51,7 +53,7 @@ void main()
     float edgeQ = edgeT * edgeT * edgeT;
 
     vec2 lensUV = (magnifyGlassStrength > 0.0)
-        ? lgLensUV(uv, magnifyGlassStrength, edgeQ)
+        ? lgLensUV(uv, lensCenter, magnifyGlassStrength, edgeQ)
         : uv;
     vec2 texel = halfpixel * 2.0;
     vec3 col;

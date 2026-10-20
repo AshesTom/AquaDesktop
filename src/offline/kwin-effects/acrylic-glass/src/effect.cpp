@@ -11,6 +11,7 @@
 // KConfigSkeleton
 #include "glassconfig.h"
 #include "roundedblurshape.h"
+#include "glass_shapes.hpp"
 
 #include "core/pixelgrid.h"
 #include "core/rendertarget.h"
@@ -79,8 +80,22 @@ static QString shaderPath(const QString& name, const QString& extension)
 
 namespace KWin {
 
-QString BlurEffect::debug(const QString &) const
+QString BlurEffect::debug(const QString &parameter) const
 {
+    // AquaDesktop: "windows" lists what the glass drew for each window on
+    // its last frame, to check a popover's bubbles on a live session.
+    if (parameter == QLatin1String("windows")) {
+        QStringList lines;
+        for (const auto &[window, data] : m_windows) {
+            lines << QStringLiteral("%1 content=%2 frame=%3 popupRadius=%4 bubbles=%5")
+                         .arg(window->window()->resourceClass(),
+                              data.content ? QString::number(data.content->rects().size()) : QStringLiteral("-"),
+                              data.frame ? QStringLiteral("yes") : QStringLiteral("no"),
+                              data.popupRadius ? QString::number(*data.popupRadius) : QStringLiteral("-"),
+                              QString::number(data.lastBubbles));
+        }
+        return lines.join(QLatin1Char('\n'));
+    }
     return QStringLiteral(MTTKDE_GLASS_BUILD_ID);
 }
 
@@ -193,6 +208,7 @@ BlurEffect::BlurEffect()
         m_roundedOnscreenPass.blurSizeLocation = m_roundedOnscreenPass.shader->uniformLocation("blurSize");
         m_roundedOnscreenPass.rgbDriftStrengthLocation = m_roundedOnscreenPass.shader->uniformLocation("rgbDriftStrength");
         m_roundedOnscreenPass.magnifyGlassStrengthLocation = m_roundedOnscreenPass.shader->uniformLocation("magnifyGlassStrength");
+        m_roundedOnscreenPass.lensCenterLocation = m_roundedOnscreenPass.shader->uniformLocation("lensCenter");
         m_roundedOnscreenPass.refractionWidthLocation = m_roundedOnscreenPass.shader->uniformLocation("refractionWidth");
         m_roundedOnscreenPass.highlightWidthLocation = m_roundedOnscreenPass.shader->uniformLocation("highlightWidth");
         m_roundedOnscreenPass.highlightStrengthLocation = m_roundedOnscreenPass.shader->uniformLocation("highlightStrength");
@@ -1086,6 +1102,60 @@ void BlurEffect::blur(
         return;
     }
 
+    // AquaDesktop: a client region that does not fill its undecorated
+    // window (the Control Center's bubbles, a popover's transparent room
+    // around its glass) is drawn bubble by bubble, each with its own box
+    // and radius: the refraction, the highlight and the mask follow the
+    // bubble instead of the window's invisible edge.
+    std::vector<AquaGlass::GlassShape> bubbles;
+    std::vector<std::pair<int, int>> bubbleRanges;
+    if (!blurInfo.frame && w->property("_mttkde_corner_shape_v1").toList().size() != 2) {
+        QList<QRectF> localRects;
+        for (const Rect& r : blurShape.rects()) {
+            localRects.append(QRectF(r.x() - backgroundRect.x(), r.y() - backgroundRect.y(), r.width(), r.height()));
+        }
+        bubbles = AquaGlass::glassShapes(localRects, 24);
+        const QRectF frame = QRectF(w->frameGeometry().x() + data.xTranslation() - backgroundRect.x(),
+                                    w->frameGeometry().y() + data.yTranslation() - backgroundRect.y(),
+                                    w->frameGeometry().width() * data.xScale(),
+                                    w->frameGeometry().height() * data.yScale());
+        const bool fillsWindow = bubbles.size() == 1
+            && std::abs(bubbles[0].box.left() - frame.left()) <= 2 && std::abs(bubbles[0].box.top() - frame.top()) <= 2
+            && std::abs(bubbles[0].box.right() - frame.right()) <= 2 && std::abs(bubbles[0].box.bottom() - frame.bottom()) <= 2;
+        if (fillsWindow) {
+            bubbles.clear();
+        }
+    }
+    if (!bubbles.empty()) {
+        // Group the onscreen rects by bubble (device pixels), so each bubble
+        // is one contiguous range of the vertex buffer.
+        const qreal scale = viewport.scale();
+        std::vector<QList<RectF>> groups(bubbles.size());
+        for (const RectF& rect : effectiveShape) {
+            const QPointF centre = QRectF(rect).center();
+            size_t best = 0;
+            qreal bestDistance = std::numeric_limits<qreal>::max();
+            for (size_t i = 0; i < bubbles.size(); ++i) {
+                const QRectF box(bubbles[i].box.x() * scale, bubbles[i].box.y() * scale,
+                                 bubbles[i].box.width() * scale, bubbles[i].box.height() * scale);
+                const qreal dx = std::max({box.left() - centre.x(), 0.0, centre.x() - box.right()});
+                const qreal dy = std::max({box.top() - centre.y(), 0.0, centre.y() - box.bottom()});
+                const qreal distance = dx * dx + dy * dy;
+                if (distance < bestDistance) {
+                    best = i;
+                    bestDistance = distance;
+                }
+            }
+            groups[best].append(rect);
+        }
+        effectiveShape.clear();
+        for (const auto& group : groups) {
+            bubbleRanges.emplace_back(int(effectiveShape.size()), int(group.size()));
+            effectiveShape.append(group);
+        }
+    }
+    blurInfo.lastBubbles = int(bubbles.size());
+
     // 3. Framebuffer (re)allocation
     // textures[0] holds the un-blurred capture. textures[1..N] are the
     // Kawase chain. We reallocate when the iteration count, size, or
@@ -1448,6 +1518,7 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.blurSizeLocation, QVector2D(nativeBox.width(), nativeBox.height()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.rgbDriftStrengthLocation, float(m_rgbDriftStrength * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.magnifyGlassStrengthLocation, m_magnifyGlassStrength);
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.lensCenterLocation, QVector2D(0.5f, 0.5f));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.refractionWidthLocation, float(m_refractionWidth * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightWidthLocation, float(m_highlightWidth * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightStrengthLocation, m_highlightStrength);
@@ -1464,7 +1535,34 @@ void BlurEffect::blur(
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-    vbo->draw(GL_TRIANGLES, 6, vertexCount);
+    // AquaDesktop: one box and radius per bubble (see above).
+    const auto bubbleBox = [&](size_t i) {
+        const qreal scale = viewport.scale();
+        const QRectF box(std::floor(bubbles[i].box.x() * scale), std::floor(bubbles[i].box.y() * scale),
+                         std::floor(bubbles[i].box.width() * scale), std::floor(bubbles[i].box.height() * scale));
+        // A single bubble keeps the radius fitted on the client's curve.
+        const float radius = float((bubbles.size() == 1 && blurInfo.popupRadius ? *blurInfo.popupRadius : bubbles[i].radius) * scale);
+        return std::pair<QRectF, float>(box, std::min(radius, float(std::min(box.width(), box.height()) / 2)));
+    };
+    if (bubbles.empty()) {
+        vbo->draw(GL_TRIANGLES, 6, vertexCount);
+    } else {
+        for (size_t i = 0; i < bubbles.size(); ++i) {
+            if (bubbleRanges[i].second == 0) {
+                continue;
+            }
+            const auto [box, radius] = bubbleBox(i);
+            m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.boxLocation,
+                QVector4D(box.x() + box.width() * 0.5, box.y() + box.height() * 0.5, box.width() * 0.5, box.height() * 0.5));
+            m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.blurSizeLocation, QVector2D(box.width(), box.height()));
+            m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.cornerRadiusLocation, QVector4D(radius, radius, radius, radius));
+            m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.cornerSquircleLocation, 0.0f);
+            m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.lensCenterLocation,
+                QVector2D(float(box.center().x() / scaledBackgroundRect.width()),
+                          float(1.0 - box.center().y() / scaledBackgroundRect.height())));
+            vbo->draw(GL_TRIANGLES, 6 + bubbleRanges[i].first * 6, bubbleRanges[i].second * 6);
+        }
+    }
 
     glDisable(GL_BLEND);
 
@@ -1494,7 +1592,21 @@ void BlurEffect::blur(
             m_noisePass.shader->setUniform(m_noisePass.opacityLocation, modulation * m_materialOpacity);
             noiseTexture->bind();
 
-            vbo->draw(GL_TRIANGLES, 6, vertexCount);
+            if (bubbles.empty()) {
+                vbo->draw(GL_TRIANGLES, 6, vertexCount);
+            } else {
+                for (size_t i = 0; i < bubbles.size(); ++i) {
+                    if (bubbleRanges[i].second == 0) {
+                        continue;
+                    }
+                    const auto [box, radius] = bubbleBox(i);
+                    m_noisePass.shader->setUniform(m_noisePass.boxLocation, QVector4D(box.center().x(), box.center().y(), box.width() * 0.5, box.height() * 0.5));
+                    m_noisePass.shader->setUniform(m_noisePass.blurSizeLocation, QVector2D(box.width(), box.height()));
+                    m_noisePass.shader->setUniform(m_noisePass.cornerRadiusLocation, QVector4D(radius, radius, radius, radius));
+                    m_noisePass.shader->setUniform(m_noisePass.cornerSquircleLocation, 0.0f);
+                    vbo->draw(GL_TRIANGLES, 6 + bubbleRanges[i].first * 6, bubbleRanges[i].second * 6);
+                }
+            }
 
             ShaderManager::instance()->popShader();
         }

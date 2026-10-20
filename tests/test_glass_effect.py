@@ -279,3 +279,70 @@ def test_build_never_mutates_the_live_desktop(monkeypatch, build_succeeds):
     monkeypatch.setattr(step, 'qdbus_call', unexpected)
     step.build()
     assert len(builds) == 1
+
+
+def test_popover_bubbles_are_recovered_from_the_blur_region(offline, tmp_path):
+    """Every rounded bubble of a popover's region (built like
+    org.kde.mac.tahoe.liquid.glass does) comes back as its own box, its
+    corner radius within a pixel, so the glass draws each one on its own."""
+    import shlex
+    import shutil
+    import subprocess
+    if not shutil.which("c++") or not shutil.which("pkg-config"):
+        pytest.skip("C++ compiler and pkg-config required")
+    flags = subprocess.run(["pkg-config", "--cflags", "--libs", "Qt6Gui"],
+                           capture_output=True, text=True, timeout=10)
+    if flags.returncode:
+        pytest.skip("Qt6Gui development files required")
+    source = tmp_path / "shapes.cpp"
+    source.write_text(r'''
+#include "glass_shapes.hpp"
+#include <QPainterPath>
+#include <QPolygon>
+#include <QRegion>
+#include <cassert>
+#include <cmath>
+int main() {
+    struct B { QRectF r; qreal radius; };
+    const B bubbles[] = {{{10, 10, 140, 64}, 20}, {{160, 10, 64, 64}, 20},
+                         {{10, 84, 288, 40}, 20}, {{10, 134, 288, 120}, 24}};
+    QRegion region;
+    for (const B &b : bubbles) {
+        QPainterPath path;
+        path.addRoundedRect(b.r, b.radius, b.radius);
+        region |= QRegion(path.toFillPolygon().toPolygon());
+    }
+    QList<QRectF> rects;
+    for (const QRect &r : region) rects.append(QRectF(r));
+    const auto shapes = AquaGlass::glassShapes(rects, 24);
+    assert(shapes.size() == 4);
+    for (size_t i = 0; i < 4; ++i) {
+        assert(std::abs(shapes[i].box.x() - bubbles[i].r.x()) <= 1);
+        assert(std::abs(shapes[i].box.width() - bubbles[i].r.width()) <= 1);
+        assert(std::abs(shapes[i].box.height() - bubbles[i].r.height()) <= 1);
+        assert(std::abs(shapes[i].radius - bubbles[i].radius) <= 1);
+    }
+    // More bubbles than the glass takes: the window box instead.
+    assert(AquaGlass::glassShapes(rects, 3).empty());
+}
+''')
+    binary = tmp_path / "shapes"
+    subprocess.run(["c++", "-std=c++20", "-fPIC", f"-I{offline / GLASS / 'src'}", str(source),
+                    "-o", str(binary), *shlex.split(flags.stdout)],
+                   check=True, capture_output=True, timeout=120)
+    subprocess.run([str(binary)], check=True, timeout=10)
+
+
+def test_glass_is_drawn_bubble_by_bubble(offline):
+    """A client region that does not fill its undecorated window is drawn
+    per bubble: each one's box, radius and lens centre, in the glass and
+    the grain passes; decorated and Rounded Corners windows keep the box."""
+    effect = (offline / GLASS / "src/effect.cpp").read_text()
+    assert '#include "glass_shapes.hpp"' in effect
+    assert 'if (!blurInfo.frame && w->property("_mttkde_corner_shape_v1").toList().size() != 2) {' in effect
+    assert effect.count("vbo->draw(GL_TRIANGLES, 6 + bubbleRanges[i].first * 6, bubbleRanges[i].second * 6);") == 2
+    assert "m_roundedOnscreenPass.lensCenterLocation, QVector2D(0.5f, 0.5f)" in effect
+    for shader in ("glass.glsl", "glass_core.glsl"):
+        text = (offline / GLASS / "src/shaders" / shader).read_text()
+        assert "lgLensUV(uv, lensCenter, magnifyGlassStrength, edgeQ)" in text, shader
+    assert 'parameter == QLatin1String("windows")' in effect
