@@ -252,14 +252,14 @@
      id="decoration-bottom"
      transform="translate(-215,-81)">
     <path
-       style="opacity:0.5;fill:url(#linearGradient5688);fill-opacity:1;stroke:none;stroke-width:1.00587"
+       style="fill:url(#linearGradient5688);fill-opacity:1;stroke:none;stroke-width:1.00587;opacity:0"
        d="M 325,276.00001 V 336 h 145 v -59.99999 z"
        id="path6217-8"
        sodipodi:nodetypes="ccccc" />
     <path
        id="path6214-7"
        d="M 470,277 H 325 v 1 h 145 z"
-       style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.413845" />
+       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.413845;opacity:0" />
     <path
        id="path14"
        d="M 470,276 H 325 v 1 h 145 z"
@@ -267,14 +267,14 @@
     <path
        id="path13"
        d="M 470,276 H 325 v 1 h 145 z"
-       style="opacity:0.1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.413845" />
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.413845;opacity:0" />
   </g>
   <g
      transform="translate(-385,-94.000015)"
      id="decoration-bottomleft">
     <path
        id="rect5099-9-5"
-       style="opacity:0.5;fill:url(#radialGradient965);fill-opacity:1;stroke:none"
+       style="fill:url(#radialGradient965);fill-opacity:1;stroke:none;opacity:0"
        d="m 425,289.00002 v 60 h 70 v -60 h -17 l -12,0 z"
        sodipodi:nodetypes="ccccccc" />
     <rect
@@ -288,12 +288,12 @@
        style="fill:#363636;fill-opacity:1" />
     <path
        id="rect10"
-       style="fill:#ffffff;fill-opacity:1;opacity:0.1"
+       style="fill:#ffffff;fill-opacity:1;opacity:0"
        d="M 466.26562 289.00002 C 466.60923 289.59657 467.25228 289.99719 467.99219 290.00002 L 495 290.00002 L 495 289.00002 L 466.26562 289.00002 z " />
     <path
        id="path12"
        d="M 465.16992 289.00002 C 465.58002 290.16744 466.68897 291.00002 468 291.00002 L 495 291.00002 L 495 290.00002 L 468 290.00002 C 467.25679 290.00002 466.61045 289.59867 466.26562 289.00002 L 466 289.00002 L 465.16992 289.00002 z "
-       style="fill:#000000" />
+       style="fill:#000000;opacity:0" />
   </g>
   <use
      x="0"
@@ -311,13 +311,13 @@
      transform="translate(-215,-95.99995)">
     <path
        id="path6055-5"
-       style="opacity:0.5;fill:url(#linearGradient6612);fill-opacity:1;stroke:none;stroke-width:1.01418"
+       style="fill:url(#linearGradient6612);fill-opacity:1;stroke:none;stroke-width:1.01418;opacity:0"
        d="M 110,65 V 86 H 255 V 65 Z"
        transform="translate(215,89.99995)"
        sodipodi:nodetypes="ccccc" />
     <path
        id="path6098-4"
-       style="opacity:1;fill:#000000;fill-opacity:1;stroke:none"
+       style="fill:#000000;fill-opacity:1;stroke:none;opacity:0"
        d="m 110,85 v 1 h 145 v -1 z"
        transform="translate(215,89.99995)" />
     <path
@@ -327,17 +327,17 @@
     <path
        id="path966"
        d="m 325,175.99994 v 1.00001 h 145 v -1.00001 z"
-       style="opacity:0.1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.182575" />
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.182575;opacity:0" />
   </g>
   <g
      id="decoration-left"
      transform="translate(-239.875,-87)">
     <path
-       style="opacity:0.5;fill:url(#linearGradient1126);fill-opacity:1;stroke:none;stroke-width:1.00664"
+       style="fill:url(#linearGradient1126);fill-opacity:1;stroke:none;stroke-width:1.00664;opacity:0"
        d="m 279.875,197 v 74 h 41 v -74 z"
        id="path6345-1" />
     <path
-       style="opacity:0.5;fill:url(#radialGradient1356);fill-opacity:1;stroke:none;stroke-width:1.00664"
+       style="fill:url(#radialGradient1356);fill-opacity:1;stroke:none;stroke-width:1.00664;opacity:0"
        d="m 279.875,271 v 11 h 41 v -11 z"
        id="path652"
        sodipodi:nodetypes="ccccc" />
@@ -347,25 +347,25 @@
        id="path6339-9" />
     <path
        id="path4"
-       style="opacity:0.1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.183523"
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.183523;opacity:0"
        d="M 320.875 197 L 320.875 281 C 320.875 281.36479 320.97138 281.70616 321.14062 282 L 322.875 282 C 322.321 282 321.875 281.554 321.875 281 L 321.875 197 L 320.875 197 z " />
     <path
        id="path7"
        d="M 319.875 197 L 319.875 281 C 319.875 281.35096 319.93525 281.68748 320.04492 282 L 321.14062 282 C 320.97138 281.70616 320.875 281.36479 320.875 281 L 320.875 197 L 319.875 197 z "
-       style="fill:#000000" />
+       style="fill:#000000;opacity:0" />
   </g>
   <g
      id="decoration-inactive-bottom"
      transform="translate(145,-80.92202)">
     <path
-       style="opacity:0.5;fill:url(#linearGradient5688-2);fill-opacity:1;stroke:none;stroke-width:1.00587"
+       style="fill:url(#linearGradient5688-2);fill-opacity:1;stroke:none;stroke-width:1.00587;opacity:0"
        d="m 325,276.92202 v 59 h 145 v -59 z"
        id="path6217-8-2"
        sodipodi:nodetypes="ccccc" />
     <path
        id="path6214-7-4"
        d="M 470,276.92202 H 325 v 1 h 145 z"
-       style="opacity:0.75;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.392425"
+       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.392425;opacity:0"
        inkscape:connector-curvature="0" />
     <path
        id="path1"
@@ -381,7 +381,7 @@
      id="decoration-inactive-top"
      transform="translate(145,-96)">
     <path
-       style="opacity:0.5;fill:url(#linearGradient6612-5);fill-opacity:1;stroke:none"
+       style="fill:url(#linearGradient6612-5);fill-opacity:1;stroke:none;opacity:0"
        d="M 525,20 V 41 H 670 V 20 Z"
        transform="translate(-200,135)"
        id="path6055-5-5"
@@ -390,14 +390,14 @@
     <path
        transform="translate(-145,90)"
        d="m 470,85 v 1 h 145 v -1 z"
-       style="opacity:0.75;fill:#000000;fill-opacity:1;stroke:none"
+       style="fill:#000000;fill-opacity:1;stroke:none;opacity:0"
        id="path6098-4-8" />
     <path
        style="opacity:1;fill:#242424;fill-opacity:1;stroke:none;stroke-width:1"
        d="m 325,176 v 30 h 145 v -30 z"
        id="path6092-3-3" />
     <path
-       style="opacity:0.05;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.182574"
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.182574;opacity:0"
        d="m 325,176 v 1 h 145 v -1 z"
        id="path996"
        inkscape:connector-curvature="0"
@@ -466,7 +466,7 @@
      id="decoration-topleft">
     <path
        id="path1019"
-       style="opacity:0.5;fill:url(#radialGradient1306);fill-opacity:1;stroke:none"
+       style="fill:url(#radialGradient1306);fill-opacity:1;stroke:none;opacity:0"
        d="M 40 65 L 40 116 L 81 116 L 81 110 C 81 96.704 91.704 86 105 86 L 110 86 L 110 65 L 40 65 z "
        transform="matrix(-1,0,0,1,535,115.0625)" />
     <path
@@ -475,13 +475,13 @@
        d="M 430 201.0625 C 443.296 201.0625 454 211.7665 454 225.0625 L 454 231.0625 L 425 231.0625 L 425 201.0625 L 430 201.0625 z " />
     <path
        id="path3"
-       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1;opacity:0.1"
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1;opacity:0"
        d="M 430 201.0625 C 443.296 201.0625 454 211.7665 454 225.0625 L 454 231.0625 L 453 231.0625 L 453 225.0625 C 453 212.3205 442.742 202.0625 430 202.0625 L 425 202.0625 L 425 201.0625 L 430 201.0625 z " />
     <path
        id="path5"
        d="M 105 85 C 91.15 85 80 96.15 80 110 L 80 116 L 81 116 L 81 110 C 81 96.704 91.704 86 105 86 L 110 86 L 110 85 L 105 85 z "
        transform="matrix(-1,0,0,1,535,115.0625)"
-       style="fill:#000000" />
+       style="fill:#000000;opacity:0" />
   </g>
   <use
      x="0"
@@ -514,7 +514,7 @@
        transform="translate(0,-90)">
       <path
          id="rect5099-9-6"
-         style="opacity:0.5;fill:url(#radialGradient967);fill-opacity:1;stroke:none"
+         style="fill:url(#radialGradient967);fill-opacity:1;stroke:none;opacity:0"
          d="M 400,284.99998 V 345 h 70 v -60.00002 h -17 -12 z"
          sodipodi:nodetypes="ccccccc" />
     </g>
@@ -525,12 +525,12 @@
     <path
        id="path18"
        d="m 440.16992,195 c 0.4101,1.16742 1.51905,2 2.83008,2 h 27 v -1 h -27 c -0.74321,0 -1.38955,-0.40135 -1.73438,-1 H 441 Z"
-       style="fill:#000000;opacity:0.75" />
+       style="fill:#000000;opacity:0" />
   </g>
   <g
      id="decoration-inactive-left">
     <path
-       style="opacity:0.5;fill:url(#linearGradient1389);fill-opacity:1;stroke:none;stroke-width:1.00077"
+       style="fill:url(#linearGradient1389);fill-opacity:1;stroke:none;stroke-width:1.00077;opacity:0"
        d="m 400,110 v 84.99998 l 41,-0.0153 V 110 Z"
        id="path6345-1-1"
        sodipodi:nodetypes="ccccc" />
@@ -541,7 +541,7 @@
     <path
        id="path23"
        d="m 440,110 v 84 c 0,0.35096 0.0602,0.68748 0.16992,1 h 1.0957 C 441.09638,194.70616 441,194.36479 441,194 v -84 z"
-       style="fill:#000000;opacity:0.75" />
+       style="fill:#000000;opacity:0" />
   </g>
   <use
      x="0"
@@ -553,7 +553,7 @@
      id="decoration-inactive-topleft">
     <path
        id="rect6520-3-2-6"
-       style="opacity:0.5;fill:url(#radialGradient969);fill-opacity:1;stroke:none"
+       style="fill:url(#radialGradient969);fill-opacity:1;stroke:none;opacity:0"
        d="m 400,59 v 51 h 41 V 109.93555 104 c 0,-13.296 10.704,-24 24,-24 h 5 V 59 Z" />
     <path
        id="rect5073-4-9-6"
@@ -562,10 +562,10 @@
     <path
        id="path30"
        d="m 465,79 c -13.85,0 -25,11.15 -25,25 v 6 h 1 v -6 c 0,-13.296 10.704,-24 24,-24 h 5 v -1 z"
-       style="fill:#000000;opacity:0.75" />
+       style="fill:#000000;opacity:0" />
     <path
        id="path32"
-       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1;opacity:0.05"
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1;opacity:0"
        d="M 465 80 C 451.704 80 441 90.704 441 104 L 441 105 C 441 91.704005 451.704 81 465 81 L 470 81 L 470 80 L 465 80 z " />
   </g>
   <use
