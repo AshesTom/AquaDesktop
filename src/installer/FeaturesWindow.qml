@@ -26,8 +26,6 @@ Window {
 
     property string launcherScriptPath: ""
     property var items: []
-    property string transparency: "standard"
-    property bool applyingTransparency: false
     property bool installBusy: false
     property bool loaded: false
     property string statusMessage: ""
@@ -115,7 +113,6 @@ Window {
             try {
                 const parsed = JSON.parse(stdout);
                 featuresWindow.items = parsed.items || [];
-                featuresWindow.transparency = parsed.transparency || "standard";
                 featuresWindow.loaded = true;
             } catch (e) {
                 featuresWindow.statusKind = "error";
@@ -135,25 +132,6 @@ Window {
                 featuresWindow.savePending = false;
                 featuresWindow.save();
             }
-        }
-    }
-
-    P5Support.DataSource {
-        id: appearanceSetter
-        engine: "executable"
-        connectedSources: []
-        onNewData: (sourceName, data) => {
-            disconnectSource(sourceName);
-            featuresWindow.applyingTransparency = false;
-            try {
-                const result = JSON.parse(data["stdout"] || "{}");
-                featuresWindow.statusKind = result.ok ? "success" : "error";
-                featuresWindow.statusMessage = featuresWindow.t(result.message || "Could not apply transparency.");
-            } catch (e) {
-                featuresWindow.statusKind = "error";
-                featuresWindow.statusMessage = featuresWindow.t("Could not apply transparency.");
-            }
-            featuresWindow.refresh();
         }
     }
 
@@ -277,36 +255,6 @@ Window {
             }
 
             Item { Layout.preferredHeight: 18 }
-
-            RowLayout {
-                Layout.alignment: Qt.AlignHCenter
-                Layout.bottomMargin: 12
-                enabled: featuresWindow.loaded && !featuresWindow.applyingTransparency
-                         && !featuresWindow.installBusy
-                QQC2.Label { text: featuresWindow.t("Transparency") }
-                QQC2.ComboBox {
-                    id: transparencyChoice
-                    model: [featuresWindow.t("Standard"), featuresWindow.t("Reduced")]
-                    currentIndex: featuresWindow.transparency === "reduced" ? 1 : 0
-                    onActivated: featuresWindow.transparency = currentIndex === 1 ? "reduced" : "standard"
-                }
-                QQC2.Button {
-                    text: featuresWindow.t(featuresWindow.applyingTransparency ? "Applying…" : "Apply now")
-                    onClicked: {
-                        featuresWindow.applyingTransparency = true;
-                        featuresWindow.statusMessage = "";
-                        const cmd = "python3 " + featuresWindow._shellQuote(featuresWindow.launcherScriptPath)
-                                  + " --set-transparency " + featuresWindow._shellQuote(featuresWindow.transparency);
-                        appearanceSetter.connectSource(cmd + " # appearance " + Date.now());
-                    }
-                }
-            }
-            QQC2.Label {
-                Layout.alignment: Qt.AlignHCenter
-                Layout.bottomMargin: 12
-                text: featuresWindow.t("Applies to installed themes. Some apps need reopening.")
-                color: Kirigami.Theme.disabledTextColor
-            }
 
             GridLayout {
                 Layout.fillWidth: true

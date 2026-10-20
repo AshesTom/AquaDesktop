@@ -81,16 +81,6 @@ def remove_tree(p: Path, label: str | None = None) -> bool:
         return False
 
 
-def install_reduced_variant(source: Path, destination: Path, kind: str,
-                            name: str | None = None) -> bool:
-    from theme_variants import generate
-
-    with tempfile.TemporaryDirectory(prefix="mttkde-reduced-") as temporary:
-        staged = Path(temporary) / destination.name
-        generate(source, staged, kind, name)
-        return install_tree(staged, destination)
-
-
 # Re-export for step modules still importing drop_privs_in_child from here.
 _drop_privs_in_child = drop_privs_in_child
 

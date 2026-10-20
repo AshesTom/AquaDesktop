@@ -53,12 +53,12 @@
       "HighlightWidth": 2.5,
       "HighlightStrength": 0.18,
       "Brightness": 1.0,
-      "Contrast": 1.0,
+      "Contrast": 0.85,
       "Saturation": 1.02,
       "DarkGradientOverlay": true,
       "GradientTopColor": "#000000",
       "GradientBottomColor": "#000000",
-      "GradientTopOpacity": 0.38,
+      "GradientTopOpacity": 0.7,
       "GradientBottomOpacity": 0.02
     }
   }

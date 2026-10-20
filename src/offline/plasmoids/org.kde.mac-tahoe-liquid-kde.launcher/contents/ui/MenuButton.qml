@@ -5,6 +5,8 @@ import org.kde.plasma.extras as PlasmaExtras
 
 Item {
 
+    function closeMenu() { contextMenu.close(); }
+
     readonly property bool menuOpen: contextMenu.status !== PlasmaExtras.Menu.Closed
 
     width: button.width
@@ -20,6 +22,7 @@ Item {
         down: contextMenu.status === PlasmaExtras.Menu.Open || pressed
         
         icon.name: "view-more-symbolic"
+        icon.color: main.textColor
 
         background: Rectangle {
             color: button.down ? main.contrastBgColor : "transparent"

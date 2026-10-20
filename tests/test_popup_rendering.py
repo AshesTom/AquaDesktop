@@ -32,8 +32,8 @@ def test_light_and_dark_menu_surfaces_have_equal_effective_opacity(repo):
             alphas.append(image.pixelColor(48, 48).alpha() * factor)
         assert len(set(alphas)) == 1, "Popup frame and interior must match"
         samples.append(alphas[0])
-    # A light fill leaves the compositor material visible in both modes.
-    assert samples[0] == samples[1] and 85 <= samples[0] <= 95
+    # Thin fills leave the compositor blur and gradient visible.
+    assert samples[0] == samples[1] and 45 <= samples[0] <= 55
 
 
 def test_gtk4_stylesheets_parse_without_errors(repo, tmp_path):

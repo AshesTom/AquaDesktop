@@ -21,7 +21,6 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src/scripts"))
-from theme_variants import generate, SUFFIX
 from acrylic_glass_capture import wait_for, stop, assert_compositor_owner
 
 CASES = (
@@ -133,7 +132,7 @@ PlasmaCore.Dialog {
     button = QPushButton("Open menu")
     layout.addWidget(button)
     combo = QComboBox()
-    combo.addItems(["Light", "Dark", "Automatic", "Reduced transparency"])
+    combo.addItems(["Light", "Dark", "Automatic"])
     layout.addWidget(combo)
     layout.addWidget(QLabel("Normal text • Disabled text • Selected text"))
     window.setCentralWidget(body)
@@ -495,35 +494,31 @@ def run(args):
     mode = args.mode
     theme = "MacTahoeLiquidKde-" + mode
     kv = "mac-tahoe-liquid-kde" + ("Dark" if mode == "Dark" else "")
-    suffix = SUFFIX if args.reduced else ""
     for kind, source, dest, name in (
         (
             "plasma",
             ROOT / "src/offline/plasma-theme" / theme,
-            output / "data/plasma/desktoptheme" / (theme + suffix),
+            output / "data/plasma/desktoptheme" / (theme),
             theme,
         ),
         (
             "gtk",
             ROOT / "src/offline/gtk" / theme,
-            output / "home/.themes" / (theme + suffix),
+            output / "home/.themes" / (theme),
             theme,
         ),
         (
             "kvantum",
             ROOT / "src/offline/kvantum/mac-tahoe-liquid-kde",
-            output / "config/Kvantum" / (kv + suffix),
+            output / "config/Kvantum" / (kv),
             kv,
         ),
     ):
-        if args.reduced:
-            generate(source, dest, kind, name)
-        else:
-            shutil.copytree(source, dest)
+        shutil.copytree(source, dest)
     (output / "config/Kvantum/kvantum.kvconfig").write_text(
-        "[General]\ntheme=" + kv + suffix + "\n"
+        "[General]\ntheme=" + kv + "\n"
     )
-    (output / "config/plasmarc").write_text("[Theme]\nname=" + theme + suffix + "\n")
+    (output / "config/plasmarc").write_text("[Theme]\nname=" + theme + "\n")
     colors = (
         ROOT / "src/offline/color-schemes" / ("MacTahoeLiquidKde" + mode + ".colors")
     )
@@ -556,7 +551,7 @@ def run(args):
             QT_QPA_PLATFORMTHEME="kde",
             NO_AT_BRIDGE="1",
             GTK_A11Y="none",
-            GTK_THEME=theme + suffix,
+            GTK_THEME=theme,
             GTK_USE_PORTAL="0",
             GIO_USE_VFS="local",
             QT_IM_MODULE="compose",
@@ -616,7 +611,6 @@ if __name__ == "__main__":
     parser.add_argument("--rounded", type=Path)
     parser.add_argument("--shaders", type=Path)
     parser.add_argument("--mode", choices=("Light", "Dark"), default="Light")
-    parser.add_argument("--reduced", action="store_true")
     parser.add_argument("--scale", type=float, default=1.0)
     parser.add_argument("--backend", choices=("wayland", "xcb"), default="wayland")
     parser.add_argument("--cases", nargs="+", choices=CASES, default=CASES)

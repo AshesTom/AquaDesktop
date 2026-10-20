@@ -1,8 +1,7 @@
 import shutil
-from theme_variants import SUFFIX
 
 from steps._helpers import (
-    DATA_HOME, fail, info, install_tree, install_reduced_variant, kw_write, offline, remove_tree, warn,
+    DATA_HOME, fail, info, install_tree, kw_write, offline, remove_tree, warn,
 )
 
 DEST_DIR = DATA_HOME / "plasma/desktoptheme"
@@ -27,14 +26,13 @@ def install() -> None:
         source = src / v
         if install_tree(source, DEST_DIR / v, v):
             n += 1
-            install_reduced_variant(source, DEST_DIR / (v + SUFFIX), "plasma")
     info(f"{n} Plasma themes installed/reinstalled")
 
 
 def uninstall() -> None:
     n = 0
     for v in VARIANTS:
-        remove_tree(DEST_DIR / (v + SUFFIX))
+        remove_tree(DEST_DIR / (v + "-ReducedTransparency"))
         if remove_tree(DEST_DIR / v, v):
             n += 1
     if not kw_write("--file", "plasmarc", "--group", "Theme",

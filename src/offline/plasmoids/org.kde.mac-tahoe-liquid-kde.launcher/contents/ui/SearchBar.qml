@@ -4,14 +4,18 @@ import QtQuick.Controls
 import org.kde.kirigami as Kirigami
 
 RowLayout {
+    id: searchFieldBar
 	spacing: Kirigami.Units.smallSpacing
 
     property alias textField: textField
     property alias showMenuButton: menuButton.visible
     readonly property bool menuOpen: menuButton.menuOpen
+    function closeMenu() { menuButton.closeMenu(); }
 
     Kirigami.Icon {
         id: searchIcon
+        layer.enabled: true
+        layer.effect: GlassTextShadow {}
         Layout.rightMargin: 0
         Layout.preferredWidth: main.detachedSearch ? Kirigami.Units.gridUnit * 2 : Kirigami.Units.iconSizes.medium
         Layout.preferredHeight: Layout.preferredWidth
@@ -22,6 +26,8 @@ RowLayout {
 
     TextField {
         id: textField
+        layer.enabled: true
+        layer.effect: GlassTextShadow {}
         Layout.fillHeight: true
         Layout.fillWidth: true
         font.family: Kirigami.Theme.defaultFont.family
@@ -29,6 +35,14 @@ RowLayout {
         font.weight: Kirigami.Theme.defaultFont.weight
         color: main.textColor
 
+        Component.onCompleted: text = main.searchText
+        Connections {
+            target: main
+            function onSearchTextChanged() {
+                if (textField.text !== main.searchText)
+                    textField.text = main.searchText;
+            }
+        }
         placeholderText: i18n("Apps")
         placeholderTextColor: main.dimmedTextColor
         background: Rectangle{
@@ -36,8 +50,10 @@ RowLayout {
         }
         focus: true
         onTextChanged: {
-            textField.forceActiveFocus(Qt.ShortcutFocusReason)
-            runnerModel.query = text;   
+            if (main.searchBar === searchFieldBar) {
+                main.searchText = text;
+                textField.forceActiveFocus(Qt.ShortcutFocusReason);
+            }
         }
 
         Keys.onPressed: event => {

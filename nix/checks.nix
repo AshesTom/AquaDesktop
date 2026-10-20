@@ -10,7 +10,7 @@ let
       programs.mac-tahoe.enable = true;
     } extra ];
   };
-  fixed = home { programs.mac-tahoe = { mode = "dark"; reducedTransparency = true; }; };
+  fixed = home { programs.mac-tahoe = { mode = "dark"; }; };
   conflict = home { xdg.configFile."kwinrc".text = "[Plugins]"; };
   system = nixpkgs.lib.nixosSystem {
     inherit pkgs;
@@ -24,7 +24,7 @@ let
   };
 in
 assert fixed.config.systemd.user.timers == { };
-assert lib.hasInfix "reduced" fixed.config.xdg.configFile."mac-tahoe-liquid-kde/appearance.json".text;
+assert !(fixed.config.xdg.configFile ? "mac-tahoe-liquid-kde/appearance.json");
 assert !(builtins.tryEval conflict.activationPackage.drvPath).success;
 assert system.config.boot.plymouth.theme == "MacTahoeLiquidKde";
 assert lib.length (lib.splitString ":" system.config.environment.sessionVariables.QT_PLUGIN_PATH) == 4;

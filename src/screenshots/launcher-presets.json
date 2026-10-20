@@ -2,21 +2,62 @@
   "edition": "Tahoe",
   "default_launcher_preset": 1,
   "wallpaper": "MacTahoe",
-  "environment": "Disposable KDE neon VM, Plasma 6.7.4, Wayland, 1600x1200",
-  "capture_date": "2026-10-19",
+  "environment": "Disposable KDE neon VM, Plasma 6.7.4, Wayland, 1920x1080",
+  "capture_date": "2026-10-20",
   "capture_tool": "Spectacle fullscreen; unmodified capture",
   "setup": "Full desktop theme with SF Pro Text, icons, top panel, Dock, Acrylic Glass and Rounded Corners. VM favorites contain real installed apps.",
-  "default_validation": "Applied the repository defaults through launcher_defaults.apply_launcher_default. launcherPreset=0 follows the installed schema default; no explicit preset selection.",
+  "default_validation": "Explicit Tahoe launcher and material selection; shipped defaults also exercised by native preset tests. Desktop captures and black/white backdrop checks run sequentially.",
   "captures": {
     "launcher_preset_1_light.png": {
       "theme_mode": "light",
       "launcher_preset": 1,
-      "wallpaper": "MacTahoe"
+      "wallpaper": "MacTahoe",
+      "material_preset": "tahoe",
+      "material_values": {
+        "BlurStrength": 5.0,
+        "MaterialOpacity": 1.0,
+        "NoiseStrength": 1,
+        "RgbDriftStrength": 3.0,
+        "MagnifyGlassStrength": 0.02,
+        "RefractionWidth": 24.0,
+        "HighlightWidth": 3.0,
+        "HighlightStrength": 0.22,
+        "Brightness": 1.0,
+        "Contrast": 1.0,
+        "Saturation": 1.05,
+        "DarkGradientOverlay": false,
+        "GradientTopColor": "#000000",
+        "GradientBottomColor": "#000000",
+        "GradientTopOpacity": 0.38,
+        "GradientBottomOpacity": 0.02
+      },
+      "effect_build": "b74b08103ee253136f5803c551224574aa1d8c7c56110996f9321f1dc143cbee"
     },
     "launcher_preset_1_dark.png": {
       "theme_mode": "dark",
       "launcher_preset": 1,
-      "wallpaper": "MacTahoe"
+      "wallpaper": "MacTahoe",
+      "material_preset": "tahoe",
+      "material_values": {
+        "BlurStrength": 5.0,
+        "MaterialOpacity": 1.0,
+        "NoiseStrength": 1,
+        "RgbDriftStrength": 3.0,
+        "MagnifyGlassStrength": 0.02,
+        "RefractionWidth": 24.0,
+        "HighlightWidth": 3.0,
+        "HighlightStrength": 0.22,
+        "Brightness": 1.0,
+        "Contrast": 1.0,
+        "Saturation": 1.05,
+        "DarkGradientOverlay": false,
+        "GradientTopColor": "#000000",
+        "GradientBottomColor": "#000000",
+        "GradientTopOpacity": 0.38,
+        "GradientBottomOpacity": 0.02
+      },
+      "effect_build": "b74b08103ee253136f5803c551224574aa1d8c7c56110996f9321f1dc143cbee"
     }
-  }
+  },
+  "source_version": "0.56.1"
 }

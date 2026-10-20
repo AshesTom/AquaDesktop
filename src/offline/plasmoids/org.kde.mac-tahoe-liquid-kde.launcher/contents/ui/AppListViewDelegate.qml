@@ -86,13 +86,15 @@ T.ItemDelegate {
 				verticalAlignment: Text.AlignVCenter
 			   	//maximumLineCount: root.isMultilineText ? Infinity : 1
 				color: main.textColor
+				layer.enabled: true
+				layer.effect: GlassTextShadow {}
 			}
 
 			Label {
 				id: descriptionLabel
 				Layout.fillWidth: true
 				visible: text && showDescription
-				opacity: 0.75
+				opacity: 0.85
 				text: model.description
 				textFormat: Text.PlainText
 				font: Kirigami.Theme.smallFont
@@ -101,6 +103,8 @@ T.ItemDelegate {
 				horizontalAlignment: listDelegate.compact ? Text.AlignRight : Text.AlignLeft
 				maximumLineCount: 1
 				color: main.textColor
+				layer.enabled: true
+				layer.effect: GlassTextShadow {}
 			}
 		}
 	}

@@ -4,7 +4,6 @@ import shutil
 import sys
 from pathlib import Path
 
-from theme_variants import SUFFIX, generate
 from launcher_defaults import LAUNCHER_ID, apply_launcher_default
 
 source, out = map(Path, sys.argv[1:])
@@ -17,10 +16,6 @@ for folder, destination in (("color-schemes", "color-schemes"),
                             ("plasma-theme", "plasma/desktoptheme"),
                             ("gtk", "themes")):
     copy(source / folder, share / destination)
-for kind, folder, destination in (("plasma", "plasma-theme", "plasma/desktoptheme"),
-                                  ("gtk", "gtk", "themes")):
-    for theme in sorted((source / folder).glob("MacTahoeLiquidKde-*")):
-        generate(theme, share / destination / (theme.name + SUFFIX), kind)
 for theme in sorted((source / "look-and-feel").glob("MacTahoeLiquidKde-*")):
     name = json.loads((theme / "metadata.json").read_text())["KPlugin"]["Id"]
     copy(theme, share / "plasma/look-and-feel" / name)
@@ -37,7 +32,6 @@ for name in ("mac-tahoe-liquid-kde", "mac-tahoe-liquid-kdeDark"):
     dest.mkdir(parents=True)
     for ext in (".svg", ".kvconfig"):
         shutil.copy2(source / "kvantum/mac-tahoe-liquid-kde" / (name + ext), dest)
-    generate(source / "kvantum/mac-tahoe-liquid-kde", share / "Kvantum" / (name + SUFFIX), "kvantum", name)
 for theme in (source / "plasmoids").iterdir():
     if (theme / "metadata.json").is_file() and not (theme / "CMakeLists.txt").exists():
         copy(theme, share / "plasma/plasmoids" / theme.name)

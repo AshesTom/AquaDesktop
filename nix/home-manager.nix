@@ -5,9 +5,7 @@ let
   assets = packages.theme-assets;
   plugins = [ packages.global-menu packages.task-manager packages.acrylic-glass packages.rounded-corners ];
   names = [ "MacTahoeLiquidKde-Light" "MacTahoeLiquidKde-Dark" ];
-  variants = names ++ map (n: n + "-ReducedTransparency") names;
   kvNames = [ "mac-tahoe-liquid-kde" "mac-tahoe-liquid-kdeDark" ];
-  kvVariants = kvNames ++ map (n: n + "-ReducedTransparency") kvNames;
   mutable = [ "kdeglobals" "kwinrc" "plasmarc" "plasmashellrc" "kcminputrc"
               "plasma-org.kde.plasma.desktop-appletsrc" "Kvantum/kvantum.kvconfig"
               "gtk-3.0/settings.ini" "gtk-4.0/gtk.css" "gtk-4.0/gtk-Light.css"
@@ -26,7 +24,6 @@ in {
   options.programs.mac-tahoe = {
     enable = lib.mkEnableOption "MacTahoe Plasma styling and live theme switching";
     mode = lib.mkOption { type = lib.types.enum [ "auto" "light" "dark" ]; default = "auto"; description = "Login appearance; auto also switches at 06:00 and 18:00."; };
-    reducedTransparency = lib.mkOption { type = lib.types.nullOr lib.types.bool; default = null; description = "Declarative readability preference; null leaves it controlled by mac-tahoe-theme-switch."; };
     gtkAppmenuModule = lib.mkOption { type = lib.types.nullOr lib.types.path; default = null; description = "Optional native GTK3 appmenu module library; loaded for the process lifetime."; };
     appleAssets = lib.mkEnableOption "non-free Apple fonts, wallpapers and sounds (requires allowUnfreePredicate)";
     oledCare.enable = lib.mkEnableOption "periodic OLED panel pixel shifting";
@@ -49,7 +46,7 @@ in {
     home.file = lib.listToAttrs (map (name: {
       name = ".themes/${name}";
       value.source = "${assets}/share/themes/${name}";
-    }) variants);
+    }) names);
     xdg.dataFile = {
       "plasma/desktoptheme" = { source = "${assets}/share/plasma/desktoptheme"; recursive = true; };
       "plasma/look-and-feel" = { source = "${assets}/share/plasma/look-and-feel"; recursive = true; };
@@ -63,7 +60,7 @@ in {
     xdg.configFile = lib.listToAttrs (map (name: {
       name = "Kvantum/${name}";
       value.source = "${assets}/share/Kvantum/${name}";
-    }) kvVariants) // {
+    }) kvNames) // {
       "plasma-workspace/env/mac-tahoe-plugin-paths.sh".text = ''
         # Plasma sources this before launching KWin and plasmashell.
         export QT_PLUGIN_PATH="${config.home.sessionVariables.QT_PLUGIN_PATH}''${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}"
@@ -79,10 +76,6 @@ in {
           *) export GTK3_MODULES="''${GTK3_MODULES:+$GTK3_MODULES:}$module" ;;
         esac
       '';
-    } // lib.optionalAttrs (cfg.reducedTransparency != null) {
-      "mac-tahoe-liquid-kde/appearance.json".text = builtins.toJSON {
-        transparency = if cfg.reducedTransparency then "reduced" else "standard";
-      };
     };
     systemd.user.services.mac-tahoe-theme = {
       Unit = {

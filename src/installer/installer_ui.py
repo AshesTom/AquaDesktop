@@ -832,26 +832,7 @@ def dump_features() -> dict[str, object]:
         for key in ALL_FEATURES
         if key != "no_download"
     ]
-    from theme_switch import reduced_transparency
-    return {"items": items, "config_path": str(CONFIG_FILE),
-            "transparency": "reduced" if reduced_transparency() else "standard"}
-
-
-def apply_transparency(value: str) -> dict[str, object]:
-    """Use the same unprivileged, serialized switcher as the terminal command."""
-    if value not in ("standard", "reduced"):
-        return {"ok": False, "message": "Invalid transparency setting."}
-    try:
-        result = subprocess.run(
-            [sys.executable, str(REPO_ROOT / "src/scripts/theme_switch.py"),
-             "transparency", value], capture_output=True, text=True, check=False,
-        )
-    except OSError as exc:
-        return {"ok": False, "message": str(exc)}
-    return {"ok": result.returncode == 0,
-            "message": "Transparency applied." if result.returncode == 0 else
-            (result.stderr.strip() or result.stdout.strip() or "Could not apply transparency.")}
-
+    return {"items": items, "config_path": str(CONFIG_FILE)}
 
 
 def save_features(payload: dict[str, object]) -> dict[str, object]:
@@ -931,7 +912,6 @@ def main(argv: list[str]) -> int:
         choices=sorted(_ACTION_COMMANDS),
         help=argparse.SUPPRESS,
     )
-    parser.add_argument("--set-transparency", choices=("standard", "reduced"))
     parser.add_argument("--progress-file", help=argparse.SUPPRESS)
     parser.add_argument("--cancel-file", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
@@ -950,11 +930,6 @@ def main(argv: list[str]) -> int:
         payload = launch_action(args.launch)
         print(json.dumps(payload, ensure_ascii=False))
         return 0 if payload["ok"] else 1
-
-    if args.set_transparency:
-        result = apply_transparency(args.set_transparency)
-        print(json.dumps(result, ensure_ascii=False))
-        return 0 if result["ok"] else 1
 
     if args.dump_features:
         print(json.dumps(dump_features(), ensure_ascii=False))

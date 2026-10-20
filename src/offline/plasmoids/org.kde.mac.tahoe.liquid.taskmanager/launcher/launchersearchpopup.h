@@ -2,6 +2,7 @@
 #pragma once
 
 #include <PlasmaQuick/PopupPlasmaWindow>
+#include <QPointer>
 #include <qqmlregistration.h>
 
 // A separate native frame keeps the capsule's glass, input mask and shadow aligned.
@@ -17,7 +18,11 @@ public:
 
 protected:
     bool event(QEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 Q_SIGNALS:
     void focusChanged();
+
+private:
+    QPointer<QWindow> m_anchorWindow;
 };

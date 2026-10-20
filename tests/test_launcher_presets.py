@@ -116,14 +116,15 @@ def launcher_popup_module(repo, tmp_path_factory):
 
 
 @pytest.mark.parametrize("preset", [1, 2])
-def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_popup_module, preset):
+@pytest.mark.parametrize("mode", ["Light", "Dark"])
+def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_popup_module, preset, mode):
     for tool in ("plasmoidviewer", "Xvfb", "dbus-run-session", "xprop"):
         if not shutil.which(tool):
             pytest.skip(f"{tool} required for the isolated launcher preview")
     package = tmp_path / "widget"
     shutil.copytree(repo / "src/offline/plasmoids" / launcher_defaults.LAUNCHER_ID, package)
-    shutil.copytree(repo / "src/offline/plasma-theme/MacTahoeLiquidKde-Dark",
-                    tmp_path / "data/plasma/desktoptheme/MacTahoeLiquidKde-Dark")
+    shutil.copytree(repo / f"src/offline/plasma-theme/MacTahoeLiquidKde-{mode}",
+                    tmp_path / f"data/plasma/desktoptheme/MacTahoeLiquidKde-{mode}")
     # Minimal CI desktops have no visible apps. Seed a real All Apps category
     # so the favorites-header assertions do not depend on the host's inventory.
     applications = tmp_path / "data/applications"
@@ -135,7 +136,9 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
             "Icon=application-x-executable\nCategories=Utility;\n"
         )
     (tmp_path / "config").mkdir()
-    (tmp_path / "config/plasmarc").write_text("[Theme]\nname=MacTahoeLiquidKde-Dark\n")
+    (tmp_path / "config/plasmarc").write_text(f"[Theme]\nname=MacTahoeLiquidKde-{mode}\n")
+    shutil.copy2(repo / f"src/offline/color-schemes/MacTahoeLiquidKde{mode}.colors",
+                 tmp_path / "config/kdeglobals")
     monkeypatch.setattr(launcher_defaults, "default_launcher_preset", lambda: preset)
     launcher_defaults.apply_launcher_default(package)
     ui = package / "contents/ui"

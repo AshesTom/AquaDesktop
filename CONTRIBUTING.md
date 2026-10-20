@@ -137,7 +137,7 @@ it never installs plugins or changes the running desktop. The pointer helper
 verifies the private compositor's D-Bus PID before sending input. Output must
 be a new directory. `--pointer` can select a helper built elsewhere.
 
-Repeat with `--mode Dark`, `--reduced`, `--backend xcb` and `--scale 1.25`.
+Repeat with `--mode Dark`, `--backend xcb` and `--scale 1.25`.
 `--cases` selects individual menu, context, submenu, combo, tooltip, dialog,
 Plasma, GTK3 menu/popover and GTK4 popover cases. Each successful case records
 real effect-on/off screenshots; the probe also verifies the mapped plugin's

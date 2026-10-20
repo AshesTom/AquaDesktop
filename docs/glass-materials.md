@@ -31,9 +31,10 @@ to the edition's new optics. Custom settings and the previously saved gradient
 toggle are preserved. Select a preset explicitly to replace a custom legacy
 configuration with the complete new material.
 
-Plasma and Kvantum supply subtle surface fills over the compositor's glass.
-The same fills ship in both editions so presets work without changing theme
-packages. **Reduced Transparency** remains an independent accessibility option.
+Plasma and Kvantum supply thin, transparent fills over the compositor's glass
+in both light and dark mode. Launcher labels use the system complementary
+foreground with a soft shadow, preserving the glass behind them. Both editions
+ship the same surfaces; there is no separate reduced-transparency mode.
 GTK client-side popups keep their own readable fills; KWin cannot blur those
 surfaces in the same way as Plasma popups and Qt menus.
 
@@ -48,4 +49,6 @@ screenshots and design guidance; they do not reproduce Apple's renderer.
 
 The Golden Gate preset adds the requested black upper gradient while keeping
 blur across the full Dock and menu surface. Its numerical settings are project
-tuning, not values supplied by Apple.
+tuning, not values supplied by Apple. It compresses backdrop contrast before
+the stronger upper tint, keeping the gradient visible over dark windows as well
+as light ones in both appearance modes.

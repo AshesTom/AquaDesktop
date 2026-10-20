@@ -4,7 +4,7 @@
 
 # macOS Tahoe Liquid Theme for Plasma 6.7/6.8+
 
-[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1479_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
+[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1464_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
 
 macOS Tahoe-inspired glass, Dock, global menu and app themes for KDE Plasma 6.6–6.8.
 
@@ -233,21 +233,6 @@ mac-tahoe-oled-care status
 </details>
 
 <details>
-<summary><b>Reduced transparency</b></summary>
-
-`./installer` → **Features → Transparency → Standard / Reduced → Apply now**.
-
-```sh
-mac-tahoe-theme-switch transparency reduced
-```
-
-Applies to bundled Plasma, Kvantum and GTK themes and persists across theme
-switches and login. Reopen GTK apps if needed. Restore with
-`mac-tahoe-theme-switch transparency standard`.
-
-</details>
-
-<details>
 <summary><b>NixOS and Home Manager (testing)</b></summary>
 
 Use the flake modules, **not `sudo ./install`**. Live desktop validation is pending.
@@ -276,7 +261,6 @@ services.mac-tahoe.enable = true;
 programs.mac-tahoe = {
   enable = true;
   mode = "auto"; # or "light" / "dark"
-  # reducedTransparency = true;
   # appleAssets = true;
   # oledCare.enable = true;
 };
@@ -299,8 +283,7 @@ without importing existing pins.
 **Writable settings:** keep `kdeglobals`, `kwinrc`, `plasmarc`, `plasmashellrc`,
 `kcminputrc`, `plasma-org.kde.plasma.desktop-appletsrc`,
 `Kvantum/kvantum.kvconfig` and live GTK configuration writable. Avoid immutable
-plasma-manager keys managed by the theme switcher. `reducedTransparency = null`
-allows CLI control; a boolean gives Home Manager control.
+plasma-manager keys managed by the theme switcher.
 
 Log out and back in after activation. Firefox profiles, GTK bookmarks and SDDM
 are not configured. GTK global menus need `programs.mac-tahoe.gtkAppmenuModule`.

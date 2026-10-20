@@ -2,6 +2,9 @@
 #include <QGuiApplication>
 #include <QFile>
 #include <QImage>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMatrix4x4>
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
@@ -13,9 +16,12 @@
 #include <QOpenGLVertexArrayObject>
 #include <QVector2D>
 #include <QVector4D>
+#include <QPainter>
+#include <QSvgRenderer>
 #include <cstdio>
 #include <cstdlib>
 #include <functional>
+#include <cmath>
 
 static void require(bool ok, const QString &message)
 {
@@ -129,6 +135,54 @@ int main(int argc, char **argv)
         require(qRed(image.pixel(96,4)) > qRed(image.pixel(96,123)), QStringLiteral("highlight must face upwards"));
         if (reference.isNull()) reference = image;
         else require(reference == image, QStringLiteral("legacy and core shaders differ"));
+
+        // Exercise the released preset underneath actual client fills. Checking
+        // the effect alone missed the gradient disappearing behind those fills.
+        QJsonObject golden;
+        for (const auto &entry : QJsonDocument::fromJson(read(root + "/../presets.json")).array()) {
+            if (entry.toObject()["id"] == "golden-gate") golden = entry.toObject()["values"].toObject();
+        }
+        require(!golden.isEmpty(), QStringLiteral("Golden Gate preset missing"));
+        const float contrast = golden["Contrast"].toDouble();
+        const float shift = (1 - contrast) / 2;
+        shader.setUniformValue("colorMatrix", QMatrix4x4(
+            contrast,0,0,0, 0,contrast,0,0, 0,0,contrast,0, shift,shift,shift,1));
+        shader.setUniformValue("highlightStrength", 0.0f);
+        for (const QString end : {QStringLiteral("Top"), QStringLiteral("Bottom")}) {
+            const QColor color(golden["Gradient" + end + "Color"].toString());
+            const auto uniform = end == "Top" ? "gradientTop" : "gradientBottom";
+            shader.setUniformValue(uniform, QVector4D(color.redF(), color.greenF(), color.blueF(),
+                                                      golden["Gradient" + end + "Opacity"].toDouble()));
+        }
+        for (const QColor backdropColor : {QColor(Qt::black), QColor(Qt::white)}) {
+            backdrop.fill(backdropColor);
+            texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
+            shader.setUniformValue("darkGradientOverlay", true);
+            const auto tinted = render();
+            shader.setUniformValue("darkGradientOverlay", false);
+            const auto untinted = render();
+            for (const QString mode : {QStringLiteral("Light"), QStringLiteral("Dark")}) {
+                for (const QString name : {QStringLiteral("background"), QStringLiteral("launcher-search")}) {
+                    QSvgRenderer renderer(root + "/../../../../plasma-theme/MacTahoeLiquidKde-" + mode
+                                          + "/dialogs/" + name + ".svgz");
+                    require(renderer.isValid(), QStringLiteral("popup surface unavailable"));
+                    auto composite = [&](QImage surface) {
+                        QPainter painter(&surface);
+                        renderer.render(&painter, "center", QRectF(0, 0, width, height));
+                        painter.end();
+                        return surface;
+                    };
+                    const auto actual = composite(tinted);
+                    const auto control = composite(untinted);
+                    require(qRed(actual.pixel(96, 12)) + 8 <= qRed(control.pixel(96, 12)),
+                            mode + " " + name + ": upper black tint hidden by client fill");
+                    require(qRed(actual.pixel(96, 12)) + 8 <= qRed(actual.pixel(96, 115)),
+                            mode + " " + name + ": top/bottom gradient lost");
+                }
+            }
+        }
+        backdrop.fill(QColor(160, 160, 160));
+        texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
         shader.release();
     }
     fprintf(stderr, "Shader colors, orientation, coverage, premultiplication and both profiles verified\n");

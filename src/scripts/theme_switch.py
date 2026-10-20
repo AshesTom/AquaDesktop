@@ -28,7 +28,7 @@ KVANTUM_THEME_LIGHT = "mac-tahoe-liquid-kde"
 KVANTUM_THEME_DARK = "mac-tahoe-liquid-kdeDark"
 KVANTUM_STYLE = "kvantum"
 _PROC_ROOT = Path("/proc")
-REDUCED_SUFFIX = "-ReducedTransparency"
+LEGACY_REDUCED_SUFFIX = "-ReducedTransparency"
 DEFAULT_WALLPAPER = "MacTahoe"
 
 
@@ -44,63 +44,6 @@ def default_wallpaper() -> str:
     except (OSError, ValueError):
         pass
     return DEFAULT_WALLPAPER
-
-
-def _appearance_path() -> Path:
-    return _xdg_config() / "mac-tahoe-liquid-kde/appearance.json"
-
-
-def reduced_transparency() -> bool:
-    try:
-        state = json.loads(_appearance_path().read_text())
-        return isinstance(state, dict) and state.get("transparency") == "reduced"
-    except (OSError, ValueError):
-        return False
-
-
-def _surface_theme(name: str) -> str:
-    return name + REDUCED_SUFFIX if reduced_transparency() else name
-
-
-def set_transparency(value: str) -> int:
-    """Persist the accessibility preference independently of scheduled mode."""
-    if value not in ("standard", "reduced"):
-        print("Transparency must be standard or reduced", file=sys.stderr)
-        return 1
-    with _theme_transition_lock():
-        if value == "reduced":
-            data = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share")
-            required = []
-            for mode in ("Light", "Dark"):
-                name = f"MacTahoeLiquidKde-{mode}{REDUCED_SUFFIX}"
-                required += [data / "plasma/desktoptheme" / name,
-                             Path.home() / ".themes" / name]
-            for name in (KVANTUM_THEME_LIGHT, KVANTUM_THEME_DARK):
-                required.append(_xdg_config() / "Kvantum" / (name + REDUCED_SUFFIX))
-            if any(not path.is_dir() for path in required):
-                print("Reinstall the Plasma, GTK and Kvantum themes first to add "
-                      "reduced-transparency assets.", file=sys.stderr)
-                return 1
-        path = _appearance_path()
-        try:
-            if path.is_symlink():
-                print("Appearance is managed declaratively; change its source configuration.", file=sys.stderr)
-                return 1
-            state = json.loads(path.read_text()) if path.exists() else {}
-            if not isinstance(state, dict):
-                raise ValueError("appearance settings must be an object")
-            state["transparency"] = value
-            path.parent.mkdir(parents=True, exist_ok=True)
-            temporary = path.with_suffix(f".{os.getpid()}.tmp")
-            temporary.write_text(json.dumps(state) + "\n")
-            temporary.replace(path)
-        except (OSError, ValueError) as exc:
-            print(f"Could not save appearance: {exc}", file=sys.stderr)
-            return 1
-        mode = detect_mode_by_system() or detect_mode_by_time()
-        applied = _apply_unlocked(mode)
-        refresh_acrylic_glass()
-        return 0 if applied else 1
 
 
 def _have(cmd: str) -> bool:
@@ -1003,7 +946,7 @@ def flush_icon_caches() -> None:
 
 
 def _kvantum_theme(mode: str) -> str:
-    return _surface_theme(KVANTUM_THEME_DARK if mode == "dark" else KVANTUM_THEME_LIGHT)
+    return KVANTUM_THEME_DARK if mode == "dark" else KVANTUM_THEME_LIGHT
 
 
 def _set_kvantum_theme(mode: str) -> None:
@@ -1069,8 +1012,8 @@ def _gtk4_css_is_replaceable(path: Path, themes_root: Path) -> bool:
     if text.endswith(import_line):
         text = text[:-len(import_line)].rstrip()
     for variant in ("MacTahoeLiquidKde-Light", "MacTahoeLiquidKde-Dark",
-                    "MacTahoeLiquidKde-Light" + REDUCED_SUFFIX,
-                    "MacTahoeLiquidKde-Dark" + REDUCED_SUFFIX):
+                    "MacTahoeLiquidKde-Light" + LEGACY_REDUCED_SUFFIX,
+                    "MacTahoeLiquidKde-Dark" + LEGACY_REDUCED_SUFFIX):
         gtk4 = themes_root / variant / "gtk-4.0"
         for name in ("gtk.css", "gtk-Light.css", "gtk-Dark.css",
                      "gtk-dark.css"):
@@ -1092,7 +1035,7 @@ def _apply_local_extras(mode: str) -> None:
 
     home = Path.home()
     gtk_dest = home / ".themes"
-    gtk_theme = _surface_theme("MacTahoeLiquidKde-Dark" if mode == "dark" else "MacTahoeLiquidKde-Light")
+    gtk_theme = "MacTahoeLiquidKde-Dark" if mode == "dark" else "MacTahoeLiquidKde-Light"
 
     if (gtk_dest / gtk_theme).is_dir():
         _qdbus("org.kde.GtkConfig", "/GtkConfig",
@@ -1173,8 +1116,6 @@ def write_kde_theme_config(
         laf, icon, cursor = LAF_LIGHT, "MacTahoeLiquidKde-Icons", "MacTahoeLiquidKde"
         scheme, plasma = "MacTahoeLiquidKdeLight", "MacTahoeLiquidKde-Light"
         widget, aurorae = KVANTUM_STYLE, "__aurorae__svg__MacTahoeLiquidKde-Light"
-
-    plasma = _surface_theme(plasma)
 
     # Ask KDE to apply the palette while kdeglobals still names the outgoing
     # scheme.  If we stamp General/ColorScheme first, KDE can conclude the
@@ -1613,7 +1554,6 @@ def follow_system() -> int:
 
 USAGE = ("Usage: mac-tahoe-theme-switch "
          "{light|dark|auto|follow-system} [install]\n"
-         "       mac-tahoe-theme-switch transparency {standard|reduced}\n"
          "       mac-tahoe-theme-switch patch-dock")
 
 
@@ -1624,8 +1564,6 @@ def main(argv: list[str]) -> int:
 
     _sync_session_env()
     mode = argv[0]
-    if mode == "transparency":
-        return set_transparency(argv[1]) if len(argv) == 2 else 1
     if mode == "patch-dock" and len(argv) == 1:
         patch_dock_transparency()
         return 0

@@ -503,21 +503,14 @@ so the base is re-captured instead of fought. `restore` undoes only the
 currently-applied delta; the step's install() with the flag off tears
 the units down, so a plain re-install is self-healing.
 
-## Architecture — Reduced Transparency
+## Architecture — Transparent Glass
 
-`mac-tahoe-theme-switch transparency {standard|reduced}` persists a per-user
-preference in `mac-tahoe-liquid-kde/appearance.json` under XDG_CONFIG_HOME.
-It is independent of the scheduled light/dark mode. The Plasma, Kvantum and
-GTK install steps generate `-ReducedTransparency` variants from bundled
-sources using `theme_variants.py`; never edit the standard or live user themes
-to implement this preference. Increase surface fills only, preserving cutouts,
-gradients, shadows and geometry. Generated variants are removed by their
-owning steps. Kvantum composited popup frames use `menu-shadow-*` and
-`tooltip-shadow-*`, which contain surface fills as well as shadows. Match
-those fills to the interior while preserving the actual shadow gradients,
-outline strokes and faint highlights; changing only `*-normal` leaves an
-opaque rectangle inside a translucent frame. Nix uses the same generator at build time. A declaratively
-managed appearance file must not be replaced by the CLI.
+Both editions use transparent Plasma and Kvantum surfaces in light and dark
+mode. Material presets own blur, refraction and gradient tint. Do not generate
+opaque theme variants or expose a separate reduced-transparency preference.
+Legacy appearance files must not influence theme selection; preserve unrelated
+settings and declarative files. Uninstall still cleans up old generated variants.
+Preserve surface masks, shadows, highlights and solid fallbacks.
 
 ## Architecture — NixOS and Home Manager
 
@@ -564,7 +557,8 @@ schema default, also during Nix asset assembly. `launcherPreset=0` follows that
 edition default; explicit 1/2 choices persist per applet and survive panel
 rebuilds per screen in all three layouts. Both presets remain available in
 the Launcher's options menu and General settings. Preset 2 uses a separate
-native Plasma search popup above the app panel; treat both popups and their
+native Plasma search popup above the app panel; each window owns its search
+field and shares the query, so text layers never migrate across render contexts; treat both popups and their
 options menu as one focus group for dismissal.
 Preset 2 starts with seven columns, a single favorites row and a flat app grid.
 Its column setting (`goldenGateColumns`) is independent of preset 1's
@@ -573,8 +567,7 @@ selected icon size. The favorites row requires the KItemModels QML module.
 The `org.kde.mac.tahoe.launcher` QML module, built alongside the Dock, exports
 `LauncherSearchPopup`, a native
 `PopupPlasmaWindow` using `dialogs/launcher-search.svgz`. Keep its capsule
-surface, blur/input mask and shadow geometry aligned, including the generated
-reduced-transparency variant. Do not reach into Plasma's private background
+surface, blur/input mask and shadow geometry aligned. Do not reach into Plasma's private background
 items to change only the surface: that leaves a rectangular shadow behind.
 Register the search window as an AppletPopup on X11 and Wayland so window
 rounding effects do not override its capsule. Preserve the X11 search capsule's
@@ -617,10 +610,9 @@ less refraction and a black tint at the top. `DarkGradientOverlay` is retained
 as the persisted enable key; the KCM calls it Enable gradient and exposes both
 colors and strengths. Keep legacy/core shaders equivalent, output premultiplied,
 and pixel widths scaled to the viewport. Shared light/dark Plasma and Kvantum
-surface fills let the effect define the material in either edition. Reduced
-Transparency remains independent and derives opaque variants from those bundled
-surfaces in both the installer and Nix; preserve masks, shadows and solid
-fallbacks. GTK client-side popups retain their readable fills because they do
+surface fills let the effect define the material in either edition. Keep popup fills translucent; protect label contrast locally with the system
+complementary foreground and a soft text shadow. Validate black and white
+backdrops as well as wallpapers. Preserve masks, shadows and solid fallbacks. GTK client-side popups retain their readable fills because they do
 not receive this compositor effect.
 Install Acrylic Glass under an immutable SHA-256 directory and atomically
 switch the discovery symlink, keeping the basename `liquidglass.so`. Qt resolves
