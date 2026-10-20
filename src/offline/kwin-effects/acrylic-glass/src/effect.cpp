@@ -196,6 +196,7 @@ BlurEffect::BlurEffect()
         m_roundedOnscreenPass.refractionWidthLocation = m_roundedOnscreenPass.shader->uniformLocation("refractionWidth");
         m_roundedOnscreenPass.highlightWidthLocation = m_roundedOnscreenPass.shader->uniformLocation("highlightWidth");
         m_roundedOnscreenPass.highlightStrengthLocation = m_roundedOnscreenPass.shader->uniformLocation("highlightStrength");
+        m_roundedOnscreenPass.darkGradientOverlayLocation = m_roundedOnscreenPass.shader->uniformLocation("darkGradientOverlay");
         m_roundedOnscreenPass.blurTypeLocation = m_roundedOnscreenPass.shader->uniformLocation("blurType");
 
         qCDebug(KWIN_BLUR) << "Onscreen shader uniforms:"
@@ -426,6 +427,7 @@ void BlurEffect::reconfigure(ReconfigureFlags flags)
     m_refractionWidth = static_cast<float>(BlurConfig::refractionWidth());
     m_highlightWidth = static_cast<float>(BlurConfig::highlightWidth());
     m_highlightStrength = static_cast<float>(BlurConfig::highlightStrength());
+    m_darkGradientOverlay = BlurConfig::darkGradientOverlay();
     m_blurType = static_cast<int>(BlurConfig::acrylicGlassType());
     m_blurDecorations = BlurConfig::blurDecorations();
 
@@ -1442,6 +1444,7 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.refractionWidthLocation, m_refractionWidth);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightWidthLocation, m_highlightWidth);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightStrengthLocation, m_highlightStrength);
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.darkGradientOverlayLocation, int(m_darkGradientOverlay));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.blurTypeLocation, m_blurType);
 
     read->colorAttachment()->bind();

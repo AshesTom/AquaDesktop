@@ -16,6 +16,9 @@
         <entry name="BlurStrength" type="Double">
             <default>3.5</default>
         </entry>
+        <entry name="DarkGradientOverlay" type="Bool">
+            <default>false</default>
+        </entry>
         <entry name="NoiseStrength" type="Int">
             <default>4</default>
         </entry>

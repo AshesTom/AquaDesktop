@@ -271,6 +271,7 @@ private:
         int refractionWidthLocation;
         int highlightWidthLocation;
         int highlightStrengthLocation;
+        int darkGradientOverlayLocation;
         int blurTypeLocation;
     } m_roundedOnscreenPass;
 
@@ -335,6 +336,7 @@ private:
     float m_refractionWidth; ///< Pixel width of the rim-concentrated effect band.
     float m_highlightWidth; ///< Pixel width of the bright glass rim.
     float m_highlightStrength; ///< Rim intensity multiplier.
+    bool m_darkGradientOverlay = false;
     int m_blurType; ///< Final-pass kernel: 0=Gaussian, 1=Box, 2=Lens (bokeh).
 
     size_t m_iterationCount; ///< Number of Kawase halve/double passes (drives texture chain length).

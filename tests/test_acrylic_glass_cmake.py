@@ -77,11 +77,13 @@ def test_acrylic_glass_preset_fits_kcm_ranges():
     ("liquidglass\n", 1, True, False),
     ("", 0, True, False),
 ])
+@pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate"])
 def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path, capsys,
-                                                       active, returncode, identity, confirmed):
+                                                       active, returncode, identity, confirmed, edition):
     """The real install path must not replace the KCM default with strength 5."""
     from steps import acrylic_glass
     from subprocess import CompletedProcess
+    monkeypatch.setattr(acrylic_glass, "default_wallpaper", lambda: edition)
 
     build = tmp_path / "build"
     for name in ("src/liquidglass.so", "src/kcm/kwin_liquidglass_config.so"):
@@ -123,10 +125,38 @@ def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path, c
     assert default == "3.5"
     blur_writes = [args for args in writes if "BlurStrength" in args]
     assert blur_writes == [("--file", "kwinrc", "--group", "Effect-liquidglass",
-                           "--key", "BlurStrength", default)]
+                           "--key", "BlurStrength", "4.0" if edition == "MacGoldenGate" else default)]
     # The complete install must preserve the #89 workaround, including
     # avoiding the obsolete Menu/Dialog/Tooltip/Bottom radius keys.
     assert not any(args[-2].endswith("CornerRadius") for args in writes)
+
+
+def test_golden_gate_optics_do_not_mutate_tahoe(monkeypatch):
+    from steps import acrylic_glass as glass
+    monkeypatch.setattr(glass, "default_wallpaper", lambda: "MacGoldenGate")
+    golden = glass._edition_preset()
+    monkeypatch.setattr(glass, "default_wallpaper", lambda: "MacTahoe")
+    tahoe = glass._edition_preset()
+    assert tahoe == dict(glass._PRESET)
+    assert float(golden["BlurStrength"]) > float(tahoe["BlurStrength"])
+    for key in ("MagnifyGlassStrength", "RefractionWidth"):
+        assert float(golden[key]) < float(tahoe[key])
+    schema = ET.parse(ROOT / "src/glass.kcfg").getroot()
+    rgb_default = schema.find(".//{*}entry[@name='RgbDriftStrength']/{*}default").text
+    assert float(golden["RgbDriftStrength"]) < float(rgb_default)
+
+
+@pytest.mark.parametrize("saved", [None, "true", "false", ""])
+def test_gradient_default_preserves_saved_toggle(monkeypatch, saved):
+    from subprocess import CompletedProcess
+    from steps import acrylic_glass as glass
+    monkeypatch.setattr(glass, "have", lambda command: True)
+    monkeypatch.setattr(glass, "run_user", lambda command, **kwargs:
+                        CompletedProcess(command, 0, (command[-1] if saved is None else saved) + "\n"))
+    writes = []
+    monkeypatch.setattr(glass, "kw_write", lambda *args: writes.append(args) or True)
+    glass._install_missing_defaults((("DarkGradientOverlay", "true"),))
+    assert [args[-2:] for args in writes] == ([("DarkGradientOverlay", "true")] if saved is None else [])
 
 
 def test_corner_defaults_only_seed_missing_keys(monkeypatch):

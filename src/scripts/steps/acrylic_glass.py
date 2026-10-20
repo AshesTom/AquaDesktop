@@ -11,6 +11,7 @@ from steps._helpers import (
     sudo_install_file, sudo_remove, warn, _as_root,
 )
 from utils import have, qdbus_cmd, run_user
+from theme_switch import default_wallpaper
 
 SRC = offline("kwin-effects/acrylic-glass")
 BUILD = build_dir("kwin-effects/acrylic-glass")
@@ -122,6 +123,17 @@ _CORNER_DEFAULTS = (
     ("PopupCornerRadius", "6"),
 )
 
+def _edition_preset() -> dict[str, str]:
+    preset = dict(_PRESET)
+    if default_wallpaper() == "MacGoldenGate":
+        preset.update(
+            BlurStrength="4.0",
+            MagnifyGlassStrength="0.015",
+            RgbDriftStrength="16",
+            RefractionWidth="72",
+        )
+    return preset
+
 
 def _install_corner_defaults() -> None:
     """Seed missing radii without undoing the user's corner tuning (#89).
@@ -131,11 +143,15 @@ def _install_corner_defaults() -> None:
     Preserve even explicitly empty values; failed reads never authorize a
     write. KConfig's cascade handles both user and system configuration.
     """
+    _install_missing_defaults(_CORNER_DEFAULTS)
+
+
+def _install_missing_defaults(defaults) -> None:
     if not have("kreadconfig6"):
-        warn("Acrylic Glass corner settings preserved — kreadconfig6 is unavailable")
+        warn("Acrylic Glass settings preserved — kreadconfig6 is unavailable")
         return
     sentinel = f"__mttkde_absent_{uuid.uuid4().hex}__"
-    for key, default in _CORNER_DEFAULTS:
+    for key, default in defaults:
         try:
             result = run_user(
                 ["kreadconfig6", "--file", "kwinrc", "--group",
@@ -297,10 +313,13 @@ def install() -> None:
                 except OSError:
                     pass
 
-    for key, value in _PRESET:
+    for key, value in _edition_preset().items():
         kw_write("--file", "kwinrc", "--group", "Effect-liquidglass",
                  "--key", key, value)
     _install_corner_defaults()
+    _install_missing_defaults((
+        ("DarkGradientOverlay", "true" if default_wallpaper() == "MacGoldenGate" else "false"),
+    ))
     ok("Acrylic Glass preset installed")
     kw_write("--file", "kwinrc", "--group", "Plugins",
              "--key", "liquidglassEnabled", "true")

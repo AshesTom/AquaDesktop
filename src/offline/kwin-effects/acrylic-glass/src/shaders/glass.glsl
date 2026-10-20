@@ -21,6 +21,7 @@ uniform float refractionWidth;
 uniform float highlightWidth;
 uniform float highlightStrength;
 uniform int blurType;
+uniform bool darkGradientOverlay;
 
 varying vec2 uv;
 varying vec2 vertex;
@@ -69,5 +70,19 @@ void main(void)
     }
 
     float mask = 1.0 - smoothstep(-3.0, 0.0, d);
-    LG_OUT = (vec4(col, 1.0) * colorMatrix) * (mask * opacity);
+    vec4 surface = vec4(col, 1.0) * colorMatrix;
+    float materialCoverage = 1.0;
+    if (darkGradientOverlay) {
+        // Frame-local position keeps the gradient upright across texture
+        // flips, fractional scale and multiple outputs.
+        float heightFraction = clamp((pos.y + halfSize.y) / max(blurSize.y, 1.0), 0.0, 1.0);
+        float shade = mix(0.92, 0.0, smoothstep(0.05, 0.90, heightFraction));
+        // Transmission and shading are independent: reveal the original
+        // backdrop below, while the rim retains a refracted glass boundary.
+        float transmission = smoothstep(0.25, 1.0, heightFraction);
+        materialCoverage = mix(1.0, 0.14, transmission);
+        materialCoverage += (1.0 - materialCoverage) * edgeQ * 0.45;
+        surface.rgb *= 1.0 - shade;
+    }
+    LG_OUT = surface * (mask * opacity * materialCoverage);
 }

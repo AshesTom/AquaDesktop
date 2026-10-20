@@ -51,7 +51,8 @@ endforeach()
 # source build its own resource namespace, not just a new library filename.
 file(GLOB_RECURSE identity_inputs CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*" "${CMAKE_CURRENT_SOURCE_DIR}/metadata.json")
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*" "${CMAKE_CURRENT_SOURCE_DIR}/metadata.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.kcfg" "${CMAKE_CURRENT_SOURCE_DIR}/*.kcfgc")
 list(SORT identity_inputs)
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${identity_inputs})
 set(identity_contents "")

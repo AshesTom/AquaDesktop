@@ -15,6 +15,9 @@ public:
     LauncherSearchPopup();
     Q_INVOKABLE void activate() { requestActivate(); }
 
+protected:
+    bool event(QEvent *event) override;
+
 Q_SIGNALS:
     void focusChanged();
 };

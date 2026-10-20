@@ -577,8 +577,11 @@ surface, blur/input mask and shadow geometry aligned, including the generated
 reduced-transparency variant. Do not reach into Plasma's private background
 items to change only the surface: that leaves a rectangular shadow behind.
 Register the search window as an AppletPopup on X11 and Wayland so window
-rounding effects do not override its capsule. Acrylic Glass must preserve
-applet popups' client blur regions without adding a rectangular decoration
+rounding effects do not override its capsule. Preserve the X11 search capsule's
+position through its native helper: Plasma 6.8's
+`PopupPlasmaWindow` only positions Wayland windows. Keep it centered above its
+anchor when the parent moves or resizes, constrained to the screen.
+Acrylic Glass must preserve applet popups' client blur regions without adding a rectangular decoration
 region. For symmetric rounded popup regions, recover the client curve for
 shader antialiasing without expanding the blur region or changing saved radius
 settings. KSvg's real SVG masks need two logical pixels of rasterization
@@ -593,6 +596,18 @@ refresh enabled Acrylic Glass so its popup masks follow the replacement
 surfaces. A KWin reconfigure alone did not clear the stale capsule geometry
 observed at 150% scale. Preserve disabled effects and saved radius settings.
 Refreshing an effect instance does not guarantee Qt unloads its shared library.
+Acrylic Glass exposes `DarkGradientOverlay` in its KCM. It shades the blurred
+backdrop from top to bottom in frame-local coordinates, with independent blur
+coverage fading toward the bottom and retained rim refraction. Preserve mask
+geometry and premultiplied output. Keep legacy and core shader behavior equal.
+The toggle defaults off upstream; the installer seeds it on for Golden Gate
+only when absent, preserving saved true/false values. Golden Gate uses blur 4.0,
+lens magnification 0.015, RGB drift 16 and refraction width 72. Tahoe retains its
+existing optics. The Plasma theme installer stages lighter dark-mode dialog
+and search-capsule fills for Golden Gate; derive Reduced Transparency from the
+staged theme, preserve masks/shadows, and never alter bundled sources or light
+mode fills. Select this profile from the edition defaults, not the current
+wallpaper or the launcher's per-applet preset choice.
 Install Acrylic Glass under an immutable SHA-256 directory and atomically
 switch the discovery symlink, keeping the basename `liquidglass.so`. Qt resolves
 that link before caching libraries, so an update loads fresh code without a
