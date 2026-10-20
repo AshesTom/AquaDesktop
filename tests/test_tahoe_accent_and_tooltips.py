@@ -32,10 +32,10 @@ def test_gtk_accent_matches(offline):
         assert f"@define-color accent_bg_color {hexa};" in css, sheet
 
 
+# The glass tooltips are upstream's since v0.56.3 (11 px corners, masks
+# fitted for Acrylic Glass); the solid ones keep macOS' 8 px.
 @pytest.mark.parametrize("path", [
-    "plasma-theme/MacTahoeLiquidKde-Dark/widgets/tooltip.svgz",
     "plasma-theme/MacTahoeLiquidKde-Dark/solid/widgets/tooltip.svgz",
-    "plasma-theme/MacTahoeLiquidKde-Light/widgets/tooltip.svgz",
     "plasma-theme/MacTahoeLiquidKde-Light/solid/widgets/tooltip.svgz",
 ])
 def test_tooltip_corners_are_8px(offline, path):

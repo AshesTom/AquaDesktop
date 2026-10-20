@@ -40,6 +40,7 @@ def test_glass_uses_runtime_shape_without_mutating_preferences(qt_compile):
     qt_compile(r'''
 #include <QObject>
 #include <QVariant>
+#include <QRectF>
 #include <algorithm>
 #include <cassert>
 struct BorderRadius {
@@ -47,15 +48,21 @@ struct BorderRadius {
     BorderRadius() = default;
     BorderRadius(float a, float, float, float) : radius(a) {}
 };
-void check(QObject *w, float expectedRadius, float expectedSquircle) {
+struct Window : QObject {
+    QRectF frameGeometry() const { return QRectF(0, 0, 640, 480); }
+};
+void check(Window *w, float expectedRadius, float expectedSquircle) {
     float topCornerRadius = 22, bottomCornerRadius = 22, cornerSquircle = 0;
     BorderRadius cornerRadius;
+    QRectF surfaceRect(12, 8, 600, 450);
 ''' + handoff + r'''
     assert(topCornerRadius == expectedRadius && bottomCornerRadius == expectedRadius);
     assert(cornerRadius.radius == expectedRadius && cornerSquircle == expectedSquircle);
+    if (w->property("_mttkde_corner_shape_v1").toList().size() == 2)
+        assert(surfaceRect == w->frameGeometry());
 }
 int main() {
-    QObject window;
+    Window window;
     check(&window, 22, 0);
     window.setProperty("_mttkde_corner_shape_v1", QVariantList{28.0, 0.5});
     check(&window, 28, 0.5);

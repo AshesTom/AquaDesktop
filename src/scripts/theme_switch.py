@@ -339,13 +339,14 @@ GLASS_GROUP = "Effect-liquidglass"
 # Upstream's tahoe material (acrylic-glass/src/presets.json), copied: the
 # switch is installed alone in ~/.local/bin, without the checkout.
 _TAHOE_MATERIAL = {
-    "BlurStrength": "5.0", "MaterialOpacity": "1.0", "NoiseStrength": "1",
-    "RgbDriftStrength": "3.0", "MagnifyGlassStrength": "0.02",
-    "RefractionWidth": "24.0", "HighlightWidth": "3.0", "HighlightStrength": "0.22",
-    "Brightness": "1.0", "Contrast": "1.0", "Saturation": "1.05",
-    "DarkGradientOverlay": "false", "GradientTopColor": "#000000",
-    "GradientBottomColor": "#000000", "GradientTopOpacity": "0.38",
-    "GradientBottomOpacity": "0.02", "MaterialPreset": "1",
+    "BlurStrength": "7.0", "MaterialOpacity": "1.0", "NoiseStrength": "1",
+    "RgbDriftStrength": "6.0", "MagnifyGlassStrength": "0.02",
+    "RefractionWidth": "18.0", "HighlightWidth": "1.5",
+    "HighlightStrength": "0.11", "Brightness": "1.0", "Contrast": "1.0",
+    "Saturation": "1.05", "DarkGradientOverlay": "false",
+    "GradientTopColor": "#000000", "GradientBottomColor": "#000000",
+    "GradientTopOpacity": "0.38", "GradientBottomOpacity": "0.02",
+    "MaterialPreset": "1",
 }
 _FROSTED_MATERIAL = dict(
     _TAHOE_MATERIAL, BlurStrength="8.0", RgbDriftStrength="0.0",

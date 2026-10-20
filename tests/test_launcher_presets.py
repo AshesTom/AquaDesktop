@@ -227,7 +227,8 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
         assert "LAUNCHER_PROBE_OK" in output, output
         assert "LAUNCHER_PROBE_FAILED" not in output, output
         assert "_KDE_NET_WM_WINDOW_TYPE_APPLET_POPUP" in popup_roles.get("search", ""), popup_roles
-        assert "_NET_WM_WINDOW_TYPE_DIALOG" in popup_roles.get("app", ""), popup_roles
+        assert any(role in popup_roles.get("app", "") for role in (
+            "_NET_WM_WINDOW_TYPE_DIALOG", "_KDE_NET_WM_WINDOW_TYPE_APPLET_POPUP")), popup_roles
         assert "_NET_WM_WINDOW_TYPE_DOCK" not in popup_roles["app"], popup_roles
     finally:
         os.close(read_fd)

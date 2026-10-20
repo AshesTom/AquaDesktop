@@ -36,15 +36,14 @@ void main()
     vec2 halfSize = blurSize * 0.5;
     vec2 pos = vertex - box.xy;
 
-    // Inset by 1 px so highlight/refraction never bleed outside the window.
-    vec2 insetHalf = max(halfSize - vec2(1.0), vec2(0.5));
-    float d = lgRoundedRectDistance(pos, insetHalf, cornerRadius);
-    if (d > 0.0) {
+    float d = lgRoundedRectDistance(pos, halfSize, cornerRadius);
+    float mask = lgRoundedRectCoverage(d);
+    if (mask <= 0.0) {
         discard;
     }
 
-    vec2 outNorm = lgRoundedRectNormal(pos, insetHalf, cornerRadius);
-    float inside = -d;
+    vec2 outNorm = lgRoundedRectNormal(pos, halfSize, cornerRadius);
+    float inside = max(-d, 0.0);
 
     float refrBand = max(refractionWidth, 1.0);
     float edgeT = smoothstep(-refrBand, 0.0, d);
@@ -72,13 +71,12 @@ void main()
         col = lgApplyHighlight(col, inside, outNorm, highlightWidth, highlightStrength);
     }
 
-    float mask = 1.0 - smoothstep(-3.0, 0.0, d);
     vec4 surface = vec4(col, 1.0) * colorMatrix;
     if (darkGradientOverlay) {
         // Frame-local geometry keeps top/bottom upright on all backends.
         // Tint changes color only: the bottom retains the same blurred glass.
         float heightFraction = clamp((pos.y + halfSize.y) / max(blurSize.y, 1.0), 0.0, 1.0);
-        float t = smoothstep(0.0, 1.0, heightFraction);
+        float t = smoothstep(0.0, 0.5, heightFraction);
         float tintAlpha = mix(gradientTop.a, gradientBottom.a, t);
         vec3 tint = mix(gradientTop.rgb * gradientTop.a, gradientBottom.rgb * gradientBottom.a, t);
         surface.rgb = surface.rgb * (1.0 - tintAlpha) + tint;

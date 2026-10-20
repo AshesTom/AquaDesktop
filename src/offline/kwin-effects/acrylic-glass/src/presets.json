@@ -7,9 +7,9 @@
       "NoiseStrength": 0,
       "RgbDriftStrength": 0.5,
       "MagnifyGlassStrength": 0.008,
-      "RefractionWidth": 12.0,
-      "HighlightWidth": 2.0,
-      "HighlightStrength": 0.16,
+      "RefractionWidth": 6.0,
+      "HighlightWidth": 1.0,
+      "HighlightStrength": 0.08,
       "Brightness": 1.0,
       "Contrast": 1.0,
       "Saturation": 1.0,
@@ -23,14 +23,14 @@
   {
     "id": "tahoe",
     "values": {
-      "BlurStrength": 5.0,
+      "BlurStrength": 7.0,
       "MaterialOpacity": 1.0,
       "NoiseStrength": 1,
-      "RgbDriftStrength": 3.0,
+      "RgbDriftStrength": 6.0,
       "MagnifyGlassStrength": 0.02,
-      "RefractionWidth": 24.0,
-      "HighlightWidth": 3.0,
-      "HighlightStrength": 0.22,
+      "RefractionWidth": 18.0,
+      "HighlightWidth": 1.5,
+      "HighlightStrength": 0.11,
       "Brightness": 1.0,
       "Contrast": 1.0,
       "Saturation": 1.05,
@@ -44,22 +44,22 @@
   {
     "id": "golden-gate",
     "values": {
-      "BlurStrength": 6.5,
+      "BlurStrength": 8.0,
       "MaterialOpacity": 1.0,
       "NoiseStrength": 1,
-      "RgbDriftStrength": 1.0,
+      "RgbDriftStrength": 2.5,
       "MagnifyGlassStrength": 0.008,
-      "RefractionWidth": 16.0,
-      "HighlightWidth": 2.5,
-      "HighlightStrength": 0.18,
+      "RefractionWidth": 12.0,
+      "HighlightWidth": 1.25,
+      "HighlightStrength": 0.09,
       "Brightness": 1.0,
       "Contrast": 0.85,
       "Saturation": 1.02,
       "DarkGradientOverlay": true,
       "GradientTopColor": "#000000",
       "GradientBottomColor": "#000000",
-      "GradientTopOpacity": 0.7,
-      "GradientBottomOpacity": 0.02
+      "GradientTopOpacity": 0.95,
+      "GradientBottomOpacity": 0.0
     }
   }
 ]
