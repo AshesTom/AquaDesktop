@@ -507,14 +507,9 @@ frame.left=9
 frame.right=9
 frame.element=menu
 interior.element=menu
-text.normal.color=#eff0f1
+text.normal.color=#333333
 
-text.shadow=true
-text.shadow.color=black
-text.shadow.xshift=0
-text.shadow.yshift=1
-text.shadow.depth=2
-text.shadow.alpha=54
+text.shadow=false
 
 [MenuItem]
 inherits=PanelButtonCommand
@@ -523,7 +518,7 @@ frame.element=menuitem
 interior.element=menuitem
 indicator.element=menuitem
 highlight.text.color=#ffffff
-text.normal.color=#eff0f1
+text.normal.color=#333333
 text.focus.color=#ffffff
 
 text.margin.top=0
@@ -537,12 +532,7 @@ frame.right=3
 frame.expansion=0
 min_height=6
 
-text.shadow=true
-text.shadow.color=black
-text.shadow.xshift=0
-text.shadow.yshift=1
-text.shadow.depth=2
-text.shadow.alpha=54
+text.shadow=false
 
 [ComboBox]
 inherits=PanelButtonCommand

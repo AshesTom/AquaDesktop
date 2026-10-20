@@ -69,6 +69,68 @@ assert not errors, errors
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+def test_native_qt_menu_text_contrasts_with_each_theme(repo, tmp_path):
+    pytest.importorskip("PyQt6.QtWidgets")
+    script = r'''
+import sys
+from collections import Counter
+from PyQt6.QtWidgets import QApplication, QMenu
+
+app = QApplication([])
+if app.setStyle("kvantum") is None:
+    sys.exit(77)
+menu = QMenu()
+action = menu.addAction("Create New")
+menu.addAction("Paste Clipboard Contents...")
+menu.addAction("Undo").setEnabled(False)
+menu.ensurePolished()
+menu.resize(menu.sizeHint())
+menu.show()
+app.processEvents()
+
+def luminance(rgb):
+    linear = [v / 12.92 if v <= .04045 else ((v + .055) / 1.055) ** 2.4
+              for v in (channel / 255 for channel in rgb)]
+    return sum(v * weight for v, weight in zip(linear, (.2126, .7152, .0722)))
+
+for selected in (False, True):
+    if selected:
+        menu.setActiveAction(action)
+        app.processEvents()
+    image = menu.grab().toImage()
+    rect = menu.actionGeometry(action).adjusted(12, 2, -12, -2)
+    pixels = Counter(image.pixelColor(x, y).getRgb()[:3]
+                     for y in range(rect.top(), rect.bottom())
+                     for x in range(rect.left(), rect.right()))
+    background = pixels.most_common(1)[0][0]
+    bg = luminance(background)
+    readable_pixels = 0
+    for rgb, count in pixels.items():
+        fg = luminance(rgb)
+        contrast = (max(bg, fg) + .05) / (min(bg, fg) + .05)
+        if contrast >= 4.5:
+            readable_pixels += count
+    assert readable_pixels >= 20, (selected, background, readable_pixels)
+'''
+    source = repo / "src/offline/kvantum/mac-tahoe-liquid-kde"
+    for name in ("mac-tahoe-liquid-kde", "mac-tahoe-liquid-kdeDark"):
+        home = tmp_path / name
+        config = home / "config"
+        theme = config / "Kvantum" / name
+        theme.mkdir(parents=True)
+        for extension in ("svg", "kvconfig"):
+            shutil.copyfile(source / f"{name}.{extension}", theme / f"{name}.{extension}")
+        (config / "Kvantum/kvantum.kvconfig").write_text(f"[General]\ntheme={name}\n")
+        env = {k: v for k, v in os.environ.items() if k in ("PATH", "LANG")}
+        env.update(HOME=str(home), XDG_CONFIG_HOME=str(config),
+                   XDG_CONFIG_DIRS=str(home / "system"), QT_QPA_PLATFORM="offscreen")
+        result = subprocess.run([sys.executable, "-c", script], env=env,
+                                capture_output=True, text=True, timeout=20)
+        if result.returncode == 77:
+            pytest.skip("Kvantum Qt 6 style plugin required")
+        assert result.returncode == 0, name + "\n" + result.stdout + result.stderr
+
+
 def test_xwayland_property_is_read_and_invalid_data_never_means_full_blur(
     repo, tmp_path
 ):
