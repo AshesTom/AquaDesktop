@@ -206,16 +206,17 @@ def test_glass_surface_is_the_tahoe_glass_face(offline):
         first = first or files
         assert files == first, name
     surface, frag = first[0].decode(), first[1].decode()
-    # Light: the Plasma popups' face over Acrylic Glass (8 % white). Dark:
-    # Apple's dark material (#1c1c1e at 40 %). Or the accent tint.
-    assert 'readonly property color tint: accentTint ? "#" + accentHex : dark ? "#1c1c1e" : "#ffffff"' in surface
-    assert "readonly property real defaultTintAlpha: accentTint ? (dark ? 0.35 : 0.20) : dark ? 0.40 : 0.08" in surface
+    # The context menus' colour (Kvantum's menu fill at its opacity), or the
+    # accent with the accent tint of Theme Settings.
+    assert 'readonly property color tint: accentTint ? "#" + accentHex : dark ? "#333333" : "#ffffff"' in surface
+    # Neutral by default: the slider's clear end, no grey veil.
+    assert "readonly property real defaultTintAlpha: accentTint ? (dark ? 0.35 : 0.20) : dark ? 0.08 : 0.05" in surface
     assert 'glassTint.value("GlassLevel", 50)' in surface
     assert '+ "/mac-tahoe-liquid-kde/glass.ini"' in surface
     assert 'glassTint.value("Tint", "macos")' in surface
-    # A 1 px light edge, no glow, over Acrylic Glass' own highlight.
-    for line in ("rimLight: 0.08", "rimWidth: 1.0", "glowLight: 0"):
-        assert f"readonly property real {line}\n" in surface
+    # The edge: a 2 px line then a glow fading over 3 px, +45 / 255 in all.
+    for line in ("rimLight: 0.13", "rimWidth: 2.0", "glowLight: 0.09", "glowWidth: 3.0"):
+        assert f"readonly property real {line}" in surface
     # The light has no alpha of its own: added to the desktop, it keeps the
     # desktop's colour as on macOS.
     assert "vec4(tint.rgb * tint.a + vec3(light), tint.a)" in frag

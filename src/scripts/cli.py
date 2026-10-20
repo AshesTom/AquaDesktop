@@ -86,7 +86,7 @@ FEATURE_DESC = {
     "icons": "App and system icons",
     "plasmoids": "Desktop widgets",
     "globalmenu": "Application menu bar",
-    "acrylic_glass": "Liquid Glass (Acrylic Glass)",
+    "acrylic_glass": "Liquid Glass (Better Blur DX)",
     "rounded_corners": "Rounded windows",
     "global_theme": "Plasma look and feel",
     "layout": "Top bar and Dock",

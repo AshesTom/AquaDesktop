@@ -43,7 +43,7 @@
           installed-artifacts = pkgs.runCommand "mac-tahoe-installed-artifacts" { } ''
             test -s ${packages.global-menu}/${pkgs.kdePackages.qtbase.qtPluginPrefix}/plasma/applets/org.kde.mac.tahoe.liquid.globalmenu.so
             test -s ${packages.task-manager}/${pkgs.kdePackages.qtbase.qtPluginPrefix}/plasma/applets/org.kde.mac.tahoe.liquid.taskmanager.so
-            test -s ${packages.acrylic-glass}/${pkgs.kdePackages.qtbase.qtPluginPrefix}/kwin/effects/plugins/liquidglass.so
+            test -s ${packages.acrylic-glass}/${pkgs.kdePackages.qtbase.qtPluginPrefix}/kwin/effects/plugins/better_blur_dx.so
             test -s ${packages.rounded-corners}/${pkgs.kdePackages.qtbase.qtPluginPrefix}/kwin/effects/plugins/kwin4_effect_shapecorners.so
             test -s ${packages.rounded-corners}/share/kwin/shaders/shapecorners_core.frag
             if ${packages.tools}/bin/mac-tahoe-theme-switch > usage.txt 2>&1; then exit 1; fi

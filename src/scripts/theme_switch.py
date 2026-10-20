@@ -106,7 +106,8 @@ def set_transparency(value: str) -> int:
 
 # ── Dock tint ────────────────────────────────────────────────────────
 # The Dock's veil is the Plasma theme's (panel-background south-center):
-#   macos           no veil: the Acrylic Glass material gives the colours;
+#   macos           no veil: the Better Blur DX Dock material (DockContrast,
+#                   DockSaturation, DockBrightness) gives Apple's colours;
 #   neutral         no veil, and the glass loses its colour: the blur behind
 #                   the Dock, menus and windows is grey (Saturation 0), so
 #                   the Dock is neutral and context menus plain black;
@@ -318,47 +319,78 @@ def reload_plasma_theme() -> bool:
     time.sleep(0.5)
     return _kwrite("--file", "plasmarc", "--group", "Theme", "--key", "name", name) and ok
 
-# The window and Dock glass: upstream's Acrylic Glass KWin effect (bundled
-# in src/offline/kwin-effects/acrylic-glass): KWin effect id and its kwinrc
+# The window and Dock glass: the Better Blur DX KWin effect (bundled in
+# src/offline/kwin-effects/better-blur-dx): KWin effect id and its kwinrc
 # group. The names keep "glass" for the style and the presets.
-GLASS_EFFECT = "liquidglass"
-GLASS_GROUP = "Effect-liquidglass"
-# The material of each style, chosen with
+GLASS_EFFECT = "better_blur_dx"
+GLASS_GROUP = "Effect-better-blur-dx"
+# Per-mode blur. Two styles, chosen with
 # `mac-tahoe-theme-switch style {tahoe|frosted}`:
-#   tahoe   (default) upstream's Tahoe material (presets.json "tahoe": soft,
-#           fully blurred glass with a narrow refracted edge), the same in
-#           both appearances. The menu bar has no background.
+#   tahoe   (default) macOS 26 Liquid Glass, measured on a macOS Tahoe
+#           desktop (~/Downloads/e7zirzb2o1ah1.png) over its bare wallpaper:
+#           the Dock keeps the wallpaper's texture (a blur of about 1 px,
+#           DockBlurStrength 1) under a lens at its edges (the effect's
+#           radial lens, docks only), the popovers and windows heavily
+#           blurred (strength 5, a Gaussian of sigma ~10 px at 1x). The
+#           Dock's 1 px rim is the Plasma theme's (panel-background
+#           south-*). The menu bar has no background.
+#           Dark mode: Apple's dark Dock, measured on a macOS Tahoe dark
+#           capture over its bare wallpaper (new-macos-tahoe-on-m1-macbook-
+#           air wallpaper, ~/Downloads/different-styles-on-macos-26-tahoe-
+#           v0-4u1ceglnuy5f1.webp aligned at scale 0.972): the desktop
+#           seen through a light blur (sigma 3-4 px at 1x: its pink
+#           reflections stay readable, DockBlurStrength 2) and kept about
+#           as dark as it is (brightness 0.87, contrast 0.84, saturation
+#           1.33: Apple keeps the desktop's chroma, x0.97, and lifts it
+#           by ~5/255 where the light calibration lifts it by 30). A soft
+#           lens (strength 15 over a 20 px band, gentle falloff): the
+#           light preset's steep 10 px band drew a second contour inside
+#           the rim, which Apple's dark Dock does not have. Measured on
+#           an empty Dock in the nested bench (build/bench/dock_empty.sh).
 #   frosted the macOS frosted material, the look before Tahoe, measured on
 #           a macOS dark Dock: the wallpaper heavily blurred and dimmed to
-#           about 85 %, no refraction or colour drift. The menu bar gets its
-#           translucent, blurred background back, full width.
-# Every preset sets the same keys, so switching styles leaves nothing of the
-# other behind. Every light/dark switch rewrites them, so tuning them in the
-# effect's settings only lasts until the next change. MaterialPreset marks
-# the material as chosen, so a reinstall keeps it.
-# Upstream's tahoe material (acrylic-glass/src/presets.json), copied: the
-# switch is installed alone in ~/.local/bin, without the checkout.
-_TAHOE_MATERIAL = {
-    "BlurStrength": "7.0", "MaterialOpacity": "1.0", "NoiseStrength": "1",
-    "RgbDriftStrength": "6.0", "MagnifyGlassStrength": "0.02",
-    "RefractionWidth": "18.0", "HighlightWidth": "1.5",
-    "HighlightStrength": "0.11", "Brightness": "1.0", "Contrast": "1.0",
-    "Saturation": "1.05", "DarkGradientOverlay": "false",
-    "GradientTopColor": "#000000", "GradientBottomColor": "#000000",
-    "GradientTopOpacity": "0.38", "GradientBottomOpacity": "0.02",
-    "MaterialPreset": "1",
+#           about 85 %, no refraction. The menu bar gets its translucent,
+#           blurred background back, full width.
+# Every preset sets the same keys, so switching styles leaves
+# nothing of the other behind. Every light/dark switch rewrites them, so
+# tuning them in the effect's settings only lasts until the next change.
+_GLASS_BASE = {
+    # No grain: macOS glass shows none.
+    "NoiseStrength": "0",
+    "Contrast": "100",
+    # Our values for every window, Plasma surfaces included.
+    "ForceContrastParams": "true",
+    # The Dock's lens: upstream's radial lens, at the Dock's edges only
+    # (10 px band, steep falloff), the Dock's 20 px corners.
+    "RefractionMode": "1", "RefractionEdgeSize": "1",
+    "RefractionNormalPow": "4", "RefractionCornerRadius": "20",
+    "RefractionRGBFringing": "0", "RefractionTextureRepeatMode": "0",
+    "RefractionDocksOnly": "true",
 }
-_FROSTED_MATERIAL = dict(
-    _TAHOE_MATERIAL, BlurStrength="8.0", RgbDriftStrength="0.0",
-    MagnifyGlassStrength="0.0", RefractionWidth="0.0", HighlightStrength="0.10",
-    Saturation="1.0", GradientTopOpacity="0.0", GradientBottomOpacity="0.0")
+
+
+def _glass_preset(blur: str, **keys: str) -> dict:
+    preset = dict(_GLASS_BASE)
+    # Docks have their own blur strength (0: the general one).
+    preset.update(BlurStrength=blur, DockBlurStrength="0", RefractionStrength="0",
+                  DockBrightness="0", DockContrast="0", DockSaturation="0")
+    preset.update(keys)
+    return preset
+
 
 GLASS_PRESETS = {
-    "dark-tahoe": dict(_TAHOE_MATERIAL),
-    "light-tahoe": dict(_TAHOE_MATERIAL),
-    "dark-frosted": dict(_FROSTED_MATERIAL, Brightness="0.85"),
+    "dark-tahoe": _glass_preset(
+        "5", DockBlurStrength="2", RefractionStrength="15",
+        RefractionEdgeSize="2", RefractionNormalPow="2",
+        DockBrightness="87", DockContrast="84", DockSaturation="133",
+        Brightness="100", Saturation="100"),
+    "light-tahoe": _glass_preset(
+        "5", DockBlurStrength="1", RefractionStrength="30",
+        DockBrightness="104", DockContrast="68", DockSaturation="135",
+        Brightness="100", Saturation="100"),
+    "dark-frosted": _glass_preset("11", Brightness="85", Saturation="100"),
     # No light frosted capture measured yet: the dark calibration mirrored.
-    "light-frosted": dict(_FROSTED_MATERIAL, Brightness="1.12"),
+    "light-frosted": _glass_preset("11", Brightness="112", Saturation="100"),
 }
 
 
@@ -1891,8 +1923,8 @@ _LAF_APPLY_RETRY_SLEEP_SECONDS = 6
 # as user effects to watch over. Everything else the user enabled in [Plugins]
 # is a third-party effect we must not silently break.
 _OWN_KWIN_EFFECT_KEYS = frozenset({
-    # better_blur_dx / glass: the Better Blur DX and Glass effects of
-    # earlier releases.
+    # glass / liquidglass: the Glass and Acrylic Glass effects of earlier
+    # releases.
     "better_blur_dxEnabled", "liquidglassEnabled", "glassEnabled", "blurEnabled",
 })
 
@@ -2092,11 +2124,12 @@ def glass_preset_name(mode: str, style: str | None = None) -> str:
 
 
 def glass_preset(mode: str, style: str | None = None, tint: str | None = None) -> dict:
-    """The Acrylic Glass keys of `mode` in the glass style, with the Dock
-    tint's: the neutral tint takes the colour out of all the glass."""
+    """The Better Blur DX keys of `mode` in the glass style, with the Dock
+    tint's: the neutral tint takes the colour out of all the glass (the
+    Dock's saturation of 0 falls back to the general one)."""
     preset = dict(GLASS_PRESETS[glass_preset_name(mode, style)])
     if (tint or dock_tint()) == "neutral":
-        preset.update(Saturation="0")
+        preset.update(Saturation="0", DockSaturation="0")
     return preset
 
 

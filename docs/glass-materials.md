@@ -2,9 +2,6 @@
 
 Open **System Settings → Desktop Effects → Acrylic Glass → Configure**.
 Choose a preset, adjust its controls if desired, and press **Apply**.
-In AquaDesktop, a light/dark switch or a glass style change (Theme Settings,
-`mac-tahoe-theme-switch style tahoe|frosted`) writes that style's material
-again.
 
 | Preset | Appearance |
 | --- | --- |
@@ -37,9 +34,7 @@ configuration with the complete new material.
 Plasma and Kvantum supply thin, transparent fills over the compositor's glass
 in both light and dark mode. Launcher labels use the system complementary
 foreground with a soft shadow, preserving the glass behind them. Both editions
-ship the same surfaces. AquaDesktop keeps a reduced-transparency mode
-(Theme Settings, `mac-tahoe-theme-switch transparency reduced`) with opaque
-variants of these surfaces.
+ship the same surfaces; there is no separate reduced-transparency mode.
 GTK client-side popups keep their own readable fills; KWin cannot blur those
 surfaces in the same way as Plasma popups and Qt menus.
 

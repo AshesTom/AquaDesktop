@@ -284,14 +284,11 @@ def test_uninstall_removes_dockzoom_module(tmp_path, monkeypatch):
     assert tmp_path / "qml/org/kde/mac/tahoe/liquid/dockzoom" in removed
 
 
-def test_glass_leaves_frameless_applet_popups_clear(offline):
-    """Acrylic Glass blurs only the region a window asks for, adding the
-    whole frame for normal windows only: the Downloads fan asks for none,
-    so it stays see-through."""
-    effect = (offline / "kwin-effects/acrylic-glass/src/effect.cpp").read_text()
-    assert ("m_blurDecorations && !(w->isDock() || w->isTooltip() || w->isMenu() || "
-            "w->isDropdownMenu() || w->isPopupMenu() || w->isPopupWindow() || "
-            "w->isAppletPopup())") in effect
+def test_glass_leaves_frameless_applet_popups_clear():
+    """plasmashell is never force-blurred: the Downloads fan keeps only the
+    region it asks for (none), so it stays see-through."""
+    from steps import acrylic_glass as step
+    assert "plasmashell" in dict(step._SHARED)["WindowClasses"].split("\n")
 
 
 def test_downloads_fan_matches_macos_tahoe(offline):

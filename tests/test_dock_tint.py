@@ -54,11 +54,12 @@ def test_neutral_tint_takes_the_colour_out_of_the_glass(monkeypatch):
         macos = ts.glass_preset(mode, tint="macos")
         assert macos == ts.GLASS_PRESETS[f"{mode}-tahoe"]
         neutral = ts.glass_preset(mode, tint="neutral")
-        # Grey glass behind the Dock, menus and windows; nothing else moves.
-        assert neutral == {**macos, "Saturation": "0"}
+        # Grey blur behind the Dock (0: the general value), menus and windows.
+        assert (neutral["Saturation"], neutral["DockSaturation"]) == ("0", "0")
+        assert neutral["DockContrast"] == macos["DockContrast"]
     assert ts.glass_preset("dark", "frosted", "neutral")["Saturation"] == "0"
     # The shipped presets themselves are left alone.
-    assert ts.GLASS_PRESETS["dark-tahoe"]["Saturation"] == "1.05"
+    assert ts.GLASS_PRESETS["dark-tahoe"]["Saturation"] == "100"
 
 
 def test_frosted_style_has_its_own_veil(tmp_path, monkeypatch):
@@ -123,7 +124,7 @@ def test_theme_settings_offers_the_dock_tint(offline):
     assert '("neutral", _("Neutral"))' in app and '("macos", _("macOS"))' in app
     assert 'self.window.run_theme_switch(["dock-tint", tint]' in app
     # The blur warning checks the effect in use.
-    assert '"liquidglassEnabled"' in app
+    assert '"better_blur_dxEnabled"' in app
 
 
 def test_popovers_glass_follows_the_tint(tmp_path, monkeypatch):

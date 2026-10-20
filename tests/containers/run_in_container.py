@@ -23,8 +23,8 @@ Tier 2 — the dep layer (per-distro package mapping):
 
 Tier 3 — cmake configure and build for every compiled component:
   * For each step that ships a CMakeLists.txt under src/offline (the
-    dock taskmanager, the globalmenu, the acrylic-glass KWin effect),
-    run ``cmake -S <src> -B <build>`` and compile with no manual hints. The
+    dock taskmanager, the globalmenu, the Better Blur DX KWin effect),
+    run ``cmake -S <src> -B <build>`` with no manual hints. The
     configure step must succeed using ONLY packages discoverable via
     ``deps()``. This catches the class of regression where deps() is
     silent on the KF6 / Plasma / KWin frameworks that the CMakeLists
@@ -358,12 +358,12 @@ _CMAKE_COMPONENTS = (
      "src/offline/plasmoids/org.kde.mac.tahoe.liquid.taskmanager"),
     ("globalmenu",
      "src/offline/plasmoids/org.kde.mac.tahoe.liquid.globalmenu"),
-    ("acrylic-glass",
-     "src/offline/kwin-effects/acrylic-glass"),
+    ("better-blur-dx",
+     "src/offline/kwin-effects/better-blur-dx"),
 )
 
 # Components that must be *compiled*, not just configured. The
-# acrylic-glass effect links KWin's private effect ABI, which is not
+# Better Blur DX effect links KWin's private effect ABI, which is not
 # stable across Plasma feature releases — a configure pass cannot catch
 # a removed header (wayland/blur.h) or a changed virtual signature
 # (prePaint* losing presentTime in 6.7). Compiling it here turns each

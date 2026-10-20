@@ -114,9 +114,9 @@ _FR = {
         "Un verre clair et légèrement flouté, comme dans macOS Tahoe.",
     "Deeply blurred frosted glass and a translucent menu bar, as before Tahoe.":
         "Un verre dépoli très flouté et une barre des menus translucide, comme avant Tahoe.",
-    "Window blur is off. Turn on the Acrylic Glass effect in System Settings → "
+    "Window blur is off. Turn on the Better Blur DX effect in System Settings → "
     "Window Management → Desktop Effects to see it.":
-        "Le flou des fenêtres est désactivé. Activez l'effet Acrylic Glass dans "
+        "Le flou des fenêtres est désactivé. Activez l'effet Better Blur DX dans "
         "Configuration du système → Gestion des fenêtres → Effets de bureau.",
     "Give your apps macOS icons from .icns files, with a Light and a Dark "
     "version, or tint them all with the accent colour.":
@@ -349,8 +349,8 @@ def glass_style() -> str:
 
 
 def glass_enabled() -> bool:
-    """The window blur effect (Acrylic Glass, theme_switch.GLASS_EFFECT)."""
-    return kread("kwinrc", "Plugins", "liquidglassEnabled") == "true"
+    """The window blur effect (Better Blur DX, theme_switch.GLASS_EFFECT)."""
+    return kread("kwinrc", "Plugins", "better_blur_dxEnabled") == "true"
 
 
 def auto_available() -> bool:
@@ -970,7 +970,7 @@ class GlassPage(Gtk.Box):
                               _("Opaque menus, Dock and windows, as in macOS' accessibility "
                                 "settings."), self.transparency)))
         self.warning = row(_("Window blur"),
-                           _("Window blur is off. Turn on the Acrylic Glass effect in System Settings → "
+                           _("Window blur is off. Turn on the Better Blur DX effect in System Settings → "
                              "Window Management → Desktop Effects to see it."),
                            icon=tile("warning", "orange"))
         self.warning_group = group(self.warning)
@@ -1466,8 +1466,8 @@ class AboutPage(Gtk.Box):
                                 _("A macOS Tahoe look for KDE Plasma.")))
         links = []
         for title, subtitle, url in (
-            (_("Window blur"), "Acrylic Glass — Lester Cordero Murillo",
-             "https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde"),
+            (_("Window blur"), "kwin-effects-better-blur-dx — xarblu",
+             "https://github.com/xarblu/kwin-effects-better-blur-dx"),
             (_("Font rendering"), "lucidglyph — maximilionus", "https://github.com/maximilionus/lucidglyph"),
         ):
             button = Gtk.LinkButton(uri=url, label="↗")

@@ -46,7 +46,7 @@ convenience, fidelity wins unless it costs stability.
 macos-tahoe-liquid-kde is an installer + theme pack that turns a stock
 KDE Plasma 6 desktop into a macOS Tahoe lookalike: top menu bar, Dock,
 Aurorae window decorations, Plasma + Kvantum + GTK + icon themes,
-the Acrylic Glass and KDE Rounded Corners KWin effects, light/dark global theme with timed
+the Better Blur DX and KDE Rounded Corners KWin effects, light/dark global theme with timed
 switching, wallpapers, fonts, cursors, and a Plymouth boot splash.
 
 **Target platforms.** KDE Plasma 6.6, 6.7 and 6.8 on either systemd or
@@ -72,7 +72,7 @@ rpm-ostree layering path that this project does not maintain. There is
 no non-KDE path.
 
 **Distribution target:** GitHub releases + AUR.
-**License:** GPL-3.0 for the work as a whole — the bundled Acrylic Glass
+**License:** GPL-3.0 for the work as a whole — the bundled Better Blur DX
 KWin effect and several theme assets are GPL-3, and every other
 component's grant (GPL-2.0-or-later, LGPL-2.0-or-later, KDE
 tri-license) is GPL-3-compatible. Individual files keep their original
@@ -264,13 +264,11 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   edge faces the top left. The light is premultiplied with no alpha of its
   own, so KWin adds it to the desktop and it keeps the desktop's colour;
   never composite or screenshot it through a step that unpremultiplies
-  (QPainter skips alpha-0 pixels). Over Acrylic Glass the light face is the
-  Plasma popups' own (`dialogs/background`: 8 % white); the dark one is
-  Apple's dark material, #1c1c1e at 40 % (white lit the dark glass up),
-  and a 1 px light edge (`rimLight` 0.08, no glow) over the effect's faint
-  highlight: the earlier grey veil (#333333 at 55 %, white at 33 %) with its
-  2 px rim and glow looked milky and outlined twice next to upstream's
-  popups, and no edge at all left the bubbles without a contour. The accent glass tint keeps the accent at 20 %.
+  (QPainter skips alpha-0 pixels). By default the face is neutral: the
+  glass level slider's clear end (#333333 at 8 % with white content, white
+  at 5 % with dark content; the earlier 55 % / 33 % veil, the context menus'
+  colour, tinted the glass, and the user dropped it), its tinted half adding
+  the veil back, or the accent with the accent glass tint.
   No cursor-following highlight: macOS has none.
   Rebuild the `.qsb` with `qsb --glsl "300 es,330" --hlsl 50 --msl 12`
   after editing the shader (`tests/test_control_center.py` reads its
@@ -328,8 +326,7 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   in, 31 px corners). KWin blurs behind each bubble only: the compiled QML
   module `src/offline/qml/org.kde.mac.tahoe.liquid.glass` (built and
   installed by `steps/plasmoids.py`) has `GlassBlur`, which sends the union
-  of every visible item declaring `glassRadius` as the window's blur region,
-  cut to the items that clip them
+  of every visible item declaring `glassRadius` as the window's blur region
   (`KWindowEffects::enableBlurBehind`). The request is double-buffered (applied on
   the surface's next commit) and KWindowSystem drops an unchanged region, so
   GlassBlur renders a frame after each request (`m_window->update()`):
@@ -369,10 +366,6 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   Banners: 344 px, 10 px from the edge, 15 px under the menu bar, 6 px
   apart, 32 px app icon 13 px in, bold title over the body, no header or
   timeout bar, close button on hover (`tests/test_notifications_fork.py`).
-  The history is the Notification Center, in a frameless window of its own
-  (never the tray's popup, which always draws a frame and a shadow): one
-  24 px glass card per notification, apps grouped as stacks that expand on
-  a click, each card and pill blurred on its own through GlassBlur.
   Keep every `i18n*()` on Plasma's `plasma_applet_org.kde.plasma.notifications`
   domain.
 - Media: the Dock draws no audio badge (`indicateAudioStreams` defaults to
@@ -396,37 +389,55 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   `~/.config/plasma-workspace/env/mac-tahoe-qqc2-style.sh` only while both
   the module and the link exist (`tests/test_qqc2_style.py`). KWin's title
   bar and each KCM's own layout stay KDE's.
-- The window and Dock glass is upstream's Acrylic Glass KWin effect
-  (`liquidglass`), bundled in `src/offline/kwin-effects/acrylic-glass` with one
-  AquaDesktop change, marked in the source: a client region that does not fill
-  its undecorated window (the Control Center's bubbles, a popover's
-  transparent room) is drawn bubble by bubble. `glass_shapes.hpp` recovers
-  each bubble (box and radius) from the region, and the glass and grain
-  passes take each bubble's box, radius and lens centre (`lensCenter`, 0.5 /
-  0.5 on upstream's path), so the refraction and highlight follow the bubble,
-  not the window's invisible edge. `qdbus6 org.kde.KWin /Effects
-  org.kde.kwin.Effects.debug liquidglass windows` lists each window's region,
-  popup radius and bubble count from the last frame. It is installed by
-  upstream's `steps/acrylic_glass.py` with two AquaDesktop changes: its install and uninstall retire the Better Blur DX effect earlier
-  AquaDesktop releases bundled (`_remove_better_blur_dx`: `better_blur_dx`,
-  `[Effect-better-blur-dx]`, its settings module and any hashed
-  `.better_blur_dx-*` copy), and its build never touches the live desktop
-  (the stock blur and Glass are disabled in `install()`). Keep the effect's
-  sources, step and tests as upstream's so merges stay clean: an earlier
-  merge paired the fork's renamed effect directory with upstream's and
-  silently broke the blur. Keep AquaDesktop's change small and marked. The feature keeps its id `acrylic_glass`
-  (`--acrylic-glass`, features.json). KWin effect id `liquidglass`, settings
-  in kwinrc `[Effect-liquidglass]`. Per-mode glass lives in
+- AquaDesktop tried upstream's Acrylic Glass (v0.56) and went back to
+  Better Blur DX at the user's request. Upstream's Acrylic Glass sources,
+  step and tests stay out of merges (delete them on conflict); watch for
+  upstream changes git applies to `better-blur-dx` through rename pairing,
+  as one merge silently broke the noise shader and with it all blur.
+- The window and Dock glass is the Better Blur DX KWin effect (xarblu's
+  kwin-effects-better-blur-dx, chosen by the user over Glass), bundled in
+  `src/offline/kwin-effects/better-blur-dx` at a pinned commit with two
+  local changes listed in its `UPSTREAM.md` and pinned by
+  `tests/test_glass_effect.py`: `DockBlurStrength` (docks' own blur) and
+  `RefractionDocksOnly`. Upstream's `build.sh` (`sudo make install`) is not
+  bundled; the step builds with CMake. The feature keeps its historical id
+  `acrylic_glass` (`--acrylic-glass`, features.json); its install removes
+  the Glass (`glass`, `[Effect-blurplus]`) and Acrylic Glass (`liquidglass`)
+  effects earlier releases shipped. KWin effect id `better_blur_dx`,
+  settings in kwinrc `[Effect-better-blur-dx]`; `_SHARED` in
+  `steps/acrylic_glass.py` blurs every window but plasmashell (Plasma
+  surfaces keep the region they request: frameless popups such as the
+  Downloads fan stay clear), never force-blurs menus or docks, and denies
+  `/(?i)^VirtualBoxVM$/` (issue #90). Per-mode glass lives in
   `theme_switch.py` `GLASS_PRESETS` and is rewritten on every light/dark
-  switch, only while `liquidglassEnabled=true`; it writes `MaterialPreset`
-  too, so upstream's installer keeps the chosen material on a reinstall.
+  switch, only while `better_blur_dxEnabled=true`.
   Two styles, `mac-tahoe-theme-switch style {tahoe|frosted}`, stored in
-  `~/.config/mac-tahoe-liquid-kde/glass-style`: "tahoe" (default:
-  upstream's tahoe material from `presets.json`, copied into
-  `_TAHOE_MATERIAL` because the switch is installed alone) and "frosted"
-  (the pre-Tahoe material: blur 8, no refraction or colour drift, dimmed to
-  85 % in dark mode and lifted to 112 % in light mode; the menu bar gets its
-  translucent background back). Every preset sets the same keys, so a style
+  `~/.config/mac-tahoe-liquid-kde/glass-style`: "tahoe" (default) and
+  "frosted" (the pre-Tahoe material: strength 11 dimmed to 85 %, no
+  refraction; the menu bar gets its translucent background back). Tahoe was
+  measured on a macOS Tahoe desktop (`~/Downloads/e7zirzb2o1ah1.png`) against
+  its bare wallpaper in a nested KWin + plasmashell bench: the Dock keeps the
+  desktop's texture (Apple leaves 53 % of the fine detail, a ~1 px blur:
+  `DockBlurStrength` 1, the effect's lightest) under the effect's radial
+  lens at its edges (`RefractionMode` 1, strength 30, 10 px band, power 4,
+  20 px corners, docks only: the user picked it over a measured edge
+  lens); popovers and windows take strength 5 (sigma ~10 px). Dark mode
+  follows Apple's dark Dock instead (the user's reference:
+  `~/Downloads/different-styles-on-macos-26-tahoe-v0-4u1ceglnuy5f1.webp`
+  over the `new-macos-tahoe-on-m1-macbook-air` wallpaper, aligned at scale
+  0.972): the desktop under a light blur (sigma 3-4 px, `DockBlurStrength`
+  2: its pink reflections stay readable through the glass; strength 6,
+  sigma ~11, left a flat blue slab the user rejected) and kept about as
+  dark as it is (`DockBrightness` 87, `DockContrast` 84, `DockSaturation`
+  133: Apple keeps the desktop's chroma, x0.97, and lifts it ~5/255, where
+  the light calibration lifts it by ~30), a light 1 px outer rim only, and
+  a soft lens (strength 15, 20 px band, power 2): the light preset's steep
+  10 px band draws a second contour inside the rim, which Apple's dark Dock
+  does not have. Pixel fits over the Dock pick too much blur (icon shadows
+  and the lens skew them): judge the blur by eye against simulated blurs
+  of the bare wallpaper, and measure the glass on an empty Dock
+  (`build/bench/dock_empty.sh`: the Dock's applets replaced by one fixed
+  panel spacer in the bench's copy of the layout). Every preset sets the same keys, so a style
   switch leaves nothing behind. The menu bar background is the top panel's
   Panel Colorizer `globalSettings.nativePanel.background`, rewritten live by
   `apply_top_bar_style` (only that key) and re-applied by the layout step
@@ -455,8 +466,13 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   used): those copies must exist, or KSvg derives the mask from the
   invisible edges, the mask is empty and Plasma blurs the whole panel
   window. Benches must draw the Dock with `prefix: "south"`.
-  The Dock's panel-background `south-center` draws nothing: the Dock's
-  glass is the effect's material. Its edges draw Apple's rim: a 1 px dark
+  The Dock's panel-background `south-center` draws nothing: Apple's Dock
+  material lowers the contrast of the desktop and raises its saturation,
+  which no veil over the blur can do, so the effect's `DockContrast` 68,
+  `DockSaturation` 135 and `DockBrightness` 104 do it (fitted on the Golden
+  Gate capture, bare wallpaper under the glass, and the Spotlight capture,
+  desktop just above the Dock: 7.4/255 off; `~/Downloads/tahoe.jpg` aligned
+  at scale 0.90, 102 px down). Its edges draw Apple's rim: a 1 px dark
   hairline (8 % black) on the outer pixel, then a 1 px light line (29 %
   white at the top, 27 % at the bottom, 22 % on the sides; Apple's adds
   light, ~+59 on every channel, which a white line can only approach). In
@@ -559,7 +575,8 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   the Apple logo. Popover windows keep up to 28 px of transparent room
   around their view: Glass (the earlier blur effect) rounded a dock
   surface's blur with `DockCornerRadius`, which cut the views' smaller
-  corners when the window ended at their edges (the room stays harmless). Every bar menu is one proxy QMenu that borrows the source
+  corners when the window ended at their edges (Better Blur DX keeps a
+  requested region as is; the room stays harmless). Every bar menu is one proxy QMenu that borrows the source
   menu's actions and moves: KWin refuses a new grabbing popup opened on a
   key press, so Left / Right could not reopen one. A title's press is left
   unaccepted (the menu takes its release, which would leave the title
@@ -850,7 +867,7 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
 | `src/scripts/steps/_helpers.py` | `sudo_install_file`, `sudo_install_tree`, `sudo_remove`, `_as_root` context manager. |
 | `src/installer/`              | Graphical installer UI: `installer_ui.py` (PyQt6) + QML windows + art. Wraps `./install` / `./uninstall`; the CLI stays the source of truth. |
 | `src/offline/qml/`            | QML modules installed under the system Qt6 QML dir (`org.kde.mac.tahoe.liquid.dockzoom`: shared Dock magnification; `org.kde.mactahoe`: Qt Quick Controls style; `org.kde.mac.tahoe.liquid.glass`: compiled, the Control Center's per-module blur; `org.kde.mac.tahoe.liquid.appmenu`: compiled, the reference Quickshell menu bar's app menus, not installed). |
-| `src/offline/`                | Bundled assets: plasmoids, plasma theme, the Acrylic Glass KWin effect, aurorae, color-schemes, cursors, fonts, Firefox CSS/SVG, gtk, icons, kvantum, look-and-feel, layouts, plymouth, nautilus, kwin-scripts, traffic-lights (generator of the window button assets), wallpapers, plus the systemd unit + timer. KDE Rounded Corners is intentionally not mirrored here. |
+| `src/offline/`                | Bundled assets: plasmoids, plasma theme, the Better Blur DX KWin effect, aurorae, color-schemes, cursors, fonts, Firefox CSS/SVG, gtk, icons, kvantum, look-and-feel, layouts, plymouth, nautilus, kwin-scripts, traffic-lights (generator of the window button assets), wallpapers, plus the systemd unit + timer. KDE Rounded Corners is intentionally not mirrored here. |
 | `src/offline/wallpapers/<id>/`| One folder per wallpaper, JPEG q90 + `metadata.json` (3840×2160 minimum). Fully offline — no `download()` phase. |
 | `tests/`                      | pytest suite. `./test` is the runner. |
 | `tests/containers/`           | One Dockerfile per supported distro + `run_in_container.py` + `run_matrix.sh`. |
@@ -865,7 +882,7 @@ functions; missing ones are skipped:
 | ---------------- | ----------------------------------------- | ------- |
 | `deps()`         | Before any other phase, install-time only | Return list of `cmd:pkg` tokens; `cli.py` resolves them via `distro.package_for()`, probes each package with `distro.package_installed()`, and installs ONLY the genuinely-missing ones (installing present packages would risk the partial-upgrade file-conflict trap). |
 | `download()`     | After deps, before any build              | Online components only. Currently restricted to KDE Rounded Corners; exact release tag + SHA-256 required. Failure disables that feature for the current run and the bundled install continues. |
-| `build()`        | After deps/download                       | Compile C++ (Global Menu, Task Manager, Acrylic Glass and Rounded Corners effects). |
+| `build()`        | After deps/download                       | Compile C++ (Global Menu, Task Manager, Better Blur DX and Rounded Corners effects). |
 | `install()`      | Main pass                                 | Copy files, write configs, register kwin/plasma settings. |
 | `uninstall()`    | `./uninstall` run                         | Remove installed files; clean legacy `/usr/lib/qt6` artefacts. |
 | `restart_plasma()` | Final pass of `./install`               | The one allowed plasmashell restart per session. |
@@ -879,7 +896,7 @@ Output convention inside `install()`:
 ## Architecture — Sudo Policy
 
 Both `./install` and `./uninstall` require sudo. The compiled C++
-plasmoids and the Acrylic Glass KWin effect land under the system Qt6
+plasmoids and the Better Blur DX KWin effect land under the system Qt6
 libdir (the dir `qmake6` reports — never hardcoded), because Qt6
 doesn't walk `~/.local/lib/qt6` in a default Plasma session.
 
@@ -924,26 +941,23 @@ current version with a manual `git pull && ./install` hint.
 
 ## Architecture — Optional Online Rounded Corners
 
-Acrylic Glass's supported radius controls (`WindowCornerRadius`,
-`DockCornerRadius`, `PopupCornerRadius`) are seeded only when absent. Never
-overwrite existing values on reinstall: this preserves custom tuning and the
-corner-artifact workaround from issue #89. An empty value or failed read does
-not authorize a default write. Retired Menu/Dialog/Tooltip/Bottom radius keys
-are no longer written; the current renderer uses the three supported controls.
-At render time, patched Rounded Corners publishes its animated logical radius
-and squircle blend on the EffectWindow property `_mttkde_corner_shape_v1`.
-Acrylic Glass uses this per-frame shape for glass and grain only while present;
-never synchronize the stored settings. Clear the property on exclusion and
-unload. Mask geometry uses frame-local vertex coordinates, not background
-texture UVs, and glass output must be premultiplied for `GL_ONE` blending.
+The blur effect's window radius (`CornerRadius`, Better Blur DX) is seeded
+only when absent. Never overwrite an existing value on reinstall: this
+preserves custom tuning and the corner-artifact workaround from issue #89.
+A value equal to a default an earlier release seeded
+(`_PREVIOUS_CORNER_DEFAULTS`) follows the new default. An empty value or
+failed read does not authorize a default write. Plasma surfaces, the Dock
+included, bring their own rounded blur region.
+VirtualBox VM surfaces are on the effect's deny-list as
+`/(?i)^VirtualBoxVM$/` (class or resource name, ignoring case; issue #90),
+so seamless cutouts are never filled with glass. The VirtualBox manager
+remains eligible for glass.
 Rounded Corners must reject desktop surfaces before management/redirection and
 in `hasEffect()`, even when explicitly included. Only `drawWindow()` may start
 redirection after eligibility checks; widget configuration dialogs remain eligible.
-
-VirtualBox VM surfaces (`VirtualBoxVM`, class or resource name, ignoring case)
-are excluded directly in Acrylic Glass's render gate, before either match-list
-mode, so existing installs and custom filters cannot fill seamless cutouts with
-glass (issue #90). The VirtualBox manager remains eligible for glass.
+Its patch also publishes the animated radius on the EffectWindow property
+`_mttkde_corner_shape_v1` (cleared on exclusion and unload); upstream's Acrylic
+Glass reads it, Better Blur DX ignores it.
 
 `rounded_corners.py` is the only feature allowed to implement
 `download()`. It fetches KDE-Rounded-Corners v0.10.0 from the upstream
@@ -1186,14 +1200,21 @@ so the base is re-captured instead of fought. `restore` undoes only the
 currently-applied delta; the step's install() with the flag off tears
 the units down, so a plain re-install is self-healing.
 
-## Architecture — Transparent Glass
+## Architecture — Reduced Transparency
 
-Both editions use transparent Plasma and Kvantum surfaces in light and dark
-mode. Material presets own blur, refraction and gradient tint. Do not generate
-opaque theme variants or expose a separate reduced-transparency preference.
-Legacy appearance files must not influence theme selection; preserve unrelated
-settings and declarative files. Uninstall still cleans up old generated variants.
-Preserve surface masks, shadows, highlights and solid fallbacks.
+`mac-tahoe-theme-switch transparency {standard|reduced}` persists a per-user
+preference in `mac-tahoe-liquid-kde/appearance.json` under XDG_CONFIG_HOME.
+It is independent of the scheduled light/dark mode. The Plasma, Kvantum and
+GTK install steps generate `-ReducedTransparency` variants from bundled
+sources using `theme_variants.py`; never edit the standard or live user themes
+to implement this preference. Increase surface fills only, preserving cutouts,
+gradients, shadows and geometry. Generated variants are removed by their
+owning steps. Kvantum composited popup frames use `menu-shadow-*` and
+`tooltip-shadow-*`, which contain surface fills as well as shadows. Match
+those fills to the interior while preserving the actual shadow gradients,
+outline strokes and faint highlights; changing only `*-normal` leaves an
+opaque rectangle inside a translucent frame. Nix uses the same generator at build time. A declaratively
+managed appearance file must not be replaced by the CLI.
 
 ## Architecture — NixOS and Home Manager
 
@@ -1233,8 +1254,7 @@ schema default, also during Nix asset assembly. `launcherPreset=0` follows that
 edition default; explicit 1/2 choices persist per applet and survive panel
 rebuilds per screen in all three layouts. Both presets remain available in
 the Launcher's options menu and General settings. Preset 2 uses a separate
-native Plasma search popup above the app panel; each window owns its search
-field and shares the query, so text layers never migrate across render contexts; treat both popups and their
+native Plasma search popup above the app panel; treat both popups and their
 options menu as one focus group for dismissal.
 Preset 2 starts with seven columns, a single favorites row and a flat app grid.
 Its column setting (`goldenGateColumns`) is independent of preset 1's
@@ -1243,7 +1263,8 @@ selected icon size. The favorites row requires the KItemModels QML module.
 The `org.kde.mac.tahoe.launcher` QML module, built alongside the Dock, exports
 `LauncherSearchPopup`, a native
 `PopupPlasmaWindow` using `dialogs/launcher-search.svgz`. Keep its capsule
-surface, blur/input mask and shadow geometry aligned. Do not reach into Plasma's private background
+surface, blur/input mask and shadow geometry aligned, including the generated
+reduced-transparency variant. Do not reach into Plasma's private background
 items to change only the surface: that leaves a rectangular shadow behind.
 Register the search window as an AppletPopup on X11 and Wayland so window
 rounding effects do not override its capsule. Preserve the X11 search capsule's
@@ -1252,44 +1273,10 @@ positions Wayland windows. Keep it centered above its anchor when the parent
 moves or resizes, constrained to the screen. The native helper generates the missing Plasma shell protocol headers
 from the bundled XML; Qt Wayland and wayland-scanner are build dependencies.
 After a transparency change, and after the installer's final Plasma restart,
-refresh enabled Acrylic Glass so its popup masks follow the replacement
-surfaces. A KWin reconfigure alone did not clear the stale capsule geometry
-observed at 150% scale. Preserve disabled effects and saved radius settings.
-Refreshing an effect instance does not guarantee Qt unloads its shared library.
-Acrylic Glass has three complete material presets: Clear, Tahoe and Golden
-Gate. `src/offline/kwin-effects/acrylic-glass/src/presets.json` is shared by the
-installer and the native KCM. Keep one blur path: Dual Kawase with a symmetric
-Gaussian finish; no selectable box/bokeh kernels. Presets apply every material
-control, including opacity, refraction, grain, highlights, color adjustments,
-and gradient colors/strengths. Radius and window rules remain independent.
-Only an explicit preset selection or Restore action resets optical overrides.
-Persist `MaterialPreset` even for the schema-default Tahoe selection; KConfig
-otherwise removes default-valued entries and a Golden Gate reinstall could
-mistake them for an uninitialized material. Once this marker exists, the
-installer must leave all optical keys alone, including deliberately absent keys.
-Before that marker, migrate only a complete matching previous installer preset;
-custom, empty and unreadable values must survive. Preserve the old independent
-`DarkGradientOverlay` toggle during migration.
-
-The gradient uses frame-local coordinates and changes color independently of
-blur coverage. Golden Gate keeps blurred glass across the whole surface, with
-less refraction and a black tint at the top. `DarkGradientOverlay` is retained
-as the persisted enable key; the KCM calls it Enable gradient and exposes both
-colors and strengths. Keep legacy/core shaders equivalent, output premultiplied,
-and pixel widths scaled to the viewport. Shared light/dark Plasma and Kvantum
-surface fills let the effect define the material in either edition. Keep popup fills translucent; protect label contrast locally with the system
-complementary foreground and a soft text shadow. Validate black and white
-backdrops as well as wallpapers. Preserve masks, shadows and solid fallbacks. GTK client-side popups retain their readable fills because they do
-not receive this compositor effect.
-Install Acrylic Glass under an immutable SHA-256 directory and atomically
-switch the discovery symlink, keeping the basename `liquidglass.so`. Qt resolves
-that link before caching libraries, so an update loads fresh code without a
-compositor restart. Reinstalling identical bytes must preserve the inode.
-Namespace Qt shader resources by source identity so retained libraries cannot
-supply old shaders. Verify the running build through the effect's debug
-identity; mapped-file inspection is only a fallback. Warn if activation remains
-unconfirmed. Never restart Wayland KWin automatically or report `activeEffects`
-alone as proof that the updated binary is running.
+`refresh_acrylic_glass()` reloads the enabled glass effect (Better Blur DX)
+so its popup masks follow the replacement surfaces; a KWin reconfigure alone
+left stale capsule geometry at 150% scale upstream. Disabled effects and
+saved settings are preserved.
 
 Wallpapers are fully bundled. Every entry under
 `src/offline/wallpapers/<id>/` is a JPEG q90 (re-encoded from 6K PNG
@@ -1348,7 +1335,7 @@ a genuine missing package and fails CI.
 
 | Module                        | Responsibility |
 | ----------------------------- | -------------- |
-| `acrylic_glass.py`            | Compile and install upstream's Acrylic Glass KWin effect (effect + settings module to the system Qt6 plugin dir), its material defaults and the Better Blur DX migration. |
+| `acrylic_glass.py`            | Compile and install the Better Blur DX KWin effect (effect + settings module to the system Qt6 plugin dir), its shared settings and the Glass / Acrylic Glass migration. |
 | `apply.py`                    | Wraps `mac-tahoe-theme-switch` invocation from inside `install`. |
 | `apps.py`                     | Misc app config tweaks (dolphin, konsole, etc.). |
 | `color_schemes.py`            | Installs `MacTahoeLiquidKde-{Light,Dark}.colors` under `~/.local/share/color-schemes/`. |
@@ -1487,8 +1474,9 @@ Highlights:
   guards, unit files, step flag gating.
 - `tests/test_cmake.py` — the C++ plasmoids and KWin effect build
   configure cleanly.
-- `tests/test_glass_effect.py` — the Tahoe and Frosted materials, the theme
-  switch writing them, and the Better Blur DX migration on install.
+- `tests/test_glass_effect.py` — the bundled Better Blur DX copy (pin,
+  its two local changes), the deny-list, the presets, the theme switch
+  writing them, and the Glass / Acrylic Glass migration on install.
 - `tests/test_rounded_corners_step.py` — immutable upstream pin, checksum
   and traversal rejection, best-effort orchestration, enabled state,
   v0.38 preset cleanup without effect-state changes, and lifecycle.

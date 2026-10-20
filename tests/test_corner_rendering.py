@@ -1,4 +1,4 @@
-"""Native regressions for desktop eligibility and per-frame corner handoff."""
+"""Native regression for Rounded Corners desktop eligibility."""
 import os
 from pathlib import Path
 import shlex
@@ -30,52 +30,6 @@ def qt_compile(tmp_path_factory):
                         *shlex.split(flags.stdout)], check=True, capture_output=True, timeout=60)
         subprocess.run([str(binary)], check=True, capture_output=True, timeout=10)
     return compile_run
-
-
-def test_glass_uses_runtime_shape_without_mutating_preferences(qt_compile):
-    source = (Path(__file__).resolve().parents[1] /
-              "src/offline/kwin-effects/acrylic-glass/src/effect.cpp").read_text()
-    handoff = source.split("    float cornerSquircle = 0.0f;", 1)[1].split(
-        "    // Clamp the radius", 1)[0]
-    qt_compile(r'''
-#include <QObject>
-#include <QVariant>
-#include <QRectF>
-#include <algorithm>
-#include <cassert>
-struct BorderRadius {
-    float radius = 22;
-    BorderRadius() = default;
-    BorderRadius(float a, float, float, float) : radius(a) {}
-};
-struct Window : QObject {
-    QRectF frameGeometry() const { return QRectF(0, 0, 640, 480); }
-};
-void check(Window *w, float expectedRadius, float expectedSquircle) {
-    float topCornerRadius = 22, bottomCornerRadius = 22, cornerSquircle = 0;
-    BorderRadius cornerRadius;
-    QRectF surfaceRect(12, 8, 600, 450);
-''' + handoff + r'''
-    assert(topCornerRadius == expectedRadius && bottomCornerRadius == expectedRadius);
-    assert(cornerRadius.radius == expectedRadius && cornerSquircle == expectedSquircle);
-    if (w->property("_mttkde_corner_shape_v1").toList().size() == 2)
-        assert(surfaceRect == w->frameGeometry());
-}
-int main() {
-    Window window;
-    check(&window, 22, 0);
-    window.setProperty("_mttkde_corner_shape_v1", QVariantList{28.0, 0.5});
-    check(&window, 28, 0.5);
-    window.setProperty("_mttkde_corner_shape_v1", QVariantList{13.5, 1.0});
-    check(&window, 13.5, 1);
-    window.setProperty("_mttkde_corner_shape_v1", QVariantList{0.0, 0.0});
-    check(&window, 0, 0);
-    window.setProperty("_mttkde_corner_shape_v1", QVariant());
-    check(&window, 22, 0);
-    window.setProperty("_mttkde_corner_shape_v1", QVariantList{28.0});
-    check(&window, 22, 0);
-}
-''')
 
 
 @pytest.mark.skipif(not os.environ.get("MTTKDE_ROUNDED_CORNERS_ARCHIVE"),

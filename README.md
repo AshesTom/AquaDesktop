@@ -44,8 +44,8 @@ Select **Frosted** in Theme Settings, or run `mac-tahoe-theme-switch style frost
 
 ## The desktop
 
-- **Liquid Glass.** Upstream's Acrylic Glass effect renders window, menu and
-  Dock blur with edge refraction. Menu-bar popovers use their own
+- **Liquid Glass.** Better Blur DX renders window and Dock blur, with a
+  separate Dock material and edge refraction. Menu-bar popovers use their own
   glass surfaces and blur regions; Control Center modules float independently.
 - **Dock.** Shared parabolic magnification across apps, Downloads and Trash,
   launch bounce, running indicators, preserved pinned apps and auto-hide.
@@ -65,10 +65,9 @@ Select **Frosted** in Theme Settings, or run `mac-tahoe-theme-switch style frost
 - **Session details.** Application switcher, notification banners, session
   splash and logout dialogs, with an optional Plymouth boot splash.
 
-The glass renderer is upstream's **Acrylic Glass**. The installer removes the
-Better Blur DX effect earlier AquaDesktop releases used. Its material can also
-be tuned in System Settings → Desktop Effects → Acrylic Glass; a light/dark
-switch or a style change writes the style's material again.
+The glass renderer is **Better Blur DX**. The installer removes the older
+Glass and Acrylic Glass effects previously used by this project. The historical
+`--acrylic-glass` flag selects the current renderer.
 
 ## Install
 
@@ -104,7 +103,7 @@ The checkout's `features.json` stores component choices. Use `--save` to retain
 command-line choices, or `--reset` to restore defaults. Firefox styling, KDE
 Rounded Corners and OLED care can be selected separately.
 
-Theme assets and Acrylic Glass sources are bundled. Package installation
+Theme assets and Better Blur DX sources are bundled. Package installation
 requires access to your distribution repositories when dependencies are missing.
 The optional KDE Rounded Corners component downloads a pinned, checksum-verified
 source release. Installation also checks upstream releases; set
@@ -239,7 +238,7 @@ Thanks to the open-source projects that inspired this one or fed assets into it.
 
 - **[EliverLara](https://github.com/EliverLara/TahoeLauncher)**: `TahoeLauncher`, the inspiration for the Launcher plasmoid.
 - **[vinceliuice](https://github.com/vinceliuice)**: `MacTahoe-icon-theme` for the icons, cursors, and GTK inspiration; and the [`MacTahoe-gtk-theme` Firefox CSS/SVG](https://github.com/vinceliuice/MacTahoe-gtk-theme/tree/main/other/firefox), maintained here as an MIT-licensed fork and integrated with this project's profile backup and restore system.
-- **[taj-ny](https://github.com/taj-ny/kwin-effects-forceblur)** and **[4v3ngR](https://github.com/4v3ngR/kwin-effects-glass)**: the blur effects Acrylic Glass descends from; 4v3ngR's [glassOS](https://github.com/4v3ngR/glassOS) also inspired earlier glass presets. Original copyright and license notices remain in the sources.
+- **[xarblu](https://github.com/xarblu/kwin-effects-better-blur-dx)**: Better Blur DX, bundled as the current window and Dock glass renderer (GPL-3.0; pin and local changes in `src/offline/kwin-effects/better-blur-dx/UPSTREAM.md`). Its lineage includes **[taj-ny](https://github.com/taj-ny/kwin-effects-forceblur)** and **[4v3ngR](https://github.com/4v3ngR/kwin-effects-glass)**; 4v3ngR's [glassOS](https://github.com/4v3ngR/glassOS) also inspired earlier glass presets. Original copyright and license notices remain in the sources.
 - **[maximilionus](https://github.com/maximilionus/lucidglyph)**: `lucidglyph`, the recommended FreeType / Fontconfig rendering tweaks (not bundled).
 - **[Lester Cordero Murillo](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde)**: `macos-tahoe-liquid-kde`, the project this fork is built on.
 - **[cromewar](https://github.com/cromewar/plasma-downloads-stack)**: `plasma-downloads-stack`, bundled as the Dock's Downloads stack and adapted to its proportions and magnification (GPL-3.0, license shipped alongside).

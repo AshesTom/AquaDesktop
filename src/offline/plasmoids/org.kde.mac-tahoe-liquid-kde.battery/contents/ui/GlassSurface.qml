@@ -23,17 +23,18 @@ Item {
     // White content on this glass (the Control Center, dark mode menus).
     readonly property bool dark: luminance(Kirigami.Theme.textColor) > 0.5
 
-    // Light mode: the Plasma popups' own face over Acrylic Glass
-    // (dialogs/background, 8 % white). Dark mode: macOS' dark material,
-    // Apple's #1c1c1e at 40 %, as white over the blur would light the dark
-    // glass up. Theme Settings writes the tint and Golden Gate's
-    // clear-to-tinted level to glass.ini.
+    // The context menus' colour (Kvantum's menu fill at its opacity: #333333
+    // at 55 % with white content, white at 33 % with dark content), like
+    // macOS' Control Center next to the menu bar's menus. Theme Settings
+    // writes the tint and Golden Gate's clear-to-tinted level to glass.ini.
     readonly property bool accentTint: tintName === "accent" && accentHex.length === 6
-    readonly property color tint: accentTint ? "#" + accentHex : dark ? "#1c1c1e" : "#ffffff"
-    readonly property real defaultTintAlpha: accentTint ? (dark ? 0.35 : 0.20) : dark ? 0.40 : 0.08
+    readonly property color tint: accentTint ? "#" + accentHex : dark ? "#333333" : "#ffffff"
+    // Neutral glass by default: the slider's clear end (no grey veil over
+    // the blur, which coloured the glass); its tinted half still adds one.
+    readonly property real defaultTintAlpha: accentTint ? (dark ? 0.35 : 0.20) : dark ? 0.08 : 0.05
     readonly property real tintAlpha: {
         const level = glassLevel;
-        const clear = 0;
+        const clear = dark ? 0.08 : 0.05;
         const tinted = dark ? 0.82 : 0.72;
         return level <= 0.5
             ? clear + (defaultTintAlpha - clear) * level * 2
@@ -64,12 +65,12 @@ Item {
         const hex = String(glassTint.value("Accent", ""));
         return /^[0-9a-fA-F]{6}$/.test(hex) ? hex : "";
     }
-    // A 1 px light edge over Acrylic Glass' own faint highlight, so each
-    // bubble keeps a contour; the earlier 2 px line and its glow drew a
-    // double contour over the effect's.
-    readonly property real rimLight: 0.08
-    readonly property real rimWidth: 1.0
-    readonly property real glowLight: 0
+    // The edge light, measured at 1x (the image is at 1.21x): +45 and +48
+    // / 255 on the first two pixels in, then +25, +12, +9, +5: a 2 px line
+    // over a glow fading to 1/e over 3 px.
+    readonly property real rimLight: 0.13
+    readonly property real rimWidth: 2.0
+    readonly property real glowLight: 0.09
     readonly property real glowWidth: 3.0
 
     function luminance(c: color): real {

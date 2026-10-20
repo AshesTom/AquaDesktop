@@ -1,58 +1,104 @@
-"""The Acrylic Glass KWin effect, installed by the ``acrylic_glass``
-feature: the per-style materials, and the migration away from Better Blur
-DX."""
+"""The Better Blur DX KWin effect, installed by the ``acrylic_glass``
+feature: the bundled copy and its local changes, the per-mode glass, and
+the migration away from Glass and Acrylic Glass."""
 
 import re
 
 import pytest
 
-GLASS = "kwin-effects/acrylic-glass"
+GLASS = "kwin-effects/better-blur-dx"
 
 
-def test_acrylic_glass_replaces_better_blur_dx(offline):
-    """Upstream's Acrylic Glass is the glass: Better Blur DX, which earlier
-    AquaDesktop releases bundled, is gone, and its install is migrated."""
-    assert (offline / GLASS / "src/presets.json").is_file()
-    assert not (offline / "kwin-effects/better-blur-dx").exists()
+def test_bundled_copy_is_pinned_and_documented(offline):
+    upstream = (offline / GLASS / "UPSTREAM.md").read_text()
+    assert "https://github.com/xarblu/kwin-effects-better-blur-dx" in upstream
+    assert "811bce88af12b15be01d1b388dc5174451450362" in upstream
+    assert (offline / GLASS / "LICENSE").read_text().lstrip().startswith(
+        "GNU GENERAL PUBLIC LICENSE")
+    for gone in ("kwin-effects/acrylic-glass", "kwin-effects/glass"):
+        assert not (offline / gone).exists()
+    # Upstream's build.sh runs "sudo make install": not bundled.
+    assert not (offline / GLASS / "build.sh").exists()
+
+
+def test_local_changes_are_the_documented_two(offline):
+    """Docks' own blur strength and refraction kept to docks, each marked
+    "AquaDesktop" in the source."""
+    kcfg = (offline / GLASS / "src/blur.kcfg").read_text()
+    for key in ("DockBlurStrength", "DockBrightness", "DockContrast", "DockSaturation",
+                "RefractionDocksOnly"):
+        assert f'<entry name="{key}"' in kcfg, key
+    cpp = (offline / GLASS / "src/blur.cpp").read_text()
+    assert "const bool dockBlur = w->isDock() && m_dockIterationCount > 0;" in cpp
+    assert "const bool refract = !m_refractionDocksOnly || w->isDock();" in cpp
+    assert "if (!refract || !m_refractionPass->pushShader())" in cpp
+    # Only blur(), the Dock's own pipeline, uses the window's strength.
+    blur = cpp[cpp.index("void BlurEffect::blur("):]
+    blur = blur[:blur.index("\n}\n")]
+    assert "m_iterationCount" not in blur.replace("? m_dockIterationCount : m_iterationCount", "")
+    assert "float(m_offset)" not in blur
+    # The upstream shaders and refraction pass are untouched.
+    for name in ("src/shaders/refraction.frag", "src/refraction_pass.cpp"):
+        assert "AquaDesktop" not in (offline / GLASS / name).read_text(), name
+
+
+def test_plasma_popups_and_vms_are_never_force_blurred():
+    """plasmashell keeps only the region it asks for (the Dock's Downloads
+    fan, the Control Center's room around its bubbles stay clear); menus
+    and docks are never force-blurred; VirtualBox VMs never, whatever the
+    case of their class (#90)."""
     from steps import acrylic_glass as step
-    assert step._RETIRED_EFFECT == "better_blur_dx"
-    assert step._RETIRED_GROUP == "Effect-better-blur-dx"
+    shared = dict(step._SHARED)
+    assert (shared["BlurMatching"], shared["BlurNonMatching"]) == ("false", "true")
+    assert (shared["BlurMenus"], shared["BlurDocks"]) == ("false", "false")
+    deny = shared["WindowClasses"].split("\n")
+    assert "plasmashell" in deny
+    assert "/(?i)^VirtualBoxVM$/" in deny
 
 
-def test_presets_tahoe_and_frosted():
-    import json
+def test_default_deny_list_survives():
+    from steps import acrylic_glass as step
+    deny = set(dict(step._SHARED)["WindowClasses"].split("\n"))
+    assert {"cairo-dock", "kwin_wayland", "linux-wallpaperengine", "xembedsniproxy"} <= deny
+
+
+def test_presets_tahoe_glass_and_frosted():
     import theme_switch as ts
-    from steps import acrylic_glass as step
-    assert ts.GLASS_EFFECT == "liquidglass" and ts.GLASS_GROUP == "Effect-liquidglass"
+    assert ts.GLASS_EFFECT == "better_blur_dx" and ts.GLASS_GROUP == "Effect-better-blur-dx"
     presets = ts.GLASS_PRESETS
     assert set(presets) == {"dark-tahoe", "light-tahoe", "dark-frosted", "light-frosted"}
-    assert ts.GLASS_STYLES == ("tahoe", "frosted")
     # Every preset sets the same keys: switching styles leaves nothing behind.
     assert len({tuple(sorted(p)) for p in presets.values()}) == 1
-    # Tahoe is upstream's tahoe material, the same in both appearances
-    # (the switch carries a copy: it is installed without the checkout).
-    upstream = json.loads((step.SRC / "src/presets.json").read_text())[1]
-    assert upstream["id"] == "tahoe"
-    for mode in ("dark", "light"):
-        tahoe = presets[f"{mode}-tahoe"]
-        for key, value in upstream["values"].items():
-            expected = str(value).lower() if isinstance(value, bool) else str(value)
-            if expected[0].isdigit():
-                assert float(tahoe[key]) == float(expected), key
-            else:
-                assert tahoe[key] == expected, key
-        assert tahoe["MaterialPreset"] == "1"
-    # Frosted: a heavier blur, no refraction or colour drift, dimmed to
-    # 85 % in dark mode (measured on a macOS dark Dock), lifted in light.
-    dark, light = presets["dark-frosted"], presets["light-frosted"]
-    assert float(dark["BlurStrength"]) > float(presets["dark-tahoe"]["BlurStrength"])
-    for frosted in (dark, light):
-        assert frosted["MagnifyGlassStrength"] == "0.0" and frosted["RgbDriftStrength"] == "0.0"
-        assert frosted["RefractionWidth"] == "0.0"
-    assert (dark["Brightness"], light["Brightness"]) == ("0.85", "1.12")
-    assert dark == {**light, "Brightness": "0.85"}
-    # The neutral tint takes the colour out of the glass.
-    assert ts.glass_preset("dark", "tahoe", "neutral")["Saturation"] == "0"
+    for p in presets.values():
+        assert "__" not in "".join(p.values())
+        assert p["NoiseStrength"] == "0" and p["RefractionDocksOnly"] == "true"
+    # Tahoe: in light mode the Dock nearly clear (strength 1, Apple's ~1 px)
+    # under the effect's radial lens at its edges; popovers and windows
+    # heavily blurred.
+    tahoe = presets["light-tahoe"]
+    assert (tahoe["BlurStrength"], tahoe["DockBlurStrength"]) == ("5", "1")
+    assert (tahoe["RefractionStrength"], tahoe["RefractionMode"]) == ("30", "1")
+    assert (tahoe["RefractionEdgeSize"], tahoe["RefractionNormalPow"]) == ("1", "4")
+    assert (tahoe["Brightness"], tahoe["Saturation"]) == ("100", "100")
+    # The Dock's material, fitted on two Apple captures over their bare
+    # wallpapers: contrast 0.68, saturation 1.35, brightness 1.04.
+    assert (tahoe["DockContrast"], tahoe["DockSaturation"], tahoe["DockBrightness"]) == ("68", "135", "104")
+    # Dark mode: Apple's dark Dock, fitted on a macOS dark capture over its
+    # bare wallpaper: a light blur (sigma 3-4 px, the desktop stays
+    # readable through the glass) and kept dark.
+    dark = presets["dark-tahoe"]
+    # A soft lens over a wider band: no second contour inside the rim.
+    assert dark == {**tahoe, "DockBlurStrength": "2", "DockContrast": "84",
+                    "DockSaturation": "133", "DockBrightness": "87",
+                    "RefractionStrength": "15", "RefractionEdgeSize": "2",
+                    "RefractionNormalPow": "2"}
+    # Frosted, measured on a macOS dark Dock: dimmed to 85 %, strong blur,
+    # no refraction, the Dock blurred like the rest.
+    frosted = presets["dark-frosted"]
+    assert (frosted["Brightness"], frosted["BlurStrength"]) == ("85", "11")
+    assert (frosted["RefractionStrength"], frosted["DockBlurStrength"]) == ("0", "0")
+    assert int(tahoe["BlurStrength"]) < int(frosted["BlurStrength"])
+    assert ts._OWN_COMPILED_EFFECTS == ("better_blur_dx",)
 
 
 @pytest.mark.parametrize("enabled", [True, False])
@@ -61,7 +107,7 @@ def test_theme_switch_writes_the_mode_preset_only_while_enabled(
     import theme_switch as ts
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
     kwinrc = tmp_path / "kwinrc"
-    kwinrc.write_text(f"[Plugins]\nliquidglassEnabled={'true' if enabled else 'false'}\n")
+    kwinrc.write_text(f"[Plugins]\nbetter_blur_dxEnabled={'true' if enabled else 'false'}\n")
     monkeypatch.setattr(ts, "_kwinrc_path", lambda: kwinrc)
     writes, calls = [], []
     monkeypatch.setattr(ts, "_kwrite", lambda *a: writes.append(a) or True)
@@ -70,47 +116,68 @@ def test_theme_switch_writes_the_mode_preset_only_while_enabled(
     assert ts.apply_glass_preset("light") is enabled
     if enabled:
         written = {a[a.index("--key") + 1]: a[-1] for a in writes}
-        assert all(a[3] == "Effect-liquidglass" for a in writes)
+        assert all(a[3] == "Effect-better-blur-dx" for a in writes)
         # Tahoe is the default style, macOS the default tint.
         assert written == ts.GLASS_PRESETS["light-tahoe"]
         assert calls == [("org.kde.KWin", "/Effects",
-                          "org.kde.kwin.Effects.reconfigureEffect", "liquidglass")]
+                          "org.kde.kwin.Effects.reconfigureEffect", "better_blur_dx")]
     else:
         assert writes == [] and calls == []
 
 
-def test_install_retires_better_blur_dx(monkeypatch, tmp_path):
+def test_install_replaces_glass_and_acrylic_glass(monkeypatch, tmp_path):
+    import theme_switch as ts
     from steps import acrylic_glass as step
+
     plugins = tmp_path / "plugins"
-    effects = plugins / "kwin/effects/plugins"
-    hashed = effects / ".better_blur_dx-76ebef8cb9848757"
-    hashed.mkdir(parents=True)
-    (hashed / "better_blur_dx.so").write_bytes(b"so")
-    (effects / "better_blur_dx.so").symlink_to(".better_blur_dx-76ebef8cb9848757/better_blur_dx.so")
-    config = plugins / "kwin/effects/configs/kwin_better_blur_dx_config.so"
-    config.parent.mkdir(parents=True)
-    config.write_bytes(b"so")
+    build = tmp_path / "build"
+    for so in ("src/better_blur_dx.so", "src/kcm/kwin_better_blur_dx_config.so"):
+        (build / so).parent.mkdir(parents=True, exist_ok=True)
+        (build / so).write_bytes(b"so")
+    old_files = [so for _effect, _group, files in step._REPLACED_EFFECTS for so in files]
+    for so in old_files:
+        (plugins / so).parent.mkdir(parents=True, exist_ok=True)
+        (plugins / so).write_bytes(b"old")
     home = tmp_path / "home"
     (home / ".config").mkdir(parents=True)
     kwinrc = home / ".config/kwinrc"
-    kwinrc.write_text("[Effect-better-blur-dx]\nBlurStrength=5\n\n[Plugins]\n"
-                      "better_blur_dxEnabled=true\n")
-    writes, calls, removed = [], [], []
-    monkeypatch.setattr(step.Path, "home", lambda: home)
+    kwinrc.write_text("[Effect-blurplus]\nBlurStrength=4\n\n[Effect-liquidglass]\nBlurStrength=3.5\n\n"
+                      "[Plugins]\nglassEnabled=true\nliquidglassEnabled=true\n")
+
+    writes, installed, removed = [], [], []
+    monkeypatch.setattr(step, "BUILD", build)
+    monkeypatch.setattr(step, "HOME", home)
     monkeypatch.setattr(step, "_plugin_dir", lambda: plugins)
     monkeypatch.setattr(step, "kw_write", lambda *a: writes.append(a) or True)
-    monkeypatch.setattr(step, "qdbus_call", lambda *a: calls.append(a) or True)
-    monkeypatch.setattr(step, "sudo_remove", lambda path, label: removed.append(path) or True)
+    monkeypatch.setattr(step, "qdbus_call", lambda *a: True)
+    monkeypatch.setattr(step, "sudo_install_file",
+                        lambda src, dest, label: installed.append(dest) or True)
+    monkeypatch.setattr(step, "sudo_remove",
+                        lambda path, label: removed.append(path) or True)
+    monkeypatch.setattr(step, "_install_corner_defaults", lambda: None)
+    monkeypatch.setattr(step, "_kwin_has_effect", lambda effect: True)
+    monkeypatch.setattr(step, "theme_mode", lambda: "dark")
+    monkeypatch.setattr(step, "glass_preset", lambda mode: ts.glass_preset(mode, "frosted", "macos"))
+    monkeypatch.setattr(step.time, "sleep", lambda _s: None)
+    for name in ("ok", "info", "warn"):
+        monkeypatch.setattr(step, name, lambda *_a: None)
 
-    step._remove_better_blur_dx()
+    step.install()
 
-    assert ("--file", "kwinrc", "--group", "Plugins", "--key",
-            "better_blur_dxEnabled", "false") == writes[0]
-    assert calls == [("org.kde.KWin", "/Effects",
-                      "org.kde.kwin.Effects.unloadEffect", "better_blur_dx")]
-    assert "[Effect-better-blur-dx]" not in kwinrc.read_text()
-    assert "[Plugins]" in kwinrc.read_text()
-    assert {effects / "better_blur_dx.so", config, hashed} <= set(removed)
+    assert plugins / "kwin/effects/plugins/better_blur_dx.so" in installed
+    assert plugins / "kwin/effects/configs/kwin_better_blur_dx_config.so" in installed
+    assert {plugins / so for so in old_files} <= set(removed)
+    text = kwinrc.read_text()
+    assert "[Effect-liquidglass]" not in text and "[Effect-blurplus]" not in text
+    flat = [(a[3], a[5], a[6]) for a in writes]
+    assert ("Plugins", "liquidglassEnabled", "false") in flat
+    assert ("Plugins", "glassEnabled", "false") in flat
+    assert ("Effect-better-blur-dx", "BlurDecorations", "true") in flat
+    # The frosted style, as chosen.
+    assert ("Effect-better-blur-dx", "BlurStrength", "11") in flat
+    assert ("Effect-better-blur-dx", "RefractionStrength", "0") in flat
+    # Enabled last, once everything is in place.
+    assert flat[-1] == ("Plugins", "better_blur_dxEnabled", "true")
 
 
 def test_glass_style_is_chosen_in_the_switcher(monkeypatch, tmp_path):
@@ -180,8 +247,9 @@ def test_gtk4_traffic_lights_show_glyphs_together(offline, theme, name):
 
 @pytest.mark.parametrize("theme", ["Dark", "Light"])
 def test_dock_background_adds_no_veil(offline, theme):
-    """The Dock draws no fill of its own: the glass is the effect's. The
-    hint keeps any veil
+    """The Dock draws no fill of its own: its lift is the blur effect's
+    (DockBrightness / DockContrast), since a veil over the blur cannot
+    brighten the desktop the way Apple's Dock does. The hint keeps any veil
     seamless (the centre is painted under the whole frame and cut by the
     rounded mask)."""
     import gzip
@@ -227,12 +295,12 @@ def test_dock_background_is_glass_only_with_a_real_mask(offline, theme):
 
 @pytest.mark.parametrize("theme", ["Dark", "Light"])
 def test_dock_corners_match_the_lens_radius(offline, theme):
-    """The Dock rim, its blur mask and the glass' Dock corners share one
+    """The Dock rim, its blur mask and the lens' corner radius share one
     radius."""
     import gzip
-    from steps import acrylic_glass as step
+    import theme_switch as ts
 
-    radius = int(float(dict(step._CORNER_DEFAULTS)["DockCornerRadius"]))
+    radius = int(ts.GLASS_PRESETS["dark-tahoe"]["RefractionCornerRadius"])
     svg = gzip.decompress((offline / f"plasma-theme/MacTahoeLiquidKde-{theme}"
                            "/widgets/panel-background.svgz").read_bytes()).decode()
     for prefix in ("south-", "mask-south-"):
@@ -240,10 +308,34 @@ def test_dock_corners_match_the_lens_radius(offline, theme):
         assert f'width="{radius}" height="{radius}"' in corner, prefix
 
 
+@pytest.mark.parametrize("current, written", [
+    ("__absent__", "22"),   # never set
+    ("14", None),           # user tuning is kept (#89)
+    ("", None),             # an explicitly empty value is kept too
+])
+def test_window_radius_is_seeded_only_when_absent(monkeypatch, current, written):
+    from types import SimpleNamespace
+    from steps import acrylic_glass as step
+
+    writes = []
+
+    def read(cmd, **_kw):
+        sentinel = cmd[cmd.index("--default") + 1]
+        return SimpleNamespace(returncode=0,
+                               stdout=(sentinel if current == "__absent__" else current) + "\n")
+
+    monkeypatch.setattr(step, "have", lambda _tool: True)
+    monkeypatch.setattr(step, "run_user", read)
+    monkeypatch.setattr(step, "kw_write", lambda *a: writes.append(a) or True)
+    monkeypatch.setattr(step, "warn", lambda *_a: None)
+    step._install_corner_defaults()
+    assert [a[-1] for a in writes if "CornerRadius" in a] == ([written] if written else [])
+
+
 def test_nix_builds_the_bundled_effect(offline):
     root = offline.parent.parent
-    assert '(offline + "/kwin-effects/acrylic-glass")' in (root / "nix/packages.nix").read_text()
-    assert "kwin/effects/plugins/liquidglass.so" in (root / "flake.nix").read_text()
+    assert '(offline + "/kwin-effects/better-blur-dx")' in (root / "nix/packages.nix").read_text()
+    assert "kwin/effects/plugins/better_blur_dx.so" in (root / "flake.nix").read_text()
 
 @pytest.mark.parametrize("frosted", [True, False])
 def test_menu_bar_carries_tahoes_dark_veil(offline, frosted):
@@ -281,68 +373,22 @@ def test_build_never_mutates_the_live_desktop(monkeypatch, build_succeeds):
     assert len(builds) == 1
 
 
-def test_popover_bubbles_are_recovered_from_the_blur_region(offline, tmp_path):
-    """Every rounded bubble of a popover's region (built like
-    org.kde.mac.tahoe.liquid.glass does) comes back as its own box, its
-    corner radius within a pixel, so the glass draws each one on its own."""
-    import shlex
-    import shutil
-    import subprocess
-    if not shutil.which("c++") or not shutil.which("pkg-config"):
-        pytest.skip("C++ compiler and pkg-config required")
-    flags = subprocess.run(["pkg-config", "--cflags", "--libs", "Qt6Gui"],
-                           capture_output=True, text=True, timeout=10)
-    if flags.returncode:
-        pytest.skip("Qt6Gui development files required")
-    source = tmp_path / "shapes.cpp"
-    source.write_text(r'''
-#include "glass_shapes.hpp"
-#include <QPainterPath>
-#include <QPolygon>
-#include <QRegion>
-#include <cassert>
-#include <cmath>
-int main() {
-    struct B { QRectF r; qreal radius; };
-    const B bubbles[] = {{{10, 10, 140, 64}, 20}, {{160, 10, 64, 64}, 20},
-                         {{10, 84, 288, 40}, 20}, {{10, 134, 288, 120}, 24}};
-    QRegion region;
-    for (const B &b : bubbles) {
-        QPainterPath path;
-        path.addRoundedRect(b.r, b.radius, b.radius);
-        region |= QRegion(path.toFillPolygon().toPolygon());
-    }
-    QList<QRectF> rects;
-    for (const QRect &r : region) rects.append(QRectF(r));
-    const auto shapes = AquaGlass::glassShapes(rects, 24);
-    assert(shapes.size() == 4);
-    for (size_t i = 0; i < 4; ++i) {
-        assert(std::abs(shapes[i].box.x() - bubbles[i].r.x()) <= 1);
-        assert(std::abs(shapes[i].box.width() - bubbles[i].r.width()) <= 1);
-        assert(std::abs(shapes[i].box.height() - bubbles[i].r.height()) <= 1);
-        assert(std::abs(shapes[i].radius - bubbles[i].radius) <= 1);
-    }
-    // More bubbles than the glass takes: the window box instead.
-    assert(AquaGlass::glassShapes(rects, 3).empty());
-}
-''')
-    binary = tmp_path / "shapes"
-    subprocess.run(["c++", "-std=c++20", "-fPIC", f"-I{offline / GLASS / 'src'}", str(source),
-                    "-o", str(binary), *shlex.split(flags.stdout)],
-                   check=True, capture_output=True, timeout=120)
-    subprocess.run([str(binary)], check=True, timeout=10)
-
-
-def test_glass_is_drawn_bubble_by_bubble(offline):
-    """A client region that does not fill its undecorated window is drawn
-    per bubble: each one's box, radius and lens centre, in the glass and
-    the grain passes; decorated and Rounded Corners windows keep the box."""
-    effect = (offline / GLASS / "src/effect.cpp").read_text()
-    assert '#include "glass_shapes.hpp"' in effect
-    assert 'if (!blurInfo.frame && w->property("_mttkde_corner_shape_v1").toList().size() != 2) {' in effect
-    assert effect.count("vbo->draw(GL_TRIANGLES, 6 + bubbleRanges[i].first * 6, bubbleRanges[i].second * 6);") == 2
-    assert "m_roundedOnscreenPass.lensCenterLocation, QVector2D(0.5f, 0.5f)" in effect
-    for shader in ("glass.glsl", "glass_core.glsl"):
-        text = (offline / GLASS / "src/shaders" / shader).read_text()
-        assert "lgLensUV(uv, lensCenter, magnifyGlassStrength, edgeQ)" in text, shader
-    assert 'parameter == QLatin1String("windows")' in effect
+def test_install_drops_acrylic_glass_versioned_binary(monkeypatch, tmp_path):
+    """Acrylic Glass keeps its binary in a hashed directory behind the
+    liquidglass.so link; going back to Better Blur DX removes both."""
+    from steps import acrylic_glass as step
+    plugins = tmp_path / "plugins"
+    versioned = plugins / "kwin/effects/plugins/.mttkde-liquidglass/abc"
+    versioned.mkdir(parents=True)
+    (versioned / "liquidglass.so").write_bytes(b"so")
+    (plugins / "kwin/effects/plugins/liquidglass.so").symlink_to(".mttkde-liquidglass/abc/liquidglass.so")
+    removed = []
+    monkeypatch.setattr(step, "_plugin_dir", lambda: plugins)
+    monkeypatch.setattr(step, "kw_write", lambda *a: True)
+    monkeypatch.setattr(step, "qdbus_call", lambda *a: True)
+    monkeypatch.setattr(step, "_strip_kwinrc_group", lambda group: None)
+    monkeypatch.setattr(step, "LEGACY_USER_PLUGIN_DIR", tmp_path / "legacy")
+    monkeypatch.setattr(step, "sudo_remove", lambda path, label: removed.append(path) or True)
+    step._remove_replaced_effects()
+    assert plugins / "kwin/effects/plugins/liquidglass.so" in removed
+    assert plugins / "kwin/effects/plugins/.mttkde-liquidglass" in removed

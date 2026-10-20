@@ -9,15 +9,12 @@ compiling successfully.
 from __future__ import annotations
 
 
-def test_acrylic_decoration_region_is_not_overwritten(repo):
-    source = (repo / (
-        "src/offline/kwin-effects/acrylic-glass/src/effect.cpp"
-    )).read_text()
-    body = source.split("void BlurEffect::updateBlurRegion", 1)[1].split(
-        "void BlurEffect::", 1,
-    )[0]
-
-    assert "frame = decorationBlurRegion(w);\n    } else if (" in body
+def test_glass_decoration_region_survives_force_blur(repo):
+    """Force blur splits a decorated window's frame into its content and its
+    decoration, so the decoration keeps its own region (Better Blur DX)."""
+    source = (repo / "src/offline/kwin-effects/better-blur-dx/src/window.cpp").read_text()
+    assert "if (m_effectwindow->decoration()) {" in source
+    assert "frame = content - BBDX::rectRoundedOut(m_effectwindow->contentsRect())" in source
 
 
 def test_taskmanager_global_rect_checks_detached_items(repo):
