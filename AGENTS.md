@@ -264,11 +264,12 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   edge faces the top left. The light is premultiplied with no alpha of its
   own, so KWin adds it to the desktop and it keeps the desktop's colour;
   never composite or screenshot it through a step that unpremultiplies
-  (QPainter skips alpha-0 pixels). The tint is the context menus' own
-  colour (Kvantum's menu fill at its opacity: #333333 at 55 % with white
-  content, white at 33 % with dark content), as the user asked for macOS'
-  Control Center next to the menu bar's menus (Apple's measured blue,
-  22 % of #08047B, was dropped), or the accent with the accent glass tint.
+  (QPainter skips alpha-0 pixels). Over Acrylic Glass the face is the
+  Plasma popups' own (`dialogs/background`: 8 % white in both appearances)
+  with no edge light of its own (`rimLight` and `glowLight` 0): the effect
+  draws the bubble's highlight, and the earlier grey veil (#333333 at 55 %,
+  white at 33 %) with its 2 px rim looked milky and outlined twice next to
+  upstream's popups. The accent glass tint keeps the accent at 20 %.
   No cursor-following highlight: macOS has none.
   Rebuild the `.qsb` with `qsb --glsl "300 es,330" --hlsl 50 --msl 12`
   after editing the shader (`tests/test_control_center.py` reads its
