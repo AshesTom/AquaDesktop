@@ -102,7 +102,7 @@ _CORNER_DEFAULTS = (
 )
 
 def _edition_preset() -> dict[str, str]:
-    # The KCM embeds this same file. Editions choose only the starting point.
+    # The KCM and installer apply the same complete material.
     presets = json.loads((SRC / "src/presets.json").read_text())
     index = 2 if default_wallpaper() == "MacGoldenGate" else 1
     values = presets[index]["values"]
@@ -110,56 +110,15 @@ def _edition_preset() -> dict[str, str]:
             for key, value in values.items()} | {"MaterialPreset": str(index)}
 
 
-def _install_material_defaults() -> None:
-    defaults = _edition_preset()
-    if not have("kreadconfig6"):
-        warn("Acrylic Glass material preserved — kreadconfig6 is unavailable")
-        return
-    sentinel = f"__mttkde_absent_{uuid.uuid4().hex}__"
-    saved = {}
-    # A failed read cannot authorize replacement of a customized material.
-    try:
-        for key in defaults:
-            result = run_user(
-                ["kreadconfig6", "--file", "kwinrc", "--group", "Effect-liquidglass",
-                 "--key", key, "--default", sentinel],
-                check=False, capture_output=True, text=True, timeout=5,
-            )
-            if result.returncode != 0:
-                raise OSError(f"kreadconfig6 failed for {key}")
-            value = (result.stdout or "").removesuffix("\n").removesuffix("\r")
-            saved[key] = None if value == sentinel else value
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        warn(f"Acrylic Glass material preserved — could not read settings ({exc})")
-        return
-
-    # A saved KCM material can deliberately omit keys equal to its schema
-    # defaults. Filling those from the edition would overwrite that selection.
-    if saved["MaterialPreset"] is not None:
-        return
-
-    # Upgrade the complete previous installer material once. Any custom optical
-    # value (including an explicit empty value) prevents this migration. Radius,
-    # window rules and the previously independent gradient toggle stay untouched.
-    golden = default_wallpaper() == "MacGoldenGate"
-    legacy = dict(BlurStrength=4.0 if golden else 3.5, Brightness=1.0, Contrast=1.0,
-                  Saturation=1.0, HighlightStrength=0.30, HighlightWidth=24.0,
-                  MagnifyGlassStrength=0.015 if golden else 0.03, NoiseStrength=2,
-                  RefractionWidth=72.0 if golden else 96.0)
-    try:
-        migrate = (saved["MaterialPreset"] is None and saved["MaterialOpacity"] is None
-                   and all(saved[key] is not None and float(saved[key]) == value
-                           for key, value in legacy.items())
-                   and (saved["RgbDriftStrength"] is None
-                        or float(saved["RgbDriftStrength"]) == (16.0 if golden else 45.0)))
-    except ValueError:
-        migrate = False
-    for key, value in defaults.items():
-        if saved[key] is None or (migrate and key in {*legacy, "RgbDriftStrength"}):
-            if not kw_write("--file", "kwinrc", "--group", "Effect-liquidglass",
-                            "--key", key, value):
-                warn(f"Acrylic Glass {key} default not applied — kwriteconfig6 failed")
-                return
+def _install_material_preset() -> bool:
+    # Installing an edition explicitly reapplies its optics. Write the selector
+    # last so a failed material write cannot announce the new preset.
+    for key, value in _edition_preset().items():
+        if not kw_write("--file", "kwinrc", "--group", "Effect-liquidglass",
+                        "--key", key, value):
+            warn(f"Acrylic Glass {key} preset not applied — kwriteconfig6 failed")
+            return False
+    return True
 
 
 def _install_corner_defaults() -> None:
@@ -340,11 +299,12 @@ def install() -> None:
                 except OSError:
                     pass
 
-    _install_material_defaults()
+    material_applied = _install_material_preset()
     _install_corner_defaults()
     _install_missing_defaults((("BlurDecorations", "true"),
                                ("BlurMatching", "false"), ("BlurNonMatching", "true")))
-    ok("Acrylic Glass material settings ready")
+    if material_applied:
+        ok("Acrylic Glass material settings ready")
     kw_write("--file", "kwinrc", "--group", "Plugins",
              "--key", "liquidglassEnabled", "true")
 

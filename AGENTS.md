@@ -550,6 +550,11 @@ mode: 95% black at the top, fading completely within the first 50% of the
 surface height. The lower half keeps untinted glass. Dock surfaces are exempt
 from the gradient under every material; do not
 change the saved gradient settings or remove their blur and refraction.
+Dock/panel glass uses a shallow single-level Kawase blur, less grain and lower
+centre coverage, with a broader normal-directed refracting bevel. Derive this
+per surface from the selected material without rewriting optical preferences;
+menus retain their full blur. Keep the bevel displacement independent of the
+Dock's length and scale it in device pixels.
 
 Publish Tahoe and Golden Gate with matching release versions and `v<version>`
 tags. Golden Gate's `VERSION` must match the Tahoe release it downloads; pin
@@ -601,14 +606,13 @@ installer and the native KCM. Keep one blur path: Dual Kawase with a symmetric
 Gaussian finish; no selectable box/bokeh kernels. Presets apply every material
 control, including opacity, refraction, grain, highlights, color adjustments,
 and gradient colors/strengths. Radius and window rules remain independent.
-Only an explicit preset selection or Restore action resets optical overrides.
-Persist `MaterialPreset` even for the schema-default Tahoe selection; KConfig
-otherwise removes default-valued entries and a Golden Gate reinstall could
-mistake them for an uninitialized material. Once this marker exists, the
-installer must leave all optical keys alone, including deliberately absent keys.
-Before that marker, migrate only a complete matching previous installer preset;
-custom, empty and unreadable values must survive. Preserve the old independent
-`DarkGradientOverlay` toggle during migration.
+Installing or reinstalling Acrylic Glass explicitly reapplies the complete
+repository edition preset: Tahoe from Tahoe, Golden Gate from Golden Gate.
+Replace previous material selections and optical overrides, including absent
+keys and the gradient toggle/colors. Write `MaterialPreset` last, after every
+material control succeeds. Preserve radius controls and window rules separately.
+The KCM still preserves adjustments when reopening settings; preset selection
+and Restore replace them. Persist `MaterialPreset` even for schema-default Tahoe.
 
 The gradient uses frame-local coordinates and changes color independently of
 blur coverage. Golden Gate keeps blurred glass across the whole surface, with

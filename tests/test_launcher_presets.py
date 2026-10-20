@@ -161,7 +161,8 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
     end = source.rfind("}")
     main.write_text(source[:end] + f"LauncherPresetProbe {{ expectedPreset: {preset} }}\n" + source[end:])
     for name, original, replacement in (
-        ("MenuButton.qml", "Item {", "Item { property alias testMenu: contextMenu"),
+        ("AppGridViewDelegate.qml", "Item {", "Item { property alias testActionMenu: actionMenu"),
+        ("MenuButton.qml", "Item {", "Item { property alias testMenu: contextMenu; property alias testButton: button"),
         ("SearchBar.qml", "RowLayout {", "RowLayout { property alias testMenuButton: menuButton"),
     ):
         path = ui / name

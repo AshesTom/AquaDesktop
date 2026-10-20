@@ -6,6 +6,7 @@
 #include <KWindowSystem>
 #include <KX11Extras>
 #include <QEvent>
+#include <QGuiApplication>
 #include <QScreen>
 #include <QStandardPaths>
 #include <algorithm>
@@ -24,7 +25,7 @@ LauncherSearchPopup::LauncherSearchPopup()
     } else if (KWindowSystem::isPlatformWayland()) {
         PlasmaShellWaylandIntegration::get(this)->setRole(QtWayland::org_kde_plasma_surface::role_appletpopup);
     }
-    connect(this, &QWindow::activeChanged, this, &LauncherSearchPopup::focusChanged);
+    connect(qGuiApp, &QGuiApplication::focusWindowChanged, this, &LauncherSearchPopup::focusWindowChanged);
     connect(this, &QWindow::transientParentChanged, this, [this](QWindow *parent) {
         if (m_anchorWindow) {
             m_anchorWindow->removeEventFilter(this);
@@ -34,6 +35,11 @@ LauncherSearchPopup::LauncherSearchPopup()
             parent->installEventFilter(this);
         }
     });
+}
+
+QWindow *LauncherSearchPopup::focusWindow() const
+{
+    return QGuiApplication::focusWindow();
 }
 
 bool LauncherSearchPopup::eventFilter(QObject *watched, QEvent *event)

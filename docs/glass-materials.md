@@ -23,13 +23,11 @@ does not lose its blur. Disable **Enable gradient** for an untinted material.
 Selecting another preset replaces your material adjustments. **Restore this
 preset** reapplies the selected preset, including its gradient colors.
 **Cancel** discards pending changes. Saved adjustments survive reopening the
-settings and reinstalling either edition. Corners and window rules are
-independent and are never reset by selecting a material.
-
-On upgrade, a complete stock configuration from the previous installer migrates
-to the edition's new optics. Custom settings and the previously saved gradient
-toggle are preserved. Select a preset explicitly to replace a custom legacy
-configuration with the complete new material.
+settings. Installing or reinstalling Acrylic Glass reapplies the complete
+preset of the repository being run: **Tahoe** from Tahoe, **Golden Gate** from
+Golden Gate. This replaces previous material selections and optical adjustments,
+including the gradient toggle and colors. Corners and window rules remain
+independent and are preserved.
 
 Plasma and Kvantum supply thin, transparent fills over the compositor's glass
 in both light and dark mode. Launcher labels use the system complementary
@@ -49,9 +47,13 @@ screenshots and design guidance; they do not reproduce Apple's renderer.
 
 The Golden Gate preset adds a black upper gradient to menus in both appearance
 modes. It starts at 95% opacity and reaches zero at 50% of the surface height.
-The lower half retains untinted blurred glass. The Dock is an exception: its glass keeps the same blur and refraction
-without the gradient. This is applied per surface, leaving the saved gradient
-controls intact. Its numerical settings are project
+The lower half retains untinted blurred glass. The Dock and panels use a clearer
+surface without the gradient: a shallow blur, less grain and a transparent
+centre, with stronger refraction across a wider bevel. The bevel bends the
+background perpendicular to each edge instead of stretching it toward the
+centre of a long Dock. These adjustments follow the selected material and its
+controls without changing saved settings; menus keep their full blur and tint.
+Its numerical settings are project
 tuning, not values supplied by Apple. It compresses backdrop contrast before
 the stronger upper tint, keeping the gradient visible over dark windows as well
 as light ones in both appearance modes.

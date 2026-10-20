@@ -1,4 +1,5 @@
 import QtQuick
+import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import org.kde.plasma.components 3.0 as PC3
 import org.kde.plasma.extras as PlasmaExtras
@@ -23,6 +24,8 @@ Item {
         
         icon.name: "view-more-symbolic"
         icon.color: main.textColor
+        // Plasma's RoundButton icon uses its theme palette, not icon.color.
+        Kirigami.Theme.textColor: main.textColor
 
         background: Rectangle {
             color: button.down ? main.contrastBgColor : "transparent"

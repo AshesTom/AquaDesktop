@@ -11,6 +11,7 @@ Timer {
     property int phase: 0
     property int expectedPreset: 1
     property real inlineHeight: 0
+    property color originalForeground: "transparent"
     property Window outsideProbe: Window {
         width: 100
         height: 100
@@ -25,9 +26,26 @@ Timer {
         verify(searchPopup.y + searchPopup.height < root.y, "search above app panel");
         verify(Math.abs(searchPopup.x + searchPopup.width / 2 - root.x - root.width / 2) < 2, "capsule centered");
     }
+    function findIcon(item) {
+        if (item instanceof Kirigami.Icon) {
+            return item;
+        }
+        for (const child of item.children) {
+            const icon = findIcon(child);
+            if (icon) {
+                return icon;
+            }
+        }
+        return null;
+    }
+    function verifyOptionsIcon(search) {
+        const icon = findIcon(search.testMenuButton.testButton.contentItem);
+        verify(icon !== null && icon.valid, "options icon loaded");
+        verify(icon.Kirigami.Theme.textColor === search.textField.color, "options icon follows the search foreground");
+    }
     onTriggered: {
         try {
-            console.log("PROBE_PHASE", phase, root.visible, kicker.launcherPreset, root.width, root.height, searchPopup.width, searchPopup.height, root.active, searchPopup.hasFocus, searchBar.textField.activeFocus);
+            console.log("PROBE_PHASE", phase, root.visible, kicker.launcherPreset, root.width, root.height, searchPopup.width, searchPopup.height, root.active, main.popupHasFocus, searchBar.textField.activeFocus);
             console.log("PROBE_GEOMETRY", root.x, root.y, searchPopup.x, searchPopup.y);
             switch (phase++) {
             case 0:
@@ -43,6 +61,7 @@ Timer {
                 verify(main.textColor === glassPalette.Kirigami.Theme.textColor, "labels follow the system complementary foreground");
                 verify(!searchPopup.visible, "inline search has no second popup");
                 verify(searchBar.parent === inlineSearchSlot, "inline field parent");
+                verifyOptionsIcon(searchBar);
                 presetProbe.inlineHeight = root.height;
                 searchBar.textField.text = "terminal";
                 verify(runnerModel.query === "terminal", "search reaches runner");
@@ -51,6 +70,7 @@ Timer {
             case 2:
                 verify(root.visible && searchPopup.visible, "both detached popups visible");
                 verify(searchBar.parent === detachedSearchSlot, "detached field parent");
+                verifyOptionsIcon(searchBar);
                 verify(searchBar.textField.text === "terminal", "query survives preset change");
                 verify(root.height < presetProbe.inlineHeight, "no empty inline search row");
                 verifyCapsulePosition();
@@ -100,6 +120,59 @@ Timer {
                 break;
             case 9:
                 verifyCapsulePosition();
+                originalForeground = glassPalette.Kirigami.Theme.textColor;
+                glassPalette.Kirigami.Theme.textColor = "#182838";
+                break;
+            case 10:
+                verifyOptionsIcon(inlineSearchBar);
+                verifyOptionsIcon(detachedSearchBar);
+                glassPalette.Kirigami.Theme.textColor = "#e8d8c8";
+                break;
+            case 11:
+                verifyOptionsIcon(inlineSearchBar);
+                verifyOptionsIcon(detachedSearchBar);
+                glassPalette.Kirigami.Theme.textColor = originalForeground;
+                root.visible = false;
+                // Plasma's panel/desktop can share a transient chain with the
+                // launcher. QWindow.active stays true when that parent takes focus.
+                outsideProbe.show();
+                root.transientParent = outsideProbe;
+                plasmoid.configuration.launcherPreset = 1;
+                root.visible = true;
+                break;
+            case 12:
+                verify(root.visible, "inline popup stays open with a transient parent");
+                outsideProbe.requestActivate();
+                break;
+            case 13:
+                verify(!root.visible, "focusing the parent closes the inline launcher");
+                plasmoid.configuration.launcherPreset = 2;
+                root.visible = true;
+                break;
+            case 14:
+                verify(root.visible && searchPopup.visible, "detached popups reopen with a transient parent");
+                root.requestActivate();
+                break;
+            case 15:
+                verify(root.visible && searchPopup.visible, "moving focus to app panel keeps both popups open");
+                main.focusSearch();
+                break;
+            case 16:
+                verify(root.visible && searchPopup.visible, "moving focus to search keeps both popups open");
+                const app = appList.viewItem.currentItem;
+                verify(app !== null, "app available for its context menu");
+                app.openActionMenu(app, 10, 10);
+                break;
+            case 17:
+                verify(root.visible && searchPopup.visible && appList.viewItem.currentItem.testActionMenu.opened,
+                       "app context menu keeps both popups open");
+                appList.viewItem.currentItem.testActionMenu.menu.close();
+                break;
+            case 18:
+                outsideProbe.requestActivate();
+                break;
+            case 19:
+                verify(!root.visible && !searchPopup.visible, "focusing the parent closes both detached popups");
                 console.log("LAUNCHER_PROBE_OK");
                 stop();
                 break;

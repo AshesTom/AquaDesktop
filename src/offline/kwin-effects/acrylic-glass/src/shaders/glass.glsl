@@ -21,6 +21,8 @@ uniform float refractionWidth;
 uniform float highlightWidth;
 uniform float highlightStrength;
 uniform float materialOpacity;
+uniform bool dockSurface;
+uniform vec2 backgroundSize;
 uniform vec4 gradientTop;
 uniform vec4 gradientBottom;
 uniform bool darkGradientOverlay;
@@ -42,15 +44,18 @@ void main(void)
     vec2 outNorm = lgRoundedRectNormal(pos, halfSize, cornerRadius);
     float inside = max(-d, 0.0);
 
-    float refrBand = max(refractionWidth, 1.0);
+    float refrBand = max(refractionWidth * (dockSurface ? 1.5 : 1.0), 1.0);
     float edgeT = smoothstep(-refrBand, 0.0, d);
-    // Cubic rim concentration — refraction / RGB drift / lens distortion fall
-    // off sharply away from the edge, leaving the centre of the glass clean.
-    float edgeQ = edgeT * edgeT * edgeT;
+    // A broader bevel makes the Dock read as clear, thick glass.
+    // Both profiles leave the centre undistorted.
+    float edgeQ = edgeT * edgeT * (dockSurface ? 1.0 : edgeT);
 
-    vec2 lensUV = (magnifyGlassStrength > 0.0)
-        ? lgLensUV(uv, magnifyGlassStrength, edgeQ)
-        : uv;
+    vec2 lensUV = uv;
+    if (magnifyGlassStrength > 0.0) {
+        lensUV = dockSurface
+            ? lgDockLensUV(uv, outNorm, blurSize, backgroundSize, magnifyGlassStrength, edgeQ)
+            : lgLensUV(uv, magnifyGlassStrength, edgeQ);
+    }
     vec2 texel = halfpixel * 2.0;
     vec3 col;
     if (offset > 0.0) {
@@ -78,5 +83,7 @@ void main(void)
         vec3 tint = mix(gradientTop.rgb * gradientTop.a, gradientBottom.rgb * gradientBottom.a, t);
         surface.rgb = surface.rgb * (1.0 - tintAlpha) + tint;
     }
-    LG_OUT = surface * (mask * opacity * materialOpacity);
+    // Keep the bevel covered so refraction does not double the sharp backdrop.
+    float coverage = materialOpacity * (dockSurface ? mix(0.8, 1.0, edgeQ) : 1.0);
+    LG_OUT = surface * (mask * opacity * coverage);
 }

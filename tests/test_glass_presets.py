@@ -1,4 +1,6 @@
-"""Exercise the real material controls and installer preservation contract."""
+"""Exercise material controls and installation of each edition's preset."""
+import configparser
+import json
 import os
 import select
 from pathlib import Path
@@ -41,22 +43,34 @@ def test_native_material_preset_controls(kcm_probe, tmp_path):
     assert result.returncode == 0, result.stdout + result.stderr
     assert "save/reopen, cancel and restore verified" in result.stderr
     # The KCM ends with Tahoe selected, omitting keys equal to schema defaults.
-    # A subsequent Golden Gate install must not fill them with Golden values.
+    # Installing another edition must replace this sparse KCM configuration.
     config = tmp_path / "config/kwinrc"
-    saved = config.read_bytes()
     env["PYTHONPATH"] = str(REPO / "src/scripts")
-    result = subprocess.run([sys.executable, "-c",
-                             "from steps import acrylic_glass as g; "
-                             "g.default_wallpaper = lambda: 'MacGoldenGate'; "
-                             "g._install_material_defaults()"],
-                            env=env, capture_output=True, text=True, timeout=30)
-    assert result.returncode == 0, result.stdout + result.stderr
-    assert config.read_bytes() == saved
+    for edition, index in (("MacGoldenGate", 2), ("MacTahoe", 1)):
+        result = subprocess.run([sys.executable, "-c",
+                                 "from steps import acrylic_glass as g; "
+                                 f"g.default_wallpaper = lambda: {edition!r}; "
+                                 "assert g._install_material_preset()"],
+                                env=env, capture_output=True, text=True, timeout=30)
+        assert result.returncode == 0, result.stdout + result.stderr
+        saved = configparser.ConfigParser()
+        saved.optionxform = str
+        saved.read(config)
+        material = saved["Effect-liquidglass"]
+        assert material.items() >= _preset_values(index).items()
+        assert material["WindowCornerRadius"] == "13.5"
+        assert material["WindowClasses"] == "preserved-app"
+
+
+def _preset_values(index):
+    presets = json.loads((glass.SRC / "src/presets.json").read_text())
+    return {key: str(value).lower() if isinstance(value, bool) else str(value)
+            for key, value in presets[index]["values"].items()} | {"MaterialPreset": str(index)}
 
 
 @pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate"])
-@pytest.mark.parametrize("existing", ["fresh", "legacy", "custom", "saved-preset", "empty"])
-def test_material_installation_preserves_customizations_and_migrates_stock(monkeypatch, edition, existing):
+@pytest.mark.parametrize("existing", ["fresh", "legacy", "custom", "clear", "tahoe", "golden-gate", "empty"])
+def test_installation_reapplies_complete_edition_material(monkeypatch, edition, existing):
     monkeypatch.setattr(glass, "default_wallpaper", lambda: edition)
     golden = edition == "MacGoldenGate"
     saved = {}
@@ -68,50 +82,41 @@ def test_material_installation_preserves_customizations_and_migrates_stock(monke
     if existing == "custom":
         saved["BlurStrength"] = "8.25"
         saved["GradientTopColor"] = "#263a51"
-    elif existing == "saved-preset":
-        saved["MaterialPreset"] = "0"
-        saved["MaterialOpacity"] = "0.4"
+    elif existing in ("clear", "tahoe", "golden-gate"):
+        saved = _preset_values(("clear", "tahoe", "golden-gate").index(existing))
     elif existing == "empty":
         saved["MagnifyGlassStrength"] = ""
-    saved |= {"WindowCornerRadius": "13.5", "WindowClasses": "custom-app"}
-    original = saved.copy()
-    monkeypatch.setattr(glass, "have", lambda command: True)
-    monkeypatch.setattr(glass, "run_user", lambda command, **kwargs:
-                        subprocess.CompletedProcess(command, 0, saved.get(command[6], command[-1]) + "\n"))
+    independent = {"WindowCornerRadius": "13.5", "DockCornerRadius": "0",
+                   "PopupCornerRadius": "", "WindowClasses": "custom-app",
+                   "BlurMatching": "true", "BlurNonMatching": "false"}
+    saved |= independent
     writes = []
     def write(*args):
         writes.append(args[-2])
         saved[args[-2]] = args[-1]
         return True
     monkeypatch.setattr(glass, "kw_write", write)
-    glass._install_material_defaults()
-    if existing in ("fresh", "legacy"):
-        assert saved["BlurStrength"] == ("8.0" if golden else "7.0")
-        assert saved["MagnifyGlassStrength"] == ("0.008" if golden else "0.02")
-    else:
-        assert all(saved[key] == value for key, value in original.items())
-    if existing != "fresh":
-        assert saved["DarkGradientOverlay"] == "false"
-    assert saved["WindowCornerRadius"] == "13.5"
-    assert saved["WindowClasses"] == "custom-app"
+    assert glass._install_material_preset()
+    expected = _preset_values(2 if golden else 1) | independent
+    assert saved == expected
+    assert writes[-1] == "MaterialPreset"
     writes.clear()
-    glass._install_material_defaults()
-    assert not writes
+    assert glass._install_material_preset()
+    assert saved == expected
 
 
-@pytest.mark.parametrize("failure", ["missing-tool", "exit", "timeout", "write"])
-def test_material_default_errors_do_not_mark_a_successful_migration(monkeypatch, failure):
-    monkeypatch.setattr(glass, "have", lambda command: failure != "missing-tool")
-    def read(command, **kwargs):
-        if failure == "timeout":
-            raise subprocess.TimeoutExpired(command, 5)
-        return subprocess.CompletedProcess(command, 1 if failure == "exit" else 0, command[-1] + "\n")
-    monkeypatch.setattr(glass, "run_user", read)
+@pytest.mark.parametrize("failed_key", ["BlurStrength", "GradientBottomOpacity", "MaterialPreset"])
+def test_material_write_failure_does_not_report_success(monkeypatch, capsys, failed_key):
     writes = []
-    monkeypatch.setattr(glass, "kw_write", lambda *args: writes.append(args[-2]) or False)
-    glass._install_material_defaults()
-    assert "MaterialPreset" not in writes
-    assert len(writes) == (1 if failure == "write" else 0)
+    def write(*args):
+        writes.append(args[-2])
+        return args[-2] != failed_key
+    monkeypatch.setattr(glass, "kw_write", write)
+    assert not glass._install_material_preset()
+    assert writes[-1] == failed_key
+    if failed_key != "MaterialPreset":
+        assert "MaterialPreset" not in writes
+    assert f"{failed_key} preset not applied" in capsys.readouterr().out
 
 
 def test_native_glass_shader_pixels(kcm_probe, tmp_path):

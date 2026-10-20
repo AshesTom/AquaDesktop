@@ -10,18 +10,19 @@ class LauncherSearchPopup : public PlasmaQuick::PopupPlasmaWindow
 {
     Q_OBJECT
     QML_ELEMENT
-    Q_PROPERTY(bool hasFocus READ isActive NOTIFY focusChanged)
+    Q_PROPERTY(QWindow *focusWindow READ focusWindow NOTIFY focusWindowChanged)
 
 public:
     LauncherSearchPopup();
     Q_INVOKABLE void activate() { requestActivate(); }
+    QWindow *focusWindow() const;
 
 protected:
     bool event(QEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 Q_SIGNALS:
-    void focusChanged();
+    void focusWindowChanged();
 
 private:
     QPointer<QWindow> m_anchorWindow;

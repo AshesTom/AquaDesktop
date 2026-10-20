@@ -198,6 +198,8 @@ BlurEffect::BlurEffect()
         m_roundedOnscreenPass.highlightStrengthLocation = m_roundedOnscreenPass.shader->uniformLocation("highlightStrength");
         m_roundedOnscreenPass.darkGradientOverlayLocation = m_roundedOnscreenPass.shader->uniformLocation("darkGradientOverlay");
         m_roundedOnscreenPass.materialOpacityLocation = m_roundedOnscreenPass.shader->uniformLocation("materialOpacity");
+        m_roundedOnscreenPass.dockSurfaceLocation = m_roundedOnscreenPass.shader->uniformLocation("dockSurface");
+        m_roundedOnscreenPass.backgroundSizeLocation = m_roundedOnscreenPass.shader->uniformLocation("backgroundSize");
         m_roundedOnscreenPass.gradientTopLocation = m_roundedOnscreenPass.shader->uniformLocation("gradientTop");
         m_roundedOnscreenPass.gradientBottomLocation = m_roundedOnscreenPass.shader->uniformLocation("gradientBottom");
 
@@ -403,6 +405,9 @@ void BlurEffect::reconfigure(ReconfigureFlags flags)
     // Fractional blur strength: interpolate offset between neighbouring table entries.
     // Strength 0 = no blur (passthrough).
     double blurStrengthD = qBound(0.0, BlurConfig::blurStrength(), (double) blurStrengthValues.size());
+    // The regular pyramid resets its offset at each deeper level. A Dock
+    // stays at one level, so derive its taps directly from the slider instead.
+    m_dockOffset = blurStrengthD * 0.12f;
 
     if (blurStrengthD <= 0.0) {
         m_iterationCount = 1;
@@ -1042,6 +1047,12 @@ void BlurEffect::blur(
         return;
     }
 
+    // Short panel surfaces need a shallow blur to retain the backdrop detail
+    // that makes their refracted rim visible. Keep the saved material intact.
+    const bool dockSurface = w->isDock();
+    const size_t iterationCount = dockSurface ? 1 : m_iterationCount;
+    const float blurOffset = dockSurface ? m_dockOffset : m_offset;
+
     // 2. Effective blur shape
     // If the window is transformed (scaled / translated by an effect such
     // as overview), the shape has to follow.
@@ -1112,13 +1123,13 @@ void BlurEffect::blur(
     //
     // The downstream pipeline (offscreen geometry, projection matrices,
     // blit destination) all switches to scaledBackgroundRect to match.
-    if (renderInfo.framebuffers.size() != (m_iterationCount + 1) || renderInfo.textures[0]->size() != scaledBackgroundRect.size()
+    if (renderInfo.framebuffers.size() != (iterationCount + 1) || renderInfo.textures[0]->size() != scaledBackgroundRect.size()
         || renderInfo.textures[0]->internalFormat() != textureFormat) {
         renderInfo.framebuffers.clear();
         renderInfo.textures.clear();
 
         glClearColor(0, 0, 0, 0);
-        for (size_t i = 0; i <= m_iterationCount; ++i) {
+        for (size_t i = 0; i <= iterationCount; ++i) {
             // Ensure the texture is at least 1×1 — at high iteration counts (level 5 = /32)
             // a small window could produce a zero-size texture and crash the driver.
             QSize texSize = scaledBackgroundRect.size() / (1 << i);
@@ -1266,7 +1277,7 @@ void BlurEffect::blur(
     // 6. Dual Kawase loop
     // At zero offset the final onscreen pass reads from framebuffers[0] (the
     // unblurred original) directly, so the Kawase chain is wasted GPU work.
-    if (m_offset > 0.0f) {
+    if (blurOffset > 0.0f) {
         // Intermediate passes replace their target; inherited blending
         // would accumulate stale translucent pixels on subsequent frames.
         glDisable(GL_BLEND);
@@ -1284,7 +1295,7 @@ void BlurEffect::blur(
             // at logical size, so without this multiplier the same
             // BlurStrength produces a tighter blur on HiDPI/fractional
             // displays.
-            m_downsamplePass.shader->setUniform(m_downsamplePass.offsetLocation, float(m_offset * viewport.scale()));
+            m_downsamplePass.shader->setUniform(m_downsamplePass.offsetLocation, float(blurOffset * viewport.scale()));
 
             for (size_t i = 1; i < renderInfo.framebuffers.size(); ++i) {
                 const auto& read = renderInfo.framebuffers[i - 1];
@@ -1313,7 +1324,7 @@ void BlurEffect::blur(
             // Same scale compensation as the downsample pass — keeps the
             // upsample tap spacing consistent with the new device-px
             // framebuffer dimensions.
-            m_upsamplePass.shader->setUniform(m_upsamplePass.offsetLocation, float(m_offset * viewport.scale()));
+            m_upsamplePass.shader->setUniform(m_upsamplePass.offsetLocation, float(blurOffset * viewport.scale()));
 
             for (size_t i = renderInfo.framebuffers.size() - 1; i > 1; --i) {
                 GLFramebuffer::popFramebuffer();
@@ -1416,14 +1427,14 @@ void BlurEffect::blur(
 
     // Balance the final downsample push from the Kawase loop above. Skipped
     // alongside it when offset=0 so the framebuffer stack stays balanced.
-    if (m_offset > 0.0f) {
+    if (blurOffset > 0.0f) {
         GLFramebuffer::popFramebuffer();
     }
 
     // framebuffers[0] is the original unblurred background capture (full res).
     // framebuffers[1] is the Kawase-blurred result (half res).
     // At offset 0 (no blur) read the full-res original to avoid downscaling artifacts.
-    const auto& read = (m_offset > 0.0f && renderInfo.framebuffers.size() > 1) ? renderInfo.framebuffers[1] : renderInfo.framebuffers[0];
+    const auto& read = (blurOffset > 0.0f && renderInfo.framebuffers.size() > 1) ? renderInfo.framebuffers[1] : renderInfo.framebuffers[0];
 
     const QVector2D halfpixel(0.5 / read->colorAttachment()->width(), 0.5 / read->colorAttachment()->height());
 
@@ -1448,7 +1459,7 @@ void BlurEffect::blur(
     // Gaussian kernel uses offset * 3 * texel as the tap
     // radius, and texel = 1/device_width, so without scale the kernel
     // tightens proportionally to viewport.scale() on HiDPI.
-    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.offsetLocation, float(m_offset * viewport.scale()));
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.offsetLocation, float(blurOffset * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.boxLocation,
         QVector4D(nativeBox.x() + nativeBox.width() * 0.5, nativeBox.y() + nativeBox.height() * 0.5, nativeBox.width() * 0.5, nativeBox.height() * 0.5));
 
@@ -1456,7 +1467,8 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.cornerRadiusLocation, nativeCornerRadius.toVector());
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.opacityLocation, modulation);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.blurSizeLocation, QVector2D(nativeBox.width(), nativeBox.height()));
-    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.rgbDriftStrengthLocation, float(m_rgbDriftStrength * viewport.scale()));
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.rgbDriftStrengthLocation,
+        float(m_rgbDriftStrength * viewport.scale() * (dockSurface ? 0.35f : 1.0f)));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.magnifyGlassStrengthLocation, m_magnifyGlassStrength);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.refractionWidthLocation, float(m_refractionWidth * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightWidthLocation, float(m_highlightWidth * viewport.scale()));
@@ -1465,6 +1477,9 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.darkGradientOverlayLocation,
         int(m_darkGradientOverlay && !w->isDock()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.materialOpacityLocation, m_materialOpacity);
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.dockSurfaceLocation, int(dockSurface));
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.backgroundSizeLocation,
+        QVector2D(scaledBackgroundRect.width(), scaledBackgroundRect.height()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.gradientTopLocation, m_gradientTop);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.gradientBottomLocation, m_gradientBottom);
 
@@ -1500,7 +1515,8 @@ void BlurEffect::blur(
             m_noisePass.shader->setUniform(m_noisePass.blurSizeLocation, QVector2D(nativeBox.width(), nativeBox.height()));
             m_noisePass.shader->setUniform(m_noisePass.cornerRadiusLocation, nativeCornerRadius.toVector());
             m_noisePass.shader->setUniform(m_noisePass.cornerSquircleLocation, cornerSquircle);
-            m_noisePass.shader->setUniform(m_noisePass.opacityLocation, modulation * m_materialOpacity);
+            m_noisePass.shader->setUniform(m_noisePass.opacityLocation,
+                modulation * m_materialOpacity * (dockSurface ? 0.25f : 1.0f));
             noiseTexture->bind();
 
             vbo->draw(GL_TRIANGLES, 6, vertexCount);

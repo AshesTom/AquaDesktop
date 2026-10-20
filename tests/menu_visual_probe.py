@@ -31,6 +31,7 @@ CASES = (
     "tooltip",
     "dialog",
     "plasma",
+    "dock",
     "gtk3-menu",
     "gtk3-popover",
     "gtk4-popover",
@@ -81,14 +82,43 @@ def qt_client(case, output):
                         )
 
         window = Background(None, Qt.WindowType.FramelessWindowHint)
-        window.showFullScreen()
+        if "dock" in os.environ.get("PROBE_CASES", "").split(","):
+            # A fullscreen client can cover X11 Dock windows in KWin's stack.
+            window.showMaximized()
+        else:
+            window.showFullScreen()
         app.exec()
         return
-    if case == "plasma":
+    if case in ("plasma", "dock"):
         from PyQt6.QtQml import QQmlApplicationEngine
 
         engine = QQmlApplicationEngine()
-        engine.loadData(b"""
+        if case == "dock":
+            engine.loadData(b"""
+import QtQuick
+import org.kde.plasma.core as PlasmaCore
+import org.kde.kirigami as Kirigami
+PlasmaCore.Dialog {
+    visible: true
+    x: 180; y: 520
+    type: PlasmaCore.Dialog.Dock
+    location: PlasmaCore.Types.Floating
+    mainItem: Item {
+        width: 560; height: 64
+        Row {
+            anchors.centerIn: parent
+            spacing: 24
+            Repeater {
+                model: ["system-file-manager", "applications-internet", "utilities-terminal",
+                        "systemsettings", "user-trash"]
+                Kirigami.Icon { required property string modelData; source: modelData; width: 40; height: 40 }
+            }
+        }
+    }
+}
+""")
+        else:
+            engine.loadData(b"""
 import QtQuick
 import QtQuick.Layouts
 import org.kde.plasma.core as PlasmaCore
@@ -458,6 +488,11 @@ def inside(output):
                             for line in mappings
                         )
                 capture(case_output / f"{state}.png", env)
+            if case == "dock":
+                from PIL import Image, ImageChops
+
+                with Image.open(case_output / "on.png") as enabled, Image.open(case_output / "off.png") as disabled:
+                    assert ImageChops.difference(enabled.convert("RGB"), disabled.convert("RGB")).getbbox(), "Dock glass was not visible"
             manifest.append({"case": case, "captured": True})
             stop(client)
             processes.remove(client)

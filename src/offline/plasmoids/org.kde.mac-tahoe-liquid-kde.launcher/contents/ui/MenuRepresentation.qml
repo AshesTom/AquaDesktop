@@ -16,7 +16,6 @@ PlasmaCore.Dialog {
 
 	location: Plasmoid.configuration.floating || Plasmoid.configuration.launcherPosition == 2 ? "Floating" : Plasmoid.location
 	hideOnWindowDeactivate: false
-	onActiveChanged: checkDismissal()
 
 	function checkDismissal() {
 		if (visible) {
@@ -28,7 +27,7 @@ PlasmaCore.Dialog {
 		// Focus can pass between the app panel, search capsule and options menu.
 		interval: 150
 		onTriggered: {
-			if (root.visible && !root.active && !main.searchPopupActive && !main.menuOpen) {
+			if (root.visible && !main.popupHasFocus && !main.menuOpen) {
 				root.visible = false;
 			}
 		}

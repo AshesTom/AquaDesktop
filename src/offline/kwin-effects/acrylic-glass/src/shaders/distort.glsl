@@ -3,6 +3,16 @@
 #ifndef LIQUIDGLASS_DISTORT_GLSL
 #define LIQUIDGLASS_DISTORT_GLSL
 
+vec2 lgDockLensUV(vec2 uv, vec2 outwardNormal, vec2 surfaceSize,
+                  vec2 backgroundSize, float strength, float edgeQ)
+{
+    // Bend across the bevel, not toward the centre of a long Dock: the latter
+    // stretches its top edge sideways as the number of pinned apps changes.
+    float thickness = min(surfaceSize.x, surfaceSize.y) * strength * 9.0;
+    vec2 textureNormal = vec2(outwardNormal.x, -outwardNormal.y);
+    return clamp(uv - textureNormal * thickness * edgeQ / max(backgroundSize, vec2(1.0)), 0.0, 1.0);
+}
+
 vec2 lgLensUV(vec2 uv, float magnifyGlassStrength, float edgeQ)
 {
     // Edge-gated lens. The previous formula

@@ -59,6 +59,7 @@ int main(int argc, char **argv)
     QOpenGLFramebufferObject target(width, height);
     const QString root = QString::fromLocal8Bit(argv[1]);
     QImage reference;
+    QImage dockReference;
     for (const QString suffix : {QString(), QStringLiteral("_core")}) {
         QOpenGLShaderProgram shader;
         QByteArray fragment = read(root + "/glass" + suffix + ".glsl");
@@ -92,6 +93,8 @@ int main(int argc, char **argv)
         shader.setUniformValue("offset", 2.0f);
         shader.setUniformValue("opacity", 1.0f);
         shader.setUniformValue("materialOpacity", 1.0f);
+        shader.setUniformValue("dockSurface", false);
+        shader.setUniformValue("backgroundSize", QVector2D(width, height));
         shader.setUniformValue("magnifyGlassStrength", 0.0f);
         shader.setUniformValue("rgbDriftStrength", 0.0f);
         shader.setUniformValue("refractionWidth", 24.0f);
@@ -135,6 +138,49 @@ int main(int argc, char **argv)
         require(qRed(image.pixel(96,4)) > qRed(image.pixel(96,123)), QStringLiteral("highlight must face upwards"));
         if (reference.isNull()) reference = image;
         else require(reference == image, QStringLiteral("legacy and core shaders differ"));
+
+        // Clear Dock glass must bend the backdrop across its bevel without
+        // shrinking it along the long axis or displacing the centre.
+        shader.setUniformValue("dockSurface", true);
+        shader.setUniformValue("highlightStrength", 0.0f);
+        shader.setUniformValue("offset", 0.35f);
+        image = render();
+        require(std::abs(qAlpha(image.pixel(96,64)) - 204) <= 1,
+                QStringLiteral("Dock centre must reveal more of the sharp backdrop"));
+        require(qAlpha(image.pixel(96,1)) > 250,
+                QStringLiteral("Dock bevel must retain refraction coverage"));
+        require(std::abs(qRed(image.pixel(96,64)) - 128) <= 1,
+                QStringLiteral("Dock output must remain premultiplied"));
+        require(qAlpha(image.pixel(0,0)) == 0, QStringLiteral("Dock corner mask lost"));
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                backdrop.setPixelColor(x, y, QColor(x, y * 2, 80));
+            }
+        }
+        texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
+        const auto flatDock = render().convertToFormat(QImage::Format_RGBA8888);
+        shader.setUniformValue("magnifyGlassStrength", 0.02f);
+        const auto bentDock = render().convertToFormat(QImage::Format_RGBA8888);
+        require(bentDock.pixel(96,64) == flatDock.pixel(96,64),
+                QStringLiteral("Dock centre must remain undistorted"));
+        for (const int x : {48, 144}) {
+            require(std::abs(qRed(bentDock.pixel(x,4)) - qRed(flatDock.pixel(x,4))) <= 1,
+                    QStringLiteral("Dock top edge must not stretch sideways"));
+            const int topShift = qGreen(bentDock.pixel(x,4)) - qGreen(flatDock.pixel(x,4));
+            const int bottomShift = qGreen(bentDock.pixel(x,123)) - qGreen(flatDock.pixel(x,123));
+            require(std::abs(topShift) > 12 && topShift * bottomShift < 0,
+                    QStringLiteral("Dock bevel must visibly bend opposite edges inward"));
+        }
+        if (dockReference.isNull()) dockReference = bentDock;
+        else require(dockReference == bentDock, QStringLiteral("Dock differs between shader profiles"));
+        shader.setUniformValue("materialOpacity", 0.0f);
+        image = render();
+        require(qAlpha(image.pixel(96,4)) == 0 && qRed(image.pixel(96,4)) == 0,
+                QStringLiteral("Dock must respect disabled material coverage"));
+        shader.setUniformValue("dockSurface", false);
+        shader.setUniformValue("materialOpacity", 1.0f);
+        shader.setUniformValue("magnifyGlassStrength", 0.0f);
+        shader.setUniformValue("offset", 2.0f);
 
         // Exercise the released preset underneath actual client fills. Checking
         // the effect alone missed the gradient disappearing behind those fills.
