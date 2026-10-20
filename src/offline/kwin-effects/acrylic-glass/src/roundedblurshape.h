@@ -17,7 +17,7 @@ inline std::optional<float> roundedBlurRadius(const QRegion &region, const QRect
     }
     const QRect firstRow = region.intersected(QRect(bounds.x(), bounds.y(), bounds.width(), 1)).boundingRect();
     const int inset = firstRow.left() - bounds.left();
-    if (inset < 1 || bounds.right() - firstRow.right() != inset) {
+    if (inset < 1 || std::abs(bounds.right() - firstRow.right() - inset) > 1) {
         return std::nullopt;
     }
     const int estimate = qRound(inset + 0.5 + std::sqrt(inset));
@@ -28,13 +28,20 @@ inline std::optional<float> roundedBlurRadius(const QRegion &region, const QRect
     // round differently. Fit nearby curves instead of trusting one scanline.
     for (int radius = std::max(1, estimate - 2); radius <= std::min(maximum, estimate + 3); ++radius) {
         QPainterPath inner, outer, curve;
-        inner.addRoundedRect(QRectF(bounds).adjusted(1, 1, -1, -1), radius - 1, radius - 1);
-        outer.addRoundedRect(QRectF(bounds).adjusted(-1, -1, 1, 1), radius + 1, radius + 1);
-        // Allow rasterization rounding only. Holes, asymmetric corners and
-        // other custom cutouts keep their original configured radius.
+        // FrameSvg downsamples device-pixel alpha masks to logical pixels.
+        // Its SVG arc rasterization can differ from QPainterPath by two
+        // pixels, including at 150%, and opposite insets can differ by one.
+        inner.addRoundedRect(QRectF(bounds).adjusted(2, 2, -2, -2), std::max(0, radius - 2), std::max(0, radius - 2));
+        outer.addRoundedRect(QRectF(bounds).adjusted(-2, -2, 2, 2), radius + 2, radius + 2);
+        // Keep holes and custom cutouts outside this rasterization tolerance.
         if (!(QRegion(inner.toFillPolygon().toPolygon()) - region).isEmpty()
             || !(region - QRegion(outer.toFillPolygon().toPolygon())).isEmpty()) {
             continue;
+        }
+        // A capsule has no straight vertical edge. Prefer its exact
+        // half-height curve over a slightly smaller rasterized fit.
+        if (radius == maximum) {
+            return float(radius);
         }
         curve.addRoundedRect(QRectF(bounds), radius, radius);
         const QRegion difference = region ^ QRegion(curve.toFillPolygon().toPolygon());

@@ -2,6 +2,7 @@
 import shlex
 import shutil
 import subprocess
+import os
 
 import pytest
 
@@ -104,6 +105,9 @@ int main() {
     state.content = capsule;
     for (auto type : {EffectWindow::Popup, EffectWindow::AppletPopup}) {
         window.type = type;
+        // A late Plasma shell role must not retain the initial normal frame.
+        state.frame = Region(QRect(0, 0, 120, 120));
+        assert(effect.blurRegion(&window) == capsule);
         state.frame = effect.implicitFrame(&window);
         assert(!state.frame.has_value());
         assert(effect.blurRegion(&window) == capsule);
@@ -136,3 +140,60 @@ int main() {
                     '-I', str(repo / 'src/offline/kwin-effects/acrylic-glass/src'),
                     *shlex.split(flags.stdout)], check=True, capture_output=True, timeout=60)
     subprocess.run([str(binary)], check=True, capture_output=True, timeout=10)
+
+
+def test_real_svg_capsule_radius_at_fractional_scales(repo, tmp_path):
+    if not shutil.which('cmake') or not shutil.which('c++'):
+        pytest.skip('CMake and C++ required')
+    (tmp_path / 'CMakeLists.txt').write_text('''
+cmake_minimum_required(VERSION 3.20)
+project(CapsuleMaskTest LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+find_package(Qt6 QUIET COMPONENTS Gui)
+find_package(KF6Svg QUIET CONFIG)
+if(NOT TARGET KF6::Svg OR NOT TARGET Qt6::Gui)
+    message(STATUS "CAPSULE_MASK_SDK_MISSING")
+    return()
+endif()
+add_executable(capsule capsule.cpp)
+target_link_libraries(capsule PRIVATE KF6::Svg Qt6::Gui)
+target_include_directories(capsule PRIVATE "${GLASS_SOURCE}")
+''')
+    (tmp_path / 'capsule.cpp').write_text('''
+#include <KSvg/FrameSvg>
+#include <QGuiApplication>
+#include "roundedblurshape.h"
+#include <cassert>
+int main(int argc, char **argv) {
+    QGuiApplication app(argc, argv);
+    for (int index = 1; index < argc; ++index) {
+        for (qreal scale : {1., 1.25, 1.5, 1.75, 2.}) {
+            KSvg::FrameSvg frame;
+            frame.setImagePath(QString::fromLocal8Bit(argv[index]));
+            frame.setDevicePixelRatio(scale);
+            frame.resizeFrame(QSizeF(634, 104));
+            const QRegion mask = frame.mask();
+            const QRect bounds(0, 0, 634, 104);
+            const auto radius = roundedBlurRadius(mask, bounds);
+            assert(radius && *radius == 52);
+            assert(!roundedBlurRadius(mask - QRect(200, 20, 10, 10), bounds));
+            assert(!roundedBlurRadius(mask | QRect(0, 80, 24, 24), bounds));
+        }
+    }
+}
+''')
+    build = tmp_path / 'build'
+    config = subprocess.run(['cmake', '-S', str(tmp_path), '-B', str(build),
+                             f'-DGLASS_SOURCE={repo}/src/offline/kwin-effects/acrylic-glass/src'],
+                            capture_output=True, text=True, timeout=30)
+    if 'CAPSULE_MASK_SDK_MISSING' in config.stdout:
+        pytest.skip('KSvg development SDK required')
+    assert config.returncode == 0, config.stdout + config.stderr
+    subprocess.run(['cmake', '--build', str(build), '-j', '2'],
+                   check=True, capture_output=True, timeout=60)
+    themes = repo / 'src/offline/plasma-theme'
+    subprocess.run([str(build / 'capsule'), *[
+        str(themes / f'MacTahoeLiquidKde-{mode}/dialogs/launcher-search.svgz')
+        for mode in ('Light', 'Dark')]],
+        env=os.environ | {'QT_QPA_PLATFORM': 'offscreen'},
+        check=True, capture_output=True, timeout=10)

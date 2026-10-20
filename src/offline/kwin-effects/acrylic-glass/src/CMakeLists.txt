@@ -47,8 +47,25 @@ foreach(shader_file IN LISTS LIQUIDGLASS_SHADER_STATIC)
     configure_file("shaders/${shader_file}"
                    "${CMAKE_CURRENT_BINARY_DIR}/shaders/${shader_file}" COPYONLY)
 endforeach()
-configure_file(liquidglass.qrc
-               "${CMAKE_CURRENT_BINARY_DIR}/liquidglass.qrc" COPYONLY)
+# Resident older plugins keep their Qt resources registered too. Give each
+# source build its own resource namespace, not just a new library filename.
+file(GLOB_RECURSE identity_inputs CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*" "${CMAKE_CURRENT_SOURCE_DIR}/metadata.json")
+list(SORT identity_inputs)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${identity_inputs})
+set(identity_contents "")
+foreach(input IN LISTS identity_inputs)
+    file(SHA256 "${input}" input_hash)
+    string(APPEND identity_contents "${input_hash}")
+endforeach()
+string(SHA256 build_identity "${identity_contents}")
+set(resource_prefix "/effects/liquidglass/${build_identity}/")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_identity.h"
+    "#pragma once\n#define MTTKDE_GLASS_BUILD_ID \"${build_identity}\"\n#define MTTKDE_GLASS_RESOURCE_PREFIX \":${resource_prefix}\"\n")
+file(READ liquidglass.qrc resource_source)
+string(REPLACE "/effects/liquidglass/" "${resource_prefix}" resource_source "${resource_source}")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/liquidglass.qrc" "${resource_source}")
 
 set(liquidglass_SOURCES
     effect.cpp
@@ -62,6 +79,7 @@ kconfig_add_kcfg_files(liquidglass_SOURCES
 
 if(GLASS_WAYLAND)
     add_library(liquidglass MODULE ${liquidglass_SOURCES})
+    target_include_directories(liquidglass PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
     target_link_libraries(liquidglass PRIVATE
         KDecoration3::KDecoration
         KF6::ConfigGui
@@ -79,6 +97,7 @@ if(GLASS_WAYLAND)
 endif()
 if(GLASS_X11)
     add_library(liquidglass_x11 MODULE ${liquidglass_SOURCES})
+    target_include_directories(liquidglass_x11 PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
     target_link_libraries(liquidglass_x11 PRIVATE
         KDecoration3::KDecoration
         KF6::ConfigGui

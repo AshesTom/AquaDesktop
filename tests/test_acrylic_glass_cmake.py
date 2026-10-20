@@ -69,14 +69,16 @@ def test_acrylic_glass_preset_fits_kcm_ranges():
         assert float(preset[key]) <= float(maximum.text)
 
 
-@pytest.mark.parametrize("active,returncode,confirmed", [
-    ("liquidglass\n", 0, True),
-    ("other-liquidglass\n", 0, False),
-    ("liquidglass\n", 1, False),
-    ("", 0, False),
+@pytest.mark.parametrize("active,returncode,identity,confirmed", [
+    ("liquidglass\n", 0, True, True),
+    ("liquidglass\n", 0, False, False),
+    ("liquidglass\n", 0, None, False),
+    ("other-liquidglass\n", 0, True, False),
+    ("liquidglass\n", 1, True, False),
+    ("", 0, True, False),
 ])
 def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path, capsys,
-                                                       active, returncode, confirmed):
+                                                       active, returncode, identity, confirmed):
     """The real install path must not replace the KCM default with strength 5."""
     from steps import acrylic_glass
     from subprocess import CompletedProcess
@@ -90,6 +92,9 @@ def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path, c
     monkeypatch.setattr(acrylic_glass, "_plugin_dir", lambda: tmp_path / "plugins")
     monkeypatch.setattr(acrylic_glass, "LEGACY_USER_PLUGIN_DIR", tmp_path / "legacy")
     monkeypatch.setattr(acrylic_glass, "sudo_install_file", lambda *args: True)
+    monkeypatch.setattr(acrylic_glass, "_activate_effect_binary", lambda *args: True)
+    monkeypatch.setattr(acrylic_glass, "_running_build_matches", lambda: identity)
+    monkeypatch.setattr(acrylic_glass, "_running_plugin_matches", lambda path: None)
     monkeypatch.setattr(acrylic_glass, "qdbus_call", lambda *args: True)
     monkeypatch.setattr(acrylic_glass, "qdbus_cmd", lambda: "probe-qdbus")
     monkeypatch.setattr(acrylic_glass, "have", lambda command: True)
@@ -104,7 +109,12 @@ def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path, c
     acrylic_glass.install()
     output = capsys.readouterr().out
     assert ("Acrylic Glass loaded" in output) == confirmed
-    assert ("activation was not confirmed" in output) != confirmed
+    if returncode != 0 or "liquidglass" not in active.splitlines():
+        assert "activation was not confirmed" in output
+    elif identity is False:
+        assert "previous plugin loaded" in output
+    elif identity is None:
+        assert "running build could not be verified" in output
 
     config = ET.parse(ROOT / "src/glass.kcfg").getroot()
     entry = config.find(".//{*}entry[@name='BlurStrength']/{*}default")
@@ -259,3 +269,58 @@ def test_acrylic_glass_selects_abi_per_backend(tmp_path):
                               capture_output=True, text=True)
         assert proc.returncode == 0, proc.stdout + proc.stderr
         assert result.read_text() == expected
+
+
+def test_detects_mapped_plugin_retained_after_atomic_replacement(tmp_path):
+    import mmap
+    from pathlib import Path
+    from steps.acrylic_glass import _plugin_mapping_matches
+
+    plugin = tmp_path / "liquidglass.so"
+    plugin.write_bytes(bytes(4096))
+    with plugin.open("rb") as source, mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ):
+        assert _plugin_mapping_matches(Path("/proc/self/maps").read_text(), plugin) is True
+        replacement = tmp_path / "replacement.so"
+        replacement.write_bytes(bytes(4096))
+        replacement.replace(plugin)
+        assert _plugin_mapping_matches(Path("/proc/self/maps").read_text(), plugin) is False
+    assert _plugin_mapping_matches(Path("/proc/self/maps").read_text(), plugin) is None
+
+
+def test_versioned_plugin_upgrade_and_identical_reinstall(tmp_path, monkeypatch):
+    import contextlib
+    from steps import acrylic_glass as glass
+
+    monkeypatch.setattr(glass, "_as_root", contextlib.nullcontext)
+
+    def install(source, destination, label):
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
+        return True
+
+    monkeypatch.setattr(glass, "sudo_install_file", install)
+    source = tmp_path / "build.so"
+    directory = tmp_path / "plugins"
+    source.write_bytes(b"first build")
+    first = glass._versioned_effect_path(source, directory)
+    assert glass._install_effect_binary(source, first)
+    link = directory / "liquidglass.so"
+    assert glass._activate_effect_binary(first, link)
+    assert link.resolve() == first
+    inode = first.stat().st_ino
+    assert glass._install_effect_binary(source, first)
+    assert first.stat().st_ino == inode
+
+    source.write_bytes(b"updated build")
+    second = glass._versioned_effect_path(source, directory)
+    assert second != first
+    assert glass._install_effect_binary(source, second)
+    assert glass._activate_effect_binary(second, link)
+    assert link.resolve() == second
+    assert first.read_bytes() == b"first build"
+    assert second.name == "liquidglass.so"
+    foreign = directory / ".mttkde-liquidglass/custom/liquidglass.so"
+    foreign.parent.mkdir()
+    foreign.write_bytes(b"unowned")
+    assert set(glass._owned_effect_paths(directory)) == {link, first, second}
+    assert not glass._install_effect_binary(source, first)

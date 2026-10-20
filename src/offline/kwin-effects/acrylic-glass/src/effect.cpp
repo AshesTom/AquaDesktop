@@ -7,6 +7,7 @@
 */
 
 #include "effect.h"
+#include "build_identity.h"
 // KConfigSkeleton
 #include "glassconfig.h"
 #include "roundedblurshape.h"
@@ -70,13 +71,18 @@ static QString shaderPath(const QString& name, const QString& extension)
     // GLSL for the active context. Legacy attribute/varying syntax fails
     // on the GLES 3 context used by KWin 6.8.
 #if ACRYLIC_GLASS_KWIN_6_7
-    return QStringLiteral(":/effects/liquidglass/shaders/") + name + QStringLiteral("_core.") + extension;
+    return QStringLiteral(MTTKDE_GLASS_RESOURCE_PREFIX "shaders/") + name + QStringLiteral("_core.") + extension;
 #else
-    return QStringLiteral(":/effects/liquidglass/shaders/") + name + QStringLiteral(".") + extension;
+    return QStringLiteral(MTTKDE_GLASS_RESOURCE_PREFIX "shaders/") + name + QStringLiteral(".") + extension;
 #endif
 }
 
 namespace KWin {
+
+QString BlurEffect::debug(const QString &) const
+{
+    return QStringLiteral(MTTKDE_GLASS_BUILD_ID);
+}
 
 #if ACRYLIC_GLASS_KWIN_6_7
 /// 6.7 removed the global scaledRect() helper (it lived in
@@ -762,6 +768,7 @@ Region BlurEffect::blurRegion(EffectWindow* w) const
     if (auto it = m_windows.find(w); it != m_windows.end()) {
         const std::optional<Region>& content = it->second.content;
         const std::optional<Region>& frame = it->second.frame;
+        const bool clientPopup = !w->decoration() && (w->isAppletPopup() || w->isPopupWindow());
 
         if (content.has_value()) {
             if (content->isEmpty()) {
@@ -773,10 +780,10 @@ Region BlurEffect::blurRegion(EffectWindow* w) const
                 region = *content & w->contentsRect().toRect();
             }
 
-            if (frame.has_value()) {
+            if (frame.has_value() && !clientPopup) {
                 region += frame.value();
             }
-        } else if (frame.has_value()) {
+        } else if (frame.has_value() && !clientPopup) {
             region = frame.value();
         }
     }
@@ -802,6 +809,15 @@ void BlurEffect::prePaintScreen(ScreenPrePaintData& data ACRYLIC_GLASS_PRESENT_T
 /// (= skip) the background behind our blur area as a perf optimisation.
 void BlurEffect::prePaintWindow(RenderView* view, EffectWindow* w, WindowPrePaintData& data ACRYLIC_GLASS_PRESENT_TIME_PARAM)
 {
+    // The Plasma shell role may arrive after the first blur region. KWin
+    // exposes no window-type change signal; discard an earlier implicit
+    // rectangular frame as soon as the window becomes an applet popup.
+    if (!w->decoration() && (w->isAppletPopup() || w->isPopupWindow())) {
+        const auto it = m_windows.find(w);
+        if (it != m_windows.end() && it->second.frame.has_value()) {
+            updateBlurRegion(w);
+        }
+    }
     effects->prePaintWindow(view, w, data ACRYLIC_GLASS_PRESENT_TIME_ARG);
 
 #if ACRYLIC_GLASS_KWIN_6_7

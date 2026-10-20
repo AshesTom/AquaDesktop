@@ -158,6 +158,7 @@ public:
 
     /// True while any window currently has a blur region applied.
     bool isActive() const override;
+    QString debug(const QString &parameter) const override;
 
     /// Effect-chain ordering. 20 sits between the standard blur slot
     /// and the post-window-decoration effects.

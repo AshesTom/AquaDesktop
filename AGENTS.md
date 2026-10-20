@@ -581,13 +581,27 @@ rounding effects do not override its capsule. Acrylic Glass must preserve
 applet popups' client blur regions without adding a rectangular decoration
 region. For symmetric rounded popup regions, recover the client curve for
 shader antialiasing without expanding the blur region or changing saved radius
-settings. Reject custom cutouts; the Rounded Corners shape property still takes
+settings. KSvg's real SVG masks need two logical pixels of rasterization
+tolerance and may have opposite insets differing by one pixel; test the actual
+FrameSvg mask at fractional scales, not only QPainter rounded rectangles.
+Discard a cached implicit frame when a late Plasma shell role identifies an
+applet popup. Reject custom cutouts; the Rounded Corners shape property still takes
 precedence. The native helper generates the missing Plasma shell protocol headers
 from the bundled XML; Qt Wayland and wayland-scanner are build dependencies.
 After a transparency change, and after the installer's final Plasma restart,
 refresh enabled Acrylic Glass so its popup masks follow the replacement
 surfaces. A KWin reconfigure alone did not clear the stale capsule geometry
 observed at 150% scale. Preserve disabled effects and saved radius settings.
+Refreshing an effect instance does not guarantee Qt unloads its shared library.
+Install Acrylic Glass under an immutable SHA-256 directory and atomically
+switch the discovery symlink, keeping the basename `liquidglass.so`. Qt resolves
+that link before caching libraries, so an update loads fresh code without a
+compositor restart. Reinstalling identical bytes must preserve the inode.
+Namespace Qt shader resources by source identity so retained libraries cannot
+supply old shaders. Verify the running build through the effect's debug
+identity; mapped-file inspection is only a fallback. Warn if activation remains
+unconfirmed. Never restart Wayland KWin automatically or report `activeEffects`
+alone as proof that the updated binary is running.
 
 Wallpapers are fully bundled. Every entry under
 `src/offline/wallpapers/<id>/` is a JPEG q90 (re-encoded from 6K PNG
