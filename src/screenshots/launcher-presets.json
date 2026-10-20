@@ -60,6 +60,6 @@
     }
   },
   "source_version": "0.56.2",
-  "renderer": "KWin uses the virgl OpenGL compositor. Plasma Qt Quick uses Mesa llvmpipe; this is a VM capture setting only.",
+  "renderer": "KWin uses the virgl OpenGL compositor in a disposable VM.",
   "capture_note": "The VM intermittently showed incomplete icon textures immediately after appearance switches, also with llvmpipe. The reviewed final captures show settled modes after reapplying the appearance. This release does not claim to fix that VM rendering issue."
 }
