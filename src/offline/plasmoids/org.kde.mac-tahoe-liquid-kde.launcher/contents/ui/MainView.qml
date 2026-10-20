@@ -13,7 +13,10 @@ import "js/colorType.js" as ColorType
 
 Item {
 	id: main
-	property bool searching: (searchBar.textField.text != "")
+	property string searchText: ""
+	readonly property bool searching: searchText !== ""
+	readonly property var searchBar: detachedSearch ? detachedSearchBar : inlineSearchBar
+	onSearchTextChanged: runnerModel.query = searchText
 	readonly property bool detachedSearch: kicker.launcherPreset === 2
 	readonly property real searchPopupHeight: searchPopup.height
 	readonly property real searchPopupGap: Kirigami.Units.gridUnit * 0.75
@@ -32,6 +35,8 @@ Item {
 	}
 
 	onDetachedSearchChanged: {
+		inlineSearchBar.closeMenu();
+		detachedSearchBar.closeMenu();
 		Qt.callLater(function() {
 			root.reposition();
 			if (root.visible) {
@@ -61,10 +66,22 @@ Item {
 
 		mainItem: FocusScope {
 			id: detachedSearchSlot
+			SearchBar {
+				id: detachedSearchBar
+				anchors.fill: parent
+				showMenuButton: true
+				Keys.priority: Keys.AfterItem
+				Keys.forwardTo: searching ? searchList : appList.viewItem
+			}
 		}
 	}
 
-	readonly property color textColor: isDarkTheme ? Kirigami.Theme.textColor : "#555555"
+	Item {
+		id: glassPalette
+		Kirigami.Theme.inherit: false
+		Kirigami.Theme.colorSet: Kirigami.Theme.Complementary
+	}
+	readonly property color textColor: glassPalette.Kirigami.Theme.textColor
 	readonly property string textFont: Kirigami.Theme.defaultFont.family
 	readonly property real textSize: Kirigami.Theme.defaultFont.pointSize
 	readonly property real appTextSize: textSize * (detachedSearch ? 1.25 : 1)
@@ -74,8 +91,8 @@ Item {
 	readonly property bool isTop: plasmoid.location == PlasmaCore.Types.TopEdge & plasmoid.configuration.launcherPosition != 2 & !plasmoid.configuration.floating
 
 	property bool isDarkTheme: ColorType.isDark(bgColor)
-	property color contrastBgColor: isDarkTheme ? Qt.rgba(255, 255, 255, 0.15) : Qt.rgba(0, 0, 0, 0.1)
-	property color dimmedTextColor: Qt.rgba(textColor.r, textColor.g, textColor.b, 0.7)
+	property color contrastBgColor: isDarkTheme ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.1)
+	property color dimmedTextColor: Qt.rgba(textColor.r, textColor.g, textColor.b, 0.85)
 
 	function reload() {
 		searchBar.textField.clear()
@@ -104,8 +121,7 @@ Item {
 			Layout.rightMargin: fs.innerPadding
 
 			SearchBar {
-				id: searchBar
-				parent: main.detachedSearch ? detachedSearchSlot : inlineSearchSlot
+				id: inlineSearchBar
 				anchors.fill: parent
 				showMenuButton: true
 				Keys.priority: Keys.AfterItem

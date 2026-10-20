@@ -110,17 +110,13 @@ _FR = {
     "Adjust the popovers from ultra-clear to fully tinted, like macOS Golden Gate.":
         "Réglez les popovers d'un verre très clair à une teinte soutenue, comme dans macOS Golden Gate.",
     "Frosted": "Givré",
-    "Clear glass that bends the light at the edge of every popover and notification, "
-    "with Tahoe's Dock.":
-        "Un verre clair qui courbe la lumière au bord de chaque popover et de chaque "
-        "notification, avec le Dock de Tahoe.",
     "Clear, lightly blurred glass, as in macOS Tahoe.":
         "Un verre clair et légèrement flouté, comme dans macOS Tahoe.",
     "Deeply blurred frosted glass and a translucent menu bar, as before Tahoe.":
         "Un verre dépoli très flouté et une barre des menus translucide, comme avant Tahoe.",
-    "Window blur is off. Turn on the Better Blur DX effect in System Settings → "
+    "Window blur is off. Turn on the Acrylic Glass effect in System Settings → "
     "Window Management → Desktop Effects to see it.":
-        "Le flou des fenêtres est désactivé. Activez l'effet Better Blur DX dans "
+        "Le flou des fenêtres est désactivé. Activez l'effet Acrylic Glass dans "
         "Configuration du système → Gestion des fenêtres → Effets de bureau.",
     "Give your apps macOS icons from .icns files, with a Light and a Dark "
     "version, or tint them all with the accent colour.":
@@ -349,12 +345,12 @@ def glass_style() -> str:
         style = GLASS_STYLE_FILE.read_text(encoding="utf-8").strip()
     except (OSError, UnicodeError):
         return "tahoe"
-    return style if style in ("tahoe", "liquid", "frosted") else "tahoe"
+    return style if style in ("tahoe", "frosted") else "tahoe"
 
 
 def glass_enabled() -> bool:
-    """The window blur effect (Better Blur DX, theme_switch.GLASS_EFFECT)."""
-    return kread("kwinrc", "Plugins", "better_blur_dxEnabled") == "true"
+    """The window blur effect (Acrylic Glass, theme_switch.GLASS_EFFECT)."""
+    return kread("kwinrc", "Plugins", "liquidglassEnabled") == "true"
 
 
 def auto_available() -> bool:
@@ -923,8 +919,7 @@ class GlassPage(Gtk.Box):
         mode = current_mode()
         cards = Gtk.Box(spacing=18, halign=Gtk.Align.CENTER)
         self.choices: dict[str, Choice] = {}
-        for style, title in (("tahoe", "Tahoe"), ("liquid", _("Liquid Glass")),
-                             ("frosted", _("Frosted"))):
+        for style, title in (("tahoe", _("Liquid Glass")), ("frosted", _("Frosted"))):
             choice = Choice(title, glass_thumbnail(style, mode),
                             lambda s=style: self.set_style(s))
             self.choices[style] = choice
@@ -975,7 +970,7 @@ class GlassPage(Gtk.Box):
                               _("Opaque menus, Dock and windows, as in macOS' accessibility "
                                 "settings."), self.transparency)))
         self.warning = row(_("Window blur"),
-                           _("Window blur is off. Turn on the Better Blur DX effect in System Settings → "
+                           _("Window blur is off. Turn on the Acrylic Glass effect in System Settings → "
                              "Window Management → Desktop Effects to see it."),
                            icon=tile("warning", "orange"))
         self.warning_group = group(self.warning)
@@ -986,11 +981,9 @@ class GlassPage(Gtk.Box):
         style = glass_style()
         for name, choice in self.choices.items():
             choice.set_selected(name == style)
-        self.description.set_label({
-            "tahoe": _("Clear, lightly blurred glass, as in macOS Tahoe."),
-            "liquid": _("Clear glass that bends the light at the edge of every popover and "
-                        "notification, with Tahoe's Dock."),
-        }.get(style, _("Deeply blurred frosted glass and a translucent menu bar, as before Tahoe.")))
+        self.description.set_label(
+            _("Clear, lightly blurred glass, as in macOS Tahoe.") if style == "tahoe"
+            else _("Deeply blurred frosted glass and a translucent menu bar, as before Tahoe."))
         self.warning_group.set_visible(not glass_enabled())
         tint = dock_tint()
         for name, choice in self.tint_choices.items():
@@ -1473,8 +1466,8 @@ class AboutPage(Gtk.Box):
                                 _("A macOS Tahoe look for KDE Plasma.")))
         links = []
         for title, subtitle, url in (
-            (_("Window blur"), "kwin-effects-better-blur-dx — xarblu",
-             "https://github.com/xarblu/kwin-effects-better-blur-dx"),
+            (_("Window blur"), "Acrylic Glass — Lester Cordero Murillo",
+             "https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde"),
             (_("Font rendering"), "lucidglyph — maximilionus", "https://github.com/maximilionus/lucidglyph"),
         ):
             button = Gtk.LinkButton(uri=url, label="↗")

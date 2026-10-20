@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Window
+import org.kde.kirigami as Kirigami
 
 // Runs only in the isolated plasmoidviewer from test_launcher_presets.py.
 Timer {
@@ -30,6 +31,7 @@ Timer {
             console.log("PROBE_GEOMETRY", root.x, root.y, searchPopup.x, searchPopup.y);
             switch (phase++) {
             case 0:
+                root.title = "Launcher app role probe";
                 searchPopup.title = "Launcher search role probe";
                 verify(kicker.launcherPreset === expectedPreset, "edition default");
                 plasmoid.configuration.launcherPreset = 1;
@@ -38,6 +40,7 @@ Timer {
                 break;
             case 1:
                 verify(root.visible, "inline panel visible");
+                verify(main.textColor === glassPalette.Kirigami.Theme.textColor, "labels follow the system complementary foreground");
                 verify(!searchPopup.visible, "inline search has no second popup");
                 verify(searchBar.parent === inlineSearchSlot, "inline field parent");
                 presetProbe.inlineHeight = root.height;

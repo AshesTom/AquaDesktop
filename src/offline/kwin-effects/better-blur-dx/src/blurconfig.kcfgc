@@ -1,6 +1,0 @@
-File=blur.kcfg
-ClassName=BlurConfig
-NameSpace=BBDX
-Singleton=true
-Mutators=true
-IncludeFiles=\"settings.hpp\"

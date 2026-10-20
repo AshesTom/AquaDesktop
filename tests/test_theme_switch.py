@@ -320,8 +320,8 @@ def test_apply_reloads_own_compiled_effect_after_reconfigure(
     """Routine light/dark switches must restore glass too, not only
     third-party effects or the install-time apply wrapper."""
     ts, _ = _prep_effect_warn_case(
-        monkeypatch, tmp_path, "[Plugins]\nbetter_blur_dxEnabled=true\n")
-    loaded = iter([set(), {"better_blur_dx"}])
+        monkeypatch, tmp_path, "[Plugins]\nliquidglassEnabled=true\n")
+    loaded = iter([set(), {"liquidglass"}])
     monkeypatch.setattr(ts, "_kwin_loaded_effects", lambda: next(loaded))
     calls = []
     monkeypatch.setattr(ts, "_qdbus",
@@ -329,10 +329,10 @@ def test_apply_reloads_own_compiled_effect_after_reconfigure(
 
     assert ts.apply("dark") is True
     assert any(
-        call[-2:] == ("org.kde.kwin.Effects.loadEffect", "better_blur_dx")
+        call[-2:] == ("org.kde.kwin.Effects.loadEffect", "liquidglass")
         for call in calls
     )
-    assert "better_blur_dx" not in capsys.readouterr().err
+    assert "liquidglass" not in capsys.readouterr().err
 
 
 def test_apply_no_warn_for_user_disabled_effect(monkeypatch, tmp_path, capsys):
@@ -352,11 +352,11 @@ def test_glass_refresh_replaces_stale_instance_without_changing_settings(
         monkeypatch, tmp_path, enabled):
     ts, kwinrc = _prep_effect_warn_case(
         monkeypatch, tmp_path,
-        f"[Plugins]\nbetter_blur_dxEnabled={str(enabled).lower()}\n"
-        "shapecornersEnabled=true\n[Effect-better-blur-dx]\n"
-        "CornerRadius=22\nDockBlurStrength=1\n")
+        f"[Plugins]\nliquidglassEnabled={str(enabled).lower()}\n"
+        "shapecornersEnabled=true\n[Effect-liquidglass]\n"
+        "WindowCornerRadius=22\nDockCornerRadius=20\n")
     before = kwinrc.read_bytes()
-    instances = {"better_blur_dx": "stale", "shapecorners": "unchanged"}
+    instances = {"liquidglass": "stale", "shapecorners": "unchanged"}
     monkeypatch.setattr(ts, "_kwin_loaded_effects", lambda: set(instances))
 
     def effect_request(_service, _path, method, effect):
@@ -370,7 +370,7 @@ def test_glass_refresh_replaces_stale_instance_without_changing_settings(
     ts.refresh_acrylic_glass()
 
     assert instances == {
-        "better_blur_dx": "fresh" if enabled else "stale",
+        "liquidglass": "fresh" if enabled else "stale",
         "shapecorners": "unchanged",
     }
     assert kwinrc.read_bytes() == before

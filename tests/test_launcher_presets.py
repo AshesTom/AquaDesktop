@@ -116,14 +116,15 @@ def launcher_popup_module(repo, tmp_path_factory):
 
 
 @pytest.mark.parametrize("preset", [1, 2])
-def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_popup_module, preset):
+@pytest.mark.parametrize("mode", ["Light", "Dark"])
+def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_popup_module, preset, mode):
     for tool in ("plasmoidviewer", "Xvfb", "dbus-run-session", "xprop"):
         if not shutil.which(tool):
             pytest.skip(f"{tool} required for the isolated launcher preview")
     package = tmp_path / "widget"
     shutil.copytree(repo / "src/offline/plasmoids" / launcher_defaults.LAUNCHER_ID, package)
-    shutil.copytree(repo / "src/offline/plasma-theme/MacTahoeLiquidKde-Dark",
-                    tmp_path / "data/plasma/desktoptheme/MacTahoeLiquidKde-Dark")
+    shutil.copytree(repo / f"src/offline/plasma-theme/MacTahoeLiquidKde-{mode}",
+                    tmp_path / f"data/plasma/desktoptheme/MacTahoeLiquidKde-{mode}")
     # Minimal CI desktops have no visible apps. Seed a real All Apps category
     # so the favorites-header assertions do not depend on the host's inventory.
     applications = tmp_path / "data/applications"
@@ -135,7 +136,9 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
             "Icon=application-x-executable\nCategories=Utility;\n"
         )
     (tmp_path / "config").mkdir()
-    (tmp_path / "config/plasmarc").write_text("[Theme]\nname=MacTahoeLiquidKde-Dark\n")
+    (tmp_path / "config/plasmarc").write_text(f"[Theme]\nname=MacTahoeLiquidKde-{mode}\n")
+    shutil.copy2(repo / f"src/offline/color-schemes/MacTahoeLiquidKde{mode}.colors",
+                 tmp_path / "config/kdeglobals")
     monkeypatch.setattr(launcher_defaults, "default_launcher_preset", lambda: preset)
     launcher_defaults.apply_launcher_default(package)
     ui = package / "contents/ui"
@@ -206,22 +209,26 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
                 env=env, stdout=log, stderr=log, start_new_session=True,
             )
             deadline = time.monotonic() + 20
-            popup_role = ""
+            popup_roles = {}
             while time.monotonic() < deadline:
                 output = log_path.read_text()
-                if not popup_role and "PROBE_PHASE 2 " in output:
-                    role = subprocess.run(
-                        ["xprop", "-name", "Launcher search role probe", "_NET_WM_WINDOW_TYPE"],
-                        env=env, capture_output=True, text=True, timeout=5)
-                    if role.returncode == 0:
-                        popup_role = role.stdout
+                if "PROBE_PHASE 2 " in output:
+                    for name in ("app", "search"):
+                        if name not in popup_roles:
+                            role = subprocess.run(
+                                ["xprop", "-name", f"Launcher {name} role probe", "_NET_WM_WINDOW_TYPE"],
+                                env=env, capture_output=True, text=True, timeout=5)
+                            if role.returncode == 0:
+                                popup_roles[name] = role.stdout
                 if "LAUNCHER_PROBE_" in output or process.poll() is not None:
                     break
                 time.sleep(0.05)
         output = log_path.read_text()
         assert "LAUNCHER_PROBE_OK" in output, output
         assert "LAUNCHER_PROBE_FAILED" not in output, output
-        assert "_KDE_NET_WM_WINDOW_TYPE_APPLET_POPUP" in popup_role, popup_role
+        assert "_KDE_NET_WM_WINDOW_TYPE_APPLET_POPUP" in popup_roles.get("search", ""), popup_roles
+        assert "_NET_WM_WINDOW_TYPE_DIALOG" in popup_roles.get("app", ""), popup_roles
+        assert "_NET_WM_WINDOW_TYPE_DOCK" not in popup_roles["app"], popup_roles
     finally:
         os.close(read_fd)
         if process:

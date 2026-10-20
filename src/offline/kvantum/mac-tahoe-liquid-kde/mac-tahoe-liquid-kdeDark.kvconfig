@@ -62,7 +62,7 @@ submenu_delay=250
 transient_groove=false
 tree_branch_line=true
 no_inactiveness=false
-reduce_menu_opacity=45
+reduce_menu_opacity=80
 click_behavior=0
 contrast=1.00
 dialog_button_layout=0
@@ -510,7 +510,14 @@ frame.left=9
 frame.right=9
 frame.element=menu
 interior.element=menu
-text.normal.color=#f2f2f2
+text.normal.color=#eff0f1
+
+text.shadow=true
+text.shadow.color=black
+text.shadow.xshift=0
+text.shadow.yshift=1
+text.shadow.depth=2
+text.shadow.alpha=180
 
 [MenuItem]
 inherits=PanelButtonCommand
@@ -518,9 +525,9 @@ frame=true
 frame.element=menuitem
 interior.element=menuitem
 indicator.element=menuitem
-text.normal.color=#f2f2f2
+text.normal.color=#eff0f1
 text.focus.color=#ffffff
-text.shadow=false
+
 text.margin.top=0
 text.margin.bottom=0
 text.margin.left=4
@@ -531,6 +538,13 @@ frame.left=3
 frame.right=3
 frame.expansion=16
 min_height=6
+
+text.shadow=true
+text.shadow.color=black
+text.shadow.xshift=0
+text.shadow.yshift=1
+text.shadow.depth=2
+text.shadow.alpha=180
 
 [ComboBox]
 inherits=PanelButtonCommand

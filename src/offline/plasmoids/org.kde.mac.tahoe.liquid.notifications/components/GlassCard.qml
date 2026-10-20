@@ -2,8 +2,7 @@
     AquaDesktop — one glass bubble of the notification history: the Liquid
     Glass face (GlassSurface.qml, the menu bar popovers' copy) with 24 px
     corners and no drawn border. `glassRadius` publishes the bubble to
-    GlassBlur, so KWin blurs the desktop behind each card on its own (and
-    Better Blur DX's liquid style draws one lens per card).
+    GlassBlur, so KWin blurs the desktop behind each card on its own.
 
     SPDX-License-Identifier: GPL-3.0-or-later
 */

@@ -106,8 +106,7 @@ def set_transparency(value: str) -> int:
 
 # ── Dock tint ────────────────────────────────────────────────────────
 # The Dock's veil is the Plasma theme's (panel-background south-center):
-#   macos           no veil: the Better Blur DX Dock material (DockContrast,
-#                   DockSaturation, DockBrightness) gives Apple's colours;
+#   macos           no veil: the Acrylic Glass material gives the colours;
 #   neutral         no veil, and the glass loses its colour: the blur behind
 #                   the Dock, menus and windows is grey (Saturation 0), so
 #                   the Dock is neutral and context menus plain black;
@@ -182,16 +181,15 @@ def dock_veil(theme: str, tint: str | None = None, glass: str | None = None) -> 
 
 def write_glass_tint(tint: str | None = None) -> bool:
     """glass.ini, read by the popovers' GlassSurface.qml (QSettings): the
-    tint name, the Golden Gate glass level, the glass style and, for the
-    accent tint, the accent as rrggbb."""
+    tint name, the Golden Gate glass level and, for the accent tint, the
+    accent as rrggbb."""
     tint = tint or dock_tint()
     accent = ""
     if tint == "accent":
         accent = (accent_color_hex() or scheme_accent_hex(
             _kread("kdeglobals", "General", "ColorScheme")) or "").lstrip("#")
     path = _appearance_path().with_name("glass.ini")
-    text = (f"Tint={tint}\nAccent={accent}\nGlassLevel={glass_level()}\n"
-            f"Style={glass_style()}\n")
+    text = f"Tint={tint}\nAccent={accent}\nGlassLevel={glass_level()}\n"
     try:
         if path.exists() and path.read_text() == text:
             return False
@@ -320,100 +318,47 @@ def reload_plasma_theme() -> bool:
     time.sleep(0.5)
     return _kwrite("--file", "plasmarc", "--group", "Theme", "--key", "name", name) and ok
 
-# The window and Dock glass: the Better Blur DX KWin effect (bundled in
-# src/offline/kwin-effects/better-blur-dx): KWin effect id and its kwinrc
+# The window and Dock glass: upstream's Acrylic Glass KWin effect (bundled
+# in src/offline/kwin-effects/acrylic-glass): KWin effect id and its kwinrc
 # group. The names keep "glass" for the style and the presets.
-GLASS_EFFECT = "better_blur_dx"
-GLASS_GROUP = "Effect-better-blur-dx"
-# Per-mode blur. Two styles, chosen with
-# `mac-tahoe-theme-switch style {tahoe|liquid|frosted}`:
-#   tahoe   (default) macOS 26 Liquid Glass, measured on a macOS Tahoe
-#           desktop (~/Downloads/e7zirzb2o1ah1.png) over its bare wallpaper:
-#           the Dock keeps the wallpaper's texture (a blur of about 1 px,
-#           DockBlurStrength 1) under a lens at its edges (the effect's
-#           radial lens, docks only), the popovers and windows heavily
-#           blurred (strength 5, a Gaussian of sigma ~10 px at 1x). The
-#           Dock's 1 px rim is the Plasma theme's (panel-background
-#           south-*). The menu bar has no background.
-#           Dark mode: Apple's dark Dock, measured on a macOS Tahoe dark
-#           capture over its bare wallpaper (new-macos-tahoe-on-m1-macbook-
-#           air wallpaper, ~/Downloads/different-styles-on-macos-26-tahoe-
-#           v0-4u1ceglnuy5f1.webp aligned at scale 0.972): the desktop
-#           seen through a light blur (sigma 3-4 px at 1x: its pink
-#           reflections stay readable, DockBlurStrength 2) and kept about
-#           as dark as it is (brightness 0.87, contrast 0.84, saturation
-#           1.33: Apple keeps the desktop's chroma, x0.97, and lifts it
-#           by ~5/255 where the light calibration lifts it by 30). A soft
-#           lens (strength 15 over a 20 px band, gentle falloff): the
-#           light preset's steep 10 px band drew a second contour inside
-#           the rim, which Apple's dark Dock does not have. Measured on
-#           an empty Dock in the nested bench (build/bench/dock_empty.sh).
-#   liquid  tahoe's Dock, with NextKde's Liquid Glass on the Plasma
-#           popovers and notifications (LiquidPopups): one lens per bubble
-#           (refraction 1.0 over a 50 px band, normal power 5), hairline
-#           glints from the top left, a light blur (strength 3, sigma ~6 px
-#           as NextKde's Control Center cards) and NextKde's adaptive scrim
-#           ("balanced": cap 0.47, decay 0.75), black in dark mode and white
-#           in light mode. The popovers then draw no tint or rim of their own
-#           (GlassSurface.qml reads Style in glass.ini).
+GLASS_EFFECT = "liquidglass"
+GLASS_GROUP = "Effect-liquidglass"
+# The material of each style, chosen with
+# `mac-tahoe-theme-switch style {tahoe|frosted}`:
+#   tahoe   (default) upstream's Tahoe material (presets.json "tahoe": soft,
+#           fully blurred glass with a narrow refracted edge), the same in
+#           both appearances. The menu bar has no background.
 #   frosted the macOS frosted material, the look before Tahoe, measured on
 #           a macOS dark Dock: the wallpaper heavily blurred and dimmed to
-#           about 85 %, no refraction. The menu bar gets its translucent,
-#           blurred background back, full width.
-# Every preset sets the same keys, so switching styles leaves
-# nothing of the other behind. Every light/dark switch rewrites them, so
-# tuning them in the effect's settings only lasts until the next change.
-_GLASS_BASE = {
-    # No grain: macOS glass shows none.
-    "NoiseStrength": "0",
-    "Contrast": "100",
-    # Our values for every window, Plasma surfaces included.
-    "ForceContrastParams": "true",
-    # The Dock's lens: upstream's radial lens, at the Dock's edges only
-    # (10 px band, steep falloff), the Dock's 20 px corners.
-    "RefractionMode": "1", "RefractionEdgeSize": "1",
-    "RefractionNormalPow": "4", "RefractionCornerRadius": "20",
-    "RefractionRGBFringing": "0", "RefractionTextureRepeatMode": "0",
-    "RefractionDocksOnly": "true",
-    # Liquid Glass popovers (the liquid style): off in the others.
-    "LiquidPopups": "false", "LiquidBlurStrength": "0",
-    "LiquidRefractionStrength": "100", "LiquidEdgeSize": "50",
-    "LiquidNormalPow": "50", "LiquidRGBFringing": "0",
-    "LiquidOffsetStrength": "0", "LiquidGlints": "100",
-    "LiquidScrim": "0", "LiquidScrimCap": "47", "LiquidScrimDecay": "75",
+#           about 85 %, no refraction or colour drift. The menu bar gets its
+#           translucent, blurred background back, full width.
+# Every preset sets the same keys, so switching styles leaves nothing of the
+# other behind. Every light/dark switch rewrites them, so tuning them in the
+# effect's settings only lasts until the next change. MaterialPreset marks
+# the material as chosen, so a reinstall keeps it.
+# Upstream's tahoe material (acrylic-glass/src/presets.json), copied: the
+# switch is installed alone in ~/.local/bin, without the checkout.
+_TAHOE_MATERIAL = {
+    "BlurStrength": "5.0", "MaterialOpacity": "1.0", "NoiseStrength": "1",
+    "RgbDriftStrength": "3.0", "MagnifyGlassStrength": "0.02",
+    "RefractionWidth": "24.0", "HighlightWidth": "3.0", "HighlightStrength": "0.22",
+    "Brightness": "1.0", "Contrast": "1.0", "Saturation": "1.05",
+    "DarkGradientOverlay": "false", "GradientTopColor": "#000000",
+    "GradientBottomColor": "#000000", "GradientTopOpacity": "0.38",
+    "GradientBottomOpacity": "0.02", "MaterialPreset": "1",
 }
-
-
-def _glass_preset(blur: str, **keys: str) -> dict:
-    preset = dict(_GLASS_BASE)
-    # Docks have their own blur strength (0: the general one).
-    preset.update(BlurStrength=blur, DockBlurStrength="0", RefractionStrength="0",
-                  DockBrightness="0", DockContrast="0", DockSaturation="0")
-    preset.update(keys)
-    return preset
-
+_FROSTED_MATERIAL = dict(
+    _TAHOE_MATERIAL, BlurStrength="8.0", RgbDriftStrength="0.0",
+    MagnifyGlassStrength="0.0", RefractionWidth="0.0", HighlightStrength="0.10",
+    Saturation="1.0", GradientTopOpacity="0.0", GradientBottomOpacity="0.0")
 
 GLASS_PRESETS = {
-    "dark-tahoe": _glass_preset(
-        "5", DockBlurStrength="2", RefractionStrength="15",
-        RefractionEdgeSize="2", RefractionNormalPow="2",
-        DockBrightness="87", DockContrast="84", DockSaturation="133",
-        Brightness="100", Saturation="100"),
-    "light-tahoe": _glass_preset(
-        "5", DockBlurStrength="1", RefractionStrength="30",
-        DockBrightness="104", DockContrast="68", DockSaturation="135",
-        Brightness="100", Saturation="100"),
-    "dark-frosted": _glass_preset("11", Brightness="85", Saturation="100"),
+    "dark-tahoe": dict(_TAHOE_MATERIAL),
+    "light-tahoe": dict(_TAHOE_MATERIAL),
+    "dark-frosted": dict(_FROSTED_MATERIAL, Brightness="0.85"),
     # No light frosted capture measured yet: the dark calibration mirrored.
-    "light-frosted": _glass_preset("11", Brightness="112", Saturation="100"),
+    "light-frosted": dict(_FROSTED_MATERIAL, Brightness="1.12"),
 }
-# The liquid style: tahoe's Dock, NextKde's Liquid Glass on the popovers.
-# The scrim pushes the backdrop away from the content: black under dark
-# mode's white text, white under light mode's dark text.
-for _mode, _scrim in (("dark", "1"), ("light", "2")):
-    GLASS_PRESETS[f"{_mode}-liquid"] = dict(
-        GLASS_PRESETS[f"{_mode}-tahoe"],
-        LiquidPopups="true", LiquidBlurStrength="3", LiquidScrim=_scrim)
 
 
 def _have(cmd: str) -> bool:
@@ -1945,8 +1890,8 @@ _LAF_APPLY_RETRY_SLEEP_SECONDS = 6
 # as user effects to watch over. Everything else the user enabled in [Plugins]
 # is a third-party effect we must not silently break.
 _OWN_KWIN_EFFECT_KEYS = frozenset({
-    # glass / liquidglass: the Glass and Acrylic Glass effects of earlier
-    # releases.
+    # better_blur_dx / glass: the Better Blur DX and Glass effects of
+    # earlier releases.
     "better_blur_dxEnabled", "liquidglassEnabled", "glassEnabled", "blurEnabled",
 })
 
@@ -2124,7 +2069,7 @@ def _restore_own_compiled_effects(*, refresh: bool = False) -> None:
             )
 
 
-GLASS_STYLES = ("tahoe", "liquid", "frosted")
+GLASS_STYLES = ("tahoe", "frosted")
 DEFAULT_GLASS_STYLE = "tahoe"
 
 
@@ -2146,12 +2091,11 @@ def glass_preset_name(mode: str, style: str | None = None) -> str:
 
 
 def glass_preset(mode: str, style: str | None = None, tint: str | None = None) -> dict:
-    """The Better Blur DX keys of `mode` in the glass style, with the Dock
-    tint's: the neutral tint takes the colour out of all the glass (the
-    Dock's saturation of 0 falls back to the general one)."""
+    """The Acrylic Glass keys of `mode` in the glass style, with the Dock
+    tint's: the neutral tint takes the colour out of all the glass."""
     preset = dict(GLASS_PRESETS[glass_preset_name(mode, style)])
     if (tint or dock_tint()) == "neutral":
-        preset.update(Saturation="0", DockSaturation="0")
+        preset.update(Saturation="0")
     return preset
 
 
@@ -2599,7 +2543,7 @@ def set_hot_corner(corner: str, choice: str) -> bool:
 USAGE = ("Usage: mac-tahoe-theme-switch "
          "{light|dark|auto|follow-system} [install]\n"
          "       mac-tahoe-theme-switch repair-colors\n"
-         "       mac-tahoe-theme-switch style [tahoe|liquid|frosted]\n"
+         "       mac-tahoe-theme-switch style [tahoe|frosted]\n"
          "       mac-tahoe-theme-switch accent [#rrggbb|multicolour|wallpaper]\n"
          "       mac-tahoe-theme-switch transparency {standard|reduced}\n"
          "       mac-tahoe-theme-switch dock-tint [macos|neutral|accent]\n"
@@ -2658,8 +2602,6 @@ def main(argv: list[str]) -> int:
             return 1
         apply_glass_preset(current_mode())
         apply_top_bar_style(argv[1])
-        # The popovers' own tint and rim follow the style (glass.ini).
-        write_glass_tint()
         # The Dock's veil follows the style too.
         if apply_dock_tint(glass=argv[1]):
             reload_plasma_theme()

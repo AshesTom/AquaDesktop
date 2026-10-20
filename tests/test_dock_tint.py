@@ -54,12 +54,11 @@ def test_neutral_tint_takes_the_colour_out_of_the_glass(monkeypatch):
         macos = ts.glass_preset(mode, tint="macos")
         assert macos == ts.GLASS_PRESETS[f"{mode}-tahoe"]
         neutral = ts.glass_preset(mode, tint="neutral")
-        # Grey blur behind the Dock (0: the general value), menus and windows.
-        assert (neutral["Saturation"], neutral["DockSaturation"]) == ("0", "0")
-        assert neutral["DockContrast"] == macos["DockContrast"]
+        # Grey glass behind the Dock, menus and windows; nothing else moves.
+        assert neutral == {**macos, "Saturation": "0"}
     assert ts.glass_preset("dark", "frosted", "neutral")["Saturation"] == "0"
     # The shipped presets themselves are left alone.
-    assert ts.GLASS_PRESETS["dark-tahoe"]["Saturation"] == "100"
+    assert ts.GLASS_PRESETS["dark-tahoe"]["Saturation"] == "1.05"
 
 
 def test_frosted_style_has_its_own_veil(tmp_path, monkeypatch):
@@ -124,7 +123,7 @@ def test_theme_settings_offers_the_dock_tint(offline):
     assert '("neutral", _("Neutral"))' in app and '("macos", _("macOS"))' in app
     assert 'self.window.run_theme_switch(["dock-tint", tint]' in app
     # The blur warning checks the effect in use.
-    assert '"better_blur_dxEnabled"' in app
+    assert '"liquidglassEnabled"' in app
 
 
 def test_popovers_glass_follows_the_tint(tmp_path, monkeypatch):
@@ -132,11 +131,11 @@ def test_popovers_glass_follows_the_tint(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
     ini = tmp_path / "mac-tahoe-liquid-kde/glass.ini"
     assert ts.write_glass_tint("neutral") is True
-    assert ini.read_text() == "Tint=neutral\nAccent=\nGlassLevel=50\nStyle=tahoe\n"
+    assert ini.read_text() == "Tint=neutral\nAccent=\nGlassLevel=50\n"
     assert ts.write_glass_tint("neutral") is False  # unchanged
     monkeypatch.setattr(ts, "accent_color_hex", lambda: "#ff8d28")
     ts.write_glass_tint("accent")
-    assert ini.read_text() == "Tint=accent\nAccent=ff8d28\nGlassLevel=50\nStyle=tahoe\n"
+    assert ini.read_text() == "Tint=accent\nAccent=ff8d28\nGlassLevel=50\n"
     # Every Dock tint apply writes it too.
     seen = []
     monkeypatch.setattr(ts, "write_glass_tint", lambda tint=None: seen.append(tint) or True)

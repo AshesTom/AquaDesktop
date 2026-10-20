@@ -25,6 +25,24 @@ LauncherSearchPopup::LauncherSearchPopup()
         PlasmaShellWaylandIntegration::get(this)->setRole(QtWayland::org_kde_plasma_surface::role_appletpopup);
     }
     connect(this, &QWindow::activeChanged, this, &LauncherSearchPopup::focusChanged);
+    connect(this, &QWindow::transientParentChanged, this, [this](QWindow *parent) {
+        if (m_anchorWindow) {
+            m_anchorWindow->removeEventFilter(this);
+        }
+        m_anchorWindow = parent;
+        if (parent && KWindowSystem::isPlatformX11()) {
+            parent->installEventFilter(this);
+        }
+    });
+}
+
+bool LauncherSearchPopup::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == m_anchorWindow && isVisible()
+        && (event->type() == QEvent::Move || event->type() == QEvent::Resize)) {
+        requestUpdate();
+    }
+    return PlasmaQuick::PopupPlasmaWindow::eventFilter(watched, event);
 }
 
 bool LauncherSearchPopup::event(QEvent *event)

@@ -1,0 +1,5 @@
+File=glass.kcfg
+ClassName=BlurConfig
+NameSpace=KWin
+Singleton=true
+Mutators=true

@@ -1,0 +1,15 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "MacTahoe Liquid KDE"
+            }
+        ],
+        "Category": "Appearance",
+        "Description": "Acrylic Glass — blur and rounded corners for KDE Plasma 6.",
+        "EnabledByDefault": false,
+        "License": "GPL-3.0",
+        "Name": "Acrylic Glass"
+    },
+    "X-KDE-ConfigModule": "kwin_liquidglass_config"
+}

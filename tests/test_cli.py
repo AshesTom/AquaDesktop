@@ -761,5 +761,7 @@ def test_apps_flag_reaches_install_step(cli_module, monkeypatch):
     monkeypatch.setattr(cli_module, "_run_optional_downloads", lambda *args: None)
     monkeypatch.setattr(cli_module, "_print_done", lambda *args: None)
     monkeypatch.setattr(cli_module, "run_phase", lambda *args: phases.append(args) or True)
+    # Earlier tests' fail() calls must not count against this install.
+    monkeypatch.setattr(cli_module, "errors", [])
     assert cli_module._run_install_body({"apps": True, "apply_theme": False}) == 0
     assert ("apps", "install") in phases

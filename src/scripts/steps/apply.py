@@ -371,7 +371,7 @@ def install() -> None:
     print("  …  Reconfiguring KWin", end="\r", flush=True)
     if feat_enabled("ACRYLIC_GLASS"):
         qdbus_call("org.kde.KWin", "/Effects",
-                   "org.kde.kwin.Effects.loadEffect", "better_blur_dx")
+                   "org.kde.kwin.Effects.loadEffect", "liquidglass")
         time.sleep(1)
     # The switcher already protects foreign effects during its own
     # reconfigure. Protect this install-tail reconfigure as well; otherwise a

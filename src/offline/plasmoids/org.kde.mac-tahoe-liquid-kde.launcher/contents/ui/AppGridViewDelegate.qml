@@ -48,6 +48,7 @@ Item {
 
  	Kirigami.Icon {
 		id: appicon
+		animated: false
 		y: main.detachedSearch ? 0 : 2 * highlightItemSvg.margins.top
 		anchors.horizontalCenter: parent.horizontalCenter
 		width: root.iconSize
@@ -62,6 +63,8 @@ Item {
 		font.pointSize: main.appTextSize
 		font.weight: main.detachedSearch ? Font.Medium : 650
 		color: main.textColor
+		layer.enabled: true
+		layer.effect: GlassTextShadow {}
 		anchors {
 			top: appicon.bottom
 			left: parent.left
@@ -84,7 +87,7 @@ Item {
 		width: parent.width - Kirigami.Units.smallSpacing * 2
 		height: parent.height - Kirigami.Units.smallSpacing * 2
 		radius: 22
-		color: main.isDarkTheme ? Qt.rgba(1, 1, 1, 0.18) : Qt.rgba(0, 0, 0, 0.12)
+		color: main.isDarkTheme ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12)
 		border.width: 0.5
 		border.color: main.isDarkTheme ? Qt.rgba(1, 1, 1, 0.15) : Qt.rgba(0, 0, 0, 0.08)
 
