@@ -20,7 +20,9 @@ uniform float magnifyGlassStrength;
 uniform float refractionWidth;
 uniform float highlightWidth;
 uniform float highlightStrength;
-uniform int blurType;
+uniform float materialOpacity;
+uniform vec4 gradientTop;
+uniform vec4 gradientBottom;
 uniform bool darkGradientOverlay;
 
 in vec2 uv;
@@ -46,8 +48,6 @@ void main()
     float edgeT = smoothstep(-refrBand, 0.0, d);
     // Cubic rim concentration — refraction / RGB drift / lens distortion fall
     // off sharply away from the edge, leaving the centre of the glass clean.
-    // The day9 reference shader uses pow(...,20) for the same intent on its
-    // SDF demo; cubic is the conservative analogue for a window-sized effect.
     float edgeQ = edgeT * edgeT * edgeT;
 
     vec2 lensUV = (magnifyGlassStrength > 0.0)
@@ -56,7 +56,7 @@ void main()
     vec2 texel = halfpixel * 2.0;
     vec3 col;
     if (offset > 0.0) {
-        col = lgBlurDispatch(blurType, texUnit, texel, lensUV, vec2(offset * 3.0));
+        col = lgGaussianBlur(texUnit, texel, lensUV, vec2(offset * 3.0));
     } else {
         // Pixel-exact passthrough: snap to texel center so GL_LINEAR returns
         // the underlying texel exactly instead of a sub-pixel bilinear blend.
@@ -72,18 +72,14 @@ void main()
 
     float mask = 1.0 - smoothstep(-3.0, 0.0, d);
     vec4 surface = vec4(col, 1.0) * colorMatrix;
-    float materialCoverage = 1.0;
     if (darkGradientOverlay) {
-        // Frame-local position keeps the gradient upright across texture
-        // flips, fractional scale and multiple outputs.
+        // Frame-local geometry keeps top/bottom upright on all backends.
+        // Tint changes color only: the bottom retains the same blurred glass.
         float heightFraction = clamp((pos.y + halfSize.y) / max(blurSize.y, 1.0), 0.0, 1.0);
-        float shade = mix(0.92, 0.0, smoothstep(0.05, 0.90, heightFraction));
-        // Transmission and shading are independent: reveal the original
-        // backdrop below, while the rim retains a refracted glass boundary.
-        float transmission = smoothstep(0.25, 1.0, heightFraction);
-        materialCoverage = mix(1.0, 0.14, transmission);
-        materialCoverage += (1.0 - materialCoverage) * edgeQ * 0.45;
-        surface.rgb *= 1.0 - shade;
+        float t = smoothstep(0.0, 1.0, heightFraction);
+        float tintAlpha = mix(gradientTop.a, gradientBottom.a, t);
+        vec3 tint = mix(gradientTop.rgb * gradientTop.a, gradientBottom.rgb * gradientBottom.a, t);
+        surface.rgb = surface.rgb * (1.0 - tintAlpha) + tint;
     }
-    LG_OUT = surface * (mask * opacity * materialCoverage);
+    LG_OUT = surface * (mask * opacity * materialOpacity);
 }

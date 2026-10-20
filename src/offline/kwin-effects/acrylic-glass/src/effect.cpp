@@ -197,7 +197,9 @@ BlurEffect::BlurEffect()
         m_roundedOnscreenPass.highlightWidthLocation = m_roundedOnscreenPass.shader->uniformLocation("highlightWidth");
         m_roundedOnscreenPass.highlightStrengthLocation = m_roundedOnscreenPass.shader->uniformLocation("highlightStrength");
         m_roundedOnscreenPass.darkGradientOverlayLocation = m_roundedOnscreenPass.shader->uniformLocation("darkGradientOverlay");
-        m_roundedOnscreenPass.blurTypeLocation = m_roundedOnscreenPass.shader->uniformLocation("blurType");
+        m_roundedOnscreenPass.materialOpacityLocation = m_roundedOnscreenPass.shader->uniformLocation("materialOpacity");
+        m_roundedOnscreenPass.gradientTopLocation = m_roundedOnscreenPass.shader->uniformLocation("gradientTop");
+        m_roundedOnscreenPass.gradientBottomLocation = m_roundedOnscreenPass.shader->uniformLocation("gradientBottom");
 
         qCDebug(KWIN_BLUR) << "Onscreen shader uniforms:"
                            << "mvp=" << m_roundedOnscreenPass.mvpMatrixLocation << "color=" << m_roundedOnscreenPass.colorMatrixLocation
@@ -428,7 +430,12 @@ void BlurEffect::reconfigure(ReconfigureFlags flags)
     m_highlightWidth = static_cast<float>(BlurConfig::highlightWidth());
     m_highlightStrength = static_cast<float>(BlurConfig::highlightStrength());
     m_darkGradientOverlay = BlurConfig::darkGradientOverlay();
-    m_blurType = static_cast<int>(BlurConfig::acrylicGlassType());
+    m_materialOpacity = qBound(0.0, BlurConfig::materialOpacity(), 1.0);
+    const auto gradientColor = [](const QColor &color, double opacity) {
+        return QVector4D(color.redF(), color.greenF(), color.blueF(), qBound(0.0, opacity, 1.0));
+    };
+    m_gradientTop = gradientColor(BlurConfig::gradientTopColor(), BlurConfig::gradientTopOpacity());
+    m_gradientBottom = gradientColor(BlurConfig::gradientBottomColor(), BlurConfig::gradientBottomOpacity());
     m_blurDecorations = BlurConfig::blurDecorations();
 
     // Window-class filter (whitelist vs blacklist) — the parser below handles
@@ -1428,7 +1435,7 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.halfpixelLocation, halfpixel);
 
     // Same scale compensation as the Kawase passes — the onscreen blur
-    // kernel (Gaussian/Box/Lens) uses offset * 3 * texel as the tap
+    // Gaussian kernel uses offset * 3 * texel as the tap
     // radius, and texel = 1/device_width, so without scale the kernel
     // tightens proportionally to viewport.scale() on HiDPI.
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.offsetLocation, float(m_offset * viewport.scale()));
@@ -1439,13 +1446,15 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.cornerRadiusLocation, nativeCornerRadius.toVector());
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.opacityLocation, modulation);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.blurSizeLocation, QVector2D(nativeBox.width(), nativeBox.height()));
-    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.rgbDriftStrengthLocation, m_rgbDriftStrength);
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.rgbDriftStrengthLocation, float(m_rgbDriftStrength * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.magnifyGlassStrengthLocation, m_magnifyGlassStrength);
-    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.refractionWidthLocation, m_refractionWidth);
-    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightWidthLocation, m_highlightWidth);
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.refractionWidthLocation, float(m_refractionWidth * viewport.scale()));
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightWidthLocation, float(m_highlightWidth * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightStrengthLocation, m_highlightStrength);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.darkGradientOverlayLocation, int(m_darkGradientOverlay));
-    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.blurTypeLocation, m_blurType);
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.materialOpacityLocation, m_materialOpacity);
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.gradientTopLocation, m_gradientTop);
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.gradientBottomLocation, m_gradientBottom);
 
     read->colorAttachment()->bind();
 
@@ -1479,7 +1488,7 @@ void BlurEffect::blur(
             m_noisePass.shader->setUniform(m_noisePass.blurSizeLocation, QVector2D(nativeBox.width(), nativeBox.height()));
             m_noisePass.shader->setUniform(m_noisePass.cornerRadiusLocation, nativeCornerRadius.toVector());
             m_noisePass.shader->setUniform(m_noisePass.cornerSquircleLocation, cornerSquircle);
-            m_noisePass.shader->setUniform(m_noisePass.opacityLocation, modulation);
+            m_noisePass.shader->setUniform(m_noisePass.opacityLocation, modulation * m_materialOpacity);
             noiseTexture->bind();
 
             vbo->draw(GL_TRIANGLES, 6, vertexCount);

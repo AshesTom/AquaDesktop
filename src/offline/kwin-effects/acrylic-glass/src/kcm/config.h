@@ -23,6 +23,7 @@ public:
     void save() override;
 
 private:
+    void applyPreset(int index);
     ::Ui::GlassEffectConfig ui;
 };
 

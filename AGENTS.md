@@ -596,18 +596,32 @@ refresh enabled Acrylic Glass so its popup masks follow the replacement
 surfaces. A KWin reconfigure alone did not clear the stale capsule geometry
 observed at 150% scale. Preserve disabled effects and saved radius settings.
 Refreshing an effect instance does not guarantee Qt unloads its shared library.
-Acrylic Glass exposes `DarkGradientOverlay` in its KCM. It shades the blurred
-backdrop from top to bottom in frame-local coordinates, with independent blur
-coverage fading toward the bottom and retained rim refraction. Preserve mask
-geometry and premultiplied output. Keep legacy and core shader behavior equal.
-The toggle defaults off upstream; the installer seeds it on for Golden Gate
-only when absent, preserving saved true/false values. Golden Gate uses blur 4.0,
-lens magnification 0.015, RGB drift 16 and refraction width 72. Tahoe retains its
-existing optics. The Plasma theme installer stages lighter dark-mode dialog
-and search-capsule fills for Golden Gate; derive Reduced Transparency from the
-staged theme, preserve masks/shadows, and never alter bundled sources or light
-mode fills. Select this profile from the edition defaults, not the current
-wallpaper or the launcher's per-applet preset choice.
+Acrylic Glass has three complete material presets: Clear, Tahoe and Golden
+Gate. `src/offline/kwin-effects/acrylic-glass/src/presets.json` is shared by the
+installer and the native KCM. Keep one blur path: Dual Kawase with a symmetric
+Gaussian finish; no selectable box/bokeh kernels. Presets apply every material
+control, including opacity, refraction, grain, highlights, color adjustments,
+and gradient colors/strengths. Radius and window rules remain independent.
+Only an explicit preset selection or Restore action resets optical overrides.
+Persist `MaterialPreset` even for the schema-default Tahoe selection; KConfig
+otherwise removes default-valued entries and a Golden Gate reinstall could
+mistake them for an uninitialized material. Once this marker exists, the
+installer must leave all optical keys alone, including deliberately absent keys.
+Before that marker, migrate only a complete matching previous installer preset;
+custom, empty and unreadable values must survive. Preserve the old independent
+`DarkGradientOverlay` toggle during migration.
+
+The gradient uses frame-local coordinates and changes color independently of
+blur coverage. Golden Gate keeps blurred glass across the whole surface, with
+less refraction and a black tint at the top. `DarkGradientOverlay` is retained
+as the persisted enable key; the KCM calls it Enable gradient and exposes both
+colors and strengths. Keep legacy/core shaders equivalent, output premultiplied,
+and pixel widths scaled to the viewport. Shared light/dark Plasma and Kvantum
+surface fills let the effect define the material in either edition. Reduced
+Transparency remains independent and derives opaque variants from those bundled
+surfaces in both the installer and Nix; preserve masks, shadows and solid
+fallbacks. GTK client-side popups retain their readable fills because they do
+not receive this compositor effect.
 Install Acrylic Glass under an immutable SHA-256 directory and atomically
 switch the discovery symlink, keeping the basename `liquidglass.so`. Qt resolves
 that link before caching libraries, so an update loads fresh code without a

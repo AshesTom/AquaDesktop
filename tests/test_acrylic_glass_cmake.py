@@ -1,6 +1,7 @@
 """Static guards for the Acrylic Glass CMake fallback paths."""
 
 import re
+import json
 import shutil
 import subprocess
 
@@ -47,26 +48,22 @@ def test_acrylic_glass_preset_fits_kcm_ranges():
     """Installer tuning must remain representable in the effect KCM."""
     from steps import acrylic_glass
 
-    preset = dict(acrylic_glass._PRESET)
-    # Contributor/MR tuning is not part of the project preset.
-    assert "AcrylicGlassType" not in preset
-    assert "RgbDriftStrength" not in preset
-    assert preset["BlurStrength"] == "3.5"
-    assert preset["HighlightStrength"] == "0.30"
-    assert preset["HighlightWidth"] == "24"
-    assert preset["MagnifyGlassStrength"] == "0.03"
-    assert preset["RefractionWidth"] == "96"
-    assert preset["Saturation"] == "1.0"
-
+    presets = json.loads((ROOT / "src/presets.json").read_text())
+    assert [p["id"] for p in presets] == ["clear", "tahoe", "golden-gate"]
     root = ET.parse(ROOT / "src/kcm/config.ui").getroot()
-    for key in ("RgbDriftStrength", "MagnifyGlassStrength"):
-        if key not in preset:
-            continue
-        widget = root.find(f".//widget[@name='kcfg_{key}']")
-        assert widget is not None
-        maximum = widget.find("./property[@name='maximum']/double")
-        assert maximum is not None and maximum.text is not None
-        assert float(preset[key]) <= float(maximum.text)
+    schema = ET.parse(ROOT / "src/glass.kcfg").getroot()
+    assert schema.find(".//{*}entry[@name='AcrylicGlassType']") is None
+    for preset in presets:
+        for key, value in preset["values"].items():
+            widget = root.find(f".//widget[@name='kcfg_{key}']")
+            assert widget is not None, key
+            assert schema.find(f".//{{*}}entry[@name='{key}']") is not None
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                maximum = widget.find("./property[@name='maximum']")[0]
+                assert 0 <= value <= float(maximum.text), key
+    for key, value in presets[1]["values"].items():
+        default = schema.find(f".//{{*}}entry[@name='{key}']/{{*}}default").text
+        assert default == (str(value).lower() if isinstance(value, bool) else str(value)), key
 
 
 @pytest.mark.parametrize("active,returncode,identity,confirmed", [
@@ -80,7 +77,7 @@ def test_acrylic_glass_preset_fits_kcm_ranges():
 @pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate"])
 def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path, capsys,
                                                        active, returncode, identity, confirmed, edition):
-    """The real install path must not replace the KCM default with strength 5."""
+    """Fresh installs apply the edition material and preserve radius overrides."""
     from steps import acrylic_glass
     from subprocess import CompletedProcess
     monkeypatch.setattr(acrylic_glass, "default_wallpaper", lambda: edition)
@@ -102,7 +99,7 @@ def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path, c
     monkeypatch.setattr(acrylic_glass, "have", lambda command: True)
     monkeypatch.setattr(acrylic_glass, "run_user",
                         lambda command, **kwargs: CompletedProcess(command, returncode, active)
-                        if command[0] == "probe-qdbus" else CompletedProcess(command, 0, "28\n"))
+                        if command[0] == "probe-qdbus" else CompletedProcess(command, 0, ("28" if command[6].endswith("CornerRadius") else command[-1]) + "\n"))
     monkeypatch.setattr(acrylic_glass.time, "sleep", lambda seconds: None)
     writes = []
     monkeypatch.setattr(acrylic_glass, "kw_write",
@@ -122,10 +119,10 @@ def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path, c
     entry = config.find(".//{*}entry[@name='BlurStrength']/{*}default")
     assert entry is not None
     default = entry.text
-    assert default == "3.5"
+    assert default == "5.0"
     blur_writes = [args for args in writes if "BlurStrength" in args]
     assert blur_writes == [("--file", "kwinrc", "--group", "Effect-liquidglass",
-                           "--key", "BlurStrength", "4.0" if edition == "MacGoldenGate" else default)]
+                           "--key", "BlurStrength", "6.5" if edition == "MacGoldenGate" else default)]
     # The complete install must preserve the #89 workaround, including
     # avoiding the obsolete Menu/Dialog/Tooltip/Bottom radius keys.
     assert not any(args[-2].endswith("CornerRadius") for args in writes)
@@ -137,7 +134,8 @@ def test_golden_gate_optics_do_not_mutate_tahoe(monkeypatch):
     golden = glass._edition_preset()
     monkeypatch.setattr(glass, "default_wallpaper", lambda: "MacTahoe")
     tahoe = glass._edition_preset()
-    assert tahoe == dict(glass._PRESET)
+    assert tahoe["MaterialPreset"] == "1"
+    assert golden["MaterialPreset"] == "2"
     assert float(golden["BlurStrength"]) > float(tahoe["BlurStrength"])
     for key in ("MagnifyGlassStrength", "RefractionWidth"):
         assert float(golden[key]) < float(tahoe[key])

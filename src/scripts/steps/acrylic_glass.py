@@ -1,4 +1,5 @@
 import hashlib
+import json
 import re
 import subprocess
 import time
@@ -94,29 +95,6 @@ def build() -> None:
     cmake_build(SRC, BUILD, "Acrylic Glass")
 
 
-_PRESET = (
-    ("BevelStrength", "0.22"), ("BlurDecorations", "true"),
-    # Match the effect's default: two Kawase downsample levels. Strength 5
-    # enters a third level and adds compositor work on every blurred frame.
-    ("BlurStrength", "3.5"), ("BorderWidth", "32"),
-    ("Brightness", "1.0"), ("Contrast", "1.0"),
-    ("EdgeBandFactor", "0.24"),
-    ("EdgeLighting", "false"), ("ExcludeDocks", "true"),
-    ("GlassInactiveWindows", "true"), ("GlassThickness", "0.2"),
-    ("GlowColor", "#00000000"), ("HighlightStrength", "0.30"),
-    ("HighlightWidth", "24"), ("InnerShadowStrength", "0.2"),
-    ("IridescenceStrength", "0.1"), ("MagnifyGlassStrength", "0.03"),
-    ("NoiseStrength", "2"), ("RefractionEdgeSize", "0"),
-    ("RefractionNormalPow", "6"), ("RefractionRGBFringing", "0"),
-    ("RefractionStrength", "0"), ("RefractionWidth", "96"),
-    ("RgbRinging", "12"), ("RimStrength", "0.5"),
-    ("RimWidth", "32"), ("Saturation", "1.0"),
-    ("ShadowStrength", "2.50"), ("SpectralMix", "1"),
-    ("SpecularStrength", "0.08"), ("TintColor", "#00000000"),
-    ("BlurMatching", "false"), ("BlurNonMatching", "true"),
-)
-
-
 _CORNER_DEFAULTS = (
     ("WindowCornerRadius", "22"),
     ("DockCornerRadius", "20"),
@@ -124,15 +102,64 @@ _CORNER_DEFAULTS = (
 )
 
 def _edition_preset() -> dict[str, str]:
-    preset = dict(_PRESET)
-    if default_wallpaper() == "MacGoldenGate":
-        preset.update(
-            BlurStrength="4.0",
-            MagnifyGlassStrength="0.015",
-            RgbDriftStrength="16",
-            RefractionWidth="72",
-        )
-    return preset
+    # The KCM embeds this same file. Editions choose only the starting point.
+    presets = json.loads((SRC / "src/presets.json").read_text())
+    index = 2 if default_wallpaper() == "MacGoldenGate" else 1
+    values = presets[index]["values"]
+    return {key: str(value).lower() if isinstance(value, bool) else str(value)
+            for key, value in values.items()} | {"MaterialPreset": str(index)}
+
+
+def _install_material_defaults() -> None:
+    defaults = _edition_preset()
+    if not have("kreadconfig6"):
+        warn("Acrylic Glass material preserved — kreadconfig6 is unavailable")
+        return
+    sentinel = f"__mttkde_absent_{uuid.uuid4().hex}__"
+    saved = {}
+    # A failed read cannot authorize replacement of a customized material.
+    try:
+        for key in defaults:
+            result = run_user(
+                ["kreadconfig6", "--file", "kwinrc", "--group", "Effect-liquidglass",
+                 "--key", key, "--default", sentinel],
+                check=False, capture_output=True, text=True, timeout=5,
+            )
+            if result.returncode != 0:
+                raise OSError(f"kreadconfig6 failed for {key}")
+            value = (result.stdout or "").removesuffix("\n").removesuffix("\r")
+            saved[key] = None if value == sentinel else value
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        warn(f"Acrylic Glass material preserved — could not read settings ({exc})")
+        return
+
+    # A saved KCM material can deliberately omit keys equal to its schema
+    # defaults. Filling those from the edition would overwrite that selection.
+    if saved["MaterialPreset"] is not None:
+        return
+
+    # Upgrade the complete previous installer material once. Any custom optical
+    # value (including an explicit empty value) prevents this migration. Radius,
+    # window rules and the previously independent gradient toggle stay untouched.
+    golden = default_wallpaper() == "MacGoldenGate"
+    legacy = dict(BlurStrength=4.0 if golden else 3.5, Brightness=1.0, Contrast=1.0,
+                  Saturation=1.0, HighlightStrength=0.30, HighlightWidth=24.0,
+                  MagnifyGlassStrength=0.015 if golden else 0.03, NoiseStrength=2,
+                  RefractionWidth=72.0 if golden else 96.0)
+    try:
+        migrate = (saved["MaterialPreset"] is None and saved["MaterialOpacity"] is None
+                   and all(saved[key] is not None and float(saved[key]) == value
+                           for key, value in legacy.items())
+                   and (saved["RgbDriftStrength"] is None
+                        or float(saved["RgbDriftStrength"]) == (16.0 if golden else 45.0)))
+    except ValueError:
+        migrate = False
+    for key, value in defaults.items():
+        if saved[key] is None or (migrate and key in {*legacy, "RgbDriftStrength"}):
+            if not kw_write("--file", "kwinrc", "--group", "Effect-liquidglass",
+                            "--key", key, value):
+                warn(f"Acrylic Glass {key} default not applied — kwriteconfig6 failed")
+                return
 
 
 def _install_corner_defaults() -> None:
@@ -313,14 +340,11 @@ def install() -> None:
                 except OSError:
                     pass
 
-    for key, value in _edition_preset().items():
-        kw_write("--file", "kwinrc", "--group", "Effect-liquidglass",
-                 "--key", key, value)
+    _install_material_defaults()
     _install_corner_defaults()
-    _install_missing_defaults((
-        ("DarkGradientOverlay", "true" if default_wallpaper() == "MacGoldenGate" else "false"),
-    ))
-    ok("Acrylic Glass preset installed")
+    _install_missing_defaults((("BlurDecorations", "true"),
+                               ("BlurMatching", "false"), ("BlurNonMatching", "true")))
+    ok("Acrylic Glass material settings ready")
     kw_write("--file", "kwinrc", "--group", "Plugins",
              "--key", "liquidglassEnabled", "true")
 

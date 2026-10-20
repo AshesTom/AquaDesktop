@@ -272,7 +272,9 @@ private:
         int highlightWidthLocation;
         int highlightStrengthLocation;
         int darkGradientOverlayLocation;
-        int blurTypeLocation;
+        int materialOpacityLocation;
+        int gradientTopLocation;
+        int gradientBottomLocation;
     } m_roundedOnscreenPass;
 
     /// Dual Kawase downsample (halves resolution per iteration).
@@ -337,7 +339,9 @@ private:
     float m_highlightWidth; ///< Pixel width of the bright glass rim.
     float m_highlightStrength; ///< Rim intensity multiplier.
     bool m_darkGradientOverlay = false;
-    int m_blurType; ///< Final-pass kernel: 0=Gaussian, 1=Box, 2=Lens (bokeh).
+    float m_materialOpacity = 1.0f;
+    QVector4D m_gradientTop;
+    QVector4D m_gradientBottom;
 
     size_t m_iterationCount; ///< Number of Kawase halve/double passes (drives texture chain length).
     float m_offset; ///< Kawase tap offset; 0.0 means "no blur, passthrough".
