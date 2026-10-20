@@ -545,6 +545,10 @@ per-screen ownership: selecting an edition never resets custom wallpapers;
 `--reset-wallpapers` remains the explicit opt-in. Golden Gate is a download
 wrapper selecting `MacGoldenGate`, not a separate theme implementation.
 
+Golden Gate's upper glass gradient applies to menus in both light and dark
+mode. Dock surfaces are exempt from that gradient at render time; do not
+change the saved gradient settings or remove their blur and refraction.
+
 Publish Tahoe and Golden Gate with matching release versions and `v<version>`
 tags. Golden Gate's `VERSION` must match the Tahoe release it downloads; pin
 its `upstream.json` to the published Tahoe release commit and verified archive

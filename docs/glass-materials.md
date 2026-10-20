@@ -7,7 +7,7 @@ Choose a preset, adjust its controls if desired, and press **Apply**.
 | --- | --- |
 | Clear | Transparent glass with a light blur and a restrained edge reflection. |
 | Tahoe | Soft, fully blurred glass with a narrow refracted edge. Default in Tahoe. |
-| Golden Gate | Deeper blur, gentler refraction and a black gradient at the top. Default in Golden Gate. |
+| Golden Gate | Deeper blur, gentler refraction and a black upper gradient on menus. The Dock stays untinted. Default in Golden Gate. |
 
 Each preset replaces the complete material: blur, opacity, refraction, color
 separation, highlights, grain, brightness, contrast, saturation and gradient.
@@ -47,8 +47,10 @@ screenshots and design guidance; they do not reproduce Apple's renderer.
 - [macOS Golden Gate](https://www.apple.com/os/macos/): more uniform refraction and improved contrast.
 - [Meet Liquid Glass](https://developer.apple.com/videos/play/wwdc2025/219/): blur and tint preserve legibility, with clearer and more substantial materials for different surfaces.
 
-The Golden Gate preset adds the requested black upper gradient while keeping
-blur across the full Dock and menu surface. Its numerical settings are project
+The Golden Gate preset adds a black upper gradient to menus in both appearance
+modes. The Dock is an exception: its glass keeps the same blur and refraction
+without the gradient. This is applied per surface, leaving the saved gradient
+controls intact. Its numerical settings are project
 tuning, not values supplied by Apple. It compresses backdrop contrast before
 the stronger upper tint, keeping the gradient visible over dark windows as well
 as light ones in both appearance modes.

@@ -21,7 +21,7 @@ RUN printf '\n[kde-unstable]\nInclude = /etc/pacman.d/mirrorlist\n' >> /etc/pacm
     && pacman -Syu --noconfirm --needed \
     python python-pytest \
     cmake make gcc extra-cmake-modules \
-    qt6-base qt6-tools qt6-declarative \
+    qt6-base qt6-tools qt6-declarative qt6-svg \
     pkgconf \
     # KF6 frameworks required by deps() of the compiled steps.
     kconfig kconfigwidgets kcoreaddons kcrash kglobalaccel kguiaddons \

@@ -9,7 +9,7 @@ RUN printf 'NAME="Garuda Linux"\nID=garuda\nID_LIKE=arch\nPRETTY_NAME="Garuda Li
 RUN pacman -Syu --noconfirm --needed \
     python python-pytest \
     cmake make gcc extra-cmake-modules \
-    qt6-base qt6-tools qt6-declarative \
+    qt6-base qt6-tools qt6-declarative qt6-svg \
     pkgconf \
     kconfig kconfigwidgets kcoreaddons kcrash kglobalaccel kguiaddons \
     ki18n kio kcmutils knotifications kservice kwidgetsaddons \

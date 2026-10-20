@@ -1451,7 +1451,10 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.refractionWidthLocation, float(m_refractionWidth * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightWidthLocation, float(m_highlightWidth * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightStrengthLocation, m_highlightStrength);
-    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.darkGradientOverlayLocation, int(m_darkGradientOverlay));
+    // Golden Gate keeps Plasma dock surfaces clear; popups retain the gradient.
+    const bool dockWithoutGradient = BlurConfig::materialPreset() == 2 && w->isDock();
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.darkGradientOverlayLocation,
+        int(m_darkGradientOverlay && !dockWithoutGradient));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.materialOpacityLocation, m_materialOpacity);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.gradientTopLocation, m_gradientTop);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.gradientBottomLocation, m_gradientBottom);

@@ -31,6 +31,7 @@ Timer {
             console.log("PROBE_GEOMETRY", root.x, root.y, searchPopup.x, searchPopup.y);
             switch (phase++) {
             case 0:
+                root.title = "Launcher app role probe";
                 searchPopup.title = "Launcher search role probe";
                 verify(kicker.launcherPreset === expectedPreset, "edition default");
                 plasmoid.configuration.launcherPreset = 1;

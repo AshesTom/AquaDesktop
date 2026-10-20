@@ -11,6 +11,7 @@ PlasmaCore.Dialog {
 	readonly property bool goldenGate: kicker.launcherPreset === 2
 
 	objectName: "popupWindow"
+	type: PlasmaCore.Dialog.AppletPopup
 	flags: Qt.WindowStaysOnTopHint
 
 	location: Plasmoid.configuration.floating || Plasmoid.configuration.launcherPosition == 2 ? "Floating" : Plasmoid.location

@@ -48,6 +48,7 @@ Item {
 
  	Kirigami.Icon {
 		id: appicon
+		animated: false
 		y: main.detachedSearch ? 0 : 2 * highlightItemSvg.margins.top
 		anchors.horizontalCenter: parent.horizontalCenter
 		width: root.iconSize
