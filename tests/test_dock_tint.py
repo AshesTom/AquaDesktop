@@ -132,11 +132,11 @@ def test_popovers_glass_follows_the_tint(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
     ini = tmp_path / "mac-tahoe-liquid-kde/glass.ini"
     assert ts.write_glass_tint("neutral") is True
-    assert ini.read_text() == "Tint=neutral\nAccent=\nGlassLevel=50\n"
+    assert ini.read_text() == "Tint=neutral\nAccent=\nGlassLevel=50\nStyle=tahoe\n"
     assert ts.write_glass_tint("neutral") is False  # unchanged
     monkeypatch.setattr(ts, "accent_color_hex", lambda: "#ff8d28")
     ts.write_glass_tint("accent")
-    assert ini.read_text() == "Tint=accent\nAccent=ff8d28\nGlassLevel=50\n"
+    assert ini.read_text() == "Tint=accent\nAccent=ff8d28\nGlassLevel=50\nStyle=tahoe\n"
     # Every Dock tint apply writes it too.
     seen = []
     monkeypatch.setattr(ts, "write_glass_tint", lambda tint=None: seen.append(tint) or True)

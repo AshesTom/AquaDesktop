@@ -214,8 +214,12 @@ def test_glass_surface_is_the_tahoe_glass_face(offline):
     assert '+ "/mac-tahoe-liquid-kde/glass.ini"' in surface
     assert 'glassTint.value("Tint", "macos")' in surface
     # The edge: a 2 px line then a glow fading over 3 px, +45 / 255 in all.
-    for line in ("rimLight: 0.13", "rimWidth: 2.0", "glowLight: 0.09", "glowWidth: 3.0"):
+    # The liquid style leaves the rim, the glints and the scrim to KWin.
+    for line in ("rimLight: liquid ? 0 : 0.13", "rimWidth: 2.0",
+                 "glowLight: liquid ? 0 : 0.09", "glowWidth: 3.0"):
         assert f"readonly property real {line}" in surface
+    assert 'String(glassTint.value("Style", "tahoe")) === "liquid"' in surface
+    assert "return level <= 0.5 ? 0 :" in surface
     # The light has no alpha of its own: added to the desktop, it keeps the
     # desktop's colour as on macOS.
     assert "vec4(tint.rgb * tint.a + vec3(light), tint.a)" in frag

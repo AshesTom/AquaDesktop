@@ -213,6 +213,12 @@ BlurEffect::BlurEffect()
         return;
     }
 
+    // AquaDesktop: optional, popovers keep the plain blur without it.
+    m_liquidPass = BBDX::LiquidPass::create();
+    if (!m_liquidPass) {
+        qCWarning(KWIN_BLUR) << BBDX::LOG_PREFIX << "Failed to create LiquidPass";
+    }
+
     m_roundedCornersPass = BBDX::RoundedCornersPass::create();
     if (!m_roundedCornersPass) {
         qCWarning(KWIN_BLUR) << BBDX::LOG_PREFIX << "Failed to create RoundedCornersPass";
@@ -358,6 +364,9 @@ void BlurEffect::reconfigure(ReconfigureFlags flags)
     Q_UNUSED(flags);
     BlurConfig::self()->read();
     m_refractionPass->reconfigure();
+    if (m_liquidPass) {
+        m_liquidPass->reconfigure();
+    }
     m_windowManager->reconfigure();
     m_blurCache->reconfigure();
     m_forceContrastParams = BlurConfig::forceContrastParams();
@@ -377,6 +386,16 @@ void BlurEffect::reconfigure(ReconfigureFlags flags)
         m_dockOffset = 0;
     }
     m_refractionDocksOnly = BlurConfig::refractionDocksOnly();
+    // AquaDesktop: Liquid Glass popovers' own blur strength.
+    const int liquidBlurStrength = BlurConfig::liquidBlurStrength() - 1;
+    if (liquidBlurStrength >= 0 && liquidBlurStrength < blurStrengthValues.size()) {
+        m_liquidIterationCount = blurStrengthValues[liquidBlurStrength].iteration;
+        m_liquidOffset = blurStrengthValues[liquidBlurStrength].offset;
+        m_expandSize = std::max(m_expandSize, blurOffsets[m_liquidIterationCount - 1].expandSize);
+    } else {
+        m_liquidIterationCount = 0;
+        m_liquidOffset = 0;
+    }
     // AquaDesktop: docks' own brightness, contrast and saturation (0: the general ones).
     const int dockBrightness = BlurConfig::dockBrightness() > 0 ? BlurConfig::dockBrightness() : BlurConfig::brightness();
     const int dockContrast = BlurConfig::dockContrast() > 0 ? BlurConfig::dockContrast() : BlurConfig::contrast();
@@ -928,6 +947,17 @@ GLTexture *BlurEffect::ensureNoiseTexture()
     return m_noisePass.noiseTexture.get();
 }
 
+bool BlurEffect::isLiquidPopover(EffectWindow *w) const
+{
+    // macOS keeps windows flat: only Plasma's own popovers, notifications
+    // and OSDs (not the panels, the desktop or tooltips) take Liquid Glass.
+    if (!m_liquidPass || !m_liquidPass->enabled() || w->isDock() || w->isDesktop() || w->isTooltip()) {
+        return false;
+    }
+    const QString resourceClass = w->window()->resourceClass();
+    return resourceClass == QLatin1String("plasmashell") || resourceClass == QLatin1String("org.kde.plasmashell");
+}
+
 void BlurEffect::blur(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data)
 {
     auto it = m_windows.find(w);
@@ -943,11 +973,13 @@ void BlurEffect::blur(const RenderTarget &renderTarget, const RenderViewport &vi
     }
 
     // AquaDesktop: docks take their own blur strength, and the refraction
-    // may be kept to docks.
+    // may be kept to docks. Plasma popovers may take Liquid Glass instead.
+    const bool liquid = isLiquidPopover(w);
     const bool dockBlur = w->isDock() && m_dockIterationCount > 0;
-    const size_t iterationCount = dockBlur ? m_dockIterationCount : m_iterationCount;
-    const int blurOffset = dockBlur ? m_dockOffset : m_offset;
-    const bool refract = !m_refractionDocksOnly || w->isDock();
+    const bool liquidBlur = liquid && m_liquidIterationCount > 0;
+    const size_t iterationCount = dockBlur ? m_dockIterationCount : liquidBlur ? m_liquidIterationCount : m_iterationCount;
+    const int blurOffset = dockBlur ? m_dockOffset : liquidBlur ? m_liquidOffset : m_offset;
+    const bool refract = !liquid && (!m_refractionDocksOnly || w->isDock());
 
     // BBDX: only blur top level for performance reasons
     // TODO: this currently looks really bad e.g. when maximizing
@@ -1041,6 +1073,25 @@ void BlurEffect::blur(const RenderTarget &renderTarget, const RenderViewport &vi
     if (effectiveShape.isEmpty()) {
         return;
     }
+
+    // AquaDesktop: the popover's bubbles, in logical pixels of backgroundRect.
+    std::vector<BBDX::LiquidShape> liquidShapes;
+    if (liquid) {
+        QList<QRectF> localRects;
+#if KWIN_VERSION < KWIN_VERSION_CODE(6, 5, 80)
+        for (const QRect &rect : blurShape) {
+            localRects.append(QRectF(rect.translated(-backgroundRect.topLeft())));
+        }
+#else
+        localRects.reserve(blurShape.rects().size());
+        for (const auto &rect : blurShape.rects()) {
+            localRects.append(QRectF(rect.x() - backgroundRect.x(), rect.y() - backgroundRect.y(),
+                                     rect.width(), rect.height()));
+        }
+#endif
+        liquidShapes = BBDX::liquidShapes(localRects, BBDX::LiquidPass::maxShapes);
+    }
+    const bool drawLiquid = !liquidShapes.empty();
 
     // Maybe reallocate offscreen render targets. Keep in mind that the first one contains
     // original background behind the window, it's not blurred.
@@ -1335,7 +1386,9 @@ void BlurEffect::blur(const RenderTarget &renderTarget, const RenderViewport &vi
         ShaderManager::instance()->popShader();
     } else {
 #endif
-        if (!refract || !m_refractionPass->pushShader()) {
+        if (drawLiquid) {
+            m_liquidPass->pushShader();
+        } else if (!refract || !m_refractionPass->pushShader()) {
         ShaderManager::instance()->pushShader(m_onscreenPass.shader.get());
         } // indent intentional for KWin diff
 
@@ -1349,7 +1402,15 @@ void BlurEffect::blur(const RenderTarget &renderTarget, const RenderViewport &vi
         const QVector2D halfpixel(0.5 / read->colorAttachment()->width(),
                                   0.5 / read->colorAttachment()->height());
 
-        if (!refract || !m_refractionPass->setParameters(projectionMatrix,
+        if (drawLiquid) {
+            m_liquidPass->setParameters(projectionMatrix,
+                                        colorMatrix,
+                                        halfpixel,
+                                        float(blurOffset),
+                                        QVector2D(backgroundRect.width(), backgroundRect.height()),
+                                        float(viewport.scale()),
+                                        liquidShapes);
+        } else if (!refract || !m_refractionPass->setParameters(projectionMatrix,
                                              colorMatrix,
                                              halfpixel,
                                              float(blurOffset),

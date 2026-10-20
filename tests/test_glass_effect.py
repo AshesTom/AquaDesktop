@@ -21,21 +21,26 @@ def test_bundled_copy_is_pinned_and_documented(offline):
     assert not (offline / GLASS / "build.sh").exists()
 
 
-def test_local_changes_are_the_documented_two(offline):
-    """Docks' own blur strength and refraction kept to docks, each marked
-    "AquaDesktop" in the source."""
+def test_local_changes_are_documented(offline):
+    """Docks' own blur strength, refraction kept to docks and the Liquid
+    Glass popovers, each marked "AquaDesktop" in the source."""
     kcfg = (offline / GLASS / "src/blur.kcfg").read_text()
     for key in ("DockBlurStrength", "DockBrightness", "DockContrast", "DockSaturation",
-                "RefractionDocksOnly"):
+                "RefractionDocksOnly", "LiquidPopups", "LiquidBlurStrength", "LiquidScrim"):
         assert f'<entry name="{key}"' in kcfg, key
+    upstream = (offline / GLASS / "UPSTREAM.md").read_text()
+    assert "LiquidPopups" in upstream and "NextKde" in upstream
     cpp = (offline / GLASS / "src/blur.cpp").read_text()
     assert "const bool dockBlur = w->isDock() && m_dockIterationCount > 0;" in cpp
-    assert "const bool refract = !m_refractionDocksOnly || w->isDock();" in cpp
-    assert "if (!refract || !m_refractionPass->pushShader())" in cpp
-    # Only blur(), the Dock's own pipeline, uses the window's strength.
+    # Liquid popovers take their own lens instead of the Dock's.
+    assert "const bool refract = !liquid && (!m_refractionDocksOnly || w->isDock());" in cpp
+    assert "} else if (!refract || !m_refractionPass->pushShader()) {" in cpp
+    # Only blur(), the Dock's and the popovers' own pipelines, use the
+    # window's strength.
     blur = cpp[cpp.index("void BlurEffect::blur("):]
     blur = blur[:blur.index("\n}\n")]
-    assert "m_iterationCount" not in blur.replace("? m_dockIterationCount : m_iterationCount", "")
+    assert "m_iterationCount" not in blur.replace(
+        "? m_dockIterationCount : liquidBlur ? m_liquidIterationCount : m_iterationCount", "")
     assert "float(m_offset)" not in blur
     # The upstream shaders and refraction pass are untouched.
     for name in ("src/shaders/refraction.frag", "src/refraction_pass.cpp"):
@@ -66,7 +71,21 @@ def test_presets_tahoe_glass_and_frosted():
     import theme_switch as ts
     assert ts.GLASS_EFFECT == "better_blur_dx" and ts.GLASS_GROUP == "Effect-better-blur-dx"
     presets = ts.GLASS_PRESETS
-    assert set(presets) == {"dark-tahoe", "light-tahoe", "dark-frosted", "light-frosted"}
+    assert set(presets) == {"dark-tahoe", "light-tahoe", "dark-liquid", "light-liquid",
+                            "dark-frosted", "light-frosted"}
+    # Liquid Glass popovers only in the liquid style.
+    assert {name for name, p in presets.items() if p["LiquidPopups"] == "true"} == {
+        "dark-liquid", "light-liquid"}
+    # Liquid: tahoe's Dock, NextKde's popovers, the scrim pushing the
+    # backdrop away from the text (black in dark mode, white in light mode).
+    for mode, scrim in (("dark", "1"), ("light", "2")):
+        assert presets[f"{mode}-liquid"] == {
+            **presets[f"{mode}-tahoe"], "LiquidPopups": "true",
+            "LiquidBlurStrength": "3", "LiquidScrim": scrim}
+    liquid = presets["light-liquid"]
+    assert (liquid["LiquidRefractionStrength"], liquid["LiquidEdgeSize"],
+            liquid["LiquidNormalPow"]) == ("100", "50", "50")
+    assert (liquid["LiquidScrimCap"], liquid["LiquidScrimDecay"]) == ("47", "75")
     # Every preset sets the same keys: switching styles leaves nothing behind.
     assert len({tuple(sorted(p)) for p in presets.values()}) == 1
     for p in presets.values():
@@ -371,3 +390,74 @@ def test_build_never_mutates_the_live_desktop(monkeypatch, build_succeeds):
     monkeypatch.setattr(step, 'qdbus_call', unexpected)
     step.build()
     assert len(builds) == 1
+
+
+def test_liquid_bubbles_are_recovered_from_the_blur_region(offline, tmp_path):
+    """Every rounded bubble of a popover's region (built like
+    org.kde.mac.tahoe.liquid.glass does) comes back as its own box, its
+    corner radius within a pixel."""
+    import shutil
+    import subprocess
+    if not shutil.which("c++") or not shutil.which("pkg-config"):
+        pytest.skip("C++ compiler and pkg-config required")
+    flags = subprocess.run(["pkg-config", "--cflags", "--libs", "Qt6Gui"],
+                           capture_output=True, text=True, timeout=10)
+    if flags.returncode:
+        pytest.skip("Qt6Gui development files required")
+    source = tmp_path / "shapes.cpp"
+    source.write_text(r'''
+#include "liquid_shapes.hpp"
+#include <QPainterPath>
+#include <QPolygon>
+#include <QRegion>
+#include <cassert>
+#include <cmath>
+int main() {
+    struct B { QRectF r; qreal radius; };
+    const B bubbles[] = {{{10, 10, 140, 64}, 20}, {{160, 10, 64, 64}, 20},
+                         {{10, 84, 288, 40}, 20}, {{10, 134, 288, 120}, 24}};
+    QRegion region;
+    for (const B &b : bubbles) {
+        QPainterPath path;
+        path.addRoundedRect(b.r, b.radius, b.radius);
+        region |= QRegion(path.toFillPolygon().toPolygon());
+    }
+    QList<QRectF> rects;
+    for (const QRect &r : region) rects.append(QRectF(r));
+    const auto shapes = BBDX::liquidShapes(rects, 24);
+    assert(shapes.size() == 4);
+    for (size_t i = 0; i < 4; ++i) {
+        assert(std::abs(shapes[i].box.x() - bubbles[i].r.x()) <= 1);
+        assert(std::abs(shapes[i].box.width() - bubbles[i].r.width()) <= 1);
+        assert(std::abs(shapes[i].box.height() - bubbles[i].r.height()) <= 1);
+        assert(std::abs(shapes[i].radius - bubbles[i].radius) <= 1);
+    }
+    // More bubbles than the shader takes: the plain blur instead.
+    assert(BBDX::liquidShapes(rects, 3).empty());
+}
+''')
+    import shlex
+    binary = tmp_path / "shapes"
+    subprocess.run(["c++", "-std=c++20", "-fPIC", f"-I{offline / GLASS / 'src'}", str(source),
+                    "-o", str(binary), *shlex.split(flags.stdout)],
+                   check=True, capture_output=True, timeout=120)
+    subprocess.run([str(binary)], check=True, timeout=10)
+
+
+def test_liquid_shaders_compile(offline, tmp_path):
+    import shutil
+    import subprocess
+    validator = shutil.which("glslangValidator")
+    if not validator:
+        pytest.skip("glslangValidator required")
+    shaders = offline / GLASS / "src/shaders"
+    core = shaders / "liquid_core.frag"
+    # The legacy variant is the core one in the pre-6.7 dialect.
+    legacy = tmp_path / "liquid.frag"
+    legacy.write_text("#version 120\n" + (shaders / "liquid.frag").read_text())
+    for shader in (core, legacy):
+        result = subprocess.run([validator, "-S", "frag", str(shader)],
+                                capture_output=True, text=True, timeout=30)
+        assert result.returncode == 0, result.stdout + result.stderr
+    qrc = (offline / GLASS / "src/blur.qrc").read_text()
+    assert "shaders/liquid.frag" in qrc and "shaders/liquid_core.frag" in qrc

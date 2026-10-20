@@ -29,6 +29,21 @@ changes listed below.
   keeps the refraction to docks: macOS windows do not refract, and a
   popover's blur region is one rectangle around all its bubbles.
 
+- `src/blur.kcfg`, `src/blur.h`, `src/blur.cpp`, `src/liquid_pass.*`,
+  `src/liquid_shapes.hpp`, `src/shaders/liquid*.frag`, `src/blur.qrc`,
+  `src/CMakeLists.txt`: `LiquidPopups` and its `Liquid*` settings draw
+  Plasma's popovers, notifications and OSDs (plasmashell windows that are
+  neither panels, the desktop nor tooltips) as Liquid Glass, with their own
+  blur strength (`LiquidBlurStrength`). The material is ported from
+  NextKde's Glass effect (`https://github.com/NextKde/NextKde`,
+  `kwin/glass-effect/src/shaders`, GPL-3.0): Snell refraction at the rim,
+  hairline glints from the top left and an adaptive black or white scrim.
+  NextKde sends each surface's shape through its own Wayland protocol; here
+  `liquid_shapes.hpp` recovers the bubbles from the window's blur region
+  (its connected groups of rectangles, the corner radius from the height of
+  the bands short of the box's edge), so each bubble of a popover gets its
+  own lens. Up to 24 bubbles; beyond that the popover keeps the plain blur.
+
 The Dock's refraction itself is upstream's lens mode (`RefractionMode` 1).
 
 To update: copy the new commit's same paths over this directory, then carry

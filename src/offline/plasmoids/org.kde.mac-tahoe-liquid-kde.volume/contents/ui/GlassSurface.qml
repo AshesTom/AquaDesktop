@@ -32,6 +32,10 @@ Item {
     readonly property real defaultTintAlpha: accentTint ? (dark ? 0.35 : 0.20) : dark ? 0.55 : 0.33
     readonly property real tintAlpha: {
         const level = glassLevel;
+        // Liquid Glass: KWin draws the scrim, the slider only adds a tint
+        // over its tinted half.
+        if (liquid)
+            return level <= 0.5 ? 0 : (dark ? 0.82 : 0.72) * 0.6 * (level - 0.5) * 2;
         const clear = dark ? 0.08 : 0.05;
         const tinted = dark ? 0.82 : 0.72;
         return level <= 0.5
@@ -58,6 +62,12 @@ Item {
         const value = Number(glassTint.value("GlassLevel", 50));
         return Number.isFinite(value) ? Math.max(0, Math.min(100, value)) / 100 : 0.5;
     }
+    // "liquid": KWin's Liquid Glass draws the rim, the glints and the scrim.
+    readonly property bool liquid: {
+        surface.Window.visibility;
+        glassTint.sync();
+        return String(glassTint.value("Style", "tahoe")) === "liquid";
+    }
     readonly property string accentHex: {
         tintName;
         const hex = String(glassTint.value("Accent", ""));
@@ -66,9 +76,9 @@ Item {
     // The edge light, measured at 1x (the image is at 1.21x): +45 and +48
     // / 255 on the first two pixels in, then +25, +12, +9, +5: a 2 px line
     // over a glow fading to 1/e over 3 px.
-    readonly property real rimLight: 0.13
+    readonly property real rimLight: liquid ? 0 : 0.13
     readonly property real rimWidth: 2.0
-    readonly property real glowLight: 0.09
+    readonly property real glowLight: liquid ? 0 : 0.09
     readonly property real glowWidth: 3.0
 
     function luminance(c: color): real {
@@ -100,7 +110,7 @@ Item {
         visible: shader.status === ShaderEffect.Error
         radius: surface.radius
         color: Qt.rgba(surface.tint.r, surface.tint.g, surface.tint.b, surface.tintAlpha)
-        border.width: 1
+        border.width: surface.liquid ? 0 : 1
         border.color: Qt.rgba(1, 1, 1, surface.dark ? 0.24 : 0.6)
     }
 }

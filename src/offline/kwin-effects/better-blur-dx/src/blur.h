@@ -11,6 +11,7 @@
 
 #include "kwin_compat.hpp"
 
+#include "liquid_pass.hpp"
 #include "refraction_pass.hpp"
 #include "rounded_corners_pass.hpp"
 #include "window_manager.hpp"
@@ -142,6 +143,8 @@ private:
     RegionF decorationBlurRegion(const EffectWindow *w) const;
     bool decorationSupportsBlurBehind(const EffectWindow *w) const;
     bool shouldBlur(const EffectWindow *w, int mask, const WindowPaintData &data) const;
+    // AquaDesktop: a Plasma popover drawn as Liquid Glass (LiquidPopups).
+    bool isLiquidPopover(EffectWindow *w) const;
     void updateBlurRegion(EffectWindow *w);
     void blur(const RenderTarget &renderTarget, const RenderViewport &viewport, EffectWindow *w, int mask, const Region &deviceRegion, WindowPaintData &data);
     GLTexture *ensureNoiseTexture();
@@ -213,6 +216,10 @@ private:
     size_t m_dockIterationCount = 0;
     int m_dockOffset = 0;
     bool m_refractionDocksOnly = false;
+    // AquaDesktop: Liquid Glass popovers (LiquidPopups, LiquidBlurStrength).
+    std::unique_ptr<BBDX::LiquidPass> m_liquidPass;
+    size_t m_liquidIterationCount = 0;
+    int m_liquidOffset = 0;
     // AquaDesktop: docks' own colour (DockBrightness, DockContrast, DockSaturation).
     QMatrix4x4 m_dockColorMatrix;
     int m_expandSize;

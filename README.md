@@ -19,11 +19,20 @@ measured desktop details.
 
 ## Glass styles
 
-### Liquid Glass
+### Tahoe
 
 ![AquaDesktop desktop with its glass Dock and menu bar](src/screenshots/aquadesktop.png)
 
-*Liquid Glass — desktop capture from the local Plasma calibration session.*
+*Tahoe — desktop capture from the local Plasma calibration session.*
+
+### Liquid Glass
+
+Liquid Glass keeps Tahoe's Dock and turns the menu bar popovers, the Control
+Center and the notifications into clear glass: each bubble bends the light at
+its edge, catches a thin highlight from the top left, and darkens or lightens
+what is behind it just enough to keep its text readable. The material comes
+from [NextKde](https://github.com/NextKde/NextKde). Select **Liquid Glass** in
+Theme Settings, or run `mac-tahoe-theme-switch style liquid`.
 
 ### Frosted
 
@@ -150,6 +159,7 @@ mac-tahoe-theme-switch light
 mac-tahoe-theme-switch dark
 mac-tahoe-theme-switch auto
 mac-tahoe-theme-switch style tahoe
+mac-tahoe-theme-switch style liquid
 mac-tahoe-theme-switch style frosted
 mac-tahoe-theme-switch transparency reduced
 mac-tahoe-theme-switch transparency standard

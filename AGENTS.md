@@ -406,8 +406,13 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   `/(?i)^VirtualBoxVM$/` (issue #90). Per-mode glass lives in
   `theme_switch.py` `GLASS_PRESETS` and is rewritten on every light/dark
   switch, only while `better_blur_dxEnabled=true`.
-  Two styles, `mac-tahoe-theme-switch style {tahoe|frosted}`, stored in
-  `~/.config/mac-tahoe-liquid-kde/glass-style`: "tahoe" (default) and
+  Three styles, `mac-tahoe-theme-switch style {tahoe|liquid|frosted}`, stored
+  in `~/.config/mac-tahoe-liquid-kde/glass-style`: "tahoe" (default),
+  "liquid" (tahoe's Dock; `LiquidPopups` draws plasmashell popovers,
+  notifications and OSDs as NextKde's Liquid Glass, one lens per bubble
+  recovered from the blur region by `liquid_shapes.hpp`, strength 3, adaptive
+  scrim black in dark mode and white in light mode; `glass.ini` `Style`
+  tells GlassSurface.qml to draw no tint or rim of its own) and
   "frosted" (the pre-Tahoe material: strength 11 dimmed to 85 %, no
   refraction; the menu bar gets its translucent background back). Tahoe was
   measured on a macOS Tahoe desktop (`~/Downloads/e7zirzb2o1ah1.png`) against
@@ -1262,7 +1267,10 @@ surface, blur/input mask and shadow geometry aligned, including the generated
 reduced-transparency variant. Do not reach into Plasma's private background
 items to change only the surface: that leaves a rectangular shadow behind.
 Register the search window as an AppletPopup on X11 and Wayland so window
-rounding effects do not override its capsule. The native helper generates the missing Plasma shell protocol headers
+rounding effects do not override its capsule. Preserve the X11 search capsule's
+position through its native helper: Plasma 6.8's `PopupPlasmaWindow` only
+positions Wayland windows. Keep it centered above its anchor when the parent
+moves or resizes, constrained to the screen. The native helper generates the missing Plasma shell protocol headers
 from the bundled XML; Qt Wayland and wayland-scanner are build dependencies.
 After a transparency change, and after the installer's final Plasma restart,
 `refresh_acrylic_glass()` reloads the enabled glass effect (Better Blur DX)
