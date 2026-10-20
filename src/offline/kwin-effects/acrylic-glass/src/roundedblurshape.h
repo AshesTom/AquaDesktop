@@ -10,6 +10,18 @@
 #include <limits>
 #include <optional>
 
+inline QRegion integerRoundedRegion(const QRect &bounds, int radius)
+{
+    QRegion region(bounds.adjusted(radius, 0, -radius, 0));
+    region += QRegion(bounds.adjusted(0, radius, 0, -radius));
+    for (int x : {bounds.x(), bounds.x() + bounds.width() - 2 * radius}) {
+        for (int y : {bounds.y(), bounds.y() + bounds.height() - 2 * radius}) {
+            region += QRegion(QRect(x, y, 2 * radius, 2 * radius), QRegion::Ellipse);
+        }
+    }
+    return region;
+}
+
 // Recover a rounded popup's curve from its integer blur region. The shader
 // can then fade along the curve instead of exposing the region's stair steps.
 inline std::optional<float> roundedBlurRadius(const QRegion &region, const QRect &bounds)
@@ -25,6 +37,14 @@ inline std::optional<float> roundedBlurRadius(const QRegion &region, const QRect
     }
     const int estimate = qRound(inset + 0.5 + std::sqrt(inset));
     const int maximum = std::min(bounds.width(), bounds.height()) / 2;
+    // Kvantum builds its mask from integer QRegion ellipses. Their first and
+    // last scanlines can differ by several pixels, unlike an SVG alpha mask.
+    // Match that construction exactly before applying raster-fit tolerances.
+    for (int radius = inset; radius <= std::min(maximum, estimate + 3); ++radius) {
+        if (integerRoundedRegion(bounds, radius) == region) {
+            return float(radius);
+        }
+    }
     std::optional<float> bestRadius;
     qint64 bestError = std::numeric_limits<qint64>::max();
     // SVG alpha masks include partially covered pixels; thresholded masks
@@ -90,6 +110,19 @@ struct ClientBlurShape
 {
     QRect bounds;
     float radius;
+    bool integerEllipse = false;
+
+    // Integer ellipse masks clip partial coverage asymmetrically. Keep the
+    // antialiasing ramp inside their region, beneath the client's SVG edge.
+    // Alpha-derived Plasma masks already include that coverage.
+    QRectF surfaceRect() const
+    {
+        return integerEllipse ? QRectF(bounds).adjusted(1, 1, -1, -1) : QRectF(bounds);
+    }
+    float cornerRadius() const
+    {
+        return integerEllipse ? std::max(0.0f, radius - 1.0f) : radius;
+    }
 };
 
 inline std::optional<ClientBlurShape> clientBlurShape(const QRegion &region)
@@ -102,7 +135,7 @@ inline std::optional<ClientBlurShape> clientBlurShape(const QRegion &region)
         return ClientBlurShape{bounds, 0.0f};
     }
     if (const auto radius = roundedBlurRadius(region, bounds)) {
-        return ClientBlurShape{bounds, *radius};
+        return ClientBlurShape{bounds, *radius, integerRoundedRegion(bounds, qRound(*radius)) == region};
     }
     return std::nullopt;
 }

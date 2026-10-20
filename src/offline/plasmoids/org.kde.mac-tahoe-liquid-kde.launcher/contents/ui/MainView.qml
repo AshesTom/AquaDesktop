@@ -90,7 +90,7 @@ Item {
 	Item {
 		id: glassPalette
 		Kirigami.Theme.inherit: false
-		Kirigami.Theme.colorSet: Kirigami.Theme.Complementary
+		Kirigami.Theme.colorSet: Kirigami.Theme.Window
 	}
 	readonly property color textColor: glassPalette.Kirigami.Theme.textColor
 	readonly property string textFont: Kirigami.Theme.defaultFont.family

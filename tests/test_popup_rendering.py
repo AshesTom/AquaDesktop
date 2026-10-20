@@ -32,8 +32,31 @@ def test_light_and_dark_menu_surfaces_have_equal_effective_opacity(repo):
             alphas.append(image.pixelColor(48, 48).alpha() * factor)
         assert len(set(alphas)) == 1, "Popup frame and interior must match"
         samples.append(alphas[0])
-    # Context menus retain a translucent but substantial fill in both modes.
-    assert samples[0] == samples[1] and 195 <= samples[0] <= 210
+    # Context menus share the 55% light/dark popup fill in both modes.
+    assert samples[0] == samples[1] and 136 <= samples[0] <= 145
+
+
+@pytest.mark.parametrize("mode", ["", "Dark"])
+def test_menu_contours_remain_visible_above_translucent_fill(repo, mode):
+    svg = pytest.importorskip("PyQt6.QtSvg")
+    gui = pytest.importorskip("PyQt6.QtGui")
+    core = pytest.importorskip("PyQt6.QtCore")
+    path = repo / "src/offline/kvantum/mac-tahoe-liquid-kde" / ("mac-tahoe-liquid-kde" + mode + ".svg")
+    renderer = svg.QSvgRenderer(str(path))
+    for element, inset in (("menu-normal-top", 0), ("menu-shadow-top", 16)):
+        size = renderer.boundsOnElement(element).size().toSize() * 4
+        image = gui.QImage(size, gui.QImage.Format.Format_ARGB32)
+        image.fill(0)
+        painter = gui.QPainter(image)
+        renderer.render(painter, element, core.QRectF(0, 0, size.width(), size.height()))
+        painter.end()
+        x = size.width() // 2
+        outer, inner, body = (image.pixelColor(x, inset + y) for y in (1, 4, 12))
+        assert outer.red() < inner.red()
+        assert .54 <= body.alphaF() <= .56
+        assert outer.alphaF() > body.alphaF() and inner.alphaF() > body.alphaF()
+        assert image.pixelColor(x, inset + 7) == body
+        assert body.red() == (0 if mode else 255)
 
 
 def test_gtk4_stylesheets_parse_without_errors(repo, tmp_path):

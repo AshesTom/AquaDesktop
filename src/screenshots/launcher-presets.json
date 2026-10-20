@@ -1,18 +1,18 @@
 {
   "edition": "Tahoe",
-  "source_version": "0.56.3",
+  "source_version": "0.56.8",
   "default_launcher_preset": 1,
   "wallpaper": "MacTahoe",
   "capture_date": "2026-10-20",
-  "environment": "Disposable KDE neon VM, Wayland, 1600x1200",
+  "environment": "Disposable KDE neon VM, Plasma 6.7.4, Wayland, 3840x2160 at 200%",
   "renderer": "KWin virgl OpenGL compositor",
-  "capture_tool": "Spectacle fullscreen; unmodified launcher captures, lossless crops for menus and Dock",
+  "capture_tool": "Spectacle fullscreen; original 4K launcher frames and lossless detail crops",
   "captures": {
     "launcher_preset_1_light.png": {
       "theme_mode": "light",
       "material_preset": "tahoe",
       "material_values": {
-        "BlurStrength": 7.0,
+        "BlurStrength": 10.0,
         "MaterialOpacity": 1.0,
         "NoiseStrength": 1,
         "RgbDriftStrength": 6.0,
@@ -27,48 +27,131 @@
         "GradientTopColor": "#000000",
         "GradientBottomColor": "#000000",
         "GradientTopOpacity": 0.38,
-        "GradientBottomOpacity": 0.02
+        "GradientBottomOpacity": 0.02,
+        "MaterialPreset": 1
       },
-      "effect_build": "e31a91c7e3264cc2f84432e3242c38f5875535e6ca41884e582453bc3b4ecb12"
+      "source_capture": "light-tahoe-off-wallpaper-launcher1.png",
+      "source_size": [
+        3840,
+        2160
+      ],
+      "crop": null,
+      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
+      "sha256": "44a201b30678b0cc1ad407870cf17b692b35e12069bce0406e71b7c302445776"
     },
     "menu_v4.png": {
       "theme_mode": "light",
-      "source_capture": "tahoe-light-menu.png",
+      "material_preset": "tahoe",
+      "material_values": {
+        "BlurStrength": 10.0,
+        "MaterialOpacity": 1.0,
+        "NoiseStrength": 1,
+        "RgbDriftStrength": 6.0,
+        "MagnifyGlassStrength": 0.02,
+        "RefractionWidth": 18.0,
+        "HighlightWidth": 1.5,
+        "HighlightStrength": 0.11,
+        "Brightness": 1.0,
+        "Contrast": 1.0,
+        "Saturation": 1.05,
+        "DarkGradientOverlay": false,
+        "GradientTopColor": "#000000",
+        "GradientBottomColor": "#000000",
+        "GradientTopOpacity": 0.38,
+        "GradientBottomOpacity": 0.02,
+        "MaterialPreset": 1
+      },
+      "source_capture": "light-tahoe-off-wallpaper-menu.png",
+      "source_size": [
+        3840,
+        2160
+      ],
       "crop": [
         0,
-        0,
-        320,
-        360
+        36,
+        546,
+        656
       ],
-      "effect_build": "e31a91c7e3264cc2f84432e3242c38f5875535e6ca41884e582453bc3b4ecb12"
+      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
+      "sha256": "0c882490233d290dc6ce44bd64258da455ff49af5e9b98527b8ea79fb7eb044d"
     },
     "context_menu_v4.png": {
       "theme_mode": "light",
-      "source_capture": "tahoe-light-context.png",
-      "crop": [
-        660,
-        360,
-        1080,
-        650
+      "material_preset": "tahoe",
+      "material_values": {
+        "BlurStrength": 10.0,
+        "MaterialOpacity": 1.0,
+        "NoiseStrength": 1,
+        "RgbDriftStrength": 6.0,
+        "MagnifyGlassStrength": 0.02,
+        "RefractionWidth": 18.0,
+        "HighlightWidth": 1.5,
+        "HighlightStrength": 0.11,
+        "Brightness": 1.0,
+        "Contrast": 1.0,
+        "Saturation": 1.05,
+        "DarkGradientOverlay": false,
+        "GradientTopColor": "#000000",
+        "GradientBottomColor": "#000000",
+        "GradientTopOpacity": 0.38,
+        "GradientBottomOpacity": 0.02,
+        "MaterialPreset": 1
+      },
+      "source_capture": "light-tahoe-off-wallpaper-context.png",
+      "source_size": [
+        3840,
+        2160
       ],
-      "effect_build": "e31a91c7e3264cc2f84432e3242c38f5875535e6ca41884e582453bc3b4ecb12"
+      "crop": [
+        2066,
+        964,
+        2794,
+        1448
+      ],
+      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
+      "sha256": "31e024093b79f414a5e8724534f8120093262ad0dc0cee78ec30a83078255687"
     },
     "dock_1_v4.png": {
       "theme_mode": "light",
-      "source_capture": "tahoe-light-desktop.png",
-      "crop": [
-        450,
-        1085,
-        1150,
-        1200
+      "material_preset": "tahoe",
+      "material_values": {
+        "BlurStrength": 10.0,
+        "MaterialOpacity": 1.0,
+        "NoiseStrength": 1,
+        "RgbDriftStrength": 6.0,
+        "MagnifyGlassStrength": 0.02,
+        "RefractionWidth": 18.0,
+        "HighlightWidth": 1.5,
+        "HighlightStrength": 0.11,
+        "Brightness": 1.0,
+        "Contrast": 1.0,
+        "Saturation": 1.05,
+        "DarkGradientOverlay": false,
+        "GradientTopColor": "#000000",
+        "GradientBottomColor": "#000000",
+        "GradientTopOpacity": 0.38,
+        "GradientBottomOpacity": 0.02,
+        "MaterialPreset": 1
+      },
+      "source_capture": "light-tahoe-off-wallpaper-dock.png",
+      "source_size": [
+        3840,
+        2160
       ],
-      "effect_build": "e31a91c7e3264cc2f84432e3242c38f5875535e6ca41884e582453bc3b4ecb12"
+      "crop": [
+        1385,
+        1964,
+        2455,
+        2160
+      ],
+      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
+      "sha256": "3056db2a3e04f3b84167797e3e515a3756f83f4fa3e600853584b5bb88aab0fe"
     },
     "launcher_preset_1_dark.png": {
       "theme_mode": "dark",
       "material_preset": "tahoe",
       "material_values": {
-        "BlurStrength": 7.0,
+        "BlurStrength": 10.0,
         "MaterialOpacity": 1.0,
         "NoiseStrength": 1,
         "RgbDriftStrength": 6.0,
@@ -83,31 +166,89 @@
         "GradientTopColor": "#000000",
         "GradientBottomColor": "#000000",
         "GradientTopOpacity": 0.38,
-        "GradientBottomOpacity": 0.02
+        "GradientBottomOpacity": 0.02,
+        "MaterialPreset": 1
       },
-      "effect_build": "e31a91c7e3264cc2f84432e3242c38f5875535e6ca41884e582453bc3b4ecb12"
+      "source_capture": "dark-tahoe-off-wallpaper-launcher1.png",
+      "source_size": [
+        3840,
+        2160
+      ],
+      "crop": null,
+      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
+      "sha256": "d32cc44fe88907ad36e4ea922045a170755e94f137e160172bba7227366b4f78"
     },
     "menu_dark_v4.png": {
       "theme_mode": "dark",
-      "source_capture": "tahoe-dark-menu.png",
+      "material_preset": "tahoe",
+      "material_values": {
+        "BlurStrength": 10.0,
+        "MaterialOpacity": 1.0,
+        "NoiseStrength": 1,
+        "RgbDriftStrength": 6.0,
+        "MagnifyGlassStrength": 0.02,
+        "RefractionWidth": 18.0,
+        "HighlightWidth": 1.5,
+        "HighlightStrength": 0.11,
+        "Brightness": 1.0,
+        "Contrast": 1.0,
+        "Saturation": 1.05,
+        "DarkGradientOverlay": false,
+        "GradientTopColor": "#000000",
+        "GradientBottomColor": "#000000",
+        "GradientTopOpacity": 0.38,
+        "GradientBottomOpacity": 0.02,
+        "MaterialPreset": 1
+      },
+      "source_capture": "dark-tahoe-off-wallpaper-menu.png",
+      "source_size": [
+        3840,
+        2160
+      ],
       "crop": [
         0,
-        0,
-        320,
-        360
+        36,
+        546,
+        656
       ],
-      "effect_build": "e31a91c7e3264cc2f84432e3242c38f5875535e6ca41884e582453bc3b4ecb12"
+      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
+      "sha256": "dc23eca8a2c12e01ca2cf1cc64e69a48433c0b4428a1ebfeeeca0f7e9e7e2273"
     },
     "context_menu_dark_v4.png": {
       "theme_mode": "dark",
-      "source_capture": "tahoe-dark-context.png",
-      "crop": [
-        660,
-        360,
-        1080,
-        650
+      "material_preset": "tahoe",
+      "material_values": {
+        "BlurStrength": 10.0,
+        "MaterialOpacity": 1.0,
+        "NoiseStrength": 1,
+        "RgbDriftStrength": 6.0,
+        "MagnifyGlassStrength": 0.02,
+        "RefractionWidth": 18.0,
+        "HighlightWidth": 1.5,
+        "HighlightStrength": 0.11,
+        "Brightness": 1.0,
+        "Contrast": 1.0,
+        "Saturation": 1.05,
+        "DarkGradientOverlay": false,
+        "GradientTopColor": "#000000",
+        "GradientBottomColor": "#000000",
+        "GradientTopOpacity": 0.38,
+        "GradientBottomOpacity": 0.02,
+        "MaterialPreset": 1
+      },
+      "source_capture": "dark-tahoe-off-wallpaper-context.png",
+      "source_size": [
+        3840,
+        2160
       ],
-      "effect_build": "e31a91c7e3264cc2f84432e3242c38f5875535e6ca41884e582453bc3b4ecb12"
+      "crop": [
+        2066,
+        964,
+        2794,
+        1448
+      ],
+      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
+      "sha256": "ef62c54622ac65f3f9bd768b559ea8a22e2c9fc69c786a754694ed00a6be6432"
     }
   }
 }

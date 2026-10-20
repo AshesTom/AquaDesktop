@@ -137,10 +137,33 @@ int main() {
         assert(std::abs(client->radius - radius) <= 1);
         assert(!clientBlurShape(hole));
     }
+    // Kvantum's native integer ellipse mask has asymmetric top/bottom rows.
+    // The real 249x274 menu with radius 9 must not fall back to hard steps.
+    for (int radius : {6, 9, 16, 22, 52}) {
+        const QRect bounds(4, 4, 249, 274);
+        QRegion native(bounds.adjusted(radius, 0, -radius, 0));
+        native += QRegion(bounds.adjusted(0, radius, 0, -radius));
+        for (int x : {bounds.x(), bounds.x() + bounds.width() - 2 * radius}) {
+            for (int y : {bounds.y(), bounds.y() + bounds.height() - 2 * radius}) {
+                native += QRegion(QRect(x, y, 2 * radius, 2 * radius), QRegion::Ellipse);
+            }
+        }
+        const auto shape = clientBlurShape(native);
+        assert(shape && shape->bounds == bounds && shape->radius == radius);
+        assert(shape->integerEllipse);
+        assert(shape->surfaceRect() == QRectF(bounds).adjusted(1, 1, -1, -1));
+        assert(shape->cornerRadius() == radius - 1);
+        QPainterPath inner;
+        inner.addRoundedRect(shape->surfaceRect(), shape->cornerRadius(), shape->cornerRadius());
+        assert((QRegion(inner.toFillPolygon().toPolygon()) - native).isEmpty());
+        assert(!clientBlurShape(native - QRect(100, 20, 10, 10)));
+        assert(!clientBlurShape(native | QRect(4, 4, radius, radius)));
+    }
     assert(!roundedBlurRadius(QRegion(), QRect(0, 0, 640, 72)));
     assert(!roundedBlurRadius(QRegion(QRect(0, 0, 640, 72)), QRect(0, 0, 640, 72)));
     const auto square = clientBlurShape(QRegion(QRect(8, 12, 300, 32)));
     assert(square && square->radius == 0 && square->bounds == QRect(8, 12, 300, 32));
+    assert(!square->integerEllipse && square->surfaceRect() == square->bounds);
 }
 ''')
     binary = tmp_path / 'regions'

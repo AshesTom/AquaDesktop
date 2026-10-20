@@ -1,0 +1,106 @@
+{
+  "source_release": "v0.56.8",
+  "edition": "Tahoe",
+  "environment": "Disposable KDE neon QEMU/KVM VM; Plasma 6.7.4 Wayland, virgl OpenGL, native 3840x2160 at 200% scale",
+  "wallpaper": "MacTahoe",
+  "desktop_capture": "Spectacle in the guest; original frames and lossless native crops, no upscaling. Guest-only QMP input.",
+  "about": "Shared preview_about.qml with canned hardware data; readiness checked before capture.",
+  "dock": "Demo pins; temporarily visible during capture, then restored to autohide.",
+  "boot": "Repository Plymouth harness in guest Xvfb at 3840x2160; render and pixel checks passed. Temporary Theme setting and plymouth.ignore-serial-consoles required by neon.",
+  "effect_source_identity": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
+  "images": {
+    "finder_v4.png": {
+      "source": "tahoe-light-finder.png",
+      "source_resolution": [
+        3840,
+        2160
+      ],
+      "crop": [
+        412,
+        472,
+        2468,
+        1768
+      ],
+      "sha256": "88d3f0dd6e1720a53fb29e8823ba0bde30fd29aba4a38b6bb3e2b0e26137e4c8"
+    },
+    "about_v4.png": {
+      "source": "light-tahoe-off-wallpaper-about.png",
+      "source_resolution": [
+        3840,
+        2160
+      ],
+      "crop": [
+        1532,
+        312,
+        2308,
+        1768
+      ],
+      "sha256": "8100a0df2afe344c5eda3a98eaaf17d8687386b20d1932990bc17251f601dcb5"
+    },
+    "showcase_light_4k.png": {
+      "source": "tahoe-light-showcase.png",
+      "source_resolution": [
+        3840,
+        2160
+      ],
+      "crop": null,
+      "sha256": "b028ec2dd01b7d12ed9d9d2ba836eefd7368f9b45314acba6febd26c5c3287d0"
+    },
+    "finder_dark_v4.png": {
+      "source": "tahoe-dark-finder.png",
+      "source_resolution": [
+        3840,
+        2160
+      ],
+      "crop": [
+        412,
+        472,
+        2468,
+        1768
+      ],
+      "sha256": "35b4fd7fcbd25610ac4f0dd8887c669eb524079a40b63b17c7041c12645188c0"
+    },
+    "about_dark_v4.png": {
+      "source": "dark-tahoe-off-wallpaper-about.png",
+      "source_resolution": [
+        3840,
+        2160
+      ],
+      "crop": [
+        1532,
+        312,
+        2308,
+        1768
+      ],
+      "sha256": "25332090a0896369a81c8538f8658dc2f6ff6103b6dcf58049c1eeef4b019a5d"
+    },
+    "showcase_dark_4k.png": {
+      "source": "tahoe-dark-showcase.png",
+      "source_resolution": [
+        3840,
+        2160
+      ],
+      "crop": null,
+      "sha256": "2d25ff8183e124bcfd43a13338a602618064121ec65c4f1a5695d4a0326b81f1"
+    },
+    "boot_v4.png": {
+      "source": "plymouth-boot-splash.png",
+      "source_resolution": [
+        3840,
+        2160
+      ],
+      "crop": null,
+      "sha256": "f685ec98f1e4407f2624c352f6b6e18ae8c2a686a64f162f6d0666d8fcbfb4d0"
+    },
+    "boot_shutdown_v4.png": {
+      "source": "plymouth-shutdown-splash.png",
+      "source_resolution": [
+        3840,
+        2160
+      ],
+      "crop": null,
+      "sha256": "abe6faef7c08133f6e6d29004d15f5c85c6d5a03c727451d16181a22eb64c5a3"
+    }
+  },
+  "launcher_menu_dock_context_metadata": "launcher-presets.json"
+}

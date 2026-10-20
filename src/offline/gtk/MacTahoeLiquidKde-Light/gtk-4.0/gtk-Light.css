@@ -6501,8 +6501,8 @@ row.expander.property #NautilusFileChooser .nautilus-grid-view child.activatable
 
 .nautilus-window .sidebar-pane placessidebar .navigation-sidebar:not(.view) > row:selected,
 #NautilusFileChooser .sidebar-pane placessidebar .navigation-sidebar:not(.view) > row:selected {
-  background-color: color-mix(in srgb, @window_fg_color 8%, transparent);
-  color: @accent_bg_color;
+  background-color: @accent_bg_color;
+  color: #ffffff;
 }
 
 .nautilus-window .sidebar-pane > separator.horizontal,

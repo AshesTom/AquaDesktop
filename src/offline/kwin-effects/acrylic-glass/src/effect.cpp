@@ -1381,8 +1381,8 @@ void BlurEffect::blur(
 
     QRectF surfaceRect = w->frameGeometry();
     if (blurInfo.clientShape.has_value()) {
-        topCornerRadius = bottomCornerRadius = blurInfo.clientShape->radius;
-        surfaceRect = QRectF(blurInfo.clientShape->bounds).translated(w->pos());
+        topCornerRadius = bottomCornerRadius = blurInfo.clientShape->cornerRadius();
+        surfaceRect = blurInfo.clientShape->surfaceRect().translated(w->pos());
         cornerRadius = BorderRadius(topCornerRadius, topCornerRadius,
                                     bottomCornerRadius, bottomCornerRadius);
     }

@@ -4,7 +4,7 @@
 
 # macOS Tahoe Liquid Theme for Plasma 6.7/6.8+
 
-[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1475_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
+[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1489_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
 
 macOS Tahoe-inspired glass, Dock, global menu and app themes for KDE Plasma 6.6–6.8.
 
@@ -14,6 +14,19 @@ macOS Tahoe-inspired glass, Dock, global menu and app themes for KDE Plasma 6.6�
 <br>
 
 ![Features and screenshots](https://img.shields.io/badge/features-%26%20screenshots-4B6B8A?style=for-the-badge&logo=kde&logoColor=white)
+
+### Tahoe desktop · 4K
+
+Native 3840 × 2160 captures in light and dark mode. Open either image for full resolution.
+
+<p align="center">
+  <a href="src/screenshots/showcase_light_4k.png"><img src="src/screenshots/showcase_light_4k.png" alt="Tahoe light desktop with a backgroundless menu bar, Finder-style files, glass system information and Dock" width="840"></a>
+  <a href="src/screenshots/showcase_dark_4k.png"><img src="src/screenshots/showcase_dark_4k.png" alt="Tahoe dark desktop with a backgroundless menu bar, Finder-style files, glass system information and Dock" width="840"></a>
+</p>
+
+Captured in a disposable VM; system information uses preview data. [v0.56.8 validation: 192 reviewed 4K captures](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/blob/v0.56.8/docs/validation-v0.56.8.md).
+
+<br>
 
 ### Acrylic Glass Tahoe Launcher
 

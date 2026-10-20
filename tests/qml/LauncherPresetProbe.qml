@@ -67,10 +67,12 @@ Timer {
                 break;
             case 1:
                 verify(root.visible, "inline panel visible");
-                verify(main.textColor === glassPalette.Kirigami.Theme.textColor, "labels follow the system complementary foreground");
+                verify(glassPalette.Kirigami.Theme.colorSet === Kirigami.Theme.Window, "labels use the popup color set");
+                verify(main.textColor === glassPalette.Kirigami.Theme.textColor, "labels follow the mode-specific window foreground");
                 verify(!searchPopup.visible, "inline search has no second popup");
                 verify(searchBar.parent === inlineSearchSlot, "inline field parent");
                 verifyOptionsIcon(searchBar);
+                verify(searchBar.textField.color === main.textColor, "search and app labels share the mode foreground");
                 presetProbe.inlineHeight = root.height;
                 presetProbe.inlineWidth = root.width;
                 // Exercise native geometry feedback before changing presets.
@@ -89,6 +91,7 @@ Timer {
                 }
                 verify(searchBar.parent === detachedSearchSlot, "detached field parent");
                 verifyOptionsIcon(searchBar);
+                verify(searchBar.textField.color === main.textColor, "search and app labels share the mode foreground");
                 verify(searchBar.textField.text === "terminal", "query survives preset change");
                 verify(root.height < presetProbe.inlineHeight, "no empty inline search row");
                 verifyCapsulePosition();

@@ -65,6 +65,9 @@ Window {
         let bg = Kirigami.Theme.backgroundColor;
         return (bg.r * 0.299 + bg.g * 0.587 + bg.b * 0.114) < 0.5;
     }
+    readonly property color secondaryTextColor: Qt.rgba(Kirigami.Theme.textColor.r,
+                                                        Kirigami.Theme.textColor.g,
+                                                        Kirigami.Theme.textColor.b, 0.85)
 
     // Reference for two-line cell height. Cells whose content commonly
     // wraps to a second line (Chip, Graphics, Startup disk, OS) bind
@@ -221,18 +224,30 @@ Window {
             infoSource.refresh();
     }
 
+    component GlassText: Text {
+        style: Text.Raised
+        styleColor: Qt.rgba(0, 0, 0, 0.12)
+    }
+
     // unified glass frame
     Rectangle {
         id: glass
+        objectName: "aboutGlassSurface"
         anchors.fill: parent
         radius: 22
-        color: Qt.rgba(Kirigami.Theme.backgroundColor.r,
-                       Kirigami.Theme.backgroundColor.g,
-                       Kirigami.Theme.backgroundColor.b, 0.82)
-        border.width: 0.5
-        border.color: aboutWindow.isDarkTheme
-                      ? Qt.rgba(1, 1, 1, 0.12)
-                      : Qt.rgba(0, 0, 0, 0.10)
+        color: aboutWindow.isDarkTheme ? Qt.rgba(0, 0, 0, 0.55) : Qt.rgba(1, 1, 1, 0.55)
+        border.width: 0.75
+        border.color: Qt.rgba(0, 0, 0, 0.18)
+
+        Rectangle {
+            objectName: "aboutGlassHighlight"
+            anchors.fill: parent
+            anchors.margins: 0.75
+            radius: glass.radius - 0.75
+            color: "transparent"
+            border.width: 0.75
+            border.color: Qt.rgba(1, 1, 1, 0.22)
+        }
 
         layer.enabled: true
 
@@ -267,7 +282,7 @@ Window {
                 Behavior on color { ColorAnimation { duration: 150 } }
 
                 HoverHandler { id: closeHover }
-                Text {
+                GlassText {
                     anchors.centerIn: parent
                     text: "×"; color: Qt.rgba(0, 0, 0, 0.5)
                     font.pixelSize: 11; font.bold: true
@@ -309,7 +324,7 @@ Window {
 
             Item { Layout.preferredHeight: 18 }
 
-            Text {
+            GlassText {
                 Layout.alignment: Qt.AlignHCenter
                 text: aboutWindow.vendorDisplay
                 color: Kirigami.Theme.textColor
@@ -322,7 +337,7 @@ Window {
 
             Item { Layout.preferredHeight: 4 }
 
-            Text {
+            GlassText {
                 Layout.alignment: Qt.AlignHCenter
                 text: {
                     let parts = [];
@@ -336,7 +351,7 @@ Window {
                     // when the real value (or empty model) lands.
                     return parts.length ? parts.join(", ") : " ";
                 }
-                color: Kirigami.Theme.disabledTextColor
+                color: aboutWindow.secondaryTextColor
                 font.family: aboutWindow.fontFamily
                 font.pixelSize: 13
                 opacity: aboutWindow.infoReady ? 1.0 : 0.0
@@ -356,16 +371,16 @@ Window {
                 Behavior on opacity { NumberAnimation { duration: 260; easing.type: Easing.OutQuad } }
 
                 // Chip
-                Text {
+                GlassText {
                     text: translations.i18n("Chip")
-                    color: Kirigami.Theme.disabledTextColor
+                    color: aboutWindow.secondaryTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
                     Layout.alignment: Qt.AlignRight
                     Layout.preferredWidth: 110
                     horizontalAlignment: Text.AlignRight
                 }
-                Text {
+                GlassText {
                     text: aboutWindow.chipDisplay
                     color: Kirigami.Theme.textColor
                     font.family: aboutWindow.fontFamily
@@ -377,16 +392,16 @@ Window {
                 }
 
                 // Cores
-                Text {
+                GlassText {
                     text: translations.i18n("Cores")
-                    color: Kirigami.Theme.disabledTextColor
+                    color: aboutWindow.secondaryTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
                     Layout.alignment: Qt.AlignRight
                     Layout.preferredWidth: 110
                     horizontalAlignment: Text.AlignRight
                 }
-                Text {
+                GlassText {
                     text: aboutWindow.coresDisplay
                     color: Kirigami.Theme.textColor
                     font.family: aboutWindow.fontFamily
@@ -395,16 +410,16 @@ Window {
                 }
 
                 // Memory
-                Text {
+                GlassText {
                     text: translations.i18n("Memory")
-                    color: Kirigami.Theme.disabledTextColor
+                    color: aboutWindow.secondaryTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
                     Layout.alignment: Qt.AlignRight
                     Layout.preferredWidth: 110
                     horizontalAlignment: Text.AlignRight
                 }
-                Text {
+                GlassText {
                     text: aboutWindow.memoryDisplay
                     color: Kirigami.Theme.textColor
                     font.family: aboutWindow.fontFamily
@@ -413,16 +428,16 @@ Window {
                 }
 
                 // Graphics
-                Text {
+                GlassText {
                     text: translations.i18n("Graphics")
-                    color: Kirigami.Theme.disabledTextColor
+                    color: aboutWindow.secondaryTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
                     Layout.alignment: Qt.AlignRight
                     Layout.preferredWidth: 110
                     horizontalAlignment: Text.AlignRight
                 }
-                Text {
+                GlassText {
                     text: aboutWindow.graphicsDisplay
                     color: Kirigami.Theme.textColor
                     font.family: aboutWindow.fontFamily
@@ -434,16 +449,16 @@ Window {
                 }
 
                 // Startup disk
-                Text {
+                GlassText {
                     text: translations.i18n("Startup disk")
-                    color: Kirigami.Theme.disabledTextColor
+                    color: aboutWindow.secondaryTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
                     Layout.alignment: Qt.AlignRight
                     Layout.preferredWidth: 110
                     horizontalAlignment: Text.AlignRight
                 }
-                Text {
+                GlassText {
                     text: aboutWindow.diskDisplay
                     color: Kirigami.Theme.textColor
                     font.family: aboutWindow.fontFamily
@@ -455,16 +470,16 @@ Window {
                 }
 
                 // Network address
-                Text {
+                GlassText {
                     text: translations.i18n("Network")
-                    color: Kirigami.Theme.disabledTextColor
+                    color: aboutWindow.secondaryTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
                     Layout.alignment: Qt.AlignRight
                     Layout.preferredWidth: 110
                     horizontalAlignment: Text.AlignRight
                 }
-                Text {
+                GlassText {
                     text: aboutWindow.networkDisplay
                     color: Kirigami.Theme.textColor
                     font.family: aboutWindow.fontFamily
@@ -474,16 +489,16 @@ Window {
                 }
 
                 // Serial number
-                Text {
+                GlassText {
                     text: translations.i18n("Serial number")
-                    color: Kirigami.Theme.disabledTextColor
+                    color: aboutWindow.secondaryTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
                     Layout.alignment: Qt.AlignRight
                     Layout.preferredWidth: 110
                     horizontalAlignment: Text.AlignRight
                 }
-                Text {
+                GlassText {
                     text: aboutWindow.serialDisplay
                     color: Kirigami.Theme.textColor
                     font.family: aboutWindow.fontFamily
@@ -493,16 +508,16 @@ Window {
                 }
 
                 // OS
-                Text {
+                GlassText {
                     text: translations.i18n("OS")
-                    color: Kirigami.Theme.disabledTextColor
+                    color: aboutWindow.secondaryTextColor
                     font.family: aboutWindow.fontFamily
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize
                     Layout.alignment: Qt.AlignRight
                     Layout.preferredWidth: 110
                     horizontalAlignment: Text.AlignRight
                 }
-                Text {
+                GlassText {
                     text: aboutWindow.osDisplay
                     color: Kirigami.Theme.textColor
                     font.family: aboutWindow.fontFamily
@@ -587,10 +602,10 @@ Window {
 
             Item { Layout.fillHeight: true }
 
-            Text {
+            GlassText {
                 Layout.alignment: Qt.AlignHCenter
                 text: aboutWindow.themeVersionDisplay
-                color: Kirigami.Theme.disabledTextColor
+                color: aboutWindow.secondaryTextColor
                 font.family: aboutWindow.fontFamily
                 font.pointSize: Kirigami.Theme.defaultFont.pointSize - 1
                 opacity: aboutWindow.infoReady ? 1.0 : 0.0

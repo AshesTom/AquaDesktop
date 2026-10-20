@@ -9,6 +9,7 @@ Item {
     function closeMenu() { contextMenu.close(); }
 
     readonly property bool menuOpen: contextMenu.status !== PlasmaExtras.Menu.Closed
+    property color foregroundColor: main.textColor
 
     width: button.width
     height: button.height
@@ -23,9 +24,9 @@ Item {
         down: contextMenu.status === PlasmaExtras.Menu.Open || pressed
         
         icon.name: "view-more-symbolic"
-        icon.color: main.textColor
+        icon.color: foregroundColor
         // Plasma's RoundButton icon uses its theme palette, not icon.color.
-        Kirigami.Theme.textColor: main.textColor
+        Kirigami.Theme.textColor: foregroundColor
 
         background: Rectangle {
             color: button.down ? main.contrastBgColor : "transparent"

@@ -958,6 +958,48 @@ def test_first_install_applies_theme_wallpaper(monkeypatch, tmp_path):
     assert state["last_applied"] == _wp(f"file://{theme}")
 
 
+def test_auto_install_records_wallpaper_before_persistent_timer_can_fire(monkeypatch, tmp_path):
+    import steps.theme_switch as step
+
+    ts, theme = _smart_wallpaper_env(monkeypatch, tmp_path)
+    current = {"value": _wp("file:///usr/share/wallpapers/Next")}
+    calls = []
+    monkeypatch.setenv("FEAT_WALLPAPERS", "true")
+    monkeypatch.setenv("MTTKDE_EXISTING_INSTALL", "false")
+    monkeypatch.setattr(ts, "_current_wallpapers", lambda: current["value"])
+
+    def apply_theme(mode):
+        current["value"] = _wp(theme.as_uri())
+        return True, theme
+
+    def service(*args):
+        calls.append(args)
+        if args[0] == "start":
+            # A persistent timer can fire as soon as it is started. This
+            # background process has none of the installer's environment.
+            with monkeypatch.context() as env:
+                env.delenv("MTTKDE_EXISTING_INSTALL")
+                assert ts._apply_wallpaper("light", context="user")
+        return True
+
+    monkeypatch.setattr(ts, "_apply_theme_wallpaper", apply_theme)
+    monkeypatch.setattr(step, "SVC_DIR", tmp_path / "units")
+    step.SVC_DIR.mkdir()
+    monkeypatch.setattr(step, "_teardown_units", lambda: True)
+    monkeypatch.setattr(step, "_user_service", service)
+    monkeypatch.setattr(step, "theme_mode", lambda: "auto")
+    monkeypatch.setattr(step, "is_systemd", lambda: True)
+
+    assert step._install_units()
+    assert not ts._wallpaper_state_file().exists()
+    assert ts._apply_wallpaper("light", context="install")
+    step.start_schedule()
+    assert current["value"] == _wp(theme.as_uri())
+    assert ts._load_wallpaper_state()["user_screens"] == []
+    assert ("start", step.UNITS[1]) in calls
+    assert not any(call[0] == "start" and step.UNITS[0] in call for call in calls)
+
+
 def test_theme_wallpaper_helper_failure_uses_config_fallback(
         monkeypatch, tmp_path):
     ts, theme = _smart_wallpaper_env(monkeypatch, tmp_path)

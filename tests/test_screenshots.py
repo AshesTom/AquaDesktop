@@ -55,7 +55,7 @@ def test_about_labels_survive_empty_host_translation_context(repo, tmp_path):
 import sys
 from PyQt6.QtCore import QObject, QUrl, pyqtSlot
 from PyQt6.QtGui import QGuiApplication
-from PyQt6.QtQml import QQmlApplicationEngine
+from PyQt6.QtQml import QQmlApplicationEngine, QQmlProperty, QQmlExpression
 from PyQt6.QtQuick import QQuickItem
 class EmptyTranslations(QObject):
     @pyqtSlot(str, result=str)
@@ -81,6 +81,27 @@ visit(engine.rootObjects()[0].contentItem())
 expected = {'Chip', 'Cores', 'Memory', 'Graphics', 'Startup disk', 'Network',
             'Serial number', 'OS', 'More Info…', 'Report a Bug…'}
 assert expected <= texts, f'Missing labels: {expected - texts}'
+window = engine.rootObjects()[0]
+surface = window.findChild(QQuickItem, 'aboutGlassSurface')
+highlight = window.findChild(QQuickItem, 'aboutGlassHighlight')
+assert surface is not None and highlight is not None
+for mode, foreground in [('white', 255), ('black', 0)]:
+    expression = QQmlExpression(engine.contextForObject(window), window,
+                               'Kirigami.Theme.backgroundColor = '+repr(mode))
+    expression.evaluate()
+    assert not expression.hasError(), expression.error().toString()
+    app.processEvents()
+    assert abs(window.property('secondaryTextColor').alphaF() - .85) < .005
+    fill = surface.property('color')
+    assert fill.red() == fill.green() == fill.blue() == foreground
+    assert abs(fill.alphaF() - .55) < .005
+    assert QQmlProperty(surface, 'border.width').read() == .75
+    assert QQmlProperty(highlight, 'border.width').read() == .75
+    outer = QQmlProperty(surface, 'border.color').read()
+    inner = QQmlProperty(highlight, 'border.color').read()
+    assert outer.red() == 0 and abs(outer.alphaF() - .18) < .005
+    assert inner.red() == 255 and abs(inner.alphaF() - .22) < .005
+    assert highlight.property('radius') == surface.property('radius') - .75
 '''
     qml = repo / 'src/offline/plasmoids/org.kde.mac.tahoe.liquid.globalmenu/qml/AboutWindow.qml'
     env = dict(os.environ, QT_QPA_PLATFORM='offscreen', QT_QUICK_BACKEND='software',

@@ -134,7 +134,8 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   border, 22px radius) — not outlined borders.
 - System font always — never hardcode font names or sizes.
 - Popup plasmoids are fixed-size, not resizable.
-- Top panel is applets-only floating (not full-floating).
+- Top panel is applets-only floating (not full-floating). Keep the menu bar
+  backgroundless, including behind its individual applets.
 - The bottom Dock uses `autohide` in all three bundled layouts (issue #87).
   Reinstall rebuilds the Dock with this mode while preserving pinned apps;
   the scripting API persists visibility, so no extra config patch is needed.
@@ -395,7 +396,10 @@ The same binary runs:
 In automatic mode, `./install` enables the service and timer under
 `~/.config/systemd/user/` on systemd. OpenRC uses per-user cron entries at
 06:00 / 18:00 and has no login-time oneshot equivalent. Explicit light/dark
-mode removes previous schedules so they cannot override the selected mode.
+mode removes previous schedules so they cannot override the selected mode. The installer enables
+the login service without starting it and starts the persistent timer only
+after theme activation has recorded wallpaper ownership; starting either
+earlier can misclassify the uninstaller's Breeze wallpaper as a user override.
 
 There is no background xdg-portal appearance watcher. Automatic mode is
 driven only by the post-login service and the 06:00 / 18:00 scheduler;
@@ -594,6 +598,9 @@ shader antialiasing without expanding the blur region or changing saved radius
 settings. KSvg's real SVG masks need two logical pixels of rasterization
 tolerance and may have opposite insets differing by one pixel; test the actual
 FrameSvg mask at fractional scales, not only QPainter rounded rectangles.
+Recognize native Qt integer-ellipse masks by exact region equality and keep
+their antialiasing ramp one logical pixel inside the mask, beneath the client
+edge. Never apply that inset to alpha-derived Plasma masks or custom cutouts.
 Discard a cached implicit frame when a late Plasma shell role identifies an
 applet popup. Reject custom cutouts; the Rounded Corners shape property still takes
 precedence. The native helper generates the missing Plasma shell protocol headers
@@ -621,16 +628,21 @@ and Restore replace them. Persist `MaterialPreset` even for schema-default Tahoe
 
 The gradient uses frame-local coordinates and changes color independently of
 blur coverage. Golden Gate uses exactly Tahoe's optical values and adds only
-a black upper gradient. Context menus use more opaque light/dark client fills;
-applet popups and the Dock keep thin fills while preserving their subtle contour
-and refracting rim. Only the Dock lowers centre coverage; Launcher and other
+a black upper gradient. Context menus share the same light/dark client fill;
+applet popups, tooltips, About This Computer and the detached search capsule
+share 55% white/black fills for light/dark mode. The Dock retains the same thin fill in both modes.
+Surface contours pair a 0.75 logical-pixel dark outer line with a 0.75
+logical-pixel light inner line; preserve each surface's native mask and radius.
+Only the Dock lowers centre coverage; Launcher and other
 applet popups retain full blur coverage so sharp backdrop details cannot leak
 through their interiors. `DarkGradientOverlay` is retained
 as the persisted enable key; the KCM calls it Enable gradient and exposes both
 colors and strengths. Keep legacy/core shaders equivalent, output premultiplied,
 and pixel widths scaled to the viewport. Shared light/dark Plasma and Kvantum
-surface fills let the effect define the material in either edition. Keep popup fills translucent; protect label contrast locally with the system
-complementary foreground and a soft text shadow. Validate black and white
+surface fills let the effect define the material in either edition. Keep popup
+fills translucent; use the system window foreground consistently on popups
+and the detached search capsule, with a very light black text shadow.
+Validate black and white
 backdrops as well as wallpapers. Preserve masks, shadows and solid fallbacks. GTK client-side popups retain their readable fills because they do
 not receive this compositor effect.
 Install Acrylic Glass under an immutable SHA-256 directory and atomically

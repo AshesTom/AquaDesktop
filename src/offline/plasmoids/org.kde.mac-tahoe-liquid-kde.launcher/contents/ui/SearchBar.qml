@@ -10,6 +10,8 @@ RowLayout {
     property alias textField: textField
     property alias showMenuButton: menuButton.visible
     readonly property bool menuOpen: menuButton.menuOpen
+    readonly property color textColor: main.textColor
+    readonly property color dimmedTextColor: Qt.rgba(textColor.r, textColor.g, textColor.b, 0.85)
     function closeMenu() { menuButton.closeMenu(); }
 
     Kirigami.Icon {
@@ -21,7 +23,7 @@ RowLayout {
         Layout.preferredHeight: Layout.preferredWidth
         source: Qt.resolvedUrl('icons/AppsIcon.svg')
         isMask: true
-        color: main.dimmedTextColor
+        color: searchFieldBar.dimmedTextColor
     }
 
     TextField {
@@ -33,7 +35,7 @@ RowLayout {
         font.family: Kirigami.Theme.defaultFont.family
         font.pointSize: main.textSize * (main.detachedSearch ? 2 : 1)
         font.weight: Kirigami.Theme.defaultFont.weight
-        color: main.textColor
+        color: searchFieldBar.textColor
 
         Component.onCompleted: text = main.searchText
         Connections {
@@ -44,7 +46,7 @@ RowLayout {
             }
         }
         placeholderText: i18n("Apps")
-        placeholderTextColor: main.dimmedTextColor
+        placeholderTextColor: searchFieldBar.dimmedTextColor
         background: Rectangle{
             color: "transparent"
         }
@@ -71,6 +73,7 @@ RowLayout {
 
     MenuButton {
         id: menuButton
+        foregroundColor: searchFieldBar.textColor
         Layout.alignment: Qt.AlignVCenter
     }
 }
