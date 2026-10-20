@@ -417,12 +417,22 @@ def auto_update_and_reexec(argv: list[str], prog: str = "install") -> None:
         return
 
     print("  \033[2mPulling the latest release…\033[0m")
+    before = _git("rev-parse", "HEAD", capture=True)
     pull = _git("pull", "--ff-only", capture=True)
     if pull is None or pull.returncode != 0:
         warn("git pull failed — installing the current version")
         if pull is not None and pull.stderr:
             print(f"  \033[2m{pull.stderr.strip().splitlines()[-1]}\033[0m")
         print(f"  \033[2mUpdate manually: git pull && ./{prog}\033[0m")
+        return
+
+    # AquaDesktop: the release check reads upstream, the pull reads this
+    # checkout's remote (the fork), which may not carry that release yet.
+    # Nothing pulled: nothing to restart for.
+    after = _git("rev-parse", "HEAD", capture=True)
+    if (before is not None and after is not None and before.returncode == 0
+            and after.returncode == 0 and before.stdout.strip() == after.stdout.strip()):
+        note("This checkout's remote has no newer release yet — installing the current version")
         return
 
     ok(f"Updated to {read_version()} — restarting installer")

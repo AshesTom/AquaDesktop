@@ -479,8 +479,10 @@ def test_auto_update_reexecs_as_root_after_the_privilege_drop(cli_module, monkey
     from types import SimpleNamespace
     monkeypatch.delenv("MAC_TAHOE_UPDATED", raising=False)
     monkeypatch.setattr(cli_module, "_repo_is_clean_git_checkout", lambda: True)
+    heads = iter(["old\n", "new\n"])
     monkeypatch.setattr(cli_module, "_git",
-                        lambda *a, **k: SimpleNamespace(returncode=0, stderr="", stdout=""))
+                        lambda *a, **k: SimpleNamespace(returncode=0, stderr="",
+                                                        stdout=next(heads) if a[0] == "rev-parse" else ""))
     monkeypatch.setattr(cli_module, "read_version", lambda: "9.9.9")
     for name in ("ok", "note", "warn"):
         monkeypatch.setattr(cli_module, name, lambda *_a: None)
@@ -506,6 +508,30 @@ def test_auto_update_reexecs_as_root_after_the_privilege_drop(cli_module, monkey
 
     cli_module.auto_update_and_reexec(["--only", "--kvantum"])
     assert events == [("seteuid", 0), ("setegid", 0), ("execv", 0, 0)]
+
+
+def test_auto_update_does_not_restart_when_the_pull_brings_nothing(cli_module, monkeypatch):
+    """The release check reads upstream; a fork's remote may not have that
+    release yet. A pull that leaves HEAD where it was must not announce an
+    update or restart the installer (it asked to continue a second time)."""
+    from types import SimpleNamespace
+    monkeypatch.delenv("MAC_TAHOE_UPDATED", raising=False)
+    monkeypatch.setattr(cli_module, "_repo_is_clean_git_checkout", lambda: True)
+    calls = []
+    def git(*args, **_kw):
+        calls.append(args)
+        return SimpleNamespace(returncode=0, stderr="", stdout="abc123\n" if args[0] == "rev-parse" else "")
+    monkeypatch.setattr(cli_module, "_git", git)
+    announced = []
+    monkeypatch.setattr(cli_module, "ok", announced.append)
+    monkeypatch.setattr(cli_module, "note", lambda *_a: None)
+    execv_called = []
+    monkeypatch.setattr(cli_module.os, "execv", lambda *a: execv_called.append(a))
+
+    cli_module.auto_update_and_reexec([])
+    assert ("pull", "--ff-only") in calls
+    assert execv_called == [] and announced == []
+    assert "MAC_TAHOE_UPDATED" not in cli_module.os.environ
 
 
 def test_auto_update_bails_when_pull_fails(cli_module, monkeypatch):
@@ -534,12 +560,11 @@ def test_auto_update_pulls_and_reexecs_install(cli_module, monkeypatch):
     monkeypatch.delenv("MAC_TAHOE_UPDATED", raising=False)
     monkeypatch.setattr(cli_module, "_repo_is_clean_git_checkout", lambda: True)
 
-    class _Ok:
-        returncode = 0
-        stdout = ""
-        stderr = ""
-
-    monkeypatch.setattr(cli_module, "_git", lambda *a, **k: _Ok())
+    from types import SimpleNamespace
+    # HEAD moves: the pull brought the release.
+    heads = iter(["old\n", "new\n"])
+    monkeypatch.setattr(cli_module, "_git", lambda *a, **k: SimpleNamespace(
+        returncode=0, stderr="", stdout=next(heads) if a[0] == "rev-parse" else ""))
 
     execv_args: list = []
     monkeypatch.setattr(cli_module.os, "execv",
