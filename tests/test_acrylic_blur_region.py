@@ -32,18 +32,18 @@ using Region = QRegion;
 using Rect = QRect;
 struct EffectWindow {
     bool decorated = false;
-    enum Type { Normal, Popup, AppletPopup } type = Normal;
+    enum Type { Normal, Popup, AppletPopup, Menu, Dropdown, Context, Tooltip, Dock } type = Normal;
     QRectF contentsRect() const { return QRectF(10, 20, 100, 80); }
     bool decoration() const { return decorated; }
     bool decorationHasAlpha() const { return false; }
     QRectF frameGeometry() const { return QRectF(0, 0, 120, 120); }
     int x() const { return 0; }
     int y() const { return 0; }
-    bool isDock() const { return false; }
-    bool isTooltip() const { return false; }
-    bool isMenu() const { return false; }
-    bool isDropdownMenu() const { return false; }
-    bool isPopupMenu() const { return false; }
+    bool isDock() const { return type == Dock; }
+    bool isTooltip() const { return type == Tooltip; }
+    bool isMenu() const { return type == Menu; }
+    bool isDropdownMenu() const { return type == Dropdown; }
+    bool isPopupMenu() const { return type == Context; }
     bool isPopupWindow() const { return type == Popup; }
     bool isAppletPopup() const { return type == AppletPopup; }
 };
@@ -103,7 +103,9 @@ int main() {
     const Region capsule = Region(QRect(10, 20, 80, 80), QRegion::Ellipse)
         | Region(QRect(30, 20, 80, 80), QRegion::Ellipse) | Region(QRect(50, 20, 20, 80));
     state.content = capsule;
-    for (auto type : {EffectWindow::Popup, EffectWindow::AppletPopup}) {
+    for (auto type : {EffectWindow::Popup, EffectWindow::AppletPopup, EffectWindow::Menu,
+                      EffectWindow::Dropdown, EffectWindow::Context, EffectWindow::Tooltip,
+                      EffectWindow::Dock}) {
         window.type = type;
         // A late Plasma shell role must not retain the initial normal frame.
         state.frame = Region(QRect(0, 0, 120, 120));
@@ -117,7 +119,7 @@ int main() {
 
     // Recover the client curve for both the detached capsule and popup panel.
     // Keep custom cutouts and asymmetric shapes on the existing render path.
-    for (int radius : {22, 23, 36}) {
+    for (int radius : {6, 9, 14, 16, 22, 23, 36}) {
         const QRect bounds(0, 0, 640, radius == 36 ? 72 : 600);
         const QRegion rounded = rasterizedRoundedRect(bounds, radius);
         const auto inferred = roundedBlurRadius(rounded, bounds);
@@ -130,9 +132,15 @@ int main() {
         const QRegion asymmetric = rounded | QRect(0, bounds.height() - radius, radius, radius);
         assert(!roundedBlurRadius(asymmetric, bounds));
         assert(!roundedBlurRadius(rounded, bounds.adjusted(0, 0, 1, 0)));
+        const auto client = clientBlurShape(rounded.translated(12, 8));
+        assert(client && client->bounds == bounds.translated(12, 8));
+        assert(std::abs(client->radius - radius) <= 1);
+        assert(!clientBlurShape(hole));
     }
     assert(!roundedBlurRadius(QRegion(), QRect(0, 0, 640, 72)));
     assert(!roundedBlurRadius(QRegion(QRect(0, 0, 640, 72)), QRect(0, 0, 640, 72)));
+    const auto square = clientBlurShape(QRegion(QRect(8, 12, 300, 32)));
+    assert(square && square->radius == 0 && square->bounds == QRect(8, 12, 300, 32));
 }
 ''')
     binary = tmp_path / 'regions'
@@ -174,8 +182,12 @@ int main(int argc, char **argv) {
             frame.resizeFrame(QSizeF(634, 104));
             const QRegion mask = frame.mask();
             const QRect bounds(0, 0, 634, 104);
-            const auto radius = roundedBlurRadius(mask, bounds);
-            assert(radius && *radius == 52);
+            const auto shape = clientBlurShape(mask);
+            const QString path = QString::fromLocal8Bit(argv[index]);
+            const int expected = path.contains("launcher-search") ? 52
+                : path.contains("panel-background") ? 16 : 22;
+            assert(shape && shape->bounds == bounds);
+            assert(std::abs(shape->radius - expected) <= (expected == 52 ? 0 : 2));
             assert(!roundedBlurRadius(mask - QRect(200, 20, 10, 10), bounds));
             assert(!roundedBlurRadius(mask | QRect(0, 80, 24, 24), bounds));
         }
@@ -193,7 +205,9 @@ int main(int argc, char **argv) {
                    check=True, capture_output=True, timeout=60)
     themes = repo / 'src/offline/plasma-theme'
     subprocess.run([str(build / 'capsule'), *[
-        str(themes / f'MacTahoeLiquidKde-{mode}/dialogs/launcher-search.svgz')
-        for mode in ('Light', 'Dark')]],
+        str(themes / f'MacTahoeLiquidKde-{mode}/{surface}.svgz')
+        for mode in ('Light', 'Dark')
+        for surface in ('dialogs/launcher-search', 'dialogs/background',
+                        'widgets/tooltip', 'widgets/panel-background')]],
         env=os.environ | {'QT_QPA_PLATFORM': 'offscreen'},
         check=True, capture_output=True, timeout=10)

@@ -106,7 +106,7 @@ int main(int argc, char **argv)
     require(control<QDoubleSpinBox>(module.get(), QStringLiteral("kcfg_BlurStrength"))->value() == 8.25, QStringLiteral("cancel failed"));
     require(selector->currentIndex() == 1, QStringLiteral("cancel retained preset"));
     control<QPushButton>(module.get(), QStringLiteral("resetPreset"))->click();
-    require(control<QDoubleSpinBox>(module.get(), QStringLiteral("kcfg_BlurStrength"))->value() == 5.0, QStringLiteral("restore preset failed"));
+    require(control<QDoubleSpinBox>(module.get(), QStringLiteral("kcfg_BlurStrength"))->value() == defaults["BlurStrength"].toDouble(), QStringLiteral("restore preset failed"));
     require(control<QDoubleSpinBox>(module.get(), QStringLiteral("kcfg_WindowCornerRadius"))->value() == 13.5, QStringLiteral("preset reset corners"));
     module->save();
     config->reparseConfiguration();

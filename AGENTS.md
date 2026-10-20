@@ -546,7 +546,9 @@ per-screen ownership: selecting an edition never resets custom wallpapers;
 wrapper selecting `MacGoldenGate`, not a separate theme implementation.
 
 Golden Gate's upper glass gradient applies to menus in both light and dark
-mode. Dock surfaces are exempt from that gradient at render time; do not
+mode: 95% black at the top, fading completely within the first 50% of the
+surface height. The lower half keeps untinted glass. Dock surfaces are exempt
+from the gradient under every material; do not
 change the saved gradient settings or remove their blur and refraction.
 
 Publish Tahoe and Golden Gate with matching release versions and `v<version>`

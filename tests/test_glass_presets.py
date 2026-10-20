@@ -86,7 +86,7 @@ def test_material_installation_preserves_customizations_and_migrates_stock(monke
     monkeypatch.setattr(glass, "kw_write", write)
     glass._install_material_defaults()
     if existing in ("fresh", "legacy"):
-        assert saved["BlurStrength"] == ("6.5" if golden else "5.0")
+        assert saved["BlurStrength"] == ("8.0" if golden else "7.0")
         assert saved["MagnifyGlassStrength"] == ("0.008" if golden else "0.02")
     else:
         assert all(saved[key] == value for key, value in original.items())

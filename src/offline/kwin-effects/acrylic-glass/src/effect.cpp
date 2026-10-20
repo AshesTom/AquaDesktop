@@ -581,13 +581,15 @@ void BlurEffect::updateBlurRegion(EffectWindow* w)
         BlurEffectData& data = m_windows[w];
         data.content = content;
         data.frame = frame;
-        data.popupRadius.reset();
-        if ((w->isAppletPopup() || w->isPopupWindow()) && content.has_value() && !frame.has_value()) {
+        data.clientShape.reset();
+        if (!w->decoration() && content.has_value() && !frame.has_value()
+            && (w->isDock() || w->isTooltip() || w->isMenu() || w->isDropdownMenu()
+                || w->isPopupMenu() || w->isAppletPopup() || w->isPopupWindow())) {
             QRegion clientRegion;
             for (const Rect &rect : content->rects()) {
                 clientRegion += QRect(rect);
             }
-            data.popupRadius = roundedBlurRadius(clientRegion, w->contentsRect().toRect());
+            data.clientShape = clientBlurShape(clientRegion & w->contentsRect().toRect());
         }
         data.colorMatrix = colorTransformMatrix(saturation.value_or(1.0), contrast.value_or(1.0), 1.0);
         data.windowEffect = ItemEffect(w->windowItem());
@@ -777,7 +779,9 @@ Region BlurEffect::blurRegion(EffectWindow* w) const
     if (auto it = m_windows.find(w); it != m_windows.end()) {
         const std::optional<Region>& content = it->second.content;
         const std::optional<Region>& frame = it->second.frame;
-        const bool clientPopup = !w->decoration() && (w->isAppletPopup() || w->isPopupWindow());
+        const bool clientPopup = !w->decoration() && (w->isDock() || w->isTooltip()
+            || w->isMenu() || w->isDropdownMenu() || w->isPopupMenu()
+            || w->isAppletPopup() || w->isPopupWindow());
 
         if (content.has_value()) {
             if (content->isEmpty()) {
@@ -821,7 +825,8 @@ void BlurEffect::prePaintWindow(RenderView* view, EffectWindow* w, WindowPrePain
     // The Plasma shell role may arrive after the first blur region. KWin
     // exposes no window-type change signal; discard an earlier implicit
     // rectangular frame as soon as the window becomes an applet popup.
-    if (!w->decoration() && (w->isAppletPopup() || w->isPopupWindow())) {
+    if (!w->decoration() && (w->isDock() || w->isTooltip() || w->isMenu()
+        || w->isDropdownMenu() || w->isPopupMenu() || w->isAppletPopup() || w->isPopupWindow())) {
         const auto it = m_windows.find(w);
         if (it != m_windows.end() && it->second.frame.has_value()) {
             updateBlurRegion(w);
@@ -1361,8 +1366,12 @@ void BlurEffect::blur(
         }
     }
 
-    if (blurInfo.popupRadius.has_value()) {
-        topCornerRadius = bottomCornerRadius = *blurInfo.popupRadius;
+    QRectF surfaceRect = w->frameGeometry();
+    if (blurInfo.clientShape.has_value()) {
+        topCornerRadius = bottomCornerRadius = blurInfo.clientShape->radius;
+        surfaceRect = QRectF(blurInfo.clientShape->bounds).translated(w->pos());
+        cornerRadius = BorderRadius(topCornerRadius, topCornerRadius,
+                                    bottomCornerRadius, bottomCornerRadius);
     }
 
     // ShapeCorners publishes its animated geometry during prePaintWindow.
@@ -1371,6 +1380,7 @@ void BlurEffect::blur(
     float cornerSquircle = 0.0f;
     const auto shape = w->property("_mttkde_corner_shape_v1").toList();
     if (shape.size() == 2) {
+        surfaceRect = w->frameGeometry();
         topCornerRadius = bottomCornerRadius = std::max(0.0f, shape[0].toFloat());
         cornerSquircle = std::clamp(shape[1].toFloat(), 0.0f, 1.0f);
         cornerRadius = BorderRadius(topCornerRadius, topCornerRadius,
@@ -1380,7 +1390,7 @@ void BlurEffect::blur(
     // Clamp the radius for narrow / short windows so the SDF doesn't
     // wrap around onto itself when r > half-dimension.
     if (topCornerRadius > 0 || bottomCornerRadius > 0) {
-        const QRectF frame = w->frameGeometry();
+        const QRectF frame = surfaceRect;
         const float winWidth = frame.width();
         const float winHeight = frame.height();
         bool isOverRounded = (topCornerRadius + bottomCornerRadius) > winHeight || (topCornerRadius * 2) > winWidth;
@@ -1418,10 +1428,10 @@ void BlurEffect::blur(
     const QVector2D halfpixel(0.5 / read->colorAttachment()->width(), 0.5 / read->colorAttachment()->height());
 
     const QRectF transformedRect = QRectF {
-        w->frameGeometry().x() + data.xTranslation(),
-        w->frameGeometry().y() + data.yTranslation(),
-        w->frameGeometry().width() * data.xScale(),
-        w->frameGeometry().height() * data.yScale(),
+        w->x() + (surfaceRect.x() - w->x()) * data.xScale() + data.xTranslation(),
+        w->y() + (surfaceRect.y() - w->y()) * data.yScale() + data.yTranslation(),
+        surfaceRect.width() * data.xScale(),
+        surfaceRect.height() * data.yScale(),
     };
     // Floor to integer device pixels so the SDF rounded corners are always
     // pixel-aligned — prevents subpixel border artifacts that shift with
@@ -1451,10 +1461,9 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.refractionWidthLocation, float(m_refractionWidth * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightWidthLocation, float(m_highlightWidth * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightStrengthLocation, m_highlightStrength);
-    // Golden Gate keeps Plasma dock surfaces clear; popups retain the gradient.
-    const bool dockWithoutGradient = BlurConfig::materialPreset() == 2 && w->isDock();
+    // Panels and the Dock retain untinted glass under every material.
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.darkGradientOverlayLocation,
-        int(m_darkGradientOverlay && !dockWithoutGradient));
+        int(m_darkGradientOverlay && !w->isDock()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.materialOpacityLocation, m_materialOpacity);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.gradientTopLocation, m_gradientTop);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.gradientBottomLocation, m_gradientBottom);

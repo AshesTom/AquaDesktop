@@ -38,11 +38,29 @@ def test_qt_renders_transparent_dialogs_and_dock(mode):
     svg = pytest.importorskip("PyQt6.QtSvg")
     gui = pytest.importorskip("PyQt6.QtGui")
     core = pytest.importorskip("PyQt6.QtCore")
-    for name in ("dialogs/background", "dialogs/launcher-search", "widgets/panel-background"):
+    for name in ("dialogs/background", "dialogs/launcher-search", "widgets/panel-background",
+                 "widgets/tooltip", "widgets/background", "widgets/translucentbackground"):
         renderer = svg.QSvgRenderer(gzip.decompress((ROOT / f"MacTahoeLiquidKde-{mode}/{name}.svgz").read_bytes()))
         image = gui.QImage(64, 64, gui.QImage.Format.Format_ARGB32)
         image.fill(0)
         painter = gui.QPainter(image)
         renderer.render(painter, "center", core.QRectF(0, 0, 64, 64))
         painter.end()
-        assert 0 < image.pixelColor(32, 32).alphaF() <= .21, (mode, name)
+        alpha = image.pixelColor(32, 32).alphaF()
+        assert 0 < alpha <= (.05 if name == "widgets/panel-background" else .13), (mode, name, alpha)
+
+
+@pytest.mark.parametrize("mode", ["", "Dark"])
+def test_kvantum_blur_corners_match_drawn_svg(mode):
+    import configparser
+    svg = pytest.importorskip("PyQt6.QtSvg")
+    folder = ROOT.parent / "kvantum/mac-tahoe-liquid-kde"
+    theme = "mac-tahoe-liquid-kde" + mode
+    config = configparser.ConfigParser(strict=False, interpolation=None)
+    config.read(folder / (theme + ".kvconfig"))
+    renderer = svg.QSvgRenderer(str(folder / (theme + ".svg")))
+    for surface in ("menu", "tooltip"):
+        corner = renderer.boundsOnElement(surface + "-normal-topleft")
+        radius = float(config["%General"][surface + "_blur_radius"])
+        assert abs(corner.width() - radius) < .01
+        assert abs(corner.height() - radius) < .01

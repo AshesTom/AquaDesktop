@@ -161,6 +161,12 @@ int main(int argc, char **argv)
             const auto tinted = render();
             shader.setUniformValue("darkGradientOverlay", false);
             const auto untinted = render();
+            require(std::abs(qRed(tinted.pixel(96, 0)) - qRed(untinted.pixel(96, 0)) * 0.05) <= 1,
+                    QStringLiteral("Golden Gate must start with 95 percent black tint"));
+            for (int y = std::ceil(height * 0.5); y < height - 1; ++y) {
+                require(tinted.pixel(96, y) == untinted.pixel(96, y),
+                        QStringLiteral("Golden Gate tint extends past the first 50 percent"));
+            }
             for (const QString mode : {QStringLiteral("Light"), QStringLiteral("Dark")}) {
                 for (const QString name : {QStringLiteral("background"), QStringLiteral("launcher-search")}) {
                     QSvgRenderer renderer(root + "/../../../../plasma-theme/MacTahoeLiquidKde-" + mode

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "kwin_version_compat.h"
+#include "roundedblurshape.h"
 
 #include "effect/effect.h"
 #include "opengl/glutils.h"
@@ -64,8 +65,8 @@ struct BlurEffectData
     /** Subregion of the server-side decoration marked as blur-able. */
     std::optional<Region> frame;
 
-    /** Rounded client curve used to antialias Plasma popup glass. */
-    std::optional<float> popupRadius;
+    /** Client surface geometry, excluding transparent shadow margins. */
+    std::optional<ClientBlurShape> clientShape;
 
     /**
      * Render scratch space keyed by the view it belongs to. Different

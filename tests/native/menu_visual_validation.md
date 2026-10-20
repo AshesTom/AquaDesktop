@@ -1,5 +1,32 @@
 # Popup rendering validation
 
+## v0.56.3 follow-up — 2026-10-20
+
+Menu and tooltip blur radii now match Kvantum's drawn SVG corners (9 and 6
+logical pixels). Plasma dialog, tooltip and Dock masks use their visible
+surface paths. Acrylic Glass fits the client region, including inset shadow
+margins and square surfaces, and antialiases menus, tooltips and panels as well
+as applet popups. Custom cutouts and Rounded Corners' runtime shape remain
+protected. Real KSvg masks pass at 100%, 125%, 150%, 175% and 200%.
+
+The Dock fill is 4% and every material excludes it from the gradient. Golden
+Gate starts with 95% black tint, fades to zero at half-height and leaves the
+lower half untinted. Tahoe stays untinted. The actual legacy and core shaders
+pass black/white backdrop, gradient extent and premultiplied coverage checks.
+Blur and restrained color refraction are increased without adding opaque fills.
+
+The full suite reported 1462 passed, 3 skipped and one stale README test-count
+badge failure; that badge was corrected and its check rerun successfully.
+The final 50% gradient passed all 16 material tests. Both effect and KCM build
+against the host 6.7 SDK and isolated 6.6/6.8 SDK containers.
+The focused final compositor probe captures context menus, submenus, tooltips
+and Plasma popups at 150%, with effects on/off. Publication screenshots use a
+separate disposable KDE neon VM and the verified running plugin identity.
+Checks were deliberately limited after the requested final gradient adjustment;
+this is not a new exhaustive application or driver qualification.
+
+## Earlier validation
+
 2026-10-17, following the #77/#89 corner and desktop fixes in `bc0d3c4`.
 The repository also received independent VM/OLED commits during this work;
 this follow-up changes popup rendering, assets and the isolated test tools.
