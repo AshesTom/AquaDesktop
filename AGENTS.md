@@ -264,8 +264,9 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   edge faces the top left. The light is premultiplied with no alpha of its
   own, so KWin adds it to the desktop and it keeps the desktop's colour;
   never composite or screenshot it through a step that unpremultiplies
-  (QPainter skips alpha-0 pixels). Over Acrylic Glass the face is the
-  Plasma popups' own (`dialogs/background`: 8 % white in both appearances)
+  (QPainter skips alpha-0 pixels). Over Acrylic Glass the light face is the
+  Plasma popups' own (`dialogs/background`: 8 % white); the dark one is
+  Apple's dark material, #1c1c1e at 40 % (white lit the dark glass up),
   and a 1 px light edge (`rimLight` 0.08, no glow) over the effect's faint
   highlight: the earlier grey veil (#333333 at 55 %, white at 33 %) with its
   2 px rim and glow looked milky and outlined twice next to upstream's

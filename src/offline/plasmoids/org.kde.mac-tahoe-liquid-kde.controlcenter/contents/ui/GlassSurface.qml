@@ -23,13 +23,14 @@ Item {
     // White content on this glass (the Control Center, dark mode menus).
     readonly property bool dark: luminance(Kirigami.Theme.textColor) > 0.5
 
-    // The Plasma popups' own face over Acrylic Glass (dialogs/background:
-    // 8 % white in both appearances), so the popovers show the same glass;
-    // the effect draws their edge highlight. Theme Settings writes the tint
-    // and Golden Gate's clear-to-tinted level to glass.ini.
+    // Light mode: the Plasma popups' own face over Acrylic Glass
+    // (dialogs/background, 8 % white). Dark mode: macOS' dark material,
+    // Apple's #1c1c1e at 40 %, as white over the blur would light the dark
+    // glass up. Theme Settings writes the tint and Golden Gate's
+    // clear-to-tinted level to glass.ini.
     readonly property bool accentTint: tintName === "accent" && accentHex.length === 6
-    readonly property color tint: accentTint ? "#" + accentHex : "#ffffff"
-    readonly property real defaultTintAlpha: accentTint ? 0.20 : 0.08
+    readonly property color tint: accentTint ? "#" + accentHex : dark ? "#1c1c1e" : "#ffffff"
+    readonly property real defaultTintAlpha: accentTint ? (dark ? 0.35 : 0.20) : dark ? 0.40 : 0.08
     readonly property real tintAlpha: {
         const level = glassLevel;
         const clear = 0;
