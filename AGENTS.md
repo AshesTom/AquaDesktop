@@ -326,7 +326,8 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   in, 31 px corners). KWin blurs behind each bubble only: the compiled QML
   module `src/offline/qml/org.kde.mac.tahoe.liquid.glass` (built and
   installed by `steps/plasmoids.py`) has `GlassBlur`, which sends the union
-  of every visible item declaring `glassRadius` as the window's blur region
+  of every visible item declaring `glassRadius` as the window's blur region,
+  cut to the items that clip them
   (`KWindowEffects::enableBlurBehind`). The request is double-buffered (applied on
   the surface's next commit) and KWindowSystem drops an unchanged region, so
   GlassBlur renders a frame after each request (`m_window->update()`):
@@ -366,6 +367,10 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   Banners: 344 px, 10 px from the edge, 15 px under the menu bar, 6 px
   apart, 32 px app icon 13 px in, bold title over the body, no header or
   timeout bar, close button on hover (`tests/test_notifications_fork.py`).
+  The history is the Notification Center, in a frameless window of its own
+  (never the tray's popup, which always draws a frame and a shadow): one
+  24 px glass card per notification, apps grouped as stacks that expand on
+  a click, each card and pill blurred on its own through GlassBlur.
   Keep every `i18n*()` on Plasma's `plasma_applet_org.kde.plasma.notifications`
   domain.
 - Media: the Dock draws no audio badge (`indicateAudioStreams` defaults to

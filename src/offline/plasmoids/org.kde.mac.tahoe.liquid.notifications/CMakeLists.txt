@@ -71,10 +71,13 @@ target_sources(org.kde.mac.tahoe.liquid.notifications PRIVATE
 
 ecm_target_qml_sources(org.kde.mac.tahoe.liquid.notifications SOURCES
     components/ActionContainer.qml
+    components/BlurSettler.qml
     components/Body.qml
     components/DraggableFileArea.qml
     components/EditContextMenu.qml
     components/FooterLoader.qml
+    components/GlassCard.qml
+    components/GlassSurface.qml
     components/HeadingButtons.qml
     components/Icon.qml
     components/JobDetails.qml
@@ -86,7 +89,14 @@ ecm_target_qml_sources(org.kde.mac.tahoe.liquid.notifications SOURCES
     components/SpeedChart.qml
     components/Summary.qml
     components/ThumbnailStrip.qml
+    components/WindowBlur.qml
     PATH components
+)
+
+# AquaDesktop: the Liquid Glass face of the history cards (GlassSurface.qml,
+# the menu bar popovers' copy), next to the QML that loads it.
+qt_target_qml_sources(org.kde.mac.tahoe.liquid.notifications
+    RESOURCES components/shaders/glasssurface.frag.qsb
 )
 
 ecm_target_qml_sources(org.kde.mac.tahoe.liquid.notifications SOURCES

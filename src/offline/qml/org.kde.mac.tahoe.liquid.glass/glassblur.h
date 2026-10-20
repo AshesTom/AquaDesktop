@@ -51,11 +51,13 @@ protected:
 private:
     void apply();
     void watchWindow(QQuickWindow *window);
-    void collect(QQuickItem *item, QRegion &region) const;
+    void collect(QQuickItem *item, QRegion &region, const QRectF &clip) const;
 
     QPointer<QQuickItem> m_target;
     QPointer<QQuickWindow> m_window;
     bool m_active = true;
+    // The window's input mask is ours: give it back when the glass goes.
+    bool m_maskSet = false;
     QTimer m_timer;
     // Later passes: Plasma's Dialog resets the window's blur from its own
     // background hints when it shows or resizes, after our first request.

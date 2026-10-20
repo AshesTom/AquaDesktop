@@ -1,17 +1,30 @@
 /*
     SPDX-FileCopyrightText: 2018-2019 Kai Uwe Broulik <kde@privat.broulik.de>
+    SPDX-FileCopyrightText: 2026 AquaDesktop contributors
 
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+*/
+
+/*
+    AquaDesktop — the notification history as macOS Tahoe's Notification
+    Center, laid out after NextKde's history: no panel behind it, every
+    notification its own glass card (24 px corners, no drawn border), the
+    Do Not Disturb row a glass card on top. Notifications are grouped by
+    app; a collapsed group is a stack, its newest card with up to two
+    cards peeking under it, and a click expands it into one card per
+    notification under a row with the app's name, "Show Fewer" and a
+    button closing the group. Every card and pill declares `glassRadius`,
+    so GlassBlur (main.qml) blurs the desktop behind each one on its own.
 */
 
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
-import org.kde.ksvg as KSvg
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
@@ -24,7 +37,7 @@ import plasma.applet.org.kde.mac.tahoe.liquid.notifications as Notifications
 import "delegates" as Delegates
 import "components" as Components
 
-PlasmaExtras.Representation {
+Item {
     id: fullRepresentationRoot
 
     // TODO these should be configurable in the future
@@ -35,40 +48,112 @@ PlasmaExtras.Representation {
     required property PlasmaCore.Action clearHistoryAction
     required property NotificationManager.Notifications historyModel
 
-    Layout.minimumWidth: Kirigami.Units.gridUnit * 12
-    Layout.minimumHeight: Kirigami.Units.gridUnit * 12
-    Layout.preferredWidth: Kirigami.Units.gridUnit * 18
-    Layout.preferredHeight: Kirigami.Units.gridUnit * 24
-    Layout.maximumWidth: Kirigami.Units.gridUnit * 80
-    Layout.maximumHeight: Kirigami.Units.gridUnit * 40
+    // The history's window is on screen.
+    property bool shown: false
+    // The tallest the history may grow: the screen's room under the menu bar.
+    property int maximumHeight: Kirigami.Units.gridUnit * 40
 
-    Layout.fillHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical
+    // 356 px wide like the clock panel, cards 8 px apart; a collapsed
+    // group's cards peek 6 px under its newest one, 8 px narrower per side
+    // each (NextKde's stack).
+    readonly property int cardSpacing: 8
+    readonly property int stackStep: 6
+    readonly property int stackInset: 8
+    // White content on dark glass.
+    readonly property bool dark: (0.299 * Kirigami.Theme.textColor.r + 0.587 * Kirigami.Theme.textColor.g
+                                  + 0.114 * Kirigami.Theme.textColor.b) > 0.5
 
-    collapseMarginsHint: true
+    // A glass shape moved, appeared or went away: GlassBlur asks KWin again.
+    signal glassChanged()
+
+    implicitWidth: 356
+    implicitHeight: Math.min(maximumHeight, headerCard.height + cardSpacing
+        + (list.count > 0 ? list.contentHeight : emptyCard.height))
+
+    onHeightChanged: glassChanged()
+    onShownChanged: {
+        if (shown) {
+            list.positionViewAtBeginning();
+            list.currentIndex = -1;
+            for (let i = 0; i < fullRepresentationRoot.historyModel.count; i++)  {
+                let rowIdx = fullRepresentationRoot.historyModel.index(i, 0);
+                fullRepresentationRoot.historyModel.setData(rowIdx, true, NotificationManager.Notifications.ReadRole);
+            }
+        }
+        glassChanged();
+    }
 
     Keys.onDownPressed: dndCheck.forceActiveFocus(Qt.TabFocusReason);
 
-    Connections {
-        target: fullRepresentationRoot.appletInterface
-        function onExpandedChanged() {
-            if (fullRepresentationRoot.appletInterface.expanded) {
-                list.positionViewAtBeginning();
-                list.currentIndex = -1;
-                for (let i = 0; i < fullRepresentationRoot.historyModel.count; i++)  {
-                    let rowIdx = fullRepresentationRoot.historyModel.index(i, 0);
-                    fullRepresentationRoot.historyModel.setData(rowIdx, true, NotificationManager.Notifications.ReadRole);
-                }
-            }
+    // A round button on the glass: the cards' close, configure and restore
+    // buttons, and the group row's buttons.
+    component RoundButton: Rectangle {
+        id: roundButton
+
+        property string iconName
+        property string glyph
+        property string toolTip
+        signal clicked()
+
+        width: 20
+        height: 20
+        radius: width / 2
+        color: Qt.rgba(Kirigami.Theme.backgroundColor.r, Kirigami.Theme.backgroundColor.g,
+                       Kirigami.Theme.backgroundColor.b, 0.95)
+        border.width: 1
+        border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g,
+                              Kirigami.Theme.textColor.b, 0.18)
+
+        Text {
+            anchors.centerIn: parent
+            anchors.verticalCenterOffset: -1
+            visible: roundButton.glyph !== ""
+            text: roundButton.glyph
+            color: Kirigami.Theme.textColor
+            opacity: roundButtonArea.pressed ? 0.5 : 0.8
+            font.pixelSize: 15
+            font.weight: Font.DemiBold
         }
+        Kirigami.Icon {
+            anchors.centerIn: parent
+            width: 14
+            height: 14
+            visible: roundButton.iconName !== ""
+            source: roundButton.iconName
+            opacity: roundButtonArea.pressed ? 0.5 : 0.8
+        }
+        MouseArea {
+            id: roundButtonArea
+            anchors.fill: parent
+            hoverEnabled: true
+            onClicked: roundButton.clicked()
+        }
+        PlasmaComponents3.ToolTip {
+            text: roundButton.toolTip
+            visible: roundButtonArea.containsMouse && text !== ""
+        }
+
+        Accessible.role: Accessible.Button
+        Accessible.name: toolTip
+        Accessible.onPressAction: clicked()
     }
 
-    header: PlasmaExtras.PlasmoidHeading {
+    // Do Not Disturb, its end, and Clear All / Configure.
+    Components.GlassCard {
+        id: headerCard
+        width: parent.width
+        height: header.implicitHeight + 2 * 8
+        onHeightChanged: fullRepresentationRoot.glassChanged()
+
         ColumnLayout {
-            anchors {
-                fill: parent
-                leftMargin: Kirigami.Units.smallSpacing
-            }
             id: header
+            anchors {
+                left: parent.left
+                right: parent.right
+                verticalCenter: parent.verticalCenter
+                leftMargin: 12
+                rightMargin: 8
+            }
             spacing: 0
 
             RowLayout {
@@ -177,18 +262,31 @@ PlasmaExtras.Representation {
                         }
                     }
                 }
-
                 Item {
                     Layout.fillWidth: true
                 }
 
                 PlasmaComponents3.ToolButton {
-                    visible: !(Plasmoid.containmentDisplayHints & PlasmaCore.Types.ContainmentDrawsPlasmoidHeading)
-
                     Accessible.name: fullRepresentationRoot.clearHistoryAction.text
                     icon.name: "edit-clear-history"
                     enabled: fullRepresentationRoot.clearHistoryAction.visible
                     onClicked: fullRepresentationRoot.clearHistoryAction.trigger()
+
+                    PlasmaComponents3.ToolTip {
+                        text: parent.Accessible.name
+                    }
+                }
+
+                // The tray's heading had it: the history has its own window.
+                PlasmaComponents3.ToolButton {
+                    readonly property PlasmaCore.Action configureAction: Plasmoid.internalAction("configure")
+                    visible: configureAction !== null && configureAction.visible
+                    Accessible.name: configureAction ? configureAction.text.replace("&", "") : ""
+                    icon.name: "configure"
+                    onClicked: {
+                        fullRepresentationRoot.appletInterface.closePlasmoid();
+                        configureAction.trigger();
+                    }
 
                     PlasmaComponents3.ToolTip {
                         text: parent.Accessible.name
@@ -257,22 +355,81 @@ PlasmaExtras.Representation {
         }
     }
 
+    // Nothing to show: one pill, like the clock panel's "No Notifications".
+    Components.GlassCard {
+        id: emptyCard
+
+        // Checking valid to avoid creating ServerInfo object if everything is alright
+        readonly property NotificationManager.ServerInfo currentOwner: NotificationManager.Server.valid ? null : NotificationManager.Server.currentOwner
+
+        y: headerCard.height + fullRepresentationRoot.cardSpacing
+        width: parent.width
+        height: Math.max(46, emptyText.implicitHeight + 2 * 12)
+        visible: list.count === 0
+        onVisibleChanged: fullRepresentationRoot.glassChanged()
+
+        ColumnLayout {
+            id: emptyText
+            anchors {
+                left: parent.left
+                right: parent.right
+                verticalCenter: parent.verticalCenter
+                leftMargin: 16
+                rightMargin: 16
+            }
+            spacing: 2
+
+            PlasmaComponents3.Label {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.Wrap
+                textFormat: Text.PlainText
+                font.weight: Font.DemiBold
+                text: NotificationManager.Server.valid
+                    ? i18nd("plasma_applet_org.kde.plasma.notifications", "No unread notifications")
+                    : i18nd("plasma_applet_org.kde.plasma.notifications", "Notification service not available")
+            }
+            PlasmaComponents3.Label {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.Wrap
+                textFormat: Text.PlainText
+                opacity: 0.7
+                visible: text !== ""
+                text: emptyCard.currentOwner && emptyCard.currentOwner.vendor && emptyCard.currentOwner.name
+                    ? i18ndc("plasma_applet_org.kde.plasma.notifications", "Vendor and product name", "Notifications are currently provided by '%1 %2'", emptyCard.currentOwner.vendor, emptyCard.currentOwner.name)
+                    : ""
+            }
+        }
+    }
+
     PlasmaComponents3.ScrollView {
         id: scrollView
-        anchors.fill: parent
+        y: headerCard.height + fullRepresentationRoot.cardSpacing
+        width: parent.width
+        height: Math.max(0, parent.height - y)
         background: null
         focus: true
+        // macOS overlays its scroll bars; ours would sit beside the cards,
+        // off the glass, where the window takes no clicks.
+        QQC2.ScrollBar.vertical.policy: QQC2.ScrollBar.AlwaysOff
+        QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
 
         contentItem: ListView {
             id: list
             width: scrollView.availableWidth
+            clip: true
             focus: true
-            model: fullRepresentationRoot.appletInterface.expanded ? fullRepresentationRoot.historyModel : null
+            model: fullRepresentationRoot.shown ? fullRepresentationRoot.historyModel : null
             currentIndex: -1
 
-            topMargin: Kirigami.Units.largeSpacing
-            bottomMargin: Kirigami.Units.largeSpacing
-            spacing: Kirigami.Units.smallSpacing
+            // Each row keeps its own gap below (a collapsed group's hidden
+            // heading has none).
+            spacing: 0
+
+            onContentYChanged: fullRepresentationRoot.glassChanged()
+            onContentHeightChanged: fullRepresentationRoot.glassChanged()
+            onCountChanged: fullRepresentationRoot.glassChanged()
 
             KeyNavigation.up: dndCheck
 
@@ -333,40 +490,21 @@ PlasmaExtras.Representation {
                     }
                 }
             }
+            // The keyboard focus is a ring on the card itself.
+            highlight: null
 
-            highlightMoveDuration: 0
-            highlightResizeDuration: 0
-            // Not using PlasmaExtras.Highlight as this is only for indicating keyboard focus
-            highlight: KSvg.FrameSvgItem {
-                imagePath: "widgets/listitem"
-                prefix: "pressed"
-            }
-
+            // No separator between apps: every card is its own bubble.
+            // Rows still know their app, for the group's last card.
             section {
                 property: "desktopEntry"
                 criteria: ViewSection.FullString
-                delegate: Item {
-                    width: list.width
-                    // Within a section delegate we don't have other ways to detect whether we are the first section
-                    height: y > 0 ? Math.round(Kirigami.Units.smallSpacing * 2) : 0
-
-                    KSvg.SvgItem {
-                        anchors {
-                            left: parent.left
-                            right: parent.right
-                            verticalCenter: parent.verticalCenter
-                            margins: Kirigami.Units.largeSpacing
-                        }
-                        imagePath: "widgets/line"
-                        elementId: "horizontal-line"
-                        visible: parent.y > 0
-                    }
-                }
             }
 
             delegate: DraggableDelegate {
                 id: delegate
                 width: ListView.view.width
+                leftPadding: 0
+                rightPadding: 0
                 opacity: 0
 
                 required property int index
@@ -406,6 +544,14 @@ PlasmaExtras.Representation {
                 required property int groupChildrenCount
                 required property int expandedGroupChildrenCount
 
+                // A collapsed group: its heading row is hidden and its
+                // newest notification is the front of a stack.
+                readonly property bool stacked: isInGroup && !isGroupExpanded
+                readonly property int stackDepth: stacked ? Math.max(0, Math.min(2, groupChildrenCount - 1)) : 0
+
+                onOpacityChanged: fullRepresentationRoot.glassChanged()
+                onHeightChanged: fullRepresentationRoot.glassChanged()
+
                 // NOTE: The following animations replace the Transitions in the ListView
                 // because they don't work when the items change size during the animation
                 // (showing/hiding the show more/show less button) in that case they will
@@ -426,6 +572,7 @@ PlasmaExtras.Representation {
                 }
                 transform: Translate {
                     id: transl
+                    onYChanged: fullRepresentationRoot.glassChanged()
                 }
                 NumberAnimation {
                     id: traslAnim
@@ -465,13 +612,18 @@ PlasmaExtras.Representation {
                 contentItem: Loader {
                     id: delegateLoader
 
-                    sourceComponent: {
-                        if (delegate.isGroup) {
-                            return groupDelegate;
-                        } else if (delegate.isInGroup) {
-                            return notificationGroupedDelegate;
+                    // A collapsed group's heading takes no room.
+                    active: !delegate.isGroup || delegate.isGroupExpanded
+                    sourceComponent: delegate.isGroup ? groupDelegate : cardDelegate
+
+                    // Closes the notification, or the whole group from the
+                    // front of a stack (macOS clears the stack).
+                    function closeCard() {
+                        if (delegate.stacked) {
+                            const rowIdx = fullRepresentationRoot.historyModel.index(delegate.index, 0);
+                            fullRepresentationRoot.historyModel.close(fullRepresentationRoot.historyModel.groupIndex(rowIdx));
                         } else {
-                            return notificationDelegate;
+                            delegate.close();
                         }
                     }
 
@@ -582,90 +734,225 @@ PlasmaExtras.Representation {
 
                     Component {
                         id: groupDelegate
-                        Components.NotificationHeader {
-                            modelInterface {
-                                applicationName: delegate.applicationName
-                                applicationIconSource: delegate.applicationIconName
-                                originName: delegate.originName || ""
 
-                                configurable: delegate.configurable
-                                closable: delegate.closable
+                        // The expanded group's row: the app, "Show Fewer"
+                        // and the group's buttons, each a glass pill.
+                        Item {
+                            implicitHeight: 28 + fullRepresentationRoot.cardSpacing
 
-                                onCloseClicked: fullRepresentationRoot.historyModel.close(fullRepresentationRoot.historyModel.index(delegate.index, 0));
-                                onConfigureClicked: fullRepresentationRoot.historyModel.configure(fullRepresentationRoot.historyModel.index(delegate.index, 0))
+                            Components.GlassCard {
+                                height: 28
+                                width: Math.min(appRow.implicitWidth + 20, parent.width - groupButtons.width - fullRepresentationRoot.cardSpacing)
+                                radius: height / 2
+
+                                RowLayout {
+                                    id: appRow
+                                    x: 10
+                                    width: parent.width - 20
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    spacing: Kirigami.Units.smallSpacing
+
+                                    Kirigami.Icon {
+                                        Layout.preferredWidth: 16
+                                        Layout.preferredHeight: 16
+                                        source: delegate.applicationIconName
+                                        visible: valid
+                                    }
+                                    PlasmaComponents3.Label {
+                                        Layout.fillWidth: true
+                                        textFormat: Text.PlainText
+                                        elide: Text.ElideRight
+                                        font.weight: Font.Bold
+                                        text: delegate.applicationName + (delegate.originName ? " · " + delegate.originName : "")
+                                    }
+                                }
                             }
-                            closeButtonTooltip: i18nd("plasma_applet_org.kde.plasma.notifications", "Close Group")
+
+                            Row {
+                                id: groupButtons
+                                anchors.right: parent.right
+                                height: 28
+                                spacing: 6
+
+                                Components.GlassCard {
+                                    width: showFewerLabel.implicitWidth + 24
+                                    height: 28
+                                    radius: height / 2
+                                    hovered: showFewerHover.hovered
+
+                                    PlasmaComponents3.Label {
+                                        id: showFewerLabel
+                                        anchors.centerIn: parent
+                                        textFormat: Text.PlainText
+                                        text: i18nd("plasma_applet_org.kde.plasma.notifications", "Show Fewer")
+                                    }
+                                    HoverHandler {
+                                        id: showFewerHover
+                                    }
+                                    TapHandler {
+                                        onTapped: list.setGroupExpanded(delegate.index, false)
+                                    }
+
+                                    Accessible.role: Accessible.Button
+                                    Accessible.name: showFewerLabel.text
+                                    Accessible.onPressAction: list.setGroupExpanded(delegate.index, false)
+                                }
+
+                                Components.GlassCard {
+                                    width: 28
+                                    height: 28
+                                    radius: height / 2
+                                    visible: delegate.configurable
+
+                                    RoundButton {
+                                        anchors.centerIn: parent
+                                        color: "transparent"
+                                        border.width: 0
+                                        iconName: "configure"
+                                        toolTip: delegate.configureActionLabel || i18nd("plasma_applet_org.kde.plasma.notifications", "Configure")
+                                        onClicked: fullRepresentationRoot.historyModel.configure(fullRepresentationRoot.historyModel.index(delegate.index, 0))
+                                    }
+                                }
+
+                                Components.GlassCard {
+                                    width: 28
+                                    height: 28
+                                    radius: height / 2
+                                    visible: delegate.closable
+
+                                    RoundButton {
+                                        anchors.centerIn: parent
+                                        color: "transparent"
+                                        border.width: 0
+                                        glyph: "×"
+                                        toolTip: i18nd("plasma_applet_org.kde.plasma.notifications", "Close Group")
+                                        onClicked: fullRepresentationRoot.historyModel.close(fullRepresentationRoot.historyModel.index(delegate.index, 0))
+                                    }
+                                }
+                            }
                         }
                     }
+
                     Component {
-                        id: notificationDelegate
-                        Delegates.DelegateHistory {
-                            Layout.fillWidth: true
-                            modelInterface: delegateLoader.modelInterface
-                        }
-                    }
-                    Component {
-                        id: notificationGroupedDelegate
-                        ColumnLayout {
-                            spacing: Kirigami.Units.smallSpacing
+                        id: cardDelegate
 
-                            Delegates.DelegateHistoryGrouped {
-                                Layout.fillWidth: true
-                                modelInterface: delegateLoader.modelInterface
+                        Item {
+                            id: cardRow
+                            // Named here: inside the Repeater, `delegate` is its own property.
+                            readonly property int stackDepth: delegate.stackDepth
+
+                            implicitHeight: card.height + stackDepth * fullRepresentationRoot.stackStep
+                                + fullRepresentationRoot.cardSpacing
+
+                            // The stack's other cards, under the front one:
+                            // nothing of them is painted above its bottom
+                            // edge, so they never show through the glass.
+                            Item {
+                                y: card.height
+                                width: parent.width
+                                height: cardRow.stackDepth * fullRepresentationRoot.stackStep
+                                clip: true
+
+                                Repeater {
+                                    model: cardRow.stackDepth
+
+                                    delegate: Rectangle {
+                                        required property int index
+                                        z: -index
+                                        x: (index + 1) * fullRepresentationRoot.stackInset
+                                        y: (index + 1) * fullRepresentationRoot.stackStep - height
+                                        width: parent.width - 2 * x
+                                        height: card.height
+                                        radius: card.radius
+                                        color: fullRepresentationRoot.dark
+                                            ? (index === 0 ? Qt.rgba(0.26, 0.27, 0.29, 0.9) : Qt.rgba(0.23, 0.24, 0.26, 0.85))
+                                            : (index === 0 ? Qt.rgba(0.84, 0.84, 0.85, 0.9) : Qt.rgba(0.78, 0.78, 0.79, 0.85))
+                                    }
+                                }
                             }
 
-                            PlasmaComponents3.ToolButton {
-                                icon.name: delegate.isGroupExpanded ? "arrow-up" : "arrow-down"
-                                text: delegate.isGroupExpanded ? i18nd("plasma_applet_org.kde.plasma.notifications", "Show Fewer")
-                                                            : i18ndc("plasma_applet_org.kde.plasma.notifications", "Expand to show n more notifications",
-                                                                    "Show %1 More", (delegate.groupChildrenCount - delegate.expandedGroupChildrenCount))
-                                visible: (delegate.groupChildrenCount > delegate.expandedGroupChildrenCount || delegate.isGroupExpanded)
-                                    && delegate.ListView.nextSection !== delegate.ListView.section
-                                onClicked: list.setGroupExpanded(delegate.index, !delegate.isGroupExpanded)
+                            Components.GlassCard {
+                                id: card
+                                width: parent.width
+                                height: notification.implicitHeight
+                                hovered: cardHover.hovered
+
+                                // What the card's hover buttons offer.
+                                readonly property bool canConfigure: delegate.configurable && !delegate.isInGroup
+                                readonly property bool canRestore: delegateLoader.modelInterface.dismissable
+
+                                HoverHandler {
+                                    id: cardHover
+                                }
+
+                                Delegates.DelegateHistory {
+                                    id: notification
+                                    width: parent.width
+                                    modelInterface: delegateLoader.modelInterface
+                                    showAge: !cardHover.hovered || !(card.canConfigure || card.canRestore)
+                                }
+
+                                // A stack opens on a click anywhere but its buttons.
+                                MouseArea {
+                                    anchors.fill: parent
+                                    visible: delegate.stacked && delegate.stackDepth > 0
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: list.setGroupExpanded(delegate.index, true)
+                                    Accessible.role: Accessible.Button
+                                    Accessible.name: i18ndc("plasma_applet_org.kde.plasma.notifications", "Expand to show n more notifications",
+                                                            "Show %1 More", delegate.groupChildrenCount - delegate.expandedGroupChildrenCount)
+                                }
+
+                                // Keyboard focus.
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: card.radius
+                                    color: "transparent"
+                                    border.width: 2
+                                    border.color: Kirigami.Theme.highlightColor
+                                    visible: delegate.ListView.isCurrentItem && list.activeFocus
+                                }
+
+                                // macOS: a round close button by the top-left
+                                // corner while hovered (as on the banners).
+                                RoundButton {
+                                    x: 6
+                                    y: 6
+                                    z: 10
+                                    visible: delegateLoader.modelInterface.closable && cardHover.hovered
+                                    glyph: "×"
+                                    toolTip: delegate.stacked && delegate.stackDepth > 0
+                                        ? i18nd("plasma_applet_org.kde.plasma.notifications", "Close Group")
+                                        : i18nd("plasma_applet_org.kde.plasma.notifications", "Close")
+                                    onClicked: delegateLoader.closeCard()
+                                }
+
+                                Row {
+                                    anchors.right: parent.right
+                                    anchors.rightMargin: 10
+                                    y: 10
+                                    z: 10
+                                    spacing: 6
+                                    visible: cardHover.hovered
+
+                                    RoundButton {
+                                        visible: card.canRestore
+                                        iconName: delegateLoader.modelInterface.dismissed ? "window-restore" : "window-minimize"
+                                        toolTip: delegateLoader.modelInterface.dismissed
+                                            ? i18ndc("plasma_applet_org.kde.plasma.notifications", "Opposite of minimize", "Restore")
+                                            : i18nd("plasma_applet_org.kde.plasma.notifications", "Minimize")
+                                        onClicked: delegateLoader.modelInterface.dismissClicked()
+                                    }
+                                    RoundButton {
+                                        visible: card.canConfigure
+                                        iconName: "configure"
+                                        toolTip: delegateLoader.modelInterface.configureActionLabel || i18nd("plasma_applet_org.kde.plasma.notifications", "Configure")
+                                        onClicked: delegateLoader.modelInterface.configureClicked()
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            }
-
-            Loader {
-                anchors.centerIn: parent
-                width: parent.width - (Kirigami.Units.gridUnit * 4)
-
-                active: list.count === 0
-                visible: active
-                asynchronous: true
-
-                sourceComponent: NotificationManager.Server.valid ? noUnreadMessage : notAvailableMessage
-            }
-
-            Component {
-                id: noUnreadMessage
-
-                PlasmaExtras.PlaceholderMessage {
-                    anchors.centerIn: parent
-                    width: parent.width
-
-                    iconName: "checkmark"
-                    text: i18nd("plasma_applet_org.kde.plasma.notifications", "No unread notifications")
-                }
-            }
-
-            Component {
-                id: notAvailableMessage
-
-                PlasmaExtras.PlaceholderMessage {
-                    // Checking valid to avoid creating ServerInfo object if everything is alright
-                    readonly property NotificationManager.ServerInfo currentOwner: NotificationManager.Server.currentOwner
-
-                    anchors.centerIn: parent
-                    width: parent.width
-
-                    iconName: "notifications-disabled"
-                    text: i18nd("plasma_applet_org.kde.plasma.notifications", "Notification service not available")
-                    explanation: currentOwner && currentOwner.vendor && currentOwner.name
-                                ? i18ndc("plasma_applet_org.kde.plasma.notifications", "Vendor and product name", "Notifications are currently provided by '%1 %2'", currentOwner.vendor, currentOwner.name)
-                                : ""
                 }
             }
         }
