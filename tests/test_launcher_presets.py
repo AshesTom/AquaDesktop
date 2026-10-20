@@ -124,6 +124,16 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
     shutil.copytree(repo / "src/offline/plasmoids" / launcher_defaults.LAUNCHER_ID, package)
     shutil.copytree(repo / "src/offline/plasma-theme/MacTahoeLiquidKde-Dark",
                     tmp_path / "data/plasma/desktoptheme/MacTahoeLiquidKde-Dark")
+    # Minimal CI desktops have no visible apps. Seed a real All Apps category
+    # so the favorites-header assertions do not depend on the host's inventory.
+    applications = tmp_path / "data/applications"
+    applications.mkdir()
+    for index in range(9):
+        (applications / f"launcher-probe-{index}.desktop").write_text(
+            "[Desktop Entry]\nType=Application\n"
+            f"Name=Launcher Probe {index}\nExec=/bin/true\n"
+            "Icon=application-x-executable\nCategories=Utility;\n"
+        )
     (tmp_path / "config").mkdir()
     (tmp_path / "config/plasmarc").write_text("[Theme]\nname=MacTahoeLiquidKde-Dark\n")
     monkeypatch.setattr(launcher_defaults, "default_launcher_preset", lambda: preset)
@@ -168,6 +178,7 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
         "XDG_DATA_HOME": str(tmp_path / "data"), "XDG_CACHE_HOME": str(tmp_path / "cache"),
         "XDG_STATE_HOME": str(tmp_path / "state"), "XDG_RUNTIME_DIR": runtime.name,
         "XDG_CONFIG_DIRS": "/etc/xdg", "XDG_DATA_DIRS": "/usr/local/share:/usr/share",
+        "XDG_MENU_PREFIX": "plasma-",
         "QT_QPA_PLATFORM": "xcb", "QT_QPA_PLATFORMTHEME": "generic",
         "QT_QUICK_BACKEND": "software", "QT_FORCE_STDERR_LOGGING": "1",
         "QML_IMPORT_PATH": str(launcher_popup_module),

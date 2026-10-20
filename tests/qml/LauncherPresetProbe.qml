@@ -20,6 +20,10 @@ Timer {
             throw new Error(label);
         }
     }
+    function verifyCapsulePosition() {
+        verify(searchPopup.y + searchPopup.height < root.y, "search above app panel");
+        verify(Math.abs(searchPopup.x + searchPopup.width / 2 - root.x - root.width / 2) < 2, "capsule centered");
+    }
     onTriggered: {
         try {
             console.log("PROBE_PHASE", phase, root.visible, kicker.launcherPreset, root.width, root.height, searchPopup.width, searchPopup.height, root.active, searchPopup.hasFocus, searchBar.textField.activeFocus);
@@ -46,8 +50,7 @@ Timer {
                 verify(searchBar.parent === detachedSearchSlot, "detached field parent");
                 verify(searchBar.textField.text === "terminal", "query survives preset change");
                 verify(root.height < presetProbe.inlineHeight, "no empty inline search row");
-                verify(searchPopup.y + searchPopup.height < root.y, "search above app panel");
-                verify(Math.abs(searchPopup.x + searchPopup.width / 2 - root.x - root.width / 2) < 2, "capsule centered");
+                verifyCapsulePosition();
                 searchBar.testMenuButton.testMenu.content[3].clicked();
                 verify(plasmoid.configuration.showAllAppsInList, "list option works");
                 searchBar.testMenuButton.testMenu.openRelative();
@@ -79,6 +82,8 @@ Timer {
                 verify(root.columns === 7, "Golden Gate starts with seven columns");
                 verify(searchBar.textField.font.pointSize > main.appTextSize, "search text has its own hierarchy");
                 const view = appList.viewItem;
+                console.log("PROBE_CATEGORIES", JSON.stringify(appList.appsCategoriesList),
+                            appList.selectedModelIndex, appList.selectedIsAllApps, globalFavorites.count);
                 verify(view.headerItem !== null, "favorites row shown above all apps");
                 verify(view.headerItem.favoritesView.count === 7, "favorites limited to one row");
                 verify(view.contentY <= view.headerItem.y, "opening shows the favorites header");
@@ -86,6 +91,12 @@ Timer {
                 break;
             case 8:
                 verify(appList.viewItem.headerItem.favoritesView.count === 6, "favorites follow the column setting");
+                verifyCapsulePosition();
+                root.x += 40;
+                root.y += 30;
+                break;
+            case 9:
+                verifyCapsulePosition();
                 console.log("LAUNCHER_PROBE_OK");
                 stop();
                 break;
