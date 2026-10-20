@@ -213,8 +213,8 @@ def test_glass_surface_is_the_tahoe_glass_face(offline):
     assert 'glassTint.value("GlassLevel", 50)' in surface
     assert '+ "/mac-tahoe-liquid-kde/glass.ini"' in surface
     assert 'glassTint.value("Tint", "macos")' in surface
-    # No edge light of its own: Acrylic Glass draws the highlight.
-    for line in ("rimLight: 0", "glowLight: 0"):
+    # A 1 px light edge, no glow, over Acrylic Glass' own highlight.
+    for line in ("rimLight: 0.08", "rimWidth: 1.0", "glowLight: 0"):
         assert f"readonly property real {line}\n" in surface
     # The light has no alpha of its own: added to the desktop, it keeps the
     # desktop's colour as on macOS.

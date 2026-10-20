@@ -63,10 +63,11 @@ Item {
         const hex = String(glassTint.value("Accent", ""));
         return /^[0-9a-fA-F]{6}$/.test(hex) ? hex : "";
     }
-    // No edge light of its own: Acrylic Glass draws the highlight on the
-    // bubble's edge (a second one drew a double contour).
-    readonly property real rimLight: 0
-    readonly property real rimWidth: 2.0
+    // A 1 px light edge over Acrylic Glass' own faint highlight, so each
+    // bubble keeps a contour; the earlier 2 px line and its glow drew a
+    // double contour over the effect's.
+    readonly property real rimLight: 0.08
+    readonly property real rimWidth: 1.0
     readonly property real glowLight: 0
     readonly property real glowWidth: 3.0
 
