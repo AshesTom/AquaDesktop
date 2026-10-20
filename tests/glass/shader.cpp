@@ -141,14 +141,27 @@ int main(int argc, char **argv)
         else require(reference == image, QStringLiteral("legacy and core shaders differ"));
 
         shader.setUniformValue("highlightStrength", 0.0f);
+        // A clear-centre factor must never leak sharp backdrop into an applet.
         shader.setUniformValue("centerOpacity", 0.65f);
         image = render();
-        require(std::abs(qAlpha(image.pixel(96,64)) - 166) <= 1,
-                QStringLiteral("Applet centre must reveal the backdrop"));
+        require(qAlpha(image.pixel(96,64)) == 255,
+                QStringLiteral("Applet centre must retain full blur coverage"));
         require(qAlpha(image.pixel(96,1)) > 250,
                 QStringLiteral("Applet transparency must preserve the refracting rim"));
-        require(std::abs(qRed(image.pixel(96,64)) - 104) <= 1,
+        require(std::abs(qRed(image.pixel(96,64)) - 160) <= 1,
                 QStringLiteral("Applet output must remain premultiplied"));
+        for (const QColor fill : {QColor(255,255,255,5), QColor(0,0,0,5)}) {
+            QImage composed(width, height, QImage::Format_ARGB32_Premultiplied);
+            QPainter painter(&composed);
+            for (int x = 0; x < width; ++x) {
+                painter.fillRect(x, 0, 1, height, x % 2 ? Qt::white : Qt::black);
+            }
+            painter.drawImage(0, 0, image);
+            painter.fillRect(composed.rect(), fill);
+            painter.end();
+            require(composed.pixel(96,64) == composed.pixel(97,64),
+                    QStringLiteral("Sharp background edges must not survive behind Launcher glass"));
+        }
 
         // Clear Dock glass must bend the backdrop across its bevel without
         // shrinking it along the long axis or displacing the centre.

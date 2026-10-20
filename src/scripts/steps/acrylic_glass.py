@@ -104,10 +104,11 @@ _CORNER_DEFAULTS = (
 def _edition_preset() -> dict[str, str]:
     # The KCM and installer apply the same complete material.
     presets = json.loads((SRC / "src/presets.json").read_text())
-    index = 2 if default_wallpaper() == "MacGoldenGate" else 1
-    values = presets[index]["values"]
+    preset_id = "golden-gate" if default_wallpaper() == "MacGoldenGate" else "tahoe"
+    preset = next(preset for preset in presets if preset["id"] == preset_id)
+    values = preset["values"]
     return {key: str(value).lower() if isinstance(value, bool) else str(value)
-            for key, value in values.items()} | {"MaterialPreset": str(index)}
+            for key, value in values.items()} | {"MaterialPreset": str(preset["value"])}
 
 
 def _install_material_preset() -> bool:

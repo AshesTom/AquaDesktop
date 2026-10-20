@@ -49,7 +49,8 @@ def test_acrylic_glass_preset_fits_kcm_ranges():
     from steps import acrylic_glass
 
     presets = json.loads((ROOT / "src/presets.json").read_text())
-    assert [p["id"] for p in presets] == ["clear", "tahoe", "golden-gate"]
+    assert [p["id"] for p in presets] == ["tahoe", "golden-gate"]
+    assert [p["value"] for p in presets] == [1, 2]
     root = ET.parse(ROOT / "src/kcm/config.ui").getroot()
     schema = ET.parse(ROOT / "src/glass.kcfg").getroot()
     assert schema.find(".//{*}entry[@name='AcrylicGlassType']") is None
@@ -61,7 +62,7 @@ def test_acrylic_glass_preset_fits_kcm_ranges():
             if isinstance(value, (int, float)) and not isinstance(value, bool):
                 maximum = widget.find("./property[@name='maximum']")[0]
                 assert 0 <= value <= float(maximum.text), key
-    for key, value in presets[1]["values"].items():
+    for key, value in presets[0]["values"].items():
         default = schema.find(f".//{{*}}entry[@name='{key}']/{{*}}default").text
         assert default == (str(value).lower() if isinstance(value, bool) else str(value)), key
 
@@ -119,7 +120,7 @@ def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path, c
     entry = config.find(".//{*}entry[@name='BlurStrength']/{*}default")
     assert entry is not None
     default = entry.text
-    assert default == "7.0"
+    assert default == "10.0"
     blur_writes = [args for args in writes if "BlurStrength" in args]
     assert blur_writes == [("--file", "kwinrc", "--group", "Effect-liquidglass",
                            "--key", "BlurStrength", default)]

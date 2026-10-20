@@ -561,11 +561,11 @@ def run(args):
     from steps.acrylic_glass import _CORNER_DEFAULTS
 
     profiles = json.loads((ROOT / "src/offline/kwin-effects/acrylic-glass/src/presets.json").read_text())
-    index = next(i for i, profile in enumerate(profiles) if profile["id"] == args.material)
+    profile = next(profile for profile in profiles if profile["id"] == args.material)
     preset = {key: str(value).lower() if isinstance(value, bool) else str(value)
-              for key, value in profiles[index]["values"].items()}
+              for key, value in profile["values"].items()}
     preset.update(_CORNER_DEFAULTS)
-    preset["MaterialPreset"] = str(index)
+    preset["MaterialPreset"] = str(profile["value"])
     preset["WindowClasses"] = "capture-desktop"
     (output / "config/kwinrc").write_text(
         "[Plugins]\nblurEnabled=false\nliquidglassEnabled=false\nkwin4_effect_shapecornersEnabled=false\n"
@@ -651,7 +651,7 @@ if __name__ == "__main__":
     parser.add_argument("--rounded", type=Path)
     parser.add_argument("--shaders", type=Path)
     parser.add_argument("--mode", choices=("Light", "Dark"), default="Light")
-    parser.add_argument("--material", choices=("clear", "tahoe", "golden-gate"), default="tahoe")
+    parser.add_argument("--material", choices=("tahoe", "golden-gate"), default="tahoe")
     parser.add_argument("--scale", type=float, default=1.0)
     parser.add_argument("--backend", choices=("wayland", "xcb"), default="wayland")
     parser.add_argument("--cases", nargs="+", choices=CASES, default=CASES)

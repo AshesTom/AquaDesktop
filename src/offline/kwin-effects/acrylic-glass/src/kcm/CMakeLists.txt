@@ -1,6 +1,7 @@
 set(kwin_liquidglass_config_SRCS
     config.cpp
     config.h
+    presetcombobox.h
 )
 
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../presets.json")

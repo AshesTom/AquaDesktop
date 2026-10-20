@@ -4,7 +4,7 @@
 
 # macOS Tahoe Liquid Theme for Plasma 6.7/6.8+
 
-[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1472_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
+[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1475_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
 
 macOS Tahoe-inspired glass, Dock, global menu and app themes for KDE Plasma 6.6â€“6.8.
 
@@ -17,7 +17,7 @@ macOS Tahoe-inspired glass, Dock, global menu and app themes for KDE Plasma 6.6â
 
 ### Acrylic Glass Tahoe Launcher
 
-The **Tahoe** glass preset combines soft blur with edge refraction. Choose **Clear**, **Tahoe** or **Golden Gate** in the Acrylic Glass effect settings, then customize opacity, refraction and gradient colors. [Material settings](docs/glass-materials.md).
+The **Tahoe** glass preset combines strong blur with edge refraction. Choose **Tahoe** or **Golden Gate** in the Acrylic Glass effect settings, then customize opacity, refraction and gradient colors. [Material settings](docs/glass-materials.md).
 
 <p align="center">
   <img src="src/screenshots/launcher_preset_1_light.png" alt="Default Tahoe preset 1 in light mode, with integrated search and Tahoe wallpaper" width="415">

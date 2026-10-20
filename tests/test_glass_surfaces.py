@@ -23,7 +23,7 @@ def test_shared_dialog_fills_keep_top_bar_clear(mode):
                 style = dict(part.split(":", 1) for part in node.get("style", "").split(";") if ":" in part)
                 assert 0 < float(style.get("opacity", node.get("opacity", "1"))) <= 0.2
         # The preset owns the colored gradient. The capsule may retain only
-        # a faint edge reflection; a baked dark cap would also affect Clear.
+        # a faint edge reflection; a baked dark cap would also affect Tahoe.
         for node in root.iter():
             if node.get("id") in ("top-surface", "bottom-surface"):
                 assert all(float(stop.get("stop-opacity", "1")) <= 0.08 for stop in node)

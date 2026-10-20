@@ -17,7 +17,7 @@ def test_native_material_follows_source_edition_across_reinstalls(tmp_path, firs
         pytest.skip("KConfig CLI tools required")
     repo = Path(__file__).resolve().parents[1]
     presets_path = Path("src/offline/kwin-effects/acrylic-glass/src/presets.json")
-    presets = json.loads((repo / presets_path).read_text())
+    presets = {preset["value"]: preset for preset in json.loads((repo / presets_path).read_text())}
     editions = {"MacTahoe": 1, "MacGoldenGate": 2}
     for edition in editions:
         checkout = tmp_path / edition

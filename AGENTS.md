@@ -566,7 +566,10 @@ The same defaults file selects `launcher_preset` (Tahoe: 1, Golden Gate: 2).
 `launcher_defaults.py` stamps only the staged launcher's `defaultLauncherPreset`
 schema default, also during Nix asset assembly. `launcherPreset=0` follows that
 edition default; explicit 1/2 choices persist per applet and survive panel
-rebuilds per screen in all three layouts. Both presets remain available in
+rebuilds per screen in all three layouts. Each preset owns its fixed popup
+dimensions; switching presets must resize the native window to the newly
+selected preset, including after compositor geometry feedback and round trips.
+Both presets remain available in
 the Launcher's options menu and General settings. Preset 2 uses a separate
 native Plasma search popup above the app panel; each window owns its search
 field and shares the query, so text layers never migrate across render contexts; treat both popups and their
@@ -600,8 +603,10 @@ refresh enabled Acrylic Glass so its popup masks follow the replacement
 surfaces. A KWin reconfigure alone did not clear the stale capsule geometry
 observed at 150% scale. Preserve disabled effects and saved radius settings.
 Refreshing an effect instance does not guarantee Qt unloads its shared library.
-Acrylic Glass has three complete material presets: Clear, Tahoe and Golden
-Gate. `src/offline/kwin-effects/acrylic-glass/src/presets.json` is shared by the
+Acrylic Glass has two complete material presets: Tahoe and Golden Gate, both
+with blur strength 10. Keep their persisted `MaterialPreset` IDs at 1 and 2;
+the retired Clear ID 0 falls back to Tahoe in the KCM without resetting optics.
+`src/offline/kwin-effects/acrylic-glass/src/presets.json` is shared by the
 installer and the native KCM. Keep one blur path: Dual Kawase with a symmetric
 Gaussian finish; no selectable box/bokeh kernels. Presets apply every material
 control, including opacity, refraction, grain, highlights, color adjustments,
@@ -617,8 +622,10 @@ and Restore replace them. Persist `MaterialPreset` even for schema-default Tahoe
 The gradient uses frame-local coordinates and changes color independently of
 blur coverage. Golden Gate uses exactly Tahoe's optical values and adds only
 a black upper gradient. Context menus use more opaque light/dark client fills;
-applet popups and the Dock keep thin fills and lower centre coverage while
-preserving their subtle contour and refracting rim. `DarkGradientOverlay` is retained
+applet popups and the Dock keep thin fills while preserving their subtle contour
+and refracting rim. Only the Dock lowers centre coverage; Launcher and other
+applet popups retain full blur coverage so sharp backdrop details cannot leak
+through their interiors. `DarkGradientOverlay` is retained
 as the persisted enable key; the KCM calls it Enable gradient and exposes both
 colors and strengths. Keep legacy/core shaders equivalent, output premultiplied,
 and pixel widths scaled to the viewport. Shared light/dark Plasma and Kvantum

@@ -84,7 +84,8 @@ void main(void)
         vec3 tint = mix(gradientTop.rgb * gradientTop.a, gradientBottom.rgb * gradientBottom.a, t);
         surface.rgb = surface.rgb * (1.0 - tintAlpha) + tint;
     }
-    // Keep the bevel covered so refraction does not double the sharp backdrop.
-    float coverage = materialOpacity * mix(centerOpacity, 1.0, edgeQ);
+    // Only the Dock reveals sharp backdrop through its centre. Applet popups
+    // need full blur coverage behind their thin client fills.
+    float coverage = materialOpacity * (dockSurface ? mix(centerOpacity, 1.0, edgeQ) : 1.0);
     LG_OUT = surface * (mask * opacity * coverage);
 }

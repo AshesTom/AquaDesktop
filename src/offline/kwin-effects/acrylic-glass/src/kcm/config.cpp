@@ -21,6 +21,10 @@ LiquidGlassEffectConfig::LiquidGlassEffectConfig(QObject* parent, const KPluginM
     : KCModule(parent, data)
 {
     ui.setupUi(widget());
+    const auto presets = QJsonDocument::fromJson(materialPresetsJson).array();
+    for (int index = 0; index < presets.size(); ++index) {
+        ui.kcfg_MaterialPreset->setItemData(index, presets.at(index).toObject().value(QStringLiteral("value")).toInt());
+    }
     BlurConfig::instance("kwinrc");
     addConfig(BlurConfig::self(), widget());
 
@@ -73,10 +77,9 @@ void LiquidGlassEffectConfig::save()
     KCModule::save();
 
     // KConfigSkeleton removes entries equal to schema defaults. Retain the
-    // selection explicitly so a Golden Gate reinstall can distinguish a saved
-    // Tahoe material from an installation that has never selected a preset.
+    // selection explicitly, using stable IDs rather than combo-box positions.
     auto group = BlurConfig::self()->config()->group(QStringLiteral("Effect-liquidglass"));
-    group.writeEntry("MaterialPreset", ui.kcfg_MaterialPreset->currentIndex());
+    group.writeEntry("MaterialPreset", ui.kcfg_MaterialPreset->presetValue());
     group.sync();
 
     OrgKdeKwinEffectsInterface interface(QStringLiteral("org.kde.KWin"), QStringLiteral("/Effects"), QDBusConnection::sessionBus());

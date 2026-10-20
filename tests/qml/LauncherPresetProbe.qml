@@ -8,9 +8,11 @@ Timer {
     interval: 400
     running: true
     repeat: true
-    property int phase: 0
+    property int phase: -2
     property int expectedPreset: 1
     property real inlineHeight: 0
+    property real inlineWidth: 0
+    property size initialPopupSize
     property color originalForeground: "transparent"
     property Window outsideProbe: Window {
         width: 100
@@ -48,6 +50,13 @@ Timer {
             console.log("PROBE_PHASE", phase, root.visible, kicker.launcherPreset, root.width, root.height, searchPopup.width, searchPopup.height, root.active, main.popupHasFocus, searchBar.textField.activeFocus);
             console.log("PROBE_GEOMETRY", root.x, root.y, searchPopup.x, searchPopup.y);
             switch (phase++) {
+            case -2:
+                root.visible = true;
+                break;
+            case -1:
+                initialPopupSize = Qt.size(root.width, root.height);
+                root.visible = false;
+                break;
             case 0:
                 root.title = "Launcher app role probe";
                 searchPopup.title = "Launcher search role probe";
@@ -63,12 +72,21 @@ Timer {
                 verify(searchBar.parent === inlineSearchSlot, "inline field parent");
                 verifyOptionsIcon(searchBar);
                 presetProbe.inlineHeight = root.height;
+                presetProbe.inlineWidth = root.width;
+                // Exercise native geometry feedback before changing presets.
+                root.width += 80;
+                root.height += 60;
                 searchBar.textField.text = "terminal";
                 verify(runnerModel.query === "terminal", "search reaches runner");
                 searchBar.testMenuButton.testMenu.content[1].clicked();
                 break;
             case 2:
                 verify(root.visible && searchPopup.visible, "both detached popups visible");
+                verify(root.width !== presetProbe.inlineWidth, "Golden Gate applies its own width");
+                if (expectedPreset === 2) {
+                    verify(root.width === initialPopupSize.width && root.height === initialPopupSize.height,
+                           "Golden Gate restores its initial size after switching presets");
+                }
                 verify(searchBar.parent === detachedSearchSlot, "detached field parent");
                 verifyOptionsIcon(searchBar);
                 verify(searchBar.textField.text === "terminal", "query survives preset change");
@@ -87,6 +105,7 @@ Timer {
                 verify(root.visible && !searchPopup.visible, "switch back hides capsule");
                 verify(searchBar.parent === inlineSearchSlot, "field returns inside panel");
                 verify(root.height === presetProbe.inlineHeight, "inline height restored");
+                verify(root.width === presetProbe.inlineWidth, "Tahoe applies its own width");
                 verify(searchBar.textField.text === "terminal", "query survives round trip");
                 plasmoid.configuration.launcherPreset = 2;
                 break;

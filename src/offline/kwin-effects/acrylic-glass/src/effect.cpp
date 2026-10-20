@@ -1051,7 +1051,7 @@ void BlurEffect::blur(
     // Short panel surfaces need a shallow blur to retain the backdrop detail
     // that makes their refracted rim visible. Keep the saved material intact.
     const bool dockSurface = w->isDock();
-    const float centerOpacity = dockSurface ? 0.55f : (w->isAppletPopup() ? 0.65f : 1.0f);
+    const float centerOpacity = dockSurface ? 0.55f : 1.0f;
     const size_t iterationCount = dockSurface ? 1 : m_iterationCount;
     const float blurOffset = dockSurface ? m_dockOffset : m_offset;
 

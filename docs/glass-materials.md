@@ -5,19 +5,20 @@ Choose a preset, adjust its controls if desired, and press **Apply**.
 
 | Preset | Appearance |
 | --- | --- |
-| Clear | Transparent glass with a light blur and a restrained edge reflection. |
-| Tahoe | Soft, fully blurred glass with a narrow refracted edge. Default in Tahoe. |
+| Tahoe | Strongly blurred glass with a narrow refracted edge. Default in Tahoe. |
 | Golden Gate | Tahoe's optical values with a 95% black tint that fades out over the upper half of menus. The lower half and Dock stay untinted. Default in Golden Gate. |
 
 Each preset replaces the complete material: blur, opacity, refraction, color
 separation, highlights, grain, brightness, contrast, saturation and gradient.
 There is one smooth blur implementation. **Fine tuning** exposes the detailed
 controls without requiring a choice of blur algorithm.
+Both presets use a blur strength of 10 on the 0–20 scale.
 
 **Glass opacity** controls how much of the blurred material covers the original
 background. Keep it at 1 for full material coverage; lower it to reveal more
-of the sharp background. Applet popups and the Dock use clearer centres while
-preserving the refracted rim. Text and icons retain their own opacity. Gradient
+of the sharp background. The Dock uses a clearer centre while preserving the
+refracted rim; applet popups retain full blur coverage. Text and icons retain
+their own opacity. Gradient
 colors and strengths are independent of this coverage, so a lighter bottom
 does not lose its blur. Disable **Enable gradient** for an untinted material.
 
@@ -55,7 +56,7 @@ centre, with stronger refraction across a wider bevel. The bevel bends the
 background perpendicular to each edge instead of stretching it toward the
 centre of a long Dock. These adjustments follow the selected material and its
 controls without changing saved settings; contextual menus keep their full blur.
-Applet popups retain the selected blur with lower centre coverage. Golden Gate
+Applet popups retain the selected blur with full centre coverage. Golden Gate
 and Tahoe share every optical value; only the gradient differs. These numerical
 settings are project tuning, not values supplied by Apple. The black gradient
 darkens lighter backdrops and leaves a fully black backdrop black.

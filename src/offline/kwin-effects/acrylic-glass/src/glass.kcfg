@@ -6,7 +6,7 @@
     <kcfgfile arg="true"/>
     <group name="Effect-liquidglass">
         <entry name="BlurStrength" type="Double">
-            <default>7.0</default>
+            <default>10.0</default>
         </entry>
         <entry name="DarkGradientOverlay" type="Bool">
             <default>false</default>
@@ -72,13 +72,11 @@ xembedsniproxy</default>
         <entry name="Saturation" type="Double">
             <default>1.05</default>
         </entry>
-        <entry name="MaterialPreset" type="Enum">
-            <choices>
-                <choice name="Clear"/>
-                <choice name="Tahoe"/>
-                <choice name="GoldenGate"/>
-            </choices>
-            <default>Tahoe</default>
+        <!-- Keep persisted IDs stable after retiring Clear (0). -->
+        <entry name="MaterialPreset" type="Int">
+            <default>1</default>
+            <min>1</min>
+            <max>2</max>
         </entry>
         <entry name="MaterialOpacity" type="Double">
             <default>1.0</default>

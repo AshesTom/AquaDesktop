@@ -40,13 +40,18 @@ int main(int argc, char **argv)
     QApplication app(argc, argv);
     // Offscreen has no clipboard owner; KColorButton expects MIME data.
     app.clipboard()->setText(QString());
-    require(argc == 3, QStringLiteral("plugin and preset JSON paths required"));
+    require(argc == 4, QStringLiteral("plugin, preset JSON and saved selection required"));
     QFile input(QString::fromLocal8Bit(argv[2]));
     require(input.open(QIODevice::ReadOnly), QStringLiteral("presets unreadable"));
     const auto presets = QJsonDocument::fromJson(input.readAll()).array();
-    const auto defaults = presets.at(1).toObject().value(QStringLiteral("values")).toObject();
+    const auto defaults = presets.at(0).toObject().value(QStringLiteral("values")).toObject();
     auto config = KSharedConfig::openConfig(QStringLiteral("kwinrc"));
     KConfigGroup group(config, QStringLiteral("Effect-liquidglass"));
+    const QString savedPreset = QString::fromLocal8Bit(argv[3]);
+    if (savedPreset != QStringLiteral("absent")) {
+        group.writeEntry("MaterialPreset", savedPreset.toInt());
+        group.writeEntry("BlurStrength", 6.25);
+    }
     group.writeEntry("WindowCornerRadius", 13.5);
     group.writeEntry("WindowClasses", "preserved-app");
     group.writeEntry("AcrylicGlassType", 2); // Retired settings cannot select another kernel.
@@ -61,9 +66,16 @@ int main(int argc, char **argv)
     };
     auto module = open();
     auto *selector = control<QComboBox>(module.get(), QStringLiteral("kcfg_MaterialPreset"));
-    require(selector->count() == 3, QStringLiteral("exactly three presets"));
+    require(selector->count() == 2, QStringLiteral("exactly two presets"));
+    require(selector->itemText(0) == QStringLiteral("Tahoe") && selector->itemText(1) == QStringLiteral("Golden Gate"),
+            QStringLiteral("only Tahoe and Golden Gate are available"));
+    require(selector->currentIndex() == (savedPreset == QStringLiteral("2") ? 1 : 0),
+            QStringLiteral("saved preset identity changed"));
+    require(control<QDoubleSpinBox>(module.get(), QStringLiteral("kcfg_BlurStrength"))->value()
+                == (savedPreset == QStringLiteral("absent") ? defaults["BlurStrength"].toDouble() : 6.25),
+            QStringLiteral("loading changed saved optics"));
     require(!module->widget()->findChild<QWidget *>(QStringLiteral("kcfg_AcrylicGlassType")), QStringLiteral("blur type must be removed"));
-    for (int i : {2, 0, 1}) {
+    for (int i : {1, 0}) {
         selector->setCurrentIndex(i);
         selector->activated(i);
         const auto values = presets.at(i).toObject().value(QStringLiteral("values")).toObject();
@@ -82,6 +94,8 @@ int main(int argc, char **argv)
         }
         module->save();
         config->reparseConfiguration();
+        require(group.readEntry("MaterialPreset", -1) == presets.at(i).toObject()["value"].toInt(),
+                QStringLiteral("saved preset ID changed"));
         for (auto it = values.constBegin(); it != values.constEnd(); ++it) {
             if (it.value().isDouble())
                 require(std::abs(group.readEntry(it.key(), defaults.value(it.key()).toDouble()) - it.value().toDouble()) < 0.00001, it.key() + QStringLiteral(" not saved"));
@@ -89,6 +103,10 @@ int main(int argc, char **argv)
                 require(group.readEntry(it.key(), defaults.value(it.key()).toBool()) == it.value().toBool(), it.key());
             else require(group.readEntry(it.key(), QColor(defaults.value(it.key()).toString())) == QColor(it.value().toString()), it.key());
         }
+        module.reset();
+        module = open();
+        selector = control<QComboBox>(module.get(), QStringLiteral("kcfg_MaterialPreset"));
+        require(selector->currentIndex() == i, QStringLiteral("reopening changed selected preset"));
     }
     auto *blur = control<QDoubleSpinBox>(module.get(), QStringLiteral("kcfg_BlurStrength"));
     blur->setValue(8.25);
@@ -100,11 +118,11 @@ int main(int argc, char **argv)
     require(control<QDoubleSpinBox>(module.get(), QStringLiteral("kcfg_BlurStrength"))->value() == 8.25, QStringLiteral("reopening resets overrides"));
     require(control<KColorButton>(module.get(), QStringLiteral("kcfg_GradientTopColor"))->color() == QColor("#265a81"), QStringLiteral("custom color lost"));
     selector = control<QComboBox>(module.get(), QStringLiteral("kcfg_MaterialPreset"));
-    selector->setCurrentIndex(2);
-    selector->activated(2);
+    selector->setCurrentIndex(1);
+    selector->activated(1);
     module->load(); // Cancel discards pending preset changes.
     require(control<QDoubleSpinBox>(module.get(), QStringLiteral("kcfg_BlurStrength"))->value() == 8.25, QStringLiteral("cancel failed"));
-    require(selector->currentIndex() == 1, QStringLiteral("cancel retained preset"));
+    require(selector->currentIndex() == 0, QStringLiteral("cancel retained preset"));
     control<QPushButton>(module.get(), QStringLiteral("resetPreset"))->click();
     require(control<QDoubleSpinBox>(module.get(), QStringLiteral("kcfg_BlurStrength"))->value() == defaults["BlurStrength"].toDouble(), QStringLiteral("restore preset failed"));
     require(control<QDoubleSpinBox>(module.get(), QStringLiteral("kcfg_WindowCornerRadius"))->value() == 13.5, QStringLiteral("preset reset corners"));

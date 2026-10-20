@@ -48,12 +48,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="kcfg_MaterialPreset">
-            <item>
-             <property name="text">
-              <string>Clear</string>
-             </property>
-            </item>
+           <widget class="PresetComboBox" name="kcfg_MaterialPreset">
             <item>
              <property name="text">
               <string>Tahoe</string>
@@ -658,6 +653,11 @@ firefox</string>
  <resources />
  <connections />
  <customwidgets>
+  <customwidget>
+   <class>PresetComboBox</class>
+   <extends>QComboBox</extends>
+   <header>presetcombobox.h</header>
+  </customwidget>
   <customwidget>
    <class>KColorButton</class>
    <extends>QPushButton</extends>

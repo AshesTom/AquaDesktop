@@ -30,7 +30,8 @@ def kcm_probe(tmp_path_factory):
     return build
 
 
-def test_native_material_preset_controls(kcm_probe, tmp_path):
+@pytest.mark.parametrize("saved_preset", ["absent", "0", "1", "2"])
+def test_native_material_preset_controls(kcm_probe, tmp_path, saved_preset):
     if not shutil.which("dbus-run-session"):
         pytest.skip("private D-Bus session required")
     env = {k: v for k, v in os.environ.items() if k in ("PATH", "LANG")}
@@ -38,7 +39,7 @@ def test_native_material_preset_controls(kcm_probe, tmp_path):
                XDG_CONFIG_DIRS=str(tmp_path / "system"), QT_QPA_PLATFORM="offscreen")
     result = subprocess.run(["dbus-run-session", "--", str(kcm_probe / "glass-kcm-probe"),
                              str(kcm_probe / "kcm/kwin_liquidglass_config.so"),
-                             str(glass.SRC / "src/presets.json")],
+                             str(glass.SRC / "src/presets.json"), saved_preset],
                             env=env, capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "save/reopen, cancel and restore verified" in result.stderr
@@ -62,10 +63,11 @@ def test_native_material_preset_controls(kcm_probe, tmp_path):
         assert material["WindowClasses"] == "preserved-app"
 
 
-def _preset_values(index):
+def _preset_values(preset_value):
     presets = json.loads((glass.SRC / "src/presets.json").read_text())
+    preset = next(preset for preset in presets if preset["value"] == preset_value)
     return {key: str(value).lower() if isinstance(value, bool) else str(value)
-            for key, value in presets[index]["values"].items()} | {"MaterialPreset": str(index)}
+            for key, value in preset["values"].items()} | {"MaterialPreset": str(preset_value)}
 
 
 @pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate"])
@@ -82,8 +84,10 @@ def test_installation_reapplies_complete_edition_material(monkeypatch, edition, 
     if existing == "custom":
         saved["BlurStrength"] = "8.25"
         saved["GradientTopColor"] = "#263a51"
-    elif existing in ("clear", "tahoe", "golden-gate"):
-        saved = _preset_values(("clear", "tahoe", "golden-gate").index(existing))
+    elif existing == "clear":
+        saved |= {"MaterialPreset": "0", "BlurStrength": "1.5", "MaterialOpacity": "0.55"}
+    elif existing in ("tahoe", "golden-gate"):
+        saved = _preset_values(1 if existing == "tahoe" else 2)
     elif existing == "empty":
         saved["MagnifyGlassStrength"] = ""
     independent = {"WindowCornerRadius": "13.5", "DockCornerRadius": "0",

@@ -1,29 +1,9 @@
 [
   {
-    "id": "clear",
-    "values": {
-      "BlurStrength": 1.5,
-      "MaterialOpacity": 0.55,
-      "NoiseStrength": 0,
-      "RgbDriftStrength": 0.5,
-      "MagnifyGlassStrength": 0.008,
-      "RefractionWidth": 6.0,
-      "HighlightWidth": 1.0,
-      "HighlightStrength": 0.08,
-      "Brightness": 1.0,
-      "Contrast": 1.0,
-      "Saturation": 1.0,
-      "DarkGradientOverlay": false,
-      "GradientTopColor": "#000000",
-      "GradientBottomColor": "#000000",
-      "GradientTopOpacity": 0.0,
-      "GradientBottomOpacity": 0.0
-    }
-  },
-  {
     "id": "tahoe",
+    "value": 1,
     "values": {
-      "BlurStrength": 7.0,
+      "BlurStrength": 10.0,
       "MaterialOpacity": 1.0,
       "NoiseStrength": 1,
       "RgbDriftStrength": 6.0,
@@ -43,8 +23,9 @@
   },
   {
     "id": "golden-gate",
+    "value": 2,
     "values": {
-      "BlurStrength": 7.0,
+      "BlurStrength": 10.0,
       "MaterialOpacity": 1.0,
       "NoiseStrength": 1,
       "RgbDriftStrength": 6.0,
