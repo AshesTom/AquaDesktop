@@ -21,6 +21,8 @@ import org.kde.notificationmanager as NotificationManager
 
 import plasma.applet.org.kde.mac.tahoe.liquid.notifications as Notifications
 
+import "components" as Components
+
 PlasmoidItem {
     id: root
 
@@ -135,19 +137,62 @@ PlasmoidItem {
         return iconName;
     }
 
-    switchWidth: Kirigami.Units.gridUnit * 14
-    // This is to let the plasmoid expand in a vertical panel for a "sidebar" notification panel
-    // The CompactRepresentation size is limited to not have the notification icon grow gigantic
-    // but it should still switch over to full rep once there's enough width (disregarding the limited height)
-    switchHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? 1 : Kirigami.Units.gridUnit * 10
+    // AquaDesktop: the history is a window of its own (`history` below),
+    // never Plasma's applet popup or the tray's: those draw a frame and a
+    // shadow around the whole popup, where macOS shows separate glass cards.
+    preferredRepresentation: compactRepresentation
+    fullRepresentation: Item {}
 
+    // Every way of opening the history (a click on the icon or on its tray
+    // menu row, the global shortcut) sets `expanded`: open the window
+    // instead.
     onExpandedChanged: expanded => {
         if (expanded) {
-            Notifications.Globals.popupNotificationsModel.hideInhibitionSummary();
-        } else {
-            historyModel.lastRead = undefined; // reset to now
-            historyModel.collapseAllGroups();
+            Qt.callLater(() => {
+                root.expanded = false;
+            });
+            root.toggleHistory();
         }
+    }
+
+    // macOS: under the menu bar, 12 px from the screen's right edge, like
+    // the clock panel.
+    readonly property int historyGap: 8
+    readonly property int historyMargin: 12
+    // Transparent room above and below the glass: the Glass effect rounds
+    // this window like a normal one (22 px), which would cut the cards'
+    // corners if the window ended at their edges.
+    readonly property int glassPad: 28
+    // A click on the icon first deactivates (and so hides) the history;
+    // that same click must not open it again.
+    property double historyHiddenAt: 0
+
+    readonly property rect historyScreenRect: {
+        const rect = Notifications.Globals.screenRect;
+        if (rect.width > 0 && rect.height > 0) {
+            return rect;
+        }
+        return Plasmoid.containment ? Plasmoid.containment.screenGeometry : Qt.rect(0, 0, 0, 0);
+    }
+
+    function toggleHistory(): void {
+        if (history.visible) {
+            history.visible = false;
+            return;
+        }
+        if (Date.now() - historyHiddenAt < 300) {
+            return;
+        }
+        placeHistory();
+        history.visible = true;
+        history.requestActivate();
+    }
+
+    function placeHistory(): void {
+        const rect = root.historyScreenRect;
+        const width = history.width > 0 ? history.width : historyView.implicitWidth;
+        history.x = Math.round(rect.x + rect.width - width - historyMargin);
+        history.y = Math.round(rect.y + historyGap) - glassPad;
     }
 
     compactRepresentation: CompactRepresentation {
@@ -160,11 +205,60 @@ PlasmoidItem {
         inhibited: root.inhibitedOrBroken
     }
 
-    fullRepresentation: FullRepresentation {
-        appletInterface: root
-        notificationSettings: notificationSettings
-        clearHistoryAction: clearHistory
-        historyModel: historyModel
+    PlasmaCore.Dialog {
+        id: history
+
+        // No frame of its own: every card is a glass bubble.
+        location: PlasmaCore.Types.Floating
+        backgroundHints: PlasmaCore.Dialog.NoBackground
+        type: PlasmaCore.Dialog.PopupMenu
+        flags: Qt.WindowStaysOnTopHint
+        hideOnWindowDeactivate: true
+        visible: false
+        onWidthChanged: if (visible) root.placeHistory()
+        onVisibleChanged: {
+            if (visible) {
+                Notifications.Globals.popupNotificationsModel.hideInhibitionSummary();
+            } else {
+                root.historyHiddenAt = Date.now();
+                historyModel.lastRead = undefined; // reset to now
+                historyModel.collapseAllGroups();
+            }
+        }
+
+        mainItem: Item {
+            width: historyView.implicitWidth
+            height: historyView.implicitHeight + 2 * root.glassPad
+
+            Keys.onEscapePressed: history.visible = false
+
+            FullRepresentation {
+                id: historyView
+                y: root.glassPad
+                width: implicitWidth
+                height: implicitHeight
+                focus: true
+                appletInterface: root
+                notificationSettings: notificationSettings
+                clearHistoryAction: clearHistory
+                historyModel: historyModel
+                shown: history.visible
+                maximumHeight: Math.max(Kirigami.Units.gridUnit * 12,
+                                        root.historyScreenRect.height - root.historyGap - root.historyMargin)
+                onGlassChanged: if (blurLoader.item) blurLoader.item.update()
+            }
+
+            // KWin blurs the desktop behind each card only.
+            Loader {
+                id: blurLoader
+                source: "components/WindowBlur.qml"
+                onLoaded: item.target = historyView
+            }
+            Components.BlurSettler {
+                active: history.visible
+                blur: blurLoader.item
+            }
+        }
     }
 
     NotificationManager.Settings {
@@ -178,8 +272,10 @@ PlasmoidItem {
         showJobs: notificationSettings.jobsInNotifications
         sortMode: NotificationManager.Notifications.SortByDate
         groupMode: NotificationManager.Notifications.GroupApplicationsFlat
-        groupLimit: 2
-        expandUnread: true
+        // AquaDesktop: a group is a macOS stack, its newest notification in
+        // front, until a click expands it.
+        groupLimit: 1
+        expandUnread: false
         ignoreBlacklistDuringInhibition: true
         blacklistedDesktopEntries: notificationSettings.historyBlacklistedApplications
         blacklistedNotifyRcNames: notificationSettings.historyBlacklistedServices
@@ -214,9 +310,7 @@ PlasmoidItem {
     }
 
     function closePlasmoid() {
-        if (root.hideOnWindowDeactivate && !(root.width > root.switchWidth && root.height > root.switchHeight)) {
-            root.expanded = false;
-        }
+        history.visible = false;
     }
 
     function clearNotificationHistoryAndShowOsd() {
@@ -285,7 +379,9 @@ PlasmoidItem {
         // The user requested to show the notifications popup, probably by 
         // clicking the "Missed Notifications in Do Not Disturb" notification.
         function onShowNotificationsRequested(): void {
-            root.expanded = true;
+            if (!history.visible) {
+                root.toggleHistory();
+            }
         }
     }
 }

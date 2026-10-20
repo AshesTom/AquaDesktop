@@ -23,6 +23,9 @@ RowLayout {
 
     required property ModelInterface modelInterface
     property alias closeButtonTooltip: closeButtonToolTip.text
+    // AquaDesktop: the history cards show only the age; their buttons are
+    // drawn over the card on hover.
+    property bool showButtons: true
 
     readonly property string __applicationName: modelInterface.applicationName + (modelInterface.originName ? " · " + modelInterface.originName : "")
 
@@ -144,7 +147,7 @@ RowLayout {
     PlasmaComponents3.ToolButton {
         id: configureButton
         icon.name: "configure"
-        visible: headingButtons.modelInterface.configurable
+        visible: headingButtons.showButtons && headingButtons.modelInterface.configurable
 
         display: PlasmaComponents3.AbstractButton.IconOnly
         text: headingButtons.modelInterface.configureActionLabel || i18nd("plasma_applet_org.kde.plasma.notifications", "Configure")
@@ -160,7 +163,7 @@ RowLayout {
     PlasmaComponents3.ToolButton {
         id: dismissButton
         icon.name: headingButtons.modelInterface.dismissed ? "window-restore" : "window-minimize"
-        visible: headingButtons.modelInterface.dismissable
+        visible: headingButtons.showButtons && headingButtons.modelInterface.dismissable
 
         display: PlasmaComponents3.AbstractButton.IconOnly
         text: headingButtons.modelInterface.dismissed
@@ -177,7 +180,7 @@ RowLayout {
 
     PlasmaComponents3.ToolButton {
         id: closeButton
-        visible: headingButtons.modelInterface.closable
+        visible: headingButtons.showButtons && headingButtons.modelInterface.closable
         icon.name: "window-close"
 
         display: PlasmaComponents3.AbstractButton.IconOnly

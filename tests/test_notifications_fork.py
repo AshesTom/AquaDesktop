@@ -85,3 +85,68 @@ def test_waylandclient_token_maps_on_every_family():
     row = distro._PACKAGE_MAP["qt6-waylandclient-cmake"]
     for family in ("arch", "debian", "ubuntu", "fedora", "opensuse", "gentoo"):
         assert row[family]
+
+
+def test_history_is_a_frameless_window_of_glass_cards(offline):
+    """The Notification Center, after NextKde's history: its own frameless
+    window (the tray's popup always draws a frame and a shadow), each card
+    and pill a glass bubble GlassBlur blurs on its own."""
+    root = offline / ROOT
+    main = (root / "main.qml").read_text()
+    assert "preferredRepresentation: compactRepresentation" in main
+    assert "fullRepresentation: Item {}" in main
+    assert "backgroundHints: PlasmaCore.Dialog.NoBackground" in main
+    assert 'source: "components/WindowBlur.qml"' in main
+    assert "onLoaded: item.target = historyView" in main
+    assert "onGlassChanged: if (blurLoader.item) blurLoader.item.update()" in main
+    # A group is a stack until clicked.
+    assert "groupLimit: 1" in main and "expandUnread: false" in main
+    blur = (root / "components/WindowBlur.qml").read_text()
+    assert "import org.kde.mac.tahoe.liquid.glass as Glass" in blur
+    # Only WindowBlur.qml needs the compiled module: without it the Loader
+    # loses the blur, never the history.
+    for path in root.rglob("*.qml"):
+        if path.name != "WindowBlur.qml":
+            assert "org.kde.mac.tahoe.liquid.glass" not in path.read_text(), path
+
+    card = (root / "components/GlassCard.qml").read_text()
+    assert "property real radius: 24" in card
+    assert "readonly property real glassRadius: radius" in card
+    assert "GlassSurface {" in card and "border.width" not in card
+
+    full = (root / "FullRepresentation.qml").read_text()
+    assert "PlasmoidHeading" not in full and "widgets/line" not in full
+    assert "implicitWidth: 356" in full
+    assert "readonly property int cardSpacing: 8" in full
+    assert "readonly property int stackStep: 6" in full
+    assert full.count("Components.GlassCard {") >= 6
+    assert "historyModel.groupIndex(rowIdx)" in full
+    assert "signal glassChanged()" in full
+    assert "QQC2.ScrollBar.AlwaysOff" in full
+
+    grouped = (root / "delegates/DelegateHistoryGrouped.qml").read_text()
+    assert "DelegateHistory {" in grouped
+    history = (root / "delegates/DelegateHistory.qml").read_text()
+    assert "Layout.preferredWidth: 32" in history and "font.weight: Font.Bold" in history
+
+    cmake = (root / "CMakeLists.txt").read_text()
+    for name in ("GlassCard", "GlassSurface", "WindowBlur", "BlurSettler"):
+        assert f"components/{name}.qml" in cmake
+    assert "RESOURCES components/shaders/glasssurface.frag.qsb" in cmake
+
+
+def test_history_glass_face_is_the_popovers_copy(offline):
+    clock = offline / "plasmoids/org.kde.mac-tahoe-liquid-kde.clock/contents/ui"
+    ours = offline / ROOT / "components"
+    for name in ("GlassSurface.qml", "BlurSettler.qml", "shaders/glasssurface.frag",
+                 "shaders/glasssurface.frag.qsb"):
+        assert (ours / name).read_bytes() == (clock / name).read_bytes(), name
+
+
+def test_glass_blur_cuts_shapes_to_clipping_items_and_returns_the_mask(offline):
+    cpp = (offline / "qml/org.kde.mac.tahoe.liquid.glass/glassblur.cpp").read_text()
+    # A card scrolled half out of the history's list is blurred (and takes
+    # clicks) only where it shows.
+    assert "if (item->clip())" in cpp and "shape &= itemClip.toAlignedRect();" in cpp
+    # The window's input mask goes back to the whole window with the glass.
+    assert "m_window->setMask(QRegion());" in cpp

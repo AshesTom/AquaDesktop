@@ -29,7 +29,12 @@ GlassBlur::GlassBlur(QQuickItem *parent)
     });
 }
 
-GlassBlur::~GlassBlur() = default;
+GlassBlur::~GlassBlur()
+{
+    if (m_window && m_maskSet) {
+        m_window->setMask(QRegion());
+    }
+}
 
 QQuickItem *GlassBlur::target() const
 {
@@ -116,10 +121,19 @@ bool GlassBlur::eventFilter(QObject *watched, QEvent *event)
     return QQuickItem::eventFilter(watched, event);
 }
 
-void GlassBlur::collect(QQuickItem *item, QRegion &region) const
+void GlassBlur::collect(QQuickItem *item, QRegion &region, const QRectF &clip) const
 {
     if (!item->isVisible() || item->opacity() <= 0) {
         return;
+    }
+    // An empty clip is no clip: nothing above clips the item.
+    QRectF itemClip = clip;
+    if (item->clip()) {
+        const QRectF rect = item->mapRectToScene(QRectF(0, 0, item->width(), item->height()));
+        itemClip = itemClip.isNull() ? rect : itemClip.intersected(rect);
+        if (itemClip.isEmpty()) {
+            return;
+        }
     }
     const QVariant radius = item->property("glassRadius");
     if (radius.isValid() && radius.toReal() >= 0 && item->width() > 0 && item->height() > 0) {
@@ -127,13 +141,17 @@ void GlassBlur::collect(QQuickItem *item, QRegion &region) const
         const qreal r = qMin(radius.toReal(), qMin(rect.width(), rect.height()) / 2);
         QPainterPath path;
         path.addRoundedRect(rect, r, r);
-        region |= QRegion(path.toFillPolygon().toPolygon());
+        QRegion shape(path.toFillPolygon().toPolygon());
+        if (!itemClip.isNull()) {
+            shape &= itemClip.toAlignedRect();
+        }
+        region |= shape;
         // A glass shape's own children are on the glass.
         return;
     }
     const auto children = item->childItems();
     for (QQuickItem *child : children) {
-        collect(child, region);
+        collect(child, region, itemClip);
     }
 }
 
@@ -144,13 +162,17 @@ void GlassBlur::apply()
     }
     QRegion region;
     if (m_active && m_target) {
-        collect(m_target, region);
+        collect(m_target, region, QRectF());
     }
     KWindowEffects::enableBlurBehind(m_window, !region.isEmpty(), region);
     // Clicks outside the glass go to what is under it, as on macOS (on
     // Wayland the mask is the surface's input region).
     if (!region.isEmpty() && m_window->mask() != region) {
         m_window->setMask(region);
+        m_maskSet = true;
+    } else if (region.isEmpty() && m_maskSet) {
+        m_window->setMask(QRegion());
+        m_maskSet = false;
     }
     // The blur region is double-buffered: KWin applies it on the surface's
     // next commit. A popup that is not repainting (most of them, once
