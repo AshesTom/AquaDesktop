@@ -444,20 +444,34 @@ int main() {
     subprocess.run([str(binary)], check=True, timeout=10)
 
 
-def test_liquid_shaders_compile(offline, tmp_path):
+def test_every_shader_compiles(offline, tmp_path):
+    """Every shader the effect loads compiles: one that does not stops the
+    effect's setup, and KWin then reports it loaded while nothing blurs (an
+    upstream merge once carried Acrylic Glass's noise shader, with its
+    undeclared blurSize, over this one)."""
     import shutil
     import subprocess
     validator = shutil.which("glslangValidator")
     if not validator:
         pytest.skip("glslangValidator required")
+    # KWin's own sdf.glsl, the only include the shaders may use.
+    sdf = ("float sdfRoundedBox(vec2 position, vec2 center, vec2 extents, vec4 radius)"
+           " { return length(position - center) - extents.x + radius.x; }")
     shaders = offline / GLASS / "src/shaders"
-    core = shaders / "liquid_core.frag"
-    # The legacy variant is the core one in the pre-6.7 dialect.
-    legacy = tmp_path / "liquid.frag"
-    legacy.write_text("#version 120\n" + (shaders / "liquid.frag").read_text())
-    for shader in (core, legacy):
-        result = subprocess.run([validator, "-S", "frag", str(shader)],
-                                capture_output=True, text=True, timeout=30)
-        assert result.returncode == 0, result.stdout + result.stderr
     qrc = (offline / GLASS / "src/blur.qrc").read_text()
-    assert "shaders/liquid.frag" in qrc and "shaders/liquid_core.frag" in qrc
+    frags = sorted(shaders.glob("*.frag"))
+    assert {"liquid.frag", "liquid_core.frag", "noise.frag", "noise_core.frag"} <= {f.name for f in frags}
+    for shader in frags:
+        assert f"shaders/{shader.name}" in qrc, shader.name
+        text = shader.read_text()
+        includes = re.findall(r'#include "([^"]+)"', text)
+        assert set(includes) <= {"sdf.glsl"}, (shader.name, includes)
+        text = text.replace('#include "sdf.glsl"', sdf)
+        # The legacy shaders are the core ones in the pre-6.7 dialect.
+        if not shader.stem.endswith("_core"):
+            text = "#version 120\n" + text
+        source = tmp_path / shader.name
+        source.write_text(text)
+        result = subprocess.run([validator, "-S", "frag", str(source)],
+                                capture_output=True, text=True, timeout=30)
+        assert result.returncode == 0, shader.name + "\n" + result.stdout + result.stderr
