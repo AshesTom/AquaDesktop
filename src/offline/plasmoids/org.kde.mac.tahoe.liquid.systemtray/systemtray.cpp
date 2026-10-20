@@ -5,6 +5,7 @@
 */
 
 #include <optional>
+#include <utility>
 
 #include "config-X11.h"
 #include "debug.h"
@@ -505,7 +506,7 @@ void SystemTray::startApplet(const QString &pluginId)
 
     // known one, recycle the id to reuse old config
     if (m_configGroupIds.contains(pluginId)) {
-        Applet *applet = Plasma::PluginLoader::self()->loadApplet(pluginId, m_configGroupIds.value(pluginId), QVariantList());
+        auto applet = Plasma::PluginLoader::self()->loadApplet(pluginId, m_configGroupIds.value(pluginId), QVariantList());
         // this should never happen unless explicitly wrong config is hand-written or
         //(more likely) a previously added applet is uninstalled
         if (!applet) {
@@ -513,7 +514,7 @@ void SystemTray::startApplet(const QString &pluginId)
             return;
         }
         applet->setProperty("org.kde.plasma:force-create", true);
-        addApplet(applet);
+        addApplet(std::move(applet));
         // create a new one automatic id, new config group
     } else {
         Applet *applet = createApplet(pluginId, QVariantList() << u"org.kde.plasma:force-create"_s);

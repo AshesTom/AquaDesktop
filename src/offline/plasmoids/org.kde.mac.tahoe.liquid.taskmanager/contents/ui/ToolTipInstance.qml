@@ -291,17 +291,10 @@ ColumnLayout {
             // shadow can cover up the highlight
             anchors.margins: Kirigami.Units.smallSpacing * 2
 
-            sourceComponent: root.isMinimized || pipeWireLoader.active ? iconItem : x11Thumbnail
+            // Plasma 6.8 removed the X11 PlasmaCore.WindowThumbnail type, so
+            // the icon is the fallback whenever PipeWire has no thumbnail.
+            sourceComponent: iconItem
 
-            Component {
-                id: x11Thumbnail
-
-                PlasmaCore.WindowThumbnail {
-                    winId: thumbnailSourceItem.winId
-                }
-            }
-
-            // when minimized, we don't have a preview on X11, so show the icon
             Component {
                 id: iconItem
 

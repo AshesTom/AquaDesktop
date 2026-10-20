@@ -358,3 +358,16 @@ def test_menu_bar_carries_tahoes_dark_veil(offline, frosted):
                      "look-and-feel/MacTahoeLiquidKde-Light/contents/layouts/org.kde.plasma.desktop-layout.js",
                      "look-and-feel/MacTahoeLiquidKde-Dark/contents/layouts/org.kde.plasma.desktop-layout.js"):
         assert f'"panel": {{ "normal": {ts.TOP_BAR_SCRIM} }}' in (offline / relative).read_text(), relative
+
+
+@pytest.mark.parametrize('build_succeeds', [False, True])
+def test_build_never_mutates_the_live_desktop(monkeypatch, build_succeeds):
+    from steps import acrylic_glass as step
+    builds = []
+    monkeypatch.setattr(step, 'cmake_build', lambda *args: builds.append(args) or build_succeeds)
+    def unexpected(*args, **kwargs):
+        pytest.fail('Build phase attempted a live config write or effect unload')
+    monkeypatch.setattr(step, 'kw_write', unexpected)
+    monkeypatch.setattr(step, 'qdbus_call', unexpected)
+    step.build()
+    assert len(builds) == 1

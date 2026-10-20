@@ -101,14 +101,8 @@ def _plugin_dir() -> Path:
 def build() -> None:
     if not (SRC / "CMakeLists.txt").is_file():
         return
-    # Unload the effects that would keep a .so mapped while it is replaced,
-    # and the stock blur, which would blur a second time.
-    kw_write("--file", "kwinrc", "--group", "Plugins",
-             "--key", "blurEnabled", "false")
-    for effect in (GLASS_EFFECT, "blur"):
-        qdbus_call("org.kde.KWin", "/Effects",
-                   "org.kde.kwin.Effects.unloadEffect", effect)
-
+    # Builds must not touch the live desktop: another component can still
+    # fail and abort the install. The install phase unloads before replacing.
     cmake_build(SRC, BUILD, "Better Blur DX")
 
 
@@ -236,6 +230,12 @@ def install() -> None:
         return
 
     _remove_replaced_effects()
+
+    # Disable the stock effect only after every selected build succeeded.
+    kw_write("--file", "kwinrc", "--group", "Plugins",
+             "--key", "blurEnabled", "false")
+    qdbus_call("org.kde.KWin", "/Effects",
+               "org.kde.kwin.Effects.unloadEffect", "blur")
 
     # Unload before replacing the .so so KWin doesn't hold the file.
     kw_write("--file", "kwinrc", "--group", "Plugins",

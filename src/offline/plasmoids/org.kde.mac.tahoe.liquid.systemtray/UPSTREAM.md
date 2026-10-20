@@ -16,6 +16,9 @@ is upstream's code except the changes listed below.
 
 ## Changes
 
+- `systemtray.cpp`: deduce the applet ownership returned by `loadApplet`
+  and move it into `addApplet`. This supports both the raw-pointer API in
+  Plasma 6.6/6.7 and the unique-pointer API in Plasma 6.8.
 - Applet ID `org.kde.mac.tahoe.liquid.systemtray` (metadata trimmed to one
   language; `X-Plasma-Provides` offers `org.kde.plasma.systemtray`). Not
   enabled by default: the layouts add it when it is installed, else
