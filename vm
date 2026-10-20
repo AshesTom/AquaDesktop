@@ -11,15 +11,13 @@
 #                     RAM — override with VM_CPUS / VM_MEM_MIB.
 # ./vm list           list supported distros
 # ./vm --help         show this help
-# VM_BOOT_TARGET=1 ./vm gentoo-openrc
-#                     boot the OpenRC disk produced by the install pass
 #
 # Flags:
 #   --clean, -c       wipe the cached overlay before booting (fresh
 #                     install — picks up any cloud-init changes)
 #
 # Supported: cachyos arch manjaro endeavouros garuda
-#            fedora nobara opensuse neon gentoo gentoo-openrc
+#            fedora nobara opensuse neon
 
 set -euo pipefail
 
@@ -32,9 +30,8 @@ declare -A BASE=(
     [arch]=arch.qcow2     [cachyos]=arch.qcow2  [manjaro]=arch.qcow2
     [endeavouros]=arch.qcow2 [garuda]=arch.qcow2
     [fedora]=fedora.qcow2 [nobara]=fedora.qcow2
-    [opensuse]=opensuse.qcow2 [gentoo]=gentoo.qcow2
+    [opensuse]=opensuse.qcow2
     [neon]=ubuntu-noble.qcow2
-    [gentoo-openrc]=gentoo.qcow2
 )
 declare -A URL=(
     [arch.qcow2]="https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
@@ -42,11 +39,9 @@ declare -A URL=(
     [opensuse.qcow2]="https://download.opensuse.org/tumbleweed/appliances/openSUSE-Tumbleweed-Minimal-VM.x86_64-Cloud.qcow2"
     [ubuntu-noble.qcow2]="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
 )
-GENTOO_CLOUD_DIR="https://distfiles.gentoo.org/releases/amd64/autobuilds/current-di-amd64-cloudinit"
-GENTOO_CLOUD_POINTER="$GENTOO_CLOUD_DIR/latest-di-amd64-cloudinit.txt"
-declare -A PORT=([arch]=2221 [cachyos]=2222 [manjaro]=2223 [endeavouros]=2224 [garuda]=2225 [fedora]=2226 [nobara]=2227 [opensuse]=2228 [gentoo]=2229 [gentoo-openrc]=2230 [neon]=2231)
+declare -A PORT=([arch]=2221 [cachyos]=2222 [manjaro]=2223 [endeavouros]=2224 [garuda]=2225 [fedora]=2226 [nobara]=2227 [opensuse]=2228 [neon]=2231)
 
-ORDER=(cachyos arch manjaro endeavouros garuda fedora nobara opensuse neon gentoo gentoo-openrc)
+ORDER=(cachyos arch manjaro endeavouros garuda fedora nobara opensuse neon)
 
 die()  { echo "✗ $*" >&2; exit 1; }
 warn() { echo "⚠ $*" >&2; }
@@ -58,31 +53,12 @@ require_tools() {
     done
 }
 
-resolve_gentoo_cloud_url() {
-    local pointer filename
-    pointer="$(curl -fsSL "$GENTOO_CLOUD_POINTER")" || return 1
-    filename="$(
-        printf '%s\n' "$pointer" \
-            | awk '$1 ~ /^di-amd64-cloudinit-[0-9TZ]+\.qcow2$/ && $2 ~ /^[0-9]+$/ { print $1; exit }'
-    )"
-    [[ "$filename" =~ ^di-amd64-cloudinit-[0-9]{8}T[0-9]{6}Z\.qcow2$ ]] \
-        || return 1
-    printf '%s/%s\n' "$GENTOO_CLOUD_DIR" "$filename"
-}
-
 ensure_base() {
     local base="$1"
     local source_url
     [[ -f "$CACHE/$base" ]] && return 0
     mkdir -p "$CACHE"
-    if [[ "$base" == "gentoo.qcow2" ]]; then
-        source_url="$(resolve_gentoo_cloud_url)" || {
-            warn "could not resolve the current Gentoo cloud image"
-            return 1
-        }
-    else
-        source_url="${URL[$base]}"
-    fi
+    source_url="${URL[$base]}"
     say "downloading $base (first run only)"
     curl -L --fail -C - -o "$CACHE/$base.part" "$source_url"
     mv "$CACHE/$base.part" "$CACHE/$base"
@@ -122,47 +98,11 @@ prepare_one() {
         "$tmp/user-data" "$tmp/meta-data" 2>/dev/null
     rm -rf "$tmp"
 
-    local fw=()
-    if [[ "$distro" == gentoo* ]]; then
-        if [[ ! -f /usr/share/edk2/x64/OVMF.4m.fd ]]; then
-            warn "$distro: needs OVMF firmware — install edk2-ovmf"
-            return 1
-        fi
-        fw=(-bios /usr/share/edk2/x64/OVMF.4m.fd)
-    fi
-
-    # gentoo-openrc installs the OFFICIAL Handbook way: the cloud image is
-    # the installer/live env and does a stage3 chroot install onto a SECOND
-    # empty disk (/dev/vdb -> target.qcow2). Boot order stays on the cloud
-    # disk for the install pass; once /var/lib/mttkde/installed exists the
-    # target holds a bootable Gentoo OpenRC. Re-run without --clean to boot
-    # the target (VM_BOOT_TARGET=1) once the install has finished.
-    local extra=()
-    if [[ "$distro" == "gentoo-openrc" ]]; then
-        local target="$work/target.qcow2"
-        [[ -f "$target" ]] || qemu-img create -f qcow2 "$target" 30G >/dev/null
-        if [[ "${VM_BOOT_TARGET:-0}" == "1" ]]; then
-            # Boot the installed OpenRC system: target disk first, no cidata.
-            extra=(-drive file="$target",if=virtio,format=qcow2 -boot c)
-        else
-            # Install pass: cloud disk (vda) boots, target is the empty
-            # vdb, cidata is last (vdc). Order matters — the install script
-            # partitions /dev/vdb, so the target MUST enumerate before the
-            # tiny cidata ISO, or sgdisk lands on the 388K cloud-init disk.
-            extra=(
-                -drive file="$disk",if=virtio,format=qcow2
-                -drive file="$target",if=virtio,format=qcow2
-                -drive file="$cidata",if=virtio,format=raw,readonly=on
-                -boot c
-            )
-        fi
-    else
-        extra=(
-            -drive file="$disk",if=virtio,format=qcow2
-            -drive file="$cidata",if=virtio,format=raw,readonly=on
-            -boot c
-        )
-    fi
+    local extra=(
+        -drive file="$disk",if=virtio,format=qcow2
+        -drive file="$cidata",if=virtio,format=raw,readonly=on
+        -boot c
+    )
 
     QEMU_ARGV=(
         qemu-system-x86_64
@@ -176,7 +116,6 @@ prepare_one() {
         -device virtio-vga-gl,xres="${VM_XRES:-1920}",yres="${VM_YRES:-1080}"
         -display "${VM_DISPLAY:-gtk}",gl=on,show-cursor=on
         -qmp unix:"$work/qmp.sock",server,nowait
-        "${fw[@]}"
     )
     return 0
 }

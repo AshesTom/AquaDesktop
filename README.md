@@ -71,7 +71,7 @@ Glass and Acrylic Glass effects previously used by this project. The historical
 
 ## Install
 
-Use a **KDE Plasma 6.6+** desktop with Python 3.10+ and `sudo`. Run the installer
+Use a **KDE Plasma 6.6, 6.7 or 6.8** desktop with Python 3.10+ and `sudo`. Run the installer
 from your normal desktop session. Qt 6, KDE development packages, CMake and a
 C++ compiler are needed for compiled components; the installer resolves
 supported distribution packages.
@@ -117,13 +117,14 @@ Kvantum, Qt Quick and GTK menu environment hooks.
 | Platform | Status |
 | --- | --- |
 | Arch Linux, CachyOS | Tested |
-| Manjaro, EndeavourOS, Garuda, Gentoo, Fedora, Nobara, openSUSE Tumbleweed, KDE neon | Testing |
+| Manjaro, EndeavourOS, Garuda, Fedora, Nobara, openSUSE Tumbleweed, KDE neon | Testing |
 | Artix OpenRC | Testing; outside the container matrix |
 | NixOS / Home Manager | Experimental declarative installation via `flake.nix` and `nix/` |
 
 Scheduled appearance changes and OLED care use a systemd user timer or a
 per-user crontab on OpenRC. Immutable rpm-ostree systems such as Silverblue
-and Kinoite are outside the installer scope.
+and Kinoite are outside the installer scope. Gentoo is no longer supported
+(upstream retired it in v0.54.7).
 
 ## Make it yours
 
@@ -157,6 +158,10 @@ mac-tahoe-theme-switch transparency standard
 Auto switches at **06:00 and 18:00 local time** when the schedule is installed.
 Your chosen wallpapers are preserved across theme changes. Use
 `sudo ./install --reset-wallpapers` to let the theme manage them again.
+
+The app grid has two layouts: **1 — Tahoe** (integrated search, the default)
+and **2 — Golden Gate** (a detached search capsule above the grid). Choose
+one from the Launcher's **…** menu or its settings.
 
 Internal theme names, plugin IDs and `mac-tahoe-*` commands keep their upstream
 identifiers so existing installations can upgrade in place.
@@ -194,7 +199,15 @@ sudo ./install
   <a href="https://github.com/myakupozluk"><img src="src/screenshots/contributors/myakupozluk.svg" width="40" height="40" alt="@myakupozluk" title="@myakupozluk"></a>
   <a href="https://github.com/EMS1998"><img src="src/screenshots/contributors/EMS1998.svg" width="40" height="40" alt="@EMS1998" title="@EMS1998"></a>
   <a href="https://github.com/allfritz"><img src="src/screenshots/contributors/allfritz.svg" width="40" height="40" alt="@allfritz" title="@allfritz"></a>
+  <a href="https://github.com/elegos"><img src="src/screenshots/contributors/elegos.svg" width="40" height="40" alt="@elegos" title="@elegos"></a>
   <a href="https://github.com/kozeki-uii"><img src="src/screenshots/contributors/kozeki-uii.svg" width="40" height="40" alt="@kozeki-uii" title="@kozeki-uii"></a>
+  <a href="https://github.com/imightbelosthere"><img src="src/screenshots/contributors/imightbelosthere.svg" width="40" height="40" alt="@imightbelosthere" title="@imightbelosthere"></a>
+  <a href="https://github.com/evaildev"><img src="src/screenshots/contributors/evaildev.svg" width="40" height="40" alt="@evaildev" title="@evaildev"></a>
+  <a href="https://github.com/xarblu"><img src="src/screenshots/contributors/xarblu.svg" width="40" height="40" alt="@xarblu" title="@xarblu"></a>
+  <a href="https://github.com/PKMNPlatin"><img src="src/screenshots/contributors/PKMNPlatin.svg" width="40" height="40" alt="@PKMNPlatin" title="@PKMNPlatin"></a>
+  <a href="https://github.com/matinlotfali"><img src="src/screenshots/contributors/matinlotfali.svg" width="40" height="40" alt="@matinlotfali" title="@matinlotfali"></a>
+  <a href="https://github.com/luisbocanegra"><img src="src/screenshots/contributors/luisbocanegra.svg" width="40" height="40" alt="@luisbocanegra" title="@luisbocanegra"></a>
+  <a href="https://github.com/OliverChase2003"><img src="src/screenshots/contributors/OliverChase2003.svg" width="40" height="40" alt="@OliverChase2003" title="@OliverChase2003"></a>
 </p>
 
 Report AquaDesktop issues in

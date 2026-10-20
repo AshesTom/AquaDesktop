@@ -13,8 +13,8 @@ let
   buildPlugin = name: src: extra: pkgs.stdenv.mkDerivation ({
     pname = "mac-tahoe-${name}";
     inherit version src meta;
-    nativeBuildInputs = [ pkgs.cmake kde.extra-cmake-modules pkgs.pkg-config kde.wrapQtAppsHook ];
-    buildInputs = with kde; [ qtbase qtdeclarative qttools kconfig kconfigwidgets
+    nativeBuildInputs = [ pkgs.cmake kde.extra-cmake-modules pkgs.pkg-config pkgs.wayland-scanner kde.wrapQtAppsHook ];
+    buildInputs = with kde; [ qtbase qtdeclarative qtwayland qttools kconfig kconfigwidgets
       kcoreaddons kcrash kglobalaccel kguiaddons ki18n kio kcmutils knotifications
       kservice kwidgetsaddons kwindowsystem kcolorscheme libplasma plasma-activities
       plasma-activities-stats libksysguard plasma-workspace kwin kdecoration ]
@@ -58,6 +58,7 @@ in rec {
     version = capture "UPSTREAM_VERSION";
     # Upstream has an informational /usr header probe, not a build dependency.
     postPatch = ''
+      ${pkgs.python3}/bin/python ${../src/scripts/rounded_corners_compat.py} .
       substituteInPlace cmake/info.cmake --replace-fail /usr/include/ ${kde.kwin.dev}/include/
     '';
   };
@@ -69,6 +70,7 @@ in rec {
     installPhase = ''
       mkdir -p "$out/bin" "$out/libexec"
       cp ${../src/scripts/theme_switch.py} "$out/libexec/theme_switch.py"
+      cp ${../src/scripts/defaults.json} "$out/libexec/defaults.json"
       cp ${../src/scripts/oled_care.py} "$out/libexec/oled_care.py"
       for tool in theme-switch oled-care; do
         script="$(echo "$tool" | tr - _)"
@@ -107,7 +109,7 @@ in rec {
   };
   default = pkgs.symlinkJoin {
     name = "mac-tahoe-liquid-kde-${version}";
-    paths = [ theme-assets global-menu task-manager acrylic-glass rounded-corners tools ];
+    paths = [ theme-assets global-menu task-manager acrylic-glass rounded-corners tools kde.plasma5support kde.kitemmodels ];
     inherit meta;
   };
 }

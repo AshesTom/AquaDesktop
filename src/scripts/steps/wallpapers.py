@@ -38,6 +38,7 @@ def install() -> None:
 
 
 _FIXED_NAMES = (
+    "MacGoldenGate",
     "MacTahoe", "MacTahoe-Beach-Dawn", "MacTahoe-Beach-Day",
     "MacTahoe-Beach-Dusk", "MacTahoe-Beach-Night",
     "MacTahoe-Iridescence",

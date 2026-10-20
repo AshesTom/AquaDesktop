@@ -4,13 +4,17 @@ import QtQuick.Controls
 import org.kde.kirigami as Kirigami
 
 RowLayout {
+	spacing: Kirigami.Units.smallSpacing
 
     property alias textField: textField
     property alias showMenuButton: menuButton.visible
+    readonly property bool menuOpen: menuButton.menuOpen
 
     Kirigami.Icon {
         id: searchIcon
         Layout.rightMargin: 0
+        Layout.preferredWidth: main.detachedSearch ? Kirigami.Units.gridUnit * 2 : Kirigami.Units.iconSizes.medium
+        Layout.preferredHeight: Layout.preferredWidth
         source: Qt.resolvedUrl('icons/AppsIcon.svg')
         isMask: true
         color: main.dimmedTextColor
@@ -20,7 +24,10 @@ RowLayout {
         id: textField
         Layout.fillHeight: true
         Layout.fillWidth: true
-        font.pointSize: 18
+        font.family: Kirigami.Theme.defaultFont.family
+        font.pointSize: main.textSize * (main.detachedSearch ? 2 : 1)
+        font.weight: Kirigami.Theme.defaultFont.weight
+        color: main.textColor
 
         placeholderText: i18n("Apps")
         placeholderTextColor: main.dimmedTextColor
@@ -48,5 +55,6 @@ RowLayout {
 
     MenuButton {
         id: menuButton
+        Layout.alignment: Qt.AlignVCenter
     }
 }

@@ -10,6 +10,16 @@
       <label>Hide the Dock button: an "Apps" launcher pinned with the apps opens the grid instead (macOS keeps Finder first).</label>
       <default>false</default>
     </entry>
+    <entry name="launcherPreset" type="Int">
+      <label>Launcher preset: 0 follows the edition default, 1 is Tahoe, 2 is Golden Gate.</label>
+      <default>0</default>
+      <min>0</min>
+      <max>2</max>
+    </entry>
+    <entry name="defaultLauncherPreset" type="Int">
+      <label>Default preset supplied by the installed edition.</label>
+      <default>1</default>
+    </entry>
     <entry name="icon" type="String">
       <label>The name of the icon to use for the compact representation (e.g. on a small panel).</label>
       <default>view-app-grid</default>
@@ -58,6 +68,10 @@
     <entry name="numberColumns" type="Int">
       <label>Number of columns to favorites apps grid</label>
       <default>5</default>
+    </entry>
+    <entry name="goldenGateColumns" type="Int">
+      <label>Number of columns in the Golden Gate preset.</label>
+      <default>7</default>
     </entry>
     <entry name="numberOfRows" type="Int">
       <label>Number of rows to app grid</label>

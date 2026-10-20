@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls 2.15
 import org.kde.kirigami as Kirigami
+import org.kde.kitemmodels as KItemModels
 
 GridView {
     id: grid
@@ -8,8 +9,9 @@ GridView {
     property bool movedWithKeyboard: false
     property bool movedWithWheel: false
     property bool canMoveWithKeyboard: false
+    property bool showFavorites: false
 
-    readonly property int columns: plasmoid.configuration.numberColumns
+    readonly property int columns: root.columns
 
     focus: true
     clip: true
@@ -29,6 +31,61 @@ GridView {
     delegate: AppGridViewDelegate {
         id: favitem
         triggerModel: grid.model
+    }
+
+    header: showFavorites && globalFavorites && globalFavorites.count > 0 ? favoritesHeader : null
+    onHeaderItemChanged: Qt.callLater(positionViewAtBeginning)
+
+    Component {
+        id: favoritesHeader
+        Column {
+            property alias favoritesView: favoritesGrid
+            width: grid.width
+
+            KItemModels.KSortFilterProxyModel {
+                id: favoritesModel
+                sourceModel: globalFavorites
+                filterRowCallback: (row, parent) => row < root.columns
+            }
+            Connections {
+                target: root
+                function onColumnsChanged() { favoritesModel.invalidateFilter(); }
+            }
+            GridView {
+                id: favoritesGrid
+                width: parent.width
+                height: root.cellSizeHeight
+                cellWidth: root.cellSizeWidth
+                cellHeight: root.cellSizeHeight
+                clip: true
+                interactive: false
+                model: favoritesModel
+                currentIndex: 0
+                keyNavigationEnabled: true
+                keyNavigationWraps: false
+                property bool canMoveWithKeyboard: true
+                property bool movedWithKeyboard: false
+                property bool movedWithWheel: false
+
+                delegate: AppGridViewDelegate { triggerModel: globalFavorites }
+                Keys.onDownPressed: event => {
+                    grid.currentIndex = Math.min(currentIndex, grid.count - 1);
+                    if (grid.currentItem) {
+                        grid.currentItem.forceActiveFocus(Qt.TabFocusReason);
+                    }
+                    event.accepted = true;
+                }
+                Keys.onUpPressed: main.focusSearch()
+                Keys.onReturnPressed: { if (currentItem) currentItem.trigger(); }
+                Keys.onEnterPressed: { if (currentItem) currentItem.trigger(); }
+            }
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: main.contrastBgColor
+            }
+            Item { width: 1; height: root.configuredIconSize * 0.25 }
+        }
     }
 
     move: normalTransition
@@ -75,6 +132,8 @@ GridView {
             if (!root.visible) {
                 grid.currentIndex = 0
                 grid.positionViewAtBeginning()
+            } else {
+                Qt.callLater(grid.positionViewAtBeginning)
             }
         }
     }
@@ -126,7 +185,14 @@ GridView {
                     moveCurrentIndexLeft()
                     focusCurrentItem(event, Qt.BacktabFocusReason)
                 } break
-                case Qt.Key_Up: if (!atTop) {
+                case Qt.Key_Up: if (atTop && headerItem) {
+                    const favorites = headerItem.favoritesView;
+                    if (favorites) {
+                        favorites.currentIndex = Math.min(currentIndex, favorites.count - 1);
+                        favorites.forceActiveFocus(Qt.BacktabFocusReason);
+                        event.accepted = true;
+                    }
+                } else if (!atTop) {
                     moveCurrentIndexUp()
                     focusCurrentItem(event, Qt.BacktabFocusReason)
                 } break

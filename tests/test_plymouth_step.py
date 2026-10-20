@@ -919,7 +919,7 @@ def test_grub_patch_backup_keeps_truly_original(tmp_path, monkeypatch):
 
 
 def test_grub_regenerate_picks_first_available_binary(tmp_path, monkeypatch):
-    """On Arch / openSUSE / Gentoo the binary is ``grub-mkconfig``; on
+    """On Arch / openSUSE the binary is ``grub-mkconfig``; on
     Fedora / RHEL it's ``grub2-mkconfig``. The regenerate helper
     walks every (binary, output) candidate and uses the first match
     whose binary is on PATH and whose output directory exists."""

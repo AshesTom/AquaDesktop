@@ -48,10 +48,11 @@ def test_init_system_ignores_garbage_override(monkeypatch):
 
 
 def test_crontab_dep_resolves_per_distro(monkeypatch):
+    monkeypatch.setattr(distro, "distro_id_like", lambda: ())
     monkeypatch.setattr(distro, "_DISTRO_CACHE", "arch")
     assert distro.package_for("crontab") == "cronie"
-    monkeypatch.setattr(distro, "_DISTRO_CACHE", "gentoo")
-    assert distro.package_for("crontab") == "sys-process/cronie"
+    monkeypatch.setattr(distro, "_DISTRO_CACHE", "artix")
+    assert distro.package_for("crontab") == "cronie"
 
 
 # ── fake crontab harness ─────────────────────────────────────────────

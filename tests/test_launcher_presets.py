@@ -1,0 +1,224 @@
+"""Edition defaults and preset preservation when Plasma rebuilds panels."""
+
+import json
+import os
+import select
+import shutil
+import signal
+import subprocess
+import tempfile
+import time
+import xml.etree.ElementTree as ET
+
+import pytest
+
+import launcher_defaults
+from steps import plasmoids
+
+
+@pytest.mark.parametrize("preset", [1, 2])
+def test_installed_launcher_uses_edition_default_without_changing_source(
+        repo, tmp_path, monkeypatch, preset):
+    defaults = tmp_path / "defaults.json"
+    defaults.write_text(json.dumps({"launcher_preset": preset}))
+    monkeypatch.setattr(launcher_defaults, "DEFAULTS_FILE", defaults)
+    widget = repo / "src/offline/plasmoids" / launcher_defaults.LAUNCHER_ID
+    original = (widget / "contents/config/main.xml").read_bytes()
+    monkeypatch.setattr(plasmoids, "DEST_DIR", tmp_path / "installed")
+
+    def install_tree(source, destination, label):
+        shutil.copytree(source, destination)
+        return True
+
+    monkeypatch.setattr(plasmoids, "install_tree", install_tree)
+    assert plasmoids._install_launcher_package(widget)
+    installed = tmp_path / "installed" / widget.name / "contents/config/main.xml"
+    ns = {"k": "http://www.kde.org/standards/kcfg/1.0"}
+    root = ET.parse(installed)
+    assert root.find(".//k:entry[@name='defaultLauncherPreset']/k:default", ns).text == str(preset)
+    assert root.find(".//k:entry[@name='launcherPreset']/k:default", ns).text == "0"
+    assert (widget / "contents/config/main.xml").read_bytes() == original
+
+
+@pytest.mark.parametrize("raw", ["{}", "[]", "{", '{"launcher_preset":true}',
+                                 '{"launcher_preset":3}', '{"launcher_preset":"2"}'])
+def test_invalid_edition_preset_falls_back_to_tahoe(tmp_path, monkeypatch, raw):
+    path = tmp_path / "defaults.json"
+    path.write_text(raw)
+    monkeypatch.setattr(launcher_defaults, "DEFAULTS_FILE", path)
+    assert launcher_defaults.default_launcher_preset() == 1
+
+
+@pytest.mark.parametrize("relative", [
+    "layouts/mac-tahoe.js",
+    "look-and-feel/MacTahoeLiquidKde-Light/contents/layouts/org.kde.plasma.desktop-layout.js",
+    "look-and-feel/MacTahoeLiquidKde-Dark/contents/layouts/org.kde.plasma.desktop-layout.js",
+])
+@pytest.mark.parametrize("presets", [[1, 2], [2, 1], [0, None]])
+def test_panel_rebuild_preserves_explicit_presets_per_screen(repo, relative, presets):
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node.js required to execute Plasma layout scripts")
+    script = (repo / "src/offline" / relative).read_text()
+    harness = r'''
+const assert = require('node:assert/strict');
+const saved = PRESETS;
+const created = [];
+const screenCount = 2;
+function makeWidget(type, preset) {
+    return { type, currentConfigGroup: [], config: {launcherPreset: preset},
+        readConfig: function(key, fallback) { return this.config[key] ?? fallback; },
+        writeConfig: function(key, value) { this.config[key] = value; } };
+}
+const existing = saved.map((preset, screen) => {
+    const launcher = makeWidget('org.kde.mac-tahoe-liquid-kde.launcher', preset);
+    return {screen, widgetIds: [100 + screen],
+        widgetById: function() { return launcher; },
+        remove: function() { launcher.config = {}; } };
+});
+function panels() { return existing; }
+function Panel() {
+    this.items = [];
+    this.addWidget = function(type) { const item = makeWidget(type); this.items.push(item); return item; };
+    created.push(this);
+}
+'''.replace("PRESETS", json.dumps(presets))
+    assertions = r'''
+const docks = created.filter(p => p.location === 'bottom');
+assert.ok(docks.length);
+for (const dock of docks) {
+    const launcher = dock.items.find(w => w.type === 'org.kde.mac-tahoe-liquid-kde.launcher');
+    const expected = saved[dock.screen];
+    assert.equal(launcher.config.launcherPreset, expected === 1 || expected === 2 ? expected : undefined);
+}
+'''
+    result = subprocess.run([node, "-e", harness + script + assertions],
+                            capture_output=True, text=True, timeout=10)
+    assert result.returncode == 0, result.stderr
+
+
+@pytest.fixture(scope="session")
+def launcher_popup_module(repo, tmp_path_factory):
+    if not shutil.which("cmake") or not shutil.which("c++"):
+        pytest.skip("CMake and a C++ compiler required for the native popup")
+    build = tmp_path_factory.mktemp("launcher-popup-native")
+    source = repo / "src/offline/plasmoids/org.kde.mac.tahoe.liquid.taskmanager"
+    result = subprocess.run(
+        ["cmake", "-S", str(repo / "tests/qml"), "-B", str(build),
+         f"-DLAUNCHER_NATIVE_SOURCE={source}"], capture_output=True, text=True, timeout=60)
+    if "LAUNCHER_POPUP_SDK_MISSING" in result.stdout:
+        pytest.skip("Plasma Quick development SDK required for the native popup")
+    assert result.returncode == 0, result.stdout + result.stderr
+    result = subprocess.run(["cmake", "--build", str(build), "-j", "2"],
+                            capture_output=True, text=True, timeout=120)
+    assert result.returncode == 0, result.stdout + result.stderr
+    return build / "bin"
+
+
+@pytest.mark.parametrize("preset", [1, 2])
+def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_popup_module, preset):
+    for tool in ("plasmoidviewer", "Xvfb", "dbus-run-session", "xprop"):
+        if not shutil.which(tool):
+            pytest.skip(f"{tool} required for the isolated launcher preview")
+    package = tmp_path / "widget"
+    shutil.copytree(repo / "src/offline/plasmoids" / launcher_defaults.LAUNCHER_ID, package)
+    shutil.copytree(repo / "src/offline/plasma-theme/MacTahoeLiquidKde-Dark",
+                    tmp_path / "data/plasma/desktoptheme/MacTahoeLiquidKde-Dark")
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config/plasmarc").write_text("[Theme]\nname=MacTahoeLiquidKde-Dark\n")
+    monkeypatch.setattr(launcher_defaults, "default_launcher_preset", lambda: preset)
+    launcher_defaults.apply_launcher_default(package)
+    ui = package / "contents/ui"
+    entry = ui / "main.qml"
+    entry.write_text(entry.read_text().replace(
+        "mergeResults: true", 'mergeResults: true\n        runners: ["services"]', 1))
+    # More favorites than columns exercise the single-row reference layout.
+    favorites = '\n'.join(
+        f'ListElement {{ display: "Favorite {i}"; name: "Favorite {i}"; '
+        'decoration: "application-x-executable"; favoriteId: "test"; '
+        'hasActionList: false }' for i in range(9))
+    entry.write_text(entry.read_text().replace(
+        'property QtObject globalFavorites: rootModel.favoritesModel',
+        'property QtObject globalFavorites: ListModel { '
+        'property var favorites: []; function trigger(index, action, argument) {}\n'
+        + favorites + '\n}', 1))
+    shutil.copy2(repo / "tests/qml/LauncherPresetProbe.qml", ui)
+    main = ui / "MainView.qml"
+    source = main.read_text()
+    end = source.rfind("}")
+    main.write_text(source[:end] + f"LauncherPresetProbe {{ expectedPreset: {preset} }}\n" + source[end:])
+    for name, original, replacement in (
+        ("MenuButton.qml", "Item {", "Item { property alias testMenu: contextMenu"),
+        ("SearchBar.qml", "RowLayout {", "RowLayout { property alias testMenuButton: menuButton"),
+    ):
+        path = ui / name
+        path.write_text(path.read_text().replace(original, replacement, 1))
+
+    # Keep KIO's Unix socket paths below the kernel's length limit.
+    runtime = tempfile.TemporaryDirectory(prefix="launcher-runtime-")
+    bus_config = tmp_path / "bus.conf"
+    # No activation directories: tests cannot launch host desktop services.
+    bus_config.write_text(
+        '<busconfig><type>session</type><listen>unix:tmpdir=/tmp</listen>'
+        '<policy context="default"><allow user="*"/><allow send_destination="*"/>'
+        '<allow receive_sender="*"/><allow own="*"/></policy></busconfig>'
+    )
+    env = os.environ | {
+        "HOME": str(tmp_path), "XDG_CONFIG_HOME": str(tmp_path / "config"),
+        "XDG_DATA_HOME": str(tmp_path / "data"), "XDG_CACHE_HOME": str(tmp_path / "cache"),
+        "XDG_STATE_HOME": str(tmp_path / "state"), "XDG_RUNTIME_DIR": runtime.name,
+        "XDG_CONFIG_DIRS": "/etc/xdg", "XDG_DATA_DIRS": "/usr/local/share:/usr/share",
+        "QT_QPA_PLATFORM": "xcb", "QT_QPA_PLATFORMTHEME": "generic",
+        "QT_QUICK_BACKEND": "software", "QT_FORCE_STDERR_LOGGING": "1",
+        "QML_IMPORT_PATH": str(launcher_popup_module),
+        "QT_LOGGING_RULES": "*.warning=true;*.critical=true",
+        "XDG_SESSION_TYPE": "x11", "XDG_CURRENT_DESKTOP": "",
+    }
+    for key in ("DBUS_SESSION_BUS_ADDRESS", "WAYLAND_DISPLAY"):
+        env.pop(key, None)
+    read_fd, write_fd = os.pipe()
+    server = subprocess.Popen(
+        ["Xvfb", "-displayfd", str(write_fd), "-screen", "0", "1280x1024x24", "-nolisten", "tcp"],
+        pass_fds=(write_fd,), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    )
+    os.close(write_fd)
+    process = None
+    log_path = tmp_path / "launcher.log"
+    try:
+        assert select.select([read_fd], [], [], 10)[0], "Xvfb did not start"
+        env["DISPLAY"] = ":" + os.read(read_fd, 32).decode().strip()
+        with log_path.open("w") as log:
+            process = subprocess.Popen(
+                ["dbus-run-session", "--config-file", str(bus_config), "--",
+                 "plasmoidviewer", "-a", str(package), "-f", "horizontal", "-l", "bottomedge",
+                 "--size", "1280x1024"],
+                env=env, stdout=log, stderr=log, start_new_session=True,
+            )
+            deadline = time.monotonic() + 20
+            popup_role = ""
+            while time.monotonic() < deadline:
+                output = log_path.read_text()
+                if not popup_role and "PROBE_PHASE 2 " in output:
+                    role = subprocess.run(
+                        ["xprop", "-name", "Launcher search role probe", "_NET_WM_WINDOW_TYPE"],
+                        env=env, capture_output=True, text=True, timeout=5)
+                    if role.returncode == 0:
+                        popup_role = role.stdout
+                if "LAUNCHER_PROBE_" in output or process.poll() is not None:
+                    break
+                time.sleep(0.05)
+        output = log_path.read_text()
+        assert "LAUNCHER_PROBE_OK" in output, output
+        assert "LAUNCHER_PROBE_FAILED" not in output, output
+        assert "_KDE_NET_WM_WINDOW_TYPE_APPLET_POPUP" in popup_role, popup_role
+    finally:
+        os.close(read_fd)
+        if process:
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            process.wait(timeout=5)
+        server.terminate()
+        server.wait(timeout=5)
+        runtime.cleanup()

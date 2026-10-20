@@ -76,3 +76,15 @@ msgid "Edit Applications…"
 msgstr "编辑应用程序…"
 msgid "General"
 msgstr "常规"
+
+msgid "Launcher preset:"
+msgstr "启动器预设："
+
+msgid "Preset 1 — Tahoe"
+msgstr "预设 1 — Tahoe"
+
+msgid "Preset 2 — Golden Gate"
+msgstr "预设 2 — Golden Gate"
+
+msgid "Launcher options"
+msgstr "启动器选项"

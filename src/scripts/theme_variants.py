@@ -21,6 +21,7 @@ SURFACES = {
 PLASMA_FILES = (
     "widgets/panel-background.svgz", "widgets/translucentbackground.svgz",
     "widgets/background.svgz", "widgets/tooltip.svgz", "dialogs/background.svgz",
+    "dialogs/launcher-search.svgz",
 )
 
 

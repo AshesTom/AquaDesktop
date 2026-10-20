@@ -7,22 +7,25 @@ Text {
     property bool selected: false
     signal clicked
 
-    topPadding: 4
+    topPadding: main.detachedSearch ? Kirigami.Units.smallSpacing * 1.25 : 4
     bottomPadding: topPadding
-    leftPadding: 8
-    rightPadding: 8
-    font.pointSize: 10
+    leftPadding: main.detachedSearch ? Kirigami.Units.smallSpacing * 3 : 8
+    rightPadding: leftPadding
+    font.family: Kirigami.Theme.defaultFont.family
+    font.pointSize: main.appTextSize
 
-    color: selected ? "#000000" : main.textColor
-    opacity: selected ? 0.8 : 0.4
+    color: main.detachedSearch ? main.textColor : selected ? "#000000" : main.textColor
+    opacity: main.detachedSearch ? (selected ? 1 : 0.82) : selected ? 0.8 : 0.4
 
    Rectangle {
         id: pillBg
         anchors.fill: parent
         anchors.centerIn: parent
         z: -1
-        color: selected ? Qt.rgba(255, 255, 255, 0.5) : main.isDarkTheme ? Qt.rgba(255, 255, 255, 0.2) : Qt.rgba(255, 255, 255, 0.5)
-        radius: 8
+        color: main.detachedSearch
+            ? (main.isDarkTheme ? Qt.rgba(1, 1, 1, selected ? 0.18 : 0.10) : Qt.rgba(0, 0, 0, selected ? 0.14 : 0.07))
+            : selected ? Qt.rgba(255, 255, 255, 0.5) : main.isDarkTheme ? Qt.rgba(255, 255, 255, 0.2) : Qt.rgba(255, 255, 255, 0.5)
+        radius: main.detachedSearch ? height * 0.45 : 8
     }
 
     MouseArea {

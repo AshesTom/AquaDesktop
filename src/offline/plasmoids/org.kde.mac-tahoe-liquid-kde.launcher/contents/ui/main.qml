@@ -20,6 +20,9 @@ PlasmoidItem {
 
     property bool isDash: false
 
+    readonly property int launcherPreset: Plasmoid.configuration.launcherPreset === 0
+        ? Plasmoid.configuration.defaultLauncherPreset : Plasmoid.configuration.launcherPreset
+
     preferredRepresentation: fullRepresentation
 
     // In the Dock, take the full thickness so the icon can use the same

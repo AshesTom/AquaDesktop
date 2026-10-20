@@ -158,7 +158,7 @@ def test_no_hardcoded_qt6_libdir(repo):
     through ``distro.qt6_plugins_dir()`` / ``distro.qt6_qml_dir()``.
 
     Assuming Arch's ``/usr/lib/qt6`` everywhere breaks installs on
-    Gentoo + Debian (different libdirs).
+    openSUSE + Debian (different libdirs).
 
     Comment lines and docstrings are allowed to mention the example
     paths — that's how we document the per-distro variation."""
@@ -287,7 +287,7 @@ def test_panel_colorizer_bundled_offline(offline):
     assert (bundle / "contents").is_dir(), f"missing {bundle / 'contents'}"
     data = json.loads(metadata.read_text())
     assert data["KPlugin"]["Id"] == bundle.name
-    assert data["KPlugin"]["Version"] == "7.3.0"
+    assert data["KPlugin"]["Version"] == "8.0.0"
 
 
 # ── single-source-of-truth pins on the theme-switcher rewrite ─────────
