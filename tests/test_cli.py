@@ -472,6 +472,42 @@ def test_auto_update_bails_when_not_a_clean_git_checkout(cli_module, monkeypatch
     assert execv_called == []    # never re-exec'd
 
 
+def test_auto_update_reexecs_as_root_after_the_privilege_drop(cli_module, monkeypatch):
+    """The install already dropped its effective IDs to the user when it
+    pulls; exec keeps them, so the restarted installer refused to run as
+    non-root. It takes root back (the real UID is still 0) before exec."""
+    from types import SimpleNamespace
+    monkeypatch.delenv("MAC_TAHOE_UPDATED", raising=False)
+    monkeypatch.setattr(cli_module, "_repo_is_clean_git_checkout", lambda: True)
+    monkeypatch.setattr(cli_module, "_git",
+                        lambda *a, **k: SimpleNamespace(returncode=0, stderr="", stdout=""))
+    monkeypatch.setattr(cli_module, "read_version", lambda: "9.9.9")
+    for name in ("ok", "note", "warn"):
+        monkeypatch.setattr(cli_module, name, lambda *_a: None)
+    ids = {"euid": 1000, "egid": 1000}
+    events = []
+    monkeypatch.setattr(cli_module.os, "getuid", lambda: 0)
+    monkeypatch.setattr(cli_module.os, "geteuid", lambda: ids["euid"])
+
+    def seteuid(value):
+        events.append(("seteuid", value))
+        ids["euid"] = value
+
+    def setegid(value):
+        # Only root may change the effective group freely.
+        assert ids["euid"] == 0
+        events.append(("setegid", value))
+        ids["egid"] = value
+
+    monkeypatch.setattr(cli_module.os, "seteuid", seteuid)
+    monkeypatch.setattr(cli_module.os, "setegid", setegid)
+    monkeypatch.setattr(cli_module.os, "execv",
+                        lambda *a: events.append(("execv", ids["euid"], ids["egid"])))
+
+    cli_module.auto_update_and_reexec(["--only", "--kvantum"])
+    assert events == [("seteuid", 0), ("setegid", 0), ("execv", 0, 0)]
+
+
 def test_auto_update_bails_when_pull_fails(cli_module, monkeypatch):
     """If git pull fails (conflict, offline, detached), install the
     current version instead of re-exec'ing into a half-updated tree."""

@@ -427,11 +427,16 @@ def auto_update_and_reexec(argv: list[str], prog: str = "install") -> None:
 
     ok(f"Updated to {read_version()} — restarting installer")
 
-    # Real UID is still 0, so the re-exec'd wrapper stays root and repeats
-    # the same euid-drop hop.
+    # exec keeps the effective IDs, and this process already dropped them to
+    # the invoking user: the new installer would refuse to run as non-root.
+    # The real UID is still 0, so take the effective IDs back first; the
+    # re-exec'd installer then repeats the same drop.
     installer = REPO_ROOT / prog
     os.environ["MAC_TAHOE_UPDATED"] = "1"
     try:
+        if os.getuid() == 0 and os.geteuid() != 0:
+            os.seteuid(0)
+            os.setegid(0)
         os.execv(str(installer), [str(installer), *argv])
     except OSError as exc:
         warn(f"could not restart installer ({exc}) — installing current version")
