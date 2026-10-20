@@ -516,7 +516,7 @@ text.shadow.color=black
 text.shadow.xshift=0
 text.shadow.yshift=1
 text.shadow.depth=2
-text.shadow.alpha=180
+text.shadow.alpha=54
 
 [MenuItem]
 inherits=PanelButtonCommand
@@ -544,7 +544,7 @@ text.shadow.color=black
 text.shadow.xshift=0
 text.shadow.yshift=1
 text.shadow.depth=2
-text.shadow.alpha=180
+text.shadow.alpha=54
 
 [ComboBox]
 inherits=PanelButtonCommand
