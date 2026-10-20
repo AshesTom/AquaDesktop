@@ -7,7 +7,7 @@ Choose a preset, adjust its controls if desired, and press **Apply**.
 | --- | --- |
 | Clear | Transparent glass with a light blur and a restrained edge reflection. |
 | Tahoe | Soft, fully blurred glass with a narrow refracted edge. Default in Tahoe. |
-| Golden Gate | Deeper blur, restrained color refraction and a 95% black tint that fades out over the upper half of menus. The lower half and Dock stay untinted. Default in Golden Gate. |
+| Golden Gate | Tahoe's optical values with a 95% black tint that fades out over the upper half of menus. The lower half and Dock stay untinted. Default in Golden Gate. |
 
 Each preset replaces the complete material: blur, opacity, refraction, color
 separation, highlights, grain, brightness, contrast, saturation and gradient.
@@ -15,8 +15,9 @@ There is one smooth blur implementation. **Fine tuning** exposes the detailed
 controls without requiring a choice of blur algorithm.
 
 **Glass opacity** controls how much of the blurred material covers the original
-background. Keep it at 1 for a fully blurred surface; lower it to reveal more
-of the sharp background. Text and icons retain their own opacity. Gradient
+background. Keep it at 1 for full material coverage; lower it to reveal more
+of the sharp background. Applet popups and the Dock use clearer centres while
+preserving the refracted rim. Text and icons retain their own opacity. Gradient
 colors and strengths are independent of this coverage, so a lighter bottom
 does not lose its blur. Disable **Enable gradient** for an untinted material.
 
@@ -29,8 +30,9 @@ Golden Gate. This replaces previous material selections and optical adjustments,
 including the gradient toggle and colors. Corners and window rules remain
 independent and are preserved.
 
-Plasma and Kvantum supply thin, transparent fills over the compositor's glass
-in both light and dark mode. Launcher labels use the system complementary
+Plasma applet popups and the Dock supply thin, transparent fills with a subtle
+contour over the compositor's glass. Context menus use an 80% light or dark
+fill in Plasma and Kvantum. Launcher labels use the system complementary
 foreground with a soft shadow, preserving the glass behind them. Both editions
 ship the same surfaces; there is no separate reduced-transparency mode.
 GTK client-side popups keep their own readable fills; KWin cannot blur those
@@ -52,8 +54,8 @@ surface without the gradient: a shallow blur, less grain and a transparent
 centre, with stronger refraction across a wider bevel. The bevel bends the
 background perpendicular to each edge instead of stretching it toward the
 centre of a long Dock. These adjustments follow the selected material and its
-controls without changing saved settings; menus keep their full blur and tint.
-Its numerical settings are project
-tuning, not values supplied by Apple. It compresses backdrop contrast before
-the stronger upper tint, keeping the gradient visible over dark windows as well
-as light ones in both appearance modes.
+controls without changing saved settings; contextual menus keep their full blur.
+Applet popups retain the selected blur with lower centre coverage. Golden Gate
+and Tahoe share every optical value; only the gradient differs. These numerical
+settings are project tuning, not values supplied by Apple. The black gradient
+darkens lighter backdrops and leaves a fully black backdrop black.

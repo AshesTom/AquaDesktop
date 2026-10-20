@@ -466,7 +466,7 @@ dialog-host > dialog.osd:not(progressbar):not(button):not(menubutton):not(splitb
 popover.touch-selection > contents, popover.magnifier > arrow,
 popover.magnifier > contents, .osd {
   color: #d3d7df;
-  background-color: rgba(42, 42, 42, 0.96);
+  background-color: rgba(42, 42, 42, 0.98);
   border-radius: 12px;
 }
 
@@ -3215,7 +3215,7 @@ popover > arrow,
 popover > contents {
   color: @window_fg_color;
   background-clip: padding-box;
-  background-color: color-mix(in srgb, @popover_bg_color 96%, transparent);
+  background-color: color-mix(in srgb, @popover_bg_color 98%, transparent);
   box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.15), 0 0 0 1px alpha(black,0.03);
   border: 1px solid alpha(black,0.2);
 }
@@ -3339,7 +3339,7 @@ popover.menu box.circular-buttons button.circular.image-button.model:active:focu
 }
 
 popover.menu > arrow, popover.menu.background > contents {
-  background-color: color-mix(in srgb, @popover_bg_color 96%, transparent);
+  background-color: color-mix(in srgb, @popover_bg_color 98%, transparent);
   color: @window_fg_color;
 }
 

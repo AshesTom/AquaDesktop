@@ -198,6 +198,7 @@ BlurEffect::BlurEffect()
         m_roundedOnscreenPass.highlightStrengthLocation = m_roundedOnscreenPass.shader->uniformLocation("highlightStrength");
         m_roundedOnscreenPass.darkGradientOverlayLocation = m_roundedOnscreenPass.shader->uniformLocation("darkGradientOverlay");
         m_roundedOnscreenPass.materialOpacityLocation = m_roundedOnscreenPass.shader->uniformLocation("materialOpacity");
+        m_roundedOnscreenPass.centerOpacityLocation = m_roundedOnscreenPass.shader->uniformLocation("centerOpacity");
         m_roundedOnscreenPass.dockSurfaceLocation = m_roundedOnscreenPass.shader->uniformLocation("dockSurface");
         m_roundedOnscreenPass.backgroundSizeLocation = m_roundedOnscreenPass.shader->uniformLocation("backgroundSize");
         m_roundedOnscreenPass.gradientTopLocation = m_roundedOnscreenPass.shader->uniformLocation("gradientTop");
@@ -1050,6 +1051,7 @@ void BlurEffect::blur(
     // Short panel surfaces need a shallow blur to retain the backdrop detail
     // that makes their refracted rim visible. Keep the saved material intact.
     const bool dockSurface = w->isDock();
+    const float centerOpacity = dockSurface ? 0.55f : (w->isAppletPopup() ? 0.65f : 1.0f);
     const size_t iterationCount = dockSurface ? 1 : m_iterationCount;
     const float blurOffset = dockSurface ? m_dockOffset : m_offset;
 
@@ -1477,6 +1479,7 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.darkGradientOverlayLocation,
         int(m_darkGradientOverlay && !w->isDock()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.materialOpacityLocation, m_materialOpacity);
+    m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.centerOpacityLocation, centerOpacity);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.dockSurfaceLocation, int(dockSurface));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.backgroundSizeLocation,
         QVector2D(scaledBackgroundRect.width(), scaledBackgroundRect.height()));
@@ -1516,7 +1519,7 @@ void BlurEffect::blur(
             m_noisePass.shader->setUniform(m_noisePass.cornerRadiusLocation, nativeCornerRadius.toVector());
             m_noisePass.shader->setUniform(m_noisePass.cornerSquircleLocation, cornerSquircle);
             m_noisePass.shader->setUniform(m_noisePass.opacityLocation,
-                modulation * m_materialOpacity * (dockSurface ? 0.25f : 1.0f));
+                modulation * m_materialOpacity * centerOpacity * (dockSurface ? 0.25f : 1.0f));
             noiseTexture->bind();
 
             vbo->draw(GL_TRIANGLES, 6, vertexCount);

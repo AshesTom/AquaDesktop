@@ -274,6 +274,7 @@ private:
         int highlightStrengthLocation;
         int darkGradientOverlayLocation;
         int materialOpacityLocation;
+        int centerOpacityLocation;
         int dockSurfaceLocation;
         int backgroundSizeLocation;
         int gradientTopLocation;

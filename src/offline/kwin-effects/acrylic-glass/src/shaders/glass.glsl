@@ -21,6 +21,7 @@ uniform float refractionWidth;
 uniform float highlightWidth;
 uniform float highlightStrength;
 uniform float materialOpacity;
+uniform float centerOpacity;
 uniform bool dockSurface;
 uniform vec2 backgroundSize;
 uniform vec4 gradientTop;
@@ -84,6 +85,6 @@ void main(void)
         surface.rgb = surface.rgb * (1.0 - tintAlpha) + tint;
     }
     // Keep the bevel covered so refraction does not double the sharp backdrop.
-    float coverage = materialOpacity * (dockSurface ? mix(0.8, 1.0, edgeQ) : 1.0);
+    float coverage = materialOpacity * mix(centerOpacity, 1.0, edgeQ);
     LG_OUT = surface * (mask * opacity * coverage);
 }

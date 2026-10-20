@@ -93,6 +93,7 @@ int main(int argc, char **argv)
         shader.setUniformValue("offset", 2.0f);
         shader.setUniformValue("opacity", 1.0f);
         shader.setUniformValue("materialOpacity", 1.0f);
+        shader.setUniformValue("centerOpacity", 1.0f);
         shader.setUniformValue("dockSurface", false);
         shader.setUniformValue("backgroundSize", QVector2D(width, height));
         shader.setUniformValue("magnifyGlassStrength", 0.0f);
@@ -139,17 +140,28 @@ int main(int argc, char **argv)
         if (reference.isNull()) reference = image;
         else require(reference == image, QStringLiteral("legacy and core shaders differ"));
 
+        shader.setUniformValue("highlightStrength", 0.0f);
+        shader.setUniformValue("centerOpacity", 0.65f);
+        image = render();
+        require(std::abs(qAlpha(image.pixel(96,64)) - 166) <= 1,
+                QStringLiteral("Applet centre must reveal the backdrop"));
+        require(qAlpha(image.pixel(96,1)) > 250,
+                QStringLiteral("Applet transparency must preserve the refracting rim"));
+        require(std::abs(qRed(image.pixel(96,64)) - 104) <= 1,
+                QStringLiteral("Applet output must remain premultiplied"));
+
         // Clear Dock glass must bend the backdrop across its bevel without
         // shrinking it along the long axis or displacing the centre.
         shader.setUniformValue("dockSurface", true);
+        shader.setUniformValue("centerOpacity", 0.55f);
         shader.setUniformValue("highlightStrength", 0.0f);
         shader.setUniformValue("offset", 0.35f);
         image = render();
-        require(std::abs(qAlpha(image.pixel(96,64)) - 204) <= 1,
+        require(std::abs(qAlpha(image.pixel(96,64)) - 140) <= 1,
                 QStringLiteral("Dock centre must reveal more of the sharp backdrop"));
         require(qAlpha(image.pixel(96,1)) > 250,
                 QStringLiteral("Dock bevel must retain refraction coverage"));
-        require(std::abs(qRed(image.pixel(96,64)) - 128) <= 1,
+        require(std::abs(qRed(image.pixel(96,64)) - 88) <= 1,
                 QStringLiteral("Dock output must remain premultiplied"));
         require(qAlpha(image.pixel(0,0)) == 0, QStringLiteral("Dock corner mask lost"));
         for (int y = 0; y < height; ++y) {
@@ -178,6 +190,7 @@ int main(int argc, char **argv)
         require(qAlpha(image.pixel(96,4)) == 0 && qRed(image.pixel(96,4)) == 0,
                 QStringLiteral("Dock must respect disabled material coverage"));
         shader.setUniformValue("dockSurface", false);
+        shader.setUniformValue("centerOpacity", 1.0f);
         shader.setUniformValue("materialOpacity", 1.0f);
         shader.setUniformValue("magnifyGlassStrength", 0.0f);
         shader.setUniformValue("offset", 2.0f);
@@ -226,10 +239,15 @@ int main(int argc, char **argv)
                     };
                     const auto actual = composite(tinted);
                     const auto control = composite(untinted);
-                    require(qRed(actual.pixel(96, 12)) + 8 <= qRed(control.pixel(96, 12)),
-                            mode + " " + name + ": upper black tint hidden by client fill");
-                    require(qRed(actual.pixel(96, 12)) + 8 <= qRed(actual.pixel(96, 115)),
-                            mode + " " + name + ": top/bottom gradient lost");
+                    if (backdropColor == QColor(Qt::black)) {
+                        require(actual == control,
+                                mode + " " + name + ": black tint must preserve a black backdrop");
+                    } else {
+                        require(qRed(actual.pixel(96, 12)) + 8 <= qRed(control.pixel(96, 12)),
+                                mode + " " + name + ": upper black tint hidden by client fill");
+                        require(qRed(actual.pixel(96, 12)) + 8 <= qRed(actual.pixel(96, 115)),
+                                mode + " " + name + ": top/bottom gradient lost");
+                    }
                 }
             }
         }

@@ -615,8 +615,10 @@ The KCM still preserves adjustments when reopening settings; preset selection
 and Restore replace them. Persist `MaterialPreset` even for schema-default Tahoe.
 
 The gradient uses frame-local coordinates and changes color independently of
-blur coverage. Golden Gate keeps blurred glass across the whole surface, with
-less refraction and a black tint at the top. `DarkGradientOverlay` is retained
+blur coverage. Golden Gate uses exactly Tahoe's optical values and adds only
+a black upper gradient. Context menus use more opaque light/dark client fills;
+applet popups and the Dock keep thin fills and lower centre coverage while
+preserving their subtle contour and refracting rim. `DarkGradientOverlay` is retained
 as the persisted enable key; the KCM calls it Enable gradient and exposes both
 colors and strengths. Keep legacy/core shaders equivalent, output premultiplied,
 and pixel widths scaled to the viewport. Shared light/dark Plasma and Kvantum
