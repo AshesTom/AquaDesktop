@@ -11,10 +11,14 @@ float lgRimAngularWeight(vec2 outNorm)
 }
 
 vec3 lgApplyHighlight(vec3 color, float inside, vec2 outNorm,
-                      float highlightWidth, float highlightStrength)
+                      float highlightWidth, float highlightStrength, bool dockSurface)
 {
     float band = max(highlightWidth, 1.0);
-    float rim = exp(-inside * (3.0 / band)) * smoothstep(0.0, 2.0, inside);
+    // The Dock catches light at the silhouette; keep the reflection within
+    // the pixel-scaled band instead of fading it out at the glass edge.
+    float rim = dockSurface
+        ? 1.6 * exp(-inside * (2.0 / band))
+        : exp(-inside * (3.0 / band)) * smoothstep(0.0, 2.0, inside);
     float intensity = rim * highlightStrength * lgRimAngularWeight(outNorm);
     return mix(color, vec3(0.87, 0.93, 1.0), clamp(intensity, 0.0, 0.95));
 }

@@ -198,6 +198,23 @@ int main(int argc, char **argv)
         }
         if (dockReference.isNull()) dockReference = bentDock;
         else require(dockReference == bentDock, QStringLiteral("Dock differs between shader profiles"));
+
+        // The Dock reflection must catch its silhouette without painting a
+        // broad rim or changing the transparent centre, even on black.
+        backdrop.fill(Qt::black);
+        texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
+        shader.setUniformValue("highlightWidth", 1.5f);
+        shader.setUniformValue("highlightStrength", 0.11f);
+        const auto litDock = render().convertToFormat(QImage::Format_RGBA8888);
+        require(qRed(litDock.pixel(96,0)) > 10,
+                QStringLiteral("Dock highlight must reach the silhouette"));
+        require(qRed(litDock.pixel(96,0)) > qRed(litDock.pixel(96,127)),
+                QStringLiteral("Dock upper reflection must be brighter than the lower edge"));
+        require(qRed(litDock.pixel(96,5)) <= 1 && qRed(litDock.pixel(96,64)) == 0,
+                QStringLiteral("Dock reflection must stay narrow and leave the centre clear"));
+        shader.setUniformValue("highlightStrength", 0.0f);
+        require(qRed(render().pixel(96,0)) == 0,
+                QStringLiteral("Dock must respect disabled highlights"));
         shader.setUniformValue("materialOpacity", 0.0f);
         image = render();
         require(qAlpha(image.pixel(96,4)) == 0 && qRed(image.pixel(96,4)) == 0,

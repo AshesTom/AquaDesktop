@@ -71,7 +71,7 @@ void main(void)
         col = lgApplyRgbDrift(texUnit, col, lensUV, outNorm, blurSize, rgbDriftStrength, edgeQ);
     }
     if (highlightStrength > 0.0) {
-        col = lgApplyHighlight(col, inside, outNorm, highlightWidth, highlightStrength);
+        col = lgApplyHighlight(col, inside, outNorm, highlightWidth, highlightStrength, dockSurface);
     }
 
     vec4 surface = vec4(col, 1.0) * colorMatrix;

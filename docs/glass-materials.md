@@ -52,7 +52,9 @@ The Golden Gate preset adds a black upper gradient to menus in both appearance
 modes. It starts at 95% opacity and reaches zero at 50% of the surface height.
 The lower half retains untinted blurred glass. The Dock and panels use a clearer
 surface without the gradient: a shallow blur, less grain and a transparent
-centre, with stronger refraction across a wider bevel. The bevel bends the
+centre, with gentle refraction across a wider bevel and a thin bright edge.
+The Dock's blur taps and centre coverage soften backdrop detail without
+making the glass opaque. The bevel bends the
 background perpendicular to each edge instead of stretching it toward the
 centre of a long Dock. These adjustments follow the selected material and its
 controls without changing saved settings; contextual menus keep their full blur.
