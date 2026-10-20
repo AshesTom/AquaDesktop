@@ -30,6 +30,7 @@ find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
     WindowSystem
 )
 find_package(Plasma REQUIRED)
+find_package(PlasmaQuick REQUIRED)
 find_package(PlasmaActivities REQUIRED)
 find_package(PlasmaActivitiesStats REQUIRED)
 find_package(KSysGuard REQUIRED)
@@ -108,3 +109,5 @@ target_link_libraries(org.kde.mac.tahoe.liquid.taskmanager PRIVATE
     Qt::Qml
     Qt::Quick
 )
+
+add_subdirectory(launcher)

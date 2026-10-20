@@ -125,7 +125,6 @@ _DISTRO_WALLPAPER_FALLBACKS: dict[str, tuple[str, ...]] = {
     "manjaro":              ("Next", "Opal", "Flow"),
     "endeavouros":          ("Next", "Opal", "Flow"),
     "garuda":               ("Next", "Opal", "Flow"),
-    "gentoo":               ("Next", "Flow", "Opal"),
     "fedora":               ("Next", "Flow", "Opal"),
     "nobara":               ("Next", "Flow", "Opal"),
     "opensuse":             ("Next", "Flow", "Opal"),
@@ -282,7 +281,6 @@ def _qt6_qml_query() -> str | None:
 # distro's row via ID_LIKE.
 _QT6_QMAKE_HINTS: dict[str, str] = {
     "arch":          "pacman -S qt6-base",
-    "gentoo":        "emerge dev-qt/qtbase:6",
     "fedora":        "dnf install qt6-qtbase-devel",
     "rhel":          "dnf install qt6-qtbase-devel",
     "centos":        "dnf install qt6-qtbase-devel",
@@ -324,8 +322,6 @@ _QT6_LIBDIR_FALLBACK: dict[str, str] = {
     # need `steamos-readonly disable` first.
     "steamos":       "/usr/lib/qt6",
     "holoiso":       "/usr/lib/qt6",
-    # Gentoo-family
-    "gentoo":        "/usr/lib64/qt6",
     # RPM-family (all use /usr/lib64)
     "fedora":        "/usr/lib64/qt6",
     "rhel":          "/usr/lib64/qt6",
@@ -453,7 +449,7 @@ def gtk3_appmenu_module() -> Path | None:
 _PACKAGE_MAP: dict[str, dict[str, str]] = {
     # Base/runtime tools whose package names are not portable even when the
     # executable name is. Keep identity mappings explicit so a newly-added
-    # token cannot silently leak its Arch fallback to dnf/zypper/emerge.
+    # token cannot silently leak its Arch fallback to dnf/zypper.
     "dbus-send": {
         "arch":     "dbus",
         "debian":   "dbus-bin",
@@ -464,7 +460,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "dbus-1-tools",
         "alpine":   "dbus",
         "void":     "dbus",
-        "gentoo":   "sys-apps/dbus",
     },
     "kwriteconfig6": {
         "arch":     "kconfig",
@@ -474,7 +469,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kconfig",
         "centos":   "kf6-kconfig",
         "opensuse": "kf6-kconfig",
-        "gentoo":   "kde-frameworks/kconfig:6",
     },
     "nautilus": {
         "arch":     "nautilus",
@@ -486,7 +480,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "nautilus",
         "alpine":   "nautilus",
         "void":     "nautilus",
-        "gentoo":   "gnome-base/nautilus",
     },
     "g++": {
         "arch":     "gcc",
@@ -498,7 +491,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "gcc-c++",
         "alpine":   "g++",
         "void":     "gcc",
-        "gentoo":   "sys-devel/gcc",
     },
     # Separate row so qt6_install_hint() stays the single source of the
     # human-facing message.
@@ -510,7 +502,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "qt6-qtbase-devel",
         "centos":   "qt6-qtbase-devel",
         "opensuse": "qt6-base-common-devel",
-        "gentoo":   "dev-qt/qtbase:6",
     },
     # Package AND binary names vary per distro (Fedora ships
     # ``qdbus-qt6``, not ``qdbus6`` — hence utils.qdbus_cmd() probes
@@ -525,7 +516,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "qt6-tools-qdbus",
         "alpine":   "qt6-qttools",
         "void":     "qt6-tools",
-        "gentoo":   "dev-qt/qttools",
     },
     # Only pulled in on OpenRC hosts, where the scheduled features fall
     # back to a per-user crontab line. On systemd hosts init_system()
@@ -541,7 +531,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "ubuntu":   "cron",
         "alpine":   "cronie",
         "void":     "cronie",
-        "gentoo":   "sys-process/cronie",
     },
     "kvantummanager": {
         "arch":     "kvantum",
@@ -553,7 +542,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "ubuntu":   "qt-style-kvantum",
         "alpine":   "kvantum-qt6",
         "void":     "kvantum",
-        "gentoo":   "x11-themes/kvantum",
     },
     # Fedora splits plymouth-set-default-theme into plymouth-scripts.
     "plymouth-set-default-theme": {
@@ -566,7 +554,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "plymouth",
         "alpine":   "plymouth",
         "void":     "plymouth",
-        "gentoo":   "sys-boot/plymouth",
     },
     # Fedora and openSUSE split the script renderer out of base Plymouth.
     "plymouth-script-plugin": {
@@ -577,7 +564,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "plymouth-plugin-script",
         "centos":   "plymouth-plugin-script",
         "opensuse": "plymouth-plugin-script",
-        "gentoo":   "sys-boot/plymouth",
     },
     # Fedora's canonical /usr/bin/pkg-config provider is the
     # ``pkgconf-pkg-config`` shim; plain ``pkgconf`` doesn't exist there.
@@ -591,9 +577,7 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "pkgconf-pkg-config",
         "alpine":   "pkgconf",
         "void":     "pkgconf",
-        "gentoo":   "dev-util/pkgconf",
     },
-    # desktop-file-utils everywhere; only Gentoo needs the category prefix.
     "update-desktop-database": {
         "arch":     "desktop-file-utils",
         "debian":   "desktop-file-utils",
@@ -604,7 +588,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "desktop-file-utils",
         "alpine":   "desktop-file-utils",
         "void":     "desktop-file-utils",
-        "gentoo":   "dev-util/desktop-file-utils",
     },
     "fc-cache": {
         "arch":     "fontconfig",
@@ -616,7 +599,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "fontconfig",
         "alpine":   "fontconfig",
         "void":     "fontconfig",
-        "gentoo":   "media-libs/fontconfig",
     },
     # Applies the bundled sources' patches (Kvantum).
     "patch": {
@@ -643,7 +625,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "cmake",
         "alpine":   "cmake",
         "void":     "cmake",
-        "gentoo":   "dev-build/cmake",
     },
     "ecm": {
         "arch":     "extra-cmake-modules",
@@ -655,7 +636,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "kf6-extra-cmake-modules",
         "alpine":   "extra-cmake-modules",
         "void":     "extra-cmake-modules",
-        "gentoo":   "kde-frameworks/extra-cmake-modules",
     },
     # CMake component providers. openSUSE splits per-component -devel
     # packages, so each component is its own logical dep.
@@ -669,7 +649,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "qt6-gui-devel",
         "alpine":   "qt6-qtbase-dev",
         "void":     "qt6-base-devel",
-        "gentoo":   "dev-qt/qtbase:6",
     },
     "qt6-widgets-cmake": {
         "arch":     "qt6-base",
@@ -681,7 +660,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "qt6-widgets-devel",
         "alpine":   "qt6-qtbase-dev",
         "void":     "qt6-base-devel",
-        "gentoo":   "dev-qt/qtbase:6",
     },
     "qt6-dbus-cmake": {
         "arch":     "qt6-base",
@@ -693,7 +671,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "qt6-dbus-devel",
         "alpine":   "qt6-qtbase-dev",
         "void":     "qt6-base-devel",
-        "gentoo":   "dev-qt/qtbase:6",
     },
     # KDE Rounded Corners needs Qt's private Core headers on Qt 6.10+.
     # Earlier Qt 6 releases resolve the same package harmlessly while CMake
@@ -708,7 +685,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "qt6-core-private-devel",
         "alpine":   "qt6-qtbase-private-dev",
         "void":     "qt6-base-devel",
-        "gentoo":   "dev-qt/qtbase:6",
     },
     "qt6-waylandclient-cmake": {
         "arch":     "qt6-wayland",
@@ -732,7 +708,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "qt6-qml-devel",
         "alpine":   "qt6-qtdeclarative-dev",
         "void":     "qt6-declarative-devel",
-        "gentoo":   "dev-qt/qtdeclarative:6",
     },
     "qt6-uitools-cmake": {
         "arch":     "qt6-tools",
@@ -744,7 +719,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "qt6-uitools-devel",
         "alpine":   "qt6-qttools-dev",
         "void":     "qt6-tools",
-        "gentoo":   "dev-qt/qttools:6",
     },
     # Qt6SvgConfig.cmake — required by the bundled Kvantum Qt 6 fallback
     # used when a Debian-family repository still ships only the Qt 5 engine.
@@ -758,7 +732,17 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "qt6-svg-devel",
         "alpine":   "qt6-qtsvg-dev",
         "void":     "qt6-svg-devel",
-        "gentoo":   "dev-qt/qtsvg:6",
+    },
+    "qt6-wayland-cmake": {
+        "arch":     "qt6-wayland",
+        "debian":   "qt6-wayland-dev",
+        "ubuntu":   "qt6-wayland-dev",
+        "fedora":   "qt6-qtwayland-devel",
+        "rhel":     "qt6-qtwayland-devel",
+        "centos":   "qt6-qtwayland-devel",
+        "opensuse": "qt6-wayland-devel",
+        "alpine":   "qt6-qtwayland-dev",
+        "void":     "qt6-wayland-devel",
     },
     "make": {
         "arch":     "make",
@@ -770,8 +754,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "make",
         "alpine":   "make",
         "void":     "make",
-        # 2026-06: Gentoo moved make sys-devel/ → dev-build/ (like cmake).
-        "gentoo":   "dev-build/make",
     },
     # Extracts the bundled offline icon tarballs (src/offline/icons/*.tar.zst).
     "zstd": {
@@ -784,7 +766,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "zstd",
         "alpine":   "zstd",
         "void":     "zstd",
-        "gentoo":   "app-arch/zstd",
     },
     # ── KF6 frameworks ────────────────────────────────────────────────
     # Tokens are cmake component names prefixed ``kf6-`` so they never
@@ -798,7 +779,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kconfig-devel",
         "centos":   "kf6-kconfig-devel",
         "opensuse": "kf6-kconfig-devel",
-        "gentoo":   "kde-frameworks/kconfig:6",
     },
     "kf6-configwidgets-cmake": {
         "arch":     "kconfigwidgets",
@@ -808,7 +788,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kconfigwidgets-devel",
         "centos":   "kf6-kconfigwidgets-devel",
         "opensuse": "kf6-kconfigwidgets-devel",
-        "gentoo":   "kde-frameworks/kconfigwidgets:6",
     },
     "kf6-coreaddons-cmake": {
         "arch":     "kcoreaddons",
@@ -818,7 +797,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kcoreaddons-devel",
         "centos":   "kf6-kcoreaddons-devel",
         "opensuse": "kf6-kcoreaddons-devel",
-        "gentoo":   "kde-frameworks/kcoreaddons:6",
     },
     "kf6-crash-cmake": {
         "arch":     "kcrash",
@@ -828,7 +806,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kcrash-devel",
         "centos":   "kf6-kcrash-devel",
         "opensuse": "kf6-kcrash-devel",
-        "gentoo":   "kde-frameworks/kcrash:6",
     },
     "kf6-globalaccel-cmake": {
         "arch":     "kglobalaccel",
@@ -838,7 +815,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kglobalaccel-devel",
         "centos":   "kf6-kglobalaccel-devel",
         "opensuse": "kf6-kglobalaccel-devel",
-        "gentoo":   "kde-frameworks/kglobalaccel:6",
     },
     "kf6-guiaddons-cmake": {
         "arch":     "kguiaddons",
@@ -848,7 +824,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kguiaddons-devel",
         "centos":   "kf6-kguiaddons-devel",
         "opensuse": "kf6-kguiaddons-devel",
-        "gentoo":   "kde-frameworks/kguiaddons:6",
     },
     "kf6-i18n-cmake": {
         "arch":     "ki18n",
@@ -858,7 +833,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-ki18n-devel",
         "centos":   "kf6-ki18n-devel",
         "opensuse": "kf6-ki18n-devel",
-        "gentoo":   "kde-frameworks/ki18n:6",
     },
     "kf6-kcmutils-cmake": {
         "arch":     "kcmutils",
@@ -868,7 +842,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kcmutils-devel",
         "centos":   "kf6-kcmutils-devel",
         "opensuse": "kf6-kcmutils-devel",
-        "gentoo":   "kde-frameworks/kcmutils:6",
     },
     "kf6-colorscheme-cmake": {
         "arch":     "kcolorscheme",
@@ -888,7 +861,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kio-devel",
         "centos":   "kf6-kio-devel",
         "opensuse": "kf6-kio-devel",
-        "gentoo":   "kde-frameworks/kio:6",
     },
     "kf6-notifications-cmake": {
         "arch":     "knotifications",
@@ -898,7 +870,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-knotifications-devel",
         "centos":   "kf6-knotifications-devel",
         "opensuse": "kf6-knotifications-devel",
-        "gentoo":   "kde-frameworks/knotifications:6",
     },
     "kf6-service-cmake": {
         "arch":     "kservice",
@@ -908,7 +879,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kservice-devel",
         "centos":   "kf6-kservice-devel",
         "opensuse": "kf6-kservice-devel",
-        "gentoo":   "kde-frameworks/kservice:6",
     },
     "kf6-widgetsaddons-cmake": {
         "arch":     "kwidgetsaddons",
@@ -918,7 +888,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kwidgetsaddons-devel",
         "centos":   "kf6-kwidgetsaddons-devel",
         "opensuse": "kf6-kwidgetsaddons-devel",
-        "gentoo":   "kde-frameworks/kwidgetsaddons:6",
     },
     "kf6-windowsystem-cmake": {
         "arch":     "kwindowsystem",
@@ -928,7 +897,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kwindowsystem-devel",
         "centos":   "kf6-kwindowsystem-devel",
         "opensuse": "kf6-kwindowsystem-devel",
-        "gentoo":   "kde-frameworks/kwindowsystem:6",
     },
     "kf6-itemmodels-cmake": {
         "arch":     "kitemmodels",
@@ -938,7 +906,16 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kitemmodels-devel",
         "centos":   "kf6-kitemmodels-devel",
         "opensuse": "kf6-kitemmodels-devel",
-        "gentoo":   "kde-frameworks/kitemmodels:6",
+    },
+    "kf6-itemmodels-qml": {
+        "arch":     "kitemmodels",
+        "debian":   "qml6-module-org-kde-kitemmodels",
+        "ubuntu":   "qml6-module-org-kde-kitemmodels",
+        "neon":     "kf6-kitemmodels",
+        "fedora":   "kf6-kitemmodels",
+        "rhel":     "kf6-kitemmodels",
+        "centos":   "kf6-kitemmodels",
+        "opensuse": "kf6-kitemmodels-imports",
     },
     # The system tray fork (steps/plasmoids.py).
     "kf6-xmlgui-cmake": {
@@ -982,6 +959,16 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "gentoo":   "kde-frameworks/kjobwidgets:6",
     },
     # ── Plasma / KSysGuard / plasma-workspace ─────────────────────────
+    "plasma5support-qml": {
+        "arch":     "plasma5support",
+        "debian":   "qml6-module-org-kde-plasma-plasma5support",
+        "ubuntu":   "qml6-module-org-kde-plasma-plasma5support",
+        "neon":     "plasma5support",
+        "fedora":   "plasma5support",
+        "rhel":     "plasma5support",
+        "centos":   "plasma5support",
+        "opensuse": "plasma5support6",
+    },
     "plasma-cmake": {
         "arch":     "libplasma",
         "debian":   "libplasma-dev",
@@ -990,7 +977,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "libplasma-devel",
         "centos":   "libplasma-devel",
         "opensuse": "libplasma6-devel",
-        "gentoo":   "kde-plasma/libplasma",
     },
     "plasma-activities-cmake": {
         "arch":     "plasma-activities",
@@ -1001,7 +987,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "plasma-activities-devel",
         "centos":   "plasma-activities-devel",
         "opensuse": "plasma6-activities-devel",
-        "gentoo":   "kde-plasma/plasma-activities",
     },
     "plasma-activities-stats-cmake": {
         "arch":     "plasma-activities-stats",
@@ -1012,7 +997,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "plasma-activities-stats-devel",
         "centos":   "plasma-activities-stats-devel",
         "opensuse": "plasma6-activities-stats-devel",
-        "gentoo":   "kde-plasma/plasma-activities-stats",
     },
     "ksysguard-cmake": {
         "arch":     "libksysguard",
@@ -1022,7 +1006,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "libksysguard-devel",
         "centos":   "libksysguard-devel",
         "opensuse": "libksysguard6-devel",
-        "gentoo":   "kde-plasma/libksysguard",
     },
     # plasma-workspace ships both cmake configs in one -devel package;
     # separate tokens keep preflight failure messages precise.
@@ -1034,7 +1017,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "plasma-workspace-devel",
         "centos":   "plasma-workspace-devel",
         "opensuse": "plasma6-workspace-devel",
-        "gentoo":   "kde-plasma/plasma-workspace",
     },
     "libtaskmanager-cmake": {
         "arch":     "plasma-workspace",
@@ -1044,7 +1026,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "plasma-workspace-devel",
         "centos":   "plasma-workspace-devel",
         "opensuse": "plasma6-workspace-devel",
-        "gentoo":   "kde-plasma/plasma-workspace",
     },
     # ── KWin + KDecoration (Glass effect, feature acrylic_glass) ──────
     "kwin-cmake": {
@@ -1055,7 +1036,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kwin-devel",
         "centos":   "kwin-devel",
         "opensuse": "kwin6-devel",
-        "gentoo":   "kde-plasma/kwin",
     },
     "kdecoration-cmake": {
         "arch":     "kdecoration",
@@ -1065,7 +1045,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kdecoration-devel",
         "centos":   "kdecoration-devel",
         "opensuse": "kdecoration6-devel",
-        "gentoo":   "kde-plasma/kdecoration",
     },
     # ── libepoxy + X11 / XCB headers ──────────────────────────────────
     "epoxy-cmake": {
@@ -1078,7 +1057,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "libepoxy-devel",
         "alpine":   "libepoxy-dev",
         "void":     "libepoxy-devel",
-        "gentoo":   "media-libs/libepoxy",
     },
     "x11-cmake": {
         "arch":     "libx11",
@@ -1090,7 +1068,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "libX11-devel",
         "alpine":   "libx11-dev",
         "void":     "libX11-devel",
-        "gentoo":   "x11-libs/libX11",
     },
     # Xext is part of Kvantum's documented source-build prerequisites and
     # CMake's FindX11 links it while probing XOpenDisplay.
@@ -1104,7 +1081,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "libXext-devel",
         "alpine":   "libxext-dev",
         "void":     "libXext-devel",
-        "gentoo":   "x11-libs/libXext",
     },
     "xcb-cmake": {
         "arch":     "libxcb",
@@ -1116,7 +1092,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "libxcb-devel",
         "alpine":   "libxcb-dev",
         "void":     "libxcb-devel",
-        "gentoo":   "x11-libs/libxcb",
     },
     # KWin's exported headers include XCB extensions even for Wayland
     # effects. Debian/Ubuntu split these headers out of libxcb1-dev.
@@ -1128,7 +1103,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "libxcb-devel",
         "centos":   "libxcb-devel",
         "opensuse": "libxcb-devel",
-        "gentoo":   "x11-libs/libxcb",
     },
     "xcb-randr-cmake": {
         "arch":     "libxcb",
@@ -1138,7 +1112,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "libxcb-devel",
         "centos":   "libxcb-devel",
         "opensuse": "libxcb-devel",
-        "gentoo":   "x11-libs/libxcb",
     },
     "xcb-res-cmake": {
         "arch":     "libxcb",
@@ -1148,7 +1121,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "libxcb-devel",
         "centos":   "libxcb-devel",
         "opensuse": "libxcb-devel",
-        "gentoo":   "x11-libs/libxcb",
     },
     "xcb-shm-cmake": {
         "arch":     "libxcb",
@@ -1158,7 +1130,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "libxcb-devel",
         "centos":   "libxcb-devel",
         "opensuse": "libxcb-devel",
-        "gentoo":   "x11-libs/libxcb",
     },
     "xcb-sync-cmake": {
         "arch":     "libxcb",
@@ -1168,7 +1139,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "libxcb-devel",
         "centos":   "libxcb-devel",
         "opensuse": "libxcb-devel",
-        "gentoo":   "x11-libs/libxcb",
     },
     "wayland-cmake": {
         "arch":     "wayland",
@@ -1180,7 +1150,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "wayland-devel",
         "alpine":   "wayland-dev",
         "void":     "wayland-devel",
-        "gentoo":   "dev-libs/wayland",
     },
     "drm-cmake": {
         "arch":     "libdrm",
@@ -1192,7 +1161,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "libdrm-devel",
         "alpine":   "libdrm-dev",
         "void":     "libdrm-devel",
-        "gentoo":   "x11-libs/libdrm",
     },
     # Vulkan loader + headers — needed transitively by KWin 6.7+'s config.
     "vulkan-loader-cmake": {
@@ -1207,7 +1175,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "vulkan-devel",
         "alpine":   "vulkan-loader-dev",
         "void":     "Vulkan-Loader-devel",
-        "gentoo":   "media-libs/vulkan-loader",
     },
     # vulkan/vulkan.h — split from the loader on Fedora/openSUSE.
     "vulkan-headers-cmake": {
@@ -1220,7 +1187,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "vulkan-headers",
         "alpine":   "vulkan-headers",
         "void":     "Vulkan-Headers",
-        "gentoo":   "dev-util/vulkan-headers",
     },
 }
 
@@ -1257,7 +1223,6 @@ _PACKAGE_MANAGER_INSTALL: dict[str, list[str]] = {
     "arch":     ["pacman", "-S", "--noconfirm", "--needed"],
     "debian":   ["apt-get", "install", "-y"],
     "ubuntu":   ["apt-get", "install", "-y"],
-    "gentoo":   ["emerge", "--ask=n", "--quiet", "--noreplace"],
     "fedora":   ["dnf", "install", "-y"],
     "rhel":     ["dnf", "install", "-y"],
     "centos":   ["dnf", "install", "-y"],
@@ -1270,7 +1235,6 @@ _PACKAGE_MANAGER_SYNC: dict[str, list[str] | None] = {
     "arch":     ["pacman", "-Sy", "--noconfirm"],
     "debian":   ["apt-get", "update"],
     "ubuntu":   ["apt-get", "update"],
-    "gentoo":   None,
     "fedora":   None,
     "rhel":     None,
     "centos":   None,
@@ -1278,9 +1242,19 @@ _PACKAGE_MANAGER_SYNC: dict[str, list[str] | None] = {
 }
 
 
+def _reject_retired_distro() -> None:
+    if "gentoo" in (current_distro(), *_compatibility_parents()):
+        raise UnsupportedDistroError(
+            "Gentoo support was retired in v0.54.7. New installations and "
+            "upgrades require a separately maintained Gentoo integration. "
+            "Existing installations can still be uninstalled."
+        )
+
+
 def package_manager_sync_cmd() -> list[str] | None:
     """Db-refresh command for this distro, or None if install refreshes
     on its own. Raises UnsupportedDistroError like the install variant."""
+    _reject_retired_distro()
     distro = current_distro()
     for name in (distro, *_compatibility_parents()):
         if name in _PACKAGE_MANAGER_SYNC:
@@ -1295,6 +1269,7 @@ def package_manager_sync_cmd() -> list[str] | None:
 def package_manager_install_cmd() -> list[str]:
     """Non-interactive install command prefix (caller appends packages).
     Raises :class:`UnsupportedDistroError` for unmapped distros."""
+    _reject_retired_distro()
     distro = current_distro()
     if distro in _PACKAGE_MANAGER_INSTALL:
         return list(_PACKAGE_MANAGER_INSTALL[distro])

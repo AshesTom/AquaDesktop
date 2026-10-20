@@ -10,6 +10,7 @@ Item {
 	id: gridDelegate
 
 	property var triggerModel
+	readonly property var view: GridView.view
 
 	width: root.cellSizeWidth
 	height: root.cellSizeHeight
@@ -47,7 +48,7 @@ Item {
 
  	Kirigami.Icon {
 		id: appicon
-		y: (2 * highlightItemSvg.margins.top) 
+		y: main.detachedSearch ? 0 : 2 * highlightItemSvg.margins.top
 		anchors.horizontalCenter: parent.horizontalCenter
 		width: root.iconSize
 		height: width
@@ -58,22 +59,22 @@ Item {
 		id: appname
 		text: ("name" in model ? model.name : model.display)
 		font.family: main.textFont
-		font.pointSize: main.textSize
-		font.weight: 650
+		font.pointSize: main.appTextSize
+		font.weight: main.detachedSearch ? Font.Medium : 650
 		color: main.textColor
 		anchors {
 			top: appicon.bottom
 			left: parent.left
 			right: parent.right
-			topMargin: Kirigami.Units.largeSpacing * 1.2
+			topMargin: Kirigami.Units.largeSpacing * (main.detachedSearch ? 0.5 : 1.2)
 			leftMargin: Kirigami.Units.smallSpacing
 			rightMargin: Kirigami.Units.smallSpacing
 		}
 		textFormat: Text.PlainText
-		elide: Text.ElideMiddle
+		elide: main.detachedSearch ? Text.ElideRight : Text.ElideMiddle
 		horizontalAlignment: Text.AlignHCenter
-		maximumLineCount: 2
-		wrapMode: Text.Wrap
+		maximumLineCount: main.detachedSearch ? 1 : 2
+		wrapMode: main.detachedSearch ? Text.NoWrap : Text.Wrap
 	}
 
 	
@@ -106,12 +107,12 @@ Item {
 	state: "default"
 	states: [
 		State {
-			name: "highlight"; when: (grid.canMoveWithKeyboard ? focus : highlighted)
+			name: "highlight"; when: (view.canMoveWithKeyboard ? activeFocus : highlighted)
 			PropertyChanges { target: appIconShadow;  color: "#4D000000"}
 			PropertyChanges { target: appiconHighlight;  opacity: 0.4}
 		},
 		State {
-			name: "default"; when: (grid.canMoveWithKeyboard ? !focus : !highlighted)
+			name: "default"; when: (view.canMoveWithKeyboard ? !activeFocus : !highlighted)
 			PropertyChanges { target: appIconShadow; color: "#33000000"}
 			PropertyChanges { target: appiconHighlight;  opacity: 0}
 		}
@@ -124,7 +125,7 @@ Item {
 		z: parent.z + 1
 		acceptedButtons: Qt.LeftButton | Qt.RightButton
 		cursorShape: Qt.PointingHandCursor
-		hoverEnabled:  !grid.movedWithWheel
+		hoverEnabled: !view.movedWithWheel
 		onClicked: function(mouse) {
 			if (mouse.button == Qt.RightButton ) {
 				if (gridDelegate.hasActionList) {
@@ -139,18 +140,18 @@ Item {
 			//   select the hovered item without moving the mouse.
 			// - Don't highlight separators.
 			// - Don't switch category items on hover if the setting isn't enabled
-			if (grid.movedWithKeyboard) {
+			if (view.movedWithKeyboard) {
 				return;
 			}
 
 			// forceActiveFocus() touches multiple items, so check for
 			// activeFocus first to be more efficient.
-			if (!grid.activeFocus) {
-				grid.forceActiveFocus(Qt.MouseFocusReason);
+			if (!view.activeFocus) {
+				view.forceActiveFocus(Qt.MouseFocusReason);
 			}
 			// No need to check currentIndex first because it's
 			// built into QQuickListView::setCurrentIndex() already
-			grid.currentIndex = index;
+			view.currentIndex = index;
 			highlighted = true;
 		}
 

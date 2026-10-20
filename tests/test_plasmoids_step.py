@@ -69,6 +69,10 @@ def test_install_copies_taskmanager_runtime_package(tmp_path, monkeypatch):
         "module plasma.applet.org.kde.mac.tahoe.liquid.taskmanager\n"
     )
     (runtime_qml / "main.qml").write_text("import QtQuick\nItem {}\n")
+    launcher_module = taskmanager / "build/bin/org/kde/mac/tahoe/launcher"
+    launcher_module.mkdir(parents=True)
+    (launcher_module / "libmactahoelauncher.so").write_bytes(b"launcher")
+    (launcher_module / "qmldir").write_text("module org.kde.mac.tahoe.launcher\nplugin mactahoelauncher\n")
     (taskmanager / "metadata.json").write_text(
         '{"KPlugin":{"Id":"org.kde.mac.tahoe.liquid.taskmanager"}}\n'
     )
@@ -126,6 +130,9 @@ def test_install_copies_taskmanager_runtime_package(tmp_path, monkeypatch):
     assert expected_so.is_file()
     assert (expected_qml / "qmldir").is_file()
     assert expected_so.read_bytes() == b"so"
+    installed_launcher = fake_qml / "org/kde/mac/tahoe/launcher"
+    assert (installed_launcher / "libmactahoelauncher.so").read_bytes() == b"launcher"
+    assert (installed_launcher / "qmldir").is_file()
     assert not failures, failures
     assert (runtime / "metadata.json").is_file()
     assert (runtime / "contents/ui/main.qml").is_file()
@@ -139,6 +146,8 @@ def test_install_copies_taskmanager_runtime_package(tmp_path, monkeypatch):
     glass_dest = fake_qml / "org/kde/mac/tahoe/liquid/glass"
     assert (glass_dest / "libmacTahoeGlass.so").read_bytes() == b"so"
     assert plasmoids.GLASS_DEST_QML == glass_dest
+    plasmoids.uninstall()
+    assert not installed_launcher.exists()
 
 
 def test_taskmanager_dest_paths_anchor_to_qmake6_libdir(monkeypatch, tmp_path):
@@ -147,7 +156,7 @@ def test_taskmanager_dest_paths_anchor_to_qmake6_libdir(monkeypatch, tmp_path):
     reported, per distro). The suffix is pinned so a refactor that
     mangles the package id can't silently ship to the wrong applet
     path; the prefix comes from distro.qt6_* so this works on Arch
-    (/usr/lib/qt6), Gentoo (/usr/lib64/qt6), and Debian-multiarch
+    (/usr/lib/qt6), openSUSE (/usr/lib64/qt6), and Debian-multiarch
     alike."""
     fake_plugins, fake_qml = _stub_qt6_paths(monkeypatch, tmp_path)
     assert plasmoids.TASKMANAGER_DEST_SO == fake_plugins / (

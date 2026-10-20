@@ -89,7 +89,7 @@ def _allowed_roots() -> tuple[re.Pattern, ...]:
         re.compile(rf"^{re.escape(str(root))}(/|$)")
         for root in sorted(user_roots, key=str)
     )
-    # Qt roots come from qmake6 so nonstandard libdirs (Gentoo /usr/lib64,
+    # Qt roots come from qmake6 so nonstandard libdirs (openSUSE /usr/lib64,
     # Debian multiarch) validate without a hand-maintained list.
     try:
         qt_plugins = re.escape(str(qt6_plugins_dir()))
@@ -152,6 +152,7 @@ def _enumerate_destinations() -> list[tuple[str, Path]]:
         ("notifications .so", plasmoids.NOTIFICATIONS_DEST_SO),
         ("notifications QML module", plasmoids.NOTIFICATIONS_DEST_QML),
         ("glass plugin dir", acrylic_glass._plugin_dir()),
+        ("launcher QML module", plasmoids.LAUNCHER_DEST_QML),
         ("kvantum Qt6 style plugin", kvantum._engine_destination()),
         ("kvantum bundled-source marker", kvantum.ENGINE_MARKER),
         ("kvantum bundled-source license", kvantum.ENGINE_LICENSE),
@@ -187,7 +188,7 @@ def _check_paths() -> bool:
 def _check_qt_paths() -> bool:
     """Cross-check every compiled-step destination against qmake6's
     reported plugin / QML dirs so a hardcoded libdir can't regress past
-    the distro layer — Gentoo reports /usr/lib64 while others report /usr/lib."""
+    the distro layer — openSUSE reports /usr/lib64 while others report /usr/lib."""
     try:
         plugins = qt6_plugins_dir()
         qml = qt6_qml_dir()
@@ -207,6 +208,7 @@ def _check_qt_paths() -> bool:
         ("qqc2 macOS style module", _qqc2_style.style_dest(), qml),
         ("qqc2 macOS style Kirigami link", _qqc2_style.platform_link(), plugins),
         ("glass plugin dir", acrylic_glass._plugin_dir(), plugins),
+        ("launcher QML module", plasmoids.LAUNCHER_DEST_QML, qml),
         ("kvantum Qt6 style plugin", kvantum._engine_destination(), plugins),
         ("rounded-corners plugin dir", rounded_corners._plugin_dir(), plugins),
     ]

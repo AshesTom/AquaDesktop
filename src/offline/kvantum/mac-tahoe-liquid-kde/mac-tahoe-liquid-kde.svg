@@ -1440,7 +1440,7 @@
      d="m 198,640 h 30 v 30 h -30 z" />
   <path
      inkscape:connector-curvature="0"
-     style="opacity:0.6;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
+     style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
      id="menu-normal"
      d="m 126.99999,365.99998 h 48 v 48.00004 h -48 z" />
   <g
@@ -1449,7 +1449,7 @@
      transform="matrix(1.499999,0,0,1,-56.385384,-337.753)">
     <path
        inkscape:connector-curvature="0"
-       style="opacity:0.6;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke-width:1"
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke-width:1"
        id="menu-normal-left0"
        d="m 116.257,703.753 h 6 v 48 h -6 z" />
   </g>
@@ -1460,7 +1460,7 @@
     <path
        id="path3597"
        d="m 122.25573,698.75378 c -3.32289,10e-4 -5.99768,2.6768 -5.99768,6.00001 h 6.00002 z"
-       style="opacity:0.6;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke-width:1"
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke-width:1"
        inkscape:connector-curvature="0" />
   </g>
   <use
@@ -1527,7 +1527,7 @@
        transform="matrix(1,0,0,0.57142372,-127.25,735.45402)">
       <path
          inkscape:connector-curvature="0"
-         style="display:inline;opacity:0.6;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1"
+         style="display:inline;opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1"
          d="M 189.99998,251.99991 H 240 v 10.49993 h -50.00001 z"
          id="path4382-5" />
       <path
@@ -1581,7 +1581,7 @@
            inkscape:connector-curvature="0"
            id="path4714-2"
            d="M 9.0002659,47.938991 A 6.0000042,6.0000042 0 0 0 3.0002618,53.938995 H 9.0002659 Z"
-           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:0.6;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.354331;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" />
+           style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.354331;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" />
         <path
            inkscape:connector-curvature="0"
            style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:0.1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.354331;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
@@ -3540,30 +3540,6 @@
      style="fill:#0860f2;fill-opacity:1;fill-rule:evenodd;stroke-width:0.547723;paint-order:normal"
      id="menubaritem-pressed-top"
      d="m 490,359 h 20 v 6 h -20 z" />
-  <use
-     height="100%"
-     width="100%"
-     transform="translate(0,26)"
-     id="use2412"
-     xlink:href="#path2410"
-     y="0"
-     x="0" />
-  <use
-     height="100%"
-     width="100%"
-     transform="rotate(90,228,413)"
-     id="use2414"
-     xlink:href="#use2412"
-     y="0"
-     x="0" />
-  <use
-     height="100%"
-     width="100%"
-     transform="translate(-26)"
-     id="use2416"
-     xlink:href="#use2414"
-     y="0"
-     x="0" />
   <g
      transform="translate(285,-25)"
      id="menubaritem-pressed-topleft">

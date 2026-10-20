@@ -83,7 +83,7 @@ def test_qt_renders_readable_panel_and_popup_surfaces(repo, mode):
     svg = pytest.importorskip("PyQt6.QtSvg")
     gui = pytest.importorskip("PyQt6.QtGui")
     core = pytest.importorskip("PyQt6.QtCore")
-    for filename in ("widgets/panel-background.svgz", "dialogs/background.svgz"):
+    for filename in ("widgets/panel-background.svgz", "dialogs/background.svgz", "dialogs/launcher-search.svgz"):
         data = gzip.decompress((repo / "src/offline/plasma-theme" /
                                 f"MacTahoeLiquidKde-{mode}" / filename).read_bytes())
         alpha = []

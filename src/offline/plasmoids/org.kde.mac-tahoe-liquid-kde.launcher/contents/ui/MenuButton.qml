@@ -5,39 +5,21 @@ import org.kde.plasma.extras as PlasmaExtras
 
 Item {
 
+    readonly property bool menuOpen: contextMenu.status !== PlasmaExtras.Menu.Closed
+
     width: button.width
     height: button.height
     
-    property var menuModel: [
-        {
-            title: i18n("Show apps in a list"),
-            action: () => {
-                plasmoid.configuration.showAllAppsInList = true;
-                plasmoid.configuration.showAllAppsInGrid = false;
-            },
-            checked: plasmoid.configuration.showAllAppsInList,
-            enabled: true
-        },
-        {
-            title: i18n("Show apps in a grid"),
-            action: () => {
-                plasmoid.configuration.showAllAppsInList = false;
-                plasmoid.configuration.showAllAppsInGrid = true;
-            },
-            checked: plasmoid.configuration.showAllAppsInGrid,
-             enabled: true
-        }
-    ]
-
     PC3.RoundButton {
         id: button
         Accessible.role: Accessible.ButtonMenu
+        Accessible.name: i18n("Launcher options")
 
         flat: true
         // Make it look pressed while the menu is open
         down: contextMenu.status === PlasmaExtras.Menu.Open || pressed
         
-        icon.name: "application-menu" 
+        icon.name: "view-more-symbolic"
 
         background: Rectangle {
             color: button.down ? main.contrastBgColor : "transparent"
@@ -46,27 +28,42 @@ Item {
         onPressed: contextMenu.openRelative()
     }
 
-    Instantiator {
-        model: menuModel
-        delegate: PlasmaExtras.MenuItem {
-            required property int index
-            required property var model
-
-            icon: model.checked ? "checkmark-symbolic" : ""
-            checked: model.checked
-            text: model.title
-            enabled: model.enabled
-            // icon: model.decoration
-            onClicked: model.action()
-        }
-        onObjectAdded: (index, object) => contextMenu.addMenuItem(object)
-        onObjectRemoved: (index, object) => contextMenu.removeMenuItem(object)
-    }
-
     PlasmaExtras.Menu {
         id: contextMenu
         visualParent: button
         placement: PlasmaExtras.Menu.BottomPosedLeftAlignedPopup
+
+        PlasmaExtras.MenuItem {
+            text: i18n("Preset 1 — Tahoe")
+            checkable: true
+            checked: kicker.launcherPreset === 1
+            onClicked: Plasmoid.configuration.launcherPreset = 1
+        }
+        PlasmaExtras.MenuItem {
+            text: i18n("Preset 2 — Golden Gate")
+            checkable: true
+            checked: kicker.launcherPreset === 2
+            onClicked: Plasmoid.configuration.launcherPreset = 2
+        }
+        PlasmaExtras.MenuItem { separator: true }
+        PlasmaExtras.MenuItem {
+            text: i18n("Show apps in a list")
+            checkable: true
+            checked: Plasmoid.configuration.showAllAppsInList
+            onClicked: {
+                Plasmoid.configuration.showAllAppsInList = true;
+                Plasmoid.configuration.showAllAppsInGrid = false;
+            }
+        }
+        PlasmaExtras.MenuItem {
+            text: i18n("Show apps in a grid")
+            checkable: true
+            checked: !Plasmoid.configuration.showAllAppsInList
+            onClicked: {
+                Plasmoid.configuration.showAllAppsInList = false;
+                Plasmoid.configuration.showAllAppsInGrid = true;
+            }
+        }
         onStatusChanged: {
             if ( contextMenu.status === PlasmaExtras.Menu.Closed && Qt.application.layoutDirection == Qt.LeftToRight) {
                 nextItemInFocusChain(false).forceActiveFocus(Qt.BacktabFocusReason)

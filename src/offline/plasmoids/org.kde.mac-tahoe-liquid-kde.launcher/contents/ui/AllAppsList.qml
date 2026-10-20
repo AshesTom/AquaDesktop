@@ -27,7 +27,7 @@ ColumnLayout {
 
 	property Component preferredAppsViewComponent:
 		showItemsInList ? applicationsListViewComponent
-		: selectedIsAllApps ? applicationsCategorizedViewComponent
+		: selectedIsAllApps && !main.detachedSearch ? applicationsCategorizedViewComponent
 		: applicationsGridViewComponent
 
 	property alias viewItem: appViewLoader.item
@@ -91,6 +91,10 @@ ColumnLayout {
 	property var selectedModelIndex: null
 
 	onAppsCategoriesListChanged: syncSelection()
+	Connections {
+		target: main
+		function onDetachedSearchChanged() { Qt.callLater(allApps.syncSelection); }
+	}
 
 	function syncSelection() {
 		if (!appsCategoriesList.length) {
@@ -98,13 +102,14 @@ ColumnLayout {
 		}
 		var pos = 0;
 		for (var i = 0; i < appsCategoriesList.length; i++) {
-			if (appsCategoriesList[i].modelIndex === selectedModelIndex) {
+			if (appsCategoriesList[i].modelIndex === selectedModelIndex
+				|| (selectedModelIndex === null && main.detachedSearch && appsCategoriesList[i].isAllApps)) {
 				pos = i;
 				break;
 			}
 		}
 		categorySwitcher.currentIndex = pos;
-		updateShowedModel(appsCategoriesList[pos].modelIndex);
+		currentModel = modelForCategory(appsCategoriesList[pos]);
 	}
 
 	property var slicedCategories: {
@@ -135,8 +140,8 @@ ColumnLayout {
 	AppCategorySwitcher {
 		id: categorySwitcher
 
-		Layout.preferredWidth: parent.width-fs.innerPadding
-    	Layout.preferredHeight: visible ? 40 : 0
+		Layout.preferredWidth: parent.width - (main.detachedSearch ? 0 : fs.innerPadding)
+		Layout.preferredHeight: visible ? main.categoryHeight : 0
 		model: appsCategoriesList
 		visible: true
 
@@ -148,6 +153,7 @@ ColumnLayout {
 	// Separator below the tabs, mirroring the one above them in
 	// MainView so the capsule row sits between two lines.
 	Rectangle {
+		visible: !main.detachedSearch
 		Layout.fillWidth: true
 		Layout.rightMargin: fs.innerPadding
 		Layout.topMargin: 6
@@ -161,6 +167,7 @@ ColumnLayout {
 		
 		Layout.fillHeight: true		
 		Layout.fillWidth: true
+		Layout.topMargin: main.gridTopSpacing
 		
 		sourceComponent: preferredAppsViewComponent
 		active: true
@@ -189,10 +196,11 @@ ColumnLayout {
 		AppGridView {
 			id: grid
 			anchors.fill: parent
-			anchors.leftMargin: fs.innerPadding / 2
+			anchors.leftMargin: main.detachedSearch ? 0 : fs.innerPadding / 2
 			
 			model: currentModel
 			canMoveWithKeyboard: true
+			showFavorites: main.detachedSearch && allApps.selectedIsAllApps
 			//viewItem.highlightFollowsCurrentItem: false
 		}
 	}

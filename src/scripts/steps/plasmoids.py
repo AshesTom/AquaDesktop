@@ -2,6 +2,7 @@ import shutil
 from pathlib import Path
 
 from distro import qt6_plugins_dir, qt6_qml_dir
+from launcher_defaults import LAUNCHER_ID, apply_launcher_default
 from steps._helpers import (
     DATA_HOME, HOME, build_dir, cmake_build, fail, info, install_tree, ok, offline,
     remove_tree,
@@ -48,6 +49,7 @@ _DOCKZOOM_QML_RELPATH = "org/kde/mac/tahoe/liquid/dockzoom"
 GLASS_SRC = offline("qml") / "org.kde.mac.tahoe.liquid.glass"
 GLASS_BUILD = build_dir("qml/org.kde.mac.tahoe.liquid.glass")
 _GLASS_QML_RELPATH = "org/kde/mac/tahoe/liquid/glass"
+_LAUNCHER_QML_RELPATH = "org/kde/mac/tahoe/launcher"
 
 
 def __getattr__(name: str):
@@ -63,6 +65,8 @@ def __getattr__(name: str):
         return qt6_qml_dir() / _DOCKZOOM_QML_RELPATH
     if name == "GLASS_DEST_QML":
         return qt6_qml_dir() / _GLASS_QML_RELPATH
+    if name == "LAUNCHER_DEST_QML":
+        return qt6_qml_dir() / _LAUNCHER_QML_RELPATH
     raise AttributeError(name)
 # Leftover from old sudoless installs under the user path.
 LEGACY_TASKMANAGER_USER_SO = HOME / (
@@ -97,6 +101,10 @@ def deps():
         "qt6-widgets-cmake:qt6-base",
         "qt6-dbus-cmake:qt6-base",
         "qt6-qml-cmake:qt6-declarative",
+        "plasma5support-qml:plasma5support",
+        "kf6-itemmodels-qml:kitemmodels",
+        "qt6-wayland-cmake:qt6-wayland",
+        "wayland-cmake:wayland",
         "cmake",
         "ecm:extra-cmake-modules",
         "make",
@@ -139,6 +147,7 @@ def build_artifacts() -> list[Path]:
         NOTIFICATIONS_BUILD / "bin" / _NOTIFICATIONS_QML_RELPATH,
         SYSTEMTRAY_BUILD / "bin" / _SYSTEMTRAY_SO_RELPATH,
         GLASS_BUILD / "bin" / _GLASS_QML_RELPATH,
+        TASKMANAGER_BUILD / "bin" / _LAUNCHER_QML_RELPATH / "libmactahoelauncher.so",
     ]
 
 
@@ -271,6 +280,12 @@ def _install_apps_launcher() -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(APPS_DESKTOP, dest)
     ok("Apps launcher (pinned after Finder)")
+def _install_launcher_package(widget: Path) -> bool:
+    with temp_dir("mttkde-launcher-package") as tmp:
+        staged = tmp / widget.name
+        shutil.copytree(widget, staged, symlinks=True)
+        apply_launcher_default(staged)
+        return install_tree(staged, DEST_DIR / widget.name, widget.name)
 
 
 def install() -> None:
@@ -311,6 +326,12 @@ def install() -> None:
     _install_notifications()
     _install_systemtray()
     _install_glass_qml()
+    launcher_module = TASKMANAGER_BUILD / "bin" / _LAUNCHER_QML_RELPATH
+    if (launcher_module / "libmactahoelauncher.so").is_file():
+        sudo_install_tree(launcher_module, qt6_qml_dir() / _LAUNCHER_QML_RELPATH,
+                          "Launcher (installed native search popup)")
+    else:
+        fail("Launcher (missing native search popup build artifact)")
 
     n = 0
     for widget in sorted(SRC_DIR.glob("*/")):
@@ -326,7 +347,9 @@ def install() -> None:
         if not (widget / "metadata.json").is_file():
             fail(f"{widget.name} (no metadata.json — skipping)")
             continue
-        if install_tree(widget, DEST_DIR / widget.name):
+        installed = (_install_launcher_package(widget) if widget.name == LAUNCHER_ID
+                     else install_tree(widget, DEST_DIR / widget.name))
+        if installed:
             n += 1
     label = "plasmoid" if n == 1 else "plasmoids"
     info(f"{n} {label} installed/reinstalled")
@@ -357,6 +380,8 @@ def uninstall() -> None:
                  qt6_qml_dir() / _SYSTEMTRAY_QML_RELPATH):
         if sudo_remove(dest, dest.name):
             n += 1
+    if sudo_remove(qt6_qml_dir() / _LAUNCHER_QML_RELPATH, "Launcher native search popup"):
+        n += 1
     if LEGACY_TASKMANAGER_USER_SO.is_file():
         try:
             LEGACY_TASKMANAGER_USER_SO.unlink()

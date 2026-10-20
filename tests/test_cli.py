@@ -382,7 +382,9 @@ def test_require_root_drops_privileges_in_correct_order(monkeypatch, cli_module,
     monkeypatch.setattr(pwd, "getpwuid",
                         lambda uid: FakePwent if uid == 1000 else real_pwent)
 
-    calls: list[tuple[str, int]] = []
+    calls = []
+    monkeypatch.setattr(cli_module.os, "initgroups",
+                        lambda user, gid: calls.append(("initgroups", user, gid)))
     monkeypatch.setattr(cli_module.os, "setegid",
                         lambda gid: calls.append(("setegid", gid)))
     monkeypatch.setattr(cli_module.os, "seteuid",
@@ -404,7 +406,8 @@ def test_require_root_drops_privileges_in_correct_order(monkeypatch, cli_module,
     assert os.environ["XDG_DATA_HOME"] == str(recovered_data)
     assert os.environ["XDG_CACHE_HOME"] == str(fake_home / ".cache")
     assert os.environ["XDG_STATE_HOME"] == str(fake_home / ".local/state")
-    assert calls == [("setegid", 1000), ("seteuid", 1000)]
+    assert calls == [("initgroups", "lester", 1000),
+                     ("setegid", 1000), ("seteuid", 1000)]
 
 
 def test_run_install_requires_root(monkeypatch, cli_module):

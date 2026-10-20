@@ -307,7 +307,7 @@ def test_qt6_raises_when_no_tools_and_no_fallback_dir(monkeypatch, tmp_path):
 
 
 def test_install_destinations_anchor_to_qmake6_libdir(monkeypatch, tmp_path):
-    """Failure mode (Gentoo): qmake6 reports
+    """Failure mode (openSUSE): qmake6 reports
     ``/usr/lib64/qt6/plugins`` but the installer hardcodes
     ``/usr/lib/qt6/plugins`` for its writes. Every Qt destination
     must be rooted at the qmake6-reported dir; this test
@@ -329,6 +329,7 @@ def test_install_destinations_anchor_to_qmake6_libdir(monkeypatch, tmp_path):
         ("taskmanager .so",      plasmoids.TASKMANAGER_DEST_SO,  fake_plugins),
         ("taskmanager QML",      plasmoids.TASKMANAGER_DEST_QML, fake_qml),
         ("glass plugin", acrylic_glass._plugin_dir(),    fake_plugins),
+        ("launcher QML",         plasmoids.LAUNCHER_DEST_QML, fake_qml),
         ("kvantum plugin",       kvantum._engine_destination(), fake_plugins),
         ("rounded-corners plugin", rounded_corners._plugin_dir(), fake_plugins),
     ):

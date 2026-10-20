@@ -806,7 +806,7 @@ for (var key in tracked) {{
     else
         item.panel.offset = out[key].offset + (normalize ? 0 : nextOff);
 }}
-print(JSON.stringify(out));
+print(JSON.stringify(out) + "\\n");
 print(normalize ? "normalized" : "shifted");
 """
 

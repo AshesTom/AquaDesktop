@@ -103,6 +103,10 @@ If you add a step that talks to the live session (`user_service_manager_command`
 MAC_TAHOE_SKIP_LIVE_SAFETY_NET=1 ./test         # CI / no-live-session
 ```
 
+`MTTKDE_ROUNDED_CORNERS_ARCHIVE` (path to the pinned source archive)
+enables the native Rounded Corners eligibility regression in
+`tests/test_corner_rendering.py` (desktop surfaces are never redirected, #77).
+
 For a Rounded Corners release-pin update, review the full upstream diff and
 verify the tag, commit and archive SHA-256 together. Run the opt-in native
 build test in an unprivileged, network-disabled container with the target

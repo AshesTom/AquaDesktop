@@ -1,5 +1,14 @@
 # AGENTS.md
 
+## #1 — Self-explanatory code
+
+Do not explain what a terminal command does when it is already obvious
+(for example, `npm install`). Add explanations only when needed or requested.
+
+Match the user's language in replies and avoid mixing English and Spanish
+prose. Keep commands, code identifiers, file paths and product names unchanged.
+Keep this document in English.
+
 This file is the authoritative reference for working on
 **AquaDesktop**, a fork of
 [macos-tahoe-liquid-kde](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde).
@@ -40,20 +49,22 @@ Aurorae window decorations, Plasma + Kvantum + GTK + icon themes,
 the Better Blur DX and KDE Rounded Corners KWin effects, light/dark global theme with timed
 switching, wallpapers, fonts, cursors, and a Plymouth boot splash.
 
-**Target platforms.** KDE Plasma 6.6+ distros on either systemd or
-OpenRC. The init system is a supported *dimension*, not a distro
-boundary — the two scheduled features (OLED care, timed theme switch)
+**Target platforms.** KDE Plasma 6.6, 6.7 and 6.8 on either systemd or
+OpenRC. Plasma 6.8 compatibility is included from v0.54.1; 6.6 remains the
+minimum supported version. Build compiled components against the host SDK.
+The init system is a supported *dimension*, not a distro boundary — the two scheduled features (OLED care, timed theme switch)
 install a systemd user timer under systemd and a per-user `crontab`
 line under OpenRC, chosen by `init_system()` in the distro layer.
-OpenRC is supported generically across distros; it is verified by hand
-in a Gentoo OpenRC VM (`./vm`), not in the container matrix. The
+OpenRC scheduling remains available generically; Gentoo support was retired in
+v0.54.7 and its VM/SDK workflows have been removed. The
 Artix package mapping uses the Arch family even when `ID_LIKE` is absent;
 Artix OpenRC remains testing and is not part of the container matrix. The
 container matrix covers Arch, CachyOS, Manjaro, EndeavourOS, Garuda,
-Gentoo, Fedora, Nobara, openSUSE Tumbleweed, and KDE neon on their default
-(systemd) profiles; of these only **Arch and CachyOS are marked
-*tested* in the README — every other distro is *testing* / work in
-progress**. Immutable rpm-ostree distros
+Fedora, Nobara, openSUSE Tumbleweed, and KDE neon on their default
+(systemd) profiles. The README marks CachyOS heavily tested, Arch stable,
+Fedora and EndeavourOS relatively stable, and KDE neon container + VM
+qualified. The other listed distros need more testing. Container checks
+alone do not establish live desktop compatibility. Immutable rpm-ostree distros
 (Silverblue, Kinoite) are explicitly out of scope: the installer
 writes into `/usr/lib*` and `/usr/share`, which are read-only on those
 systems and need either an rpm/Flatpak-extension wrapper or an
@@ -893,6 +904,9 @@ doesn't walk `~/.local/lib/qt6` in a default Plasma session.
 - After the euid check passes, the CLI drops effective UID to
   `SUDO_USER` via `os.setegid(SUDO_GID); os.seteuid(SUDO_UID)`. Files
   written from then on land with normal user ownership.
+  First call `os.initgroups(SUDO_USER, SUDO_GID)` while privileged so
+  children inherit the user's supplementary groups, including the
+  `cron` membership, instead of retaining sudo's root groups.
 - The `sudo_install_file` / `sudo_install_tree` / `sudo_remove`
   helpers in `steps/_helpers.py` re-elevate via the `_as_root()`
   context manager (`seteuid(0)`) for the one operation that needs
@@ -933,6 +947,12 @@ VirtualBox VM surfaces are on the effect's deny-list as
 `/(?i)^VirtualBoxVM$/` (class or resource name, ignoring case; issue #90),
 so seamless cutouts are never filled with glass. The VirtualBox manager
 remains eligible for glass.
+Rounded Corners must reject desktop surfaces before management/redirection and
+in `hasEffect()`, even when explicitly included. Only `drawWindow()` may start
+redirection after eligibility checks; widget configuration dialogs remain eligible.
+Its patch also publishes the animated radius on the EffectWindow property
+`_mttkde_corner_shape_v1` (cleared on exclusion and unload); upstream's Acrylic
+Glass reads it, Better Blur DX ignores it.
 
 `rounded_corners.py` is the only feature allowed to implement
 `download()`. It fetches KDE-Rounded-Corners v0.10.0 from the upstream
@@ -975,12 +995,12 @@ install`, or probe for systemd/OpenRC themselves — call
 
 | Function                              | Returns |
 | ------------------------------------- | ------- |
-| `current_distro()`                    | Lowercase `/etc/os-release` ID (`arch`, `cachyos`, `gentoo`, `fedora`, `opensuse-tumbleweed`, ...). |
+| `current_distro()`                    | Lowercase `/etc/os-release` ID (`arch`, `cachyos`, `fedora`, `opensuse-tumbleweed`, ...). |
 | `distro_id_like()`                    | ID_LIKE chain so downstream distros (Nobara → fedora, Garuda → arch) inherit the parent's package map. |
 | `init_system()`                       | `"systemd"` when `/run/systemd/system` is present, else `"openrc"`. The ONLY sanctioned init probe — the scheduled-feature steps branch on it to pick a systemd user timer vs. a per-user crontab line. |
 | `user_service_manager_command(*args)` | A `systemctl --user ...` argv only when systemd is the running init; `None` on OpenRC. All user-service operations go through this wrapper and provide an init-agnostic fallback. |
 | `qt6_plugins_dir()` / `qt6_qml_dir()` | Asks `qmake6` → `qtpaths6` → `pkg-config Qt6Core` in that order. Falls back to the per-distro libdir table only when that dir actually exists on disk. Otherwise raises `Qt6PathsMissing` with the distro-appropriate install hint. |
-| `package_for(token)`                  | Translates an Arch package name from a step's `deps()` token into the equivalent on the current distro (`g++:gcc` → `gcc-c++` on Fedora, `sys-devel/gcc` on Gentoo). |
+| `package_for(token)`                  | Translates an Arch package name from a step's `deps()` token into the equivalent on the current distro (`g++:gcc` → `gcc-c++` on Fedora). |
 | `package_installed(pkg)`              | Direct package-database probe (`pacman -Q`, `rpm -q`, ...) so dep resolution installs only what's actually missing. |
 | `package_manager_install_cmd()`       | Non-interactive install prefix for the current distro. |
 
@@ -1007,7 +1027,8 @@ checks, fail-fast:
 2. **Destination paths inside allowed roots.** No step would write
    outside `$HOME` or the system Qt6 libdir.
 3. **Qt6 plugin search agrees with where we'd write.**
-4. **Plasma 6.6+.** Compiled plasmoids link against 6.6 headers.
+4. **Plasma 6.6 minimum.** Plasma 6.7 and 6.8 are also supported; compiled
+   components use the host's Qt/Plasma/KWin development packages.
 5. **`kwriteconfig6` + `kreadconfig6` on PATH.**
 6. **DBus session bus reachable** (env var or
    `$XDG_RUNTIME_DIR/bus` socket).
@@ -1024,6 +1045,20 @@ appears to be running setuid`. Never reach for `subprocess.run`
 directly from preflight — `test_plasma_version_drops_privs_in_child`
 is the guard against that regression returning.
 
+## Architecture — Plasma 6.8 Compatibility
+
+Preserve support for 6.6 and 6.7 when changing the 6.8 path.
+
+Plasma 6.8 removed `PlasmaCore.WindowThumbnail`. The Dock tooltip retains
+PipeWire previews and uses an icon fallback; do not reintroduce the removed
+QML type. Regression coverage lives in `tests/test_taskmanager_qml.py`.
+
+The pinned Rounded Corners v0.10.0 source receives the reviewed orientation
+backport in `rounded_corners_compat.py` before compilation, also in Nix.
+On Wayland 6.8 it derives texture orientation from `position0` derivatives;
+never hardcode a vertical flip by version. Older SDKs retain the original
+shader trait.
+
 ## Architecture — Live Theme Switching
 
 `mac-tahoe-theme-switch {light|dark|auto}` is the single entry point.
@@ -1034,8 +1069,10 @@ The same binary runs:
 - from the 06:00 / 18:00 systemd user timer,
 - by the user manually.
 
-`./install` writes both the service and the timer (under
-`~/.config/systemd/user/`) and enables them.
+In automatic mode, `./install` enables the service and timer under
+`~/.config/systemd/user/` on systemd. OpenRC uses per-user cron entries at
+06:00 / 18:00 and has no login-time oneshot equivalent. Explicit light/dark
+mode removes previous schedules so they cannot override the selected mode.
 
 There is no background xdg-portal appearance watcher. Automatic mode is
 driven only by the post-login service and the 06:00 / 18:00 scheduler;
@@ -1072,6 +1109,9 @@ user's too, though `org.kde.image`'s leftover `Image` key still names ours
 (`_foreign_wallpaper_screens`): the apply script skips it and the
 all-screens `plasma-apply-wallpaperimage` is never used while one exists. A user opts every screen back into managed bundled wallpapers
 only with the installer's explicit `--reset-wallpapers` action.
+Empty captures are retried before applying the look-and-feel.
+If capture still fails on an existing desktop, preserve wallpapers and ownership
+state; only a fresh install or explicit reset may apply without a snapshot.
 
 **Kvantum cycle.** Kvantum is a Qt style plugin and cannot reload its
 kvconfig in a running app — only `QApplication::setStyle()`
@@ -1137,8 +1177,9 @@ that does not reproduce the SIGSEGV is inconclusive, never a passing fix test.
 
 `mac-tahoe-oled-care {shift|restore|status}` guards OLED panels against
 burn-in. Off by default; `./install --oled-care` enables it. A systemd
-user timer (`mac-tahoe-liquid-kde-oled.timer`) fires `shift` every 5
-minutes: fill-length panels (the top bar) cycle height up in 2 px steps
+user timer (`mac-tahoe-liquid-kde-oled.timer`), or per-user cron entry on
+OpenRC, fires `shift` every 5 minutes: fill-length panels (the top bar) cycle
+height up in 2 px steps
 (32 → 34 → … → 40 → 38 → …) — a full-width panel cannot slide sideways,
 Plasma clamps its offset — and every other panel (the dock) cycles
 offset both directions the same way. One
@@ -1193,6 +1234,42 @@ assembly without requiring Nix on the imperative installer's host.
 
 ## Architecture — Wallpapers
 
+Tahoe and Golden Gate share this implementation and bundled wallpaper set.
+`src/scripts/defaults.json` selects the edition's default package (`MacTahoe`
+or `MacGoldenGate`); Tahoe remains the default here. The theme-switch install
+step embeds that choice in the standalone binary, so login, systemd/OpenRC
+schedules and manual switches retain it without the checkout or environment.
+The Nix package carries the same defaults beside its switcher. Preserve
+per-screen ownership: selecting an edition never resets custom wallpapers;
+`--reset-wallpapers` remains the explicit opt-in.
+
+The same defaults file selects `launcher_preset` (Tahoe: 1, Golden Gate: 2).
+`launcher_defaults.py` stamps only the staged launcher's `defaultLauncherPreset`
+schema default, also during Nix asset assembly. `launcherPreset=0` follows that
+edition default; explicit 1/2 choices persist per applet and survive panel
+rebuilds per screen in all three layouts. Both presets remain available in
+the Launcher's options menu and General settings. Preset 2 uses a separate
+native Plasma search popup above the app panel; treat both popups and their
+options menu as one focus group for dismissal.
+Preset 2 starts with seven columns, a single favorites row and a flat app grid.
+Its column setting (`goldenGateColumns`) is independent of preset 1's
+`numberColumns`; typography scales from the system font and geometry from the
+selected icon size. The favorites row requires the KItemModels QML module.
+The `org.kde.mac.tahoe.launcher` QML module, built alongside the Dock, exports
+`LauncherSearchPopup`, a native
+`PopupPlasmaWindow` using `dialogs/launcher-search.svgz`. Keep its capsule
+surface, blur/input mask and shadow geometry aligned, including the generated
+reduced-transparency variant. Do not reach into Plasma's private background
+items to change only the surface: that leaves a rectangular shadow behind.
+Register the search window as an AppletPopup on X11 and Wayland so window
+rounding effects do not override its capsule. The native helper generates the missing Plasma shell protocol headers
+from the bundled XML; Qt Wayland and wayland-scanner are build dependencies.
+After a transparency change, and after the installer's final Plasma restart,
+`refresh_acrylic_glass()` reloads the enabled glass effect (Better Blur DX)
+so its popup masks follow the replacement surfaces; a KWin reconfigure alone
+left stale capsule geometry at 150% scale upstream. Disabled effects and
+saved settings are preserved.
+
 Wallpapers are fully bundled. Every entry under
 `src/offline/wallpapers/<id>/` is a JPEG q90 (re-encoded from 6K PNG
 originals) plus `metadata.json`. Total bundled is ~50 MB.
@@ -1230,10 +1307,16 @@ bootloader probe.
 | File                         | Role |
 | ---------------------------- | ---- |
 | `tests/containers/Dockerfile.<distro>` | One per supported distro. CachyOS pulls both `archlinux-keyring` and `cachyos-keyring` after `pacman-key --init && pacman-key --populate archlinux cachyos`. |
-| `tests/containers/Dockerfile.arch-kdeunstable` | Canary against Arch's `[kde-unstable]` staging repo — catches the next Plasma release early. `continue-on-error` in CI (like Gentoo). |
-| `tests/containers/Dockerfile.gentoo-base` | Builds the GHCR base image `ghcr.io/lestercorderomurillo/mttkde-gentoo-base` so qtbase doesn't compile from source on every PR. |
+| `tests/containers/Dockerfile.arch-kdeunstable` | Canary against Arch's `[kde-unstable]` staging repo — catches the next Plasma release early. Every matrix target, including staging, must pass. |
 | `tests/containers/run_in_container.py` | Per-distro probe: qmake6 resolves, the distro layer agrees with what qmake6 reports, every `package_for()` token resolves in the distro's repo (with a "transient network" skip so flaky upstream CDN edges don't tank CI), preflight destination checks, pytest. |
 | `tests/containers/run_matrix.sh` | Local runner. CI runs the same workflow via `.github/workflows/test.yml`. |
+
+Gentoo is no longer a supported installation target. Package-manager entry
+points reject Gentoo and its derivatives before dependency resolution. Its
+package mappings, path fallbacks, container builds and VM provisioners are removed.
+The former SDK and VM tooling can be
+recovered from the immutable v0.54.6 tag by a separate community maintainer.
+Do not restore its CI jobs or scheduled SDK builds without a support decision.
 
 When a probe fails, the script scans stderr for transient-network
 markers (`"Failed to retrieve"`, `"Could not resolve host"`, repo
@@ -1258,14 +1341,14 @@ a genuine missing package and fails CI.
 | `kvantum.py`                  | Kvantum Qt widget style. |
 | `layout.py`                   | Top panel + dock layout. Rebuilt on every install from the user's existing pinned apps, adding only the Mac Launcher/Trash widgets; uninstall always removes the Mac top bar/Dock and restores those pins on the Breeze panel. May be retried once after `restart_plasma` if the first pass raced plasmashell's plugin discovery. |
 | `nautilus.py`                 | Nautilus integration (file manager set as default on KDE for users who prefer it). |
-| `oled_care.py` (step)         | Installs the opt-in OLED-care binary + systemd user timer; flag off tears them down; uninstall restores panel geometry. |
+| `oled_care.py` (step)         | Installs the opt-in OLED-care binary + systemd user timer or OpenRC cron entry; flag off tears them down; uninstall restores panel geometry. |
 | `plasma_theme.py`             | Translucent panels and dock SVGs. |
 | `plasmoids.py`                | QML plasmoids: Menu, Launcher, Trashcan, IconTasks, Clock, Dock Separator, Downloads stack, Search (Spotlight), Control Center; plus the `dockzoom` QML module every Dock widget imports. |
 | `plymouth.py`                 | Boot splash. GRUB patch behind `_grub_is_active_bootloader()`; `--no-grub-modify` opt-out exists. |
 | `rounded_corners.py`          | Best-effort verified download of KDE Rounded Corners v0.10.0; compile/install and enable the effect, KCM, shaders, locales, and license without synchronizing other theme geometry. |
 | `portals.py`                  | Route xdg-portal FileChooser / AppChooser to KDE (fixes stale dialog colors). |
 | `sounds.py`                   | Notification and event sounds. |
-| `theme_switch.py` (step)      | Installs the `mac-tahoe-theme-switch` binary, systemd user service, and timer. |
+| `theme_switch.py` (step)      | Installs the `mac-tahoe-theme-switch` binary and, in automatic mode, systemd user units or OpenRC cron entries. |
 | `wallpapers.py`               | Copies the bundled wallpaper set. No network. |
 | `window_decorations.py`       | Aurorae assembly (decoration.svg + rc + button icon SVGs + metadata per theme dir) + kwinrc `org.kde.kdecoration2`, plus the green-button full screen KWin script (`~/.local/share/kwin/scripts/`, kwinrc `[Plugins]`). |
 
@@ -1297,8 +1380,10 @@ green   yellow   orange   red   purple   blue
 - Every Qt6 binary call from inside install / preflight goes through
   `utils.run_user` so the fork's real/effective UIDs match and Qt6's
   setuid guard doesn't abort it.
-- `kw_write` and `kw_read` wrap `kwriteconfig6` / `kreadconfig6`. Both
-  return a bool; install steps must check it.
+- `kw_write` wraps `kwriteconfig6` and returns a bool; install steps must
+  check it. `kw_read` wraps `kreadconfig6` and returns a stripped string.
+  An empty result does not distinguish an absent key from an empty value or
+  failed read; use presence-aware reads before overwriting user settings.
 - `qdbus_cmd()` returns `qdbus6` when present, falls back to `qdbus`.
 - Never restart plasmashell during a `mac-tahoe-theme-switch`
   invocation — only the explicit `restart_plasma` step at the end of
@@ -1348,7 +1433,6 @@ green   yellow   orange   red   purple   blue
 | Legacy `/usr/lib/qt6/.../*.so`                 | Pre-current-release installs wrote compiled plasmoids to `/usr/lib/qt6`. New installs don't, but uninstall has to remove those leftovers to leave the system in a clean Breeze state. That's why `./uninstall` also requires sudo. |
 | Stale `/etc/default/grub`                      | A user who switched from GRUB to systemd-boot / Limine / rEFInd may have the file lying around. `GRUB_DEFAULT.is_file()` alone is NOT proof GRUB is active — `_grub_is_active_bootloader()` requires a regen binary on PATH too. |
 | Layout race after plasmashell restart          | Applying the panel layout immediately after `plasmashell --replace` sometimes races plasmashell's plugin discovery. `layout.py` is retried once after `restart_plasma`. |
-| GHCR Gentoo base                               | Gentoo Dockerfile pulls a pre-built base image. If qtbase changes major version upstream, rebuild the base via the dedicated workflow, NOT in the per-PR matrix run. |
 | zip / xz / zstd on JPEG-or-PNG                 | Saves 0%. Don't add a wrapped-archive transport for wallpapers — re-encode to JPEG q90 instead. |
 | `plasma-apply-lookandfeel` `--keep-auto`       | Required so the LaF apply doesn't blow away the user's color-scheme follow-the-system preference. |
 | `pacman-key` on stale CachyOS images           | Container Dockerfile must run `pacman-key --init && pacman-key --populate archlinux cachyos` before `pacman -Sy archlinux-keyring cachyos-keyring`. |
@@ -1358,8 +1442,10 @@ green   yellow   orange   red   purple   blue
 
 ## Testing
 
-`./test` runs the full pytest suite. Always run it before commit,
-merge, and release — see the project's release-flow rules.
+`./test` runs the full pytest suite. Finish implementation changes before
+running relevant tests; follow the release-flow checks for code changes.
+Documentation-only edits do not require pytest or build checks. Honor explicit
+user instructions not to run tests, and never report unrun checks as passing.
 
 Highlights:
 

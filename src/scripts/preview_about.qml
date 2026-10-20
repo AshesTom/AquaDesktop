@@ -29,4 +29,16 @@ AboutWindow {
     // _MOCK_DATA dict instead of live hardware probing.
     fetcherCommand: "sh -c 'MAC_TAHOE_ABOUT_MOCK=1 ~/.local/bin/mac-tahoe-about-info'"
     useSystemFont: true
+
+    Timer {
+        interval: 100
+        running: true
+        repeat: true
+        onTriggered: {
+            if (about.infoReady && about.active) {
+                console.log("MTTKDE_ABOUT_READY");
+                stop();
+            }
+        }
+    }
 }

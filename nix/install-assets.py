@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from theme_variants import SUFFIX, generate
+from launcher_defaults import LAUNCHER_ID, apply_launcher_default
 
 source, out = map(Path, sys.argv[1:])
 share = out / "share"
@@ -40,6 +41,8 @@ for name in ("mac-tahoe-liquid-kde", "mac-tahoe-liquid-kdeDark"):
 for theme in (source / "plasmoids").iterdir():
     if (theme / "metadata.json").is_file() and not (theme / "CMakeLists.txt").exists():
         copy(theme, share / "plasma/plasmoids" / theme.name)
+        if theme.name == LAUNCHER_ID:
+            apply_launcher_default(share / "plasma/plasmoids" / theme.name)
 # The icons-only wrapper resolves this runtime package via X-Plasma-RootPath.
 task = source / "plasmoids/org.kde.mac.tahoe.liquid.taskmanager"
 dest = share / "plasma/plasmoids" / task.name

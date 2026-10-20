@@ -5,7 +5,7 @@
 #
 # Usage:  ./tests/containers/run_matrix.sh [distro ...]
 #   With no args, runs the full matrix. Otherwise runs just the named
-#   distros (arch, neon, gentoo, fedora, opensuse).
+#   distros (arch, neon, fedora, opensuse).
 #
 # Each distro is independent — one failure does not abort the rest.
 # Exit status is 0 only if every requested distro passes.
@@ -18,7 +18,6 @@ REPO_ROOT="$(pwd)"
 
 ALL_DISTROS=(
     cachyos arch manjaro endeavouros garuda
-    gentoo
     fedora nobara
     opensuse
     neon

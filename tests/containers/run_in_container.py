@@ -21,9 +21,9 @@ Tier 2 — the dep layer (per-distro package mapping):
     update-desktop-database, kvantummanager, plymouth-set-default-theme,
     plymouth-script-plugin, fc-cache, nautilus, etc.
 
-Tier 3 — cmake configure for every compiled component:
+Tier 3 — cmake configure and build for every compiled component:
   * For each step that ships a CMakeLists.txt under src/offline (the
-    dock taskmanager, the globalmenu, the Glass KWin effect),
+    dock taskmanager, the globalmenu, the Better Blur DX KWin effect),
     run ``cmake -S <src> -B <build>`` with no manual hints. The
     configure step must succeed using ONLY packages discoverable via
     ``deps()``. This catches the class of regression where deps() is
@@ -265,7 +265,6 @@ def step_package_manager_layer() -> bool:
     # better to know now.
     probers = {
         "arch":     ["pacman", "-Si"],
-        "gentoo":   ["emerge", "--search-",  ],  # gentoo uses --search; handled below
         "fedora":   ["dnf", "info", "--quiet"],
         "rhel":     ["dnf", "info", "--quiet"],
         "centos":   ["dnf", "info", "--quiet"],
@@ -294,21 +293,6 @@ def step_package_manager_layer() -> bool:
             ok = False
             continue
         print(f"  ── probe {cmd_token!r} → {pkg!r}")
-        if d == "gentoo":
-            # Gentoo doesn't have a clean info-only command; check
-            # /var/db/repos/gentoo/<category>/<name> instead.
-            cat, _, name = pkg.partition("/")
-            if not cat or not name:
-                print(f"     FAIL: cannot parse gentoo atom {pkg!r}")
-                ok = False
-                continue
-            ebuild_dir = Path(f"/var/db/repos/gentoo/{cat}/{name.split(':')[0]}")
-            if ebuild_dir.is_dir():
-                print(f"     PASS: {ebuild_dir} exists")
-            else:
-                print(f"     FAIL: no ebuild at {ebuild_dir}")
-                ok = False
-            continue
         res = subprocess.run(
             [*probe, pkg], check=False, capture_output=True, text=True,
         )
@@ -384,10 +368,9 @@ _CMAKE_COMPONENTS = (
 # a removed header (wayland/blur.h) or a changed virtual signature
 # (prePaint* losing presentTime in 6.7). Compiling it here turns each
 # distro container into a real per-Plasma-version build gate, so the
-# matrix flags a 6.6→6.7-style break before a user hits it. Keep this
-# list tight: compiling is far slower than configuring, and only the
-# KWin-ABI component genuinely needs it.
-_COMPILE_COMPONENTS = frozenset({"better-blur-dx"})
+# matrix flags a 6.6→6.7-style break before a user hits it. The
+# plasmoids also use Plasma APIs that can change between feature releases.
+_COMPILE_COMPONENTS = frozenset(label for label, _ in _CMAKE_COMPONENTS)
 
 
 def _compile_component(label: str, build: Path) -> bool:
@@ -542,7 +525,7 @@ def step_pytest() -> bool:
     res = subprocess.run(
         ["python3", "-m", "pytest", "tests/", "-q",
          # Skip tests that need the live KDE session — none of those
-         # work inside a stage3 / stripped-down container.
+         # work inside a stripped-down container.
          "--ignore=tests/test_vm_harness.py",
          "-x"],
         check=False, cwd=str(REPO),
