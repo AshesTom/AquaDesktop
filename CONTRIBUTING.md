@@ -270,6 +270,50 @@ Be a decent human. I'll close anything abusive, off-topic, or trying to drag thi
 
 ## Documentation screenshots
 
+Every release requires a new complete capture. Use `./release-screenshots`,
+not the older single-window helper, for publication. The release workflow
+verifies committed provenance before creating the GitHub release. Never use
+old images to fill a failed or rejected case.
+
+1. Finish the source changes, set `VERSION`, and commit the release candidate.
+2. Run `./release-screenshots capture --ref HEAD --vm-image /path/to/neon-base.qcow2 --output build/captures/vVERSION`.
+   The output directory must be new. The runner checks the VM SHA-256 against
+   `src/scripts/release_capture_profile.json`, creates a fresh disposable overlay
+   for each edition, installs the exact Git archive, and captures both modes
+   sequentially. It never mounts the host home or sends input to the host.
+3. Inspect **every** PNG in `frames/` at full size. Record decisions with
+   `./release-screenshots review --bundle build/captures/vVERSION --approve FRAME...`
+   or `--reject FRAME...`. Names are the PNG basenames without `.png`.
+   Review is bound to the manifest and image hashes. A rejected or missing
+   frame blocks staging and publication; fix the source and recapture.
+4. Stage Tahoe with `./release-screenshots stage --bundle build/captures/vVERSION --edition tahoe --destination .`.
+   Stage Golden Gate from the same reviewed bundle using `--edition golden-gate`
+   and its checkout as `--destination`. Both versions must already match.
+5. Commit the screenshots. This commit may change only `src/screenshots/`
+   relative to the captured candidate; other changes require recapture.
+   Run `./release-screenshots verify`. Push the version tag to trigger the
+   gated release workflow. Its release title is exactly `vVERSION`.
+   Pin Golden Gate to that published Tahoe commit and verified archive, commit
+   its screenshots and pin, then run the Tahoe tool with
+   `--repo /path/to/golden-gate verify --tahoe-repo /path/to/tahoe` before its tag.
+
+The sealed reference image is a maintainer artifact, not a downloaded rolling
+image. Keep a backup matching the profile checksum. It contains the KDE neon
+SDK, screenshot/Plymouth tools and the fixed desktop app inventory. Installation
+must not change its package inventory. Replacing it requires an explicit
+profile/checksum update and a fresh reviewed capture. The local reference copy
+is `build/release-capture/neon-base.qcow2`; provide `--vm-image` on other hosts.
+The capture host needs Python with Pillow, QEMU with KVM and EGL/virgl support,
+OpenSSH and `sshpass`. Publication additionally requires an authenticated `gh`.
+
+The profile fixes 3840×2160 output, 2× scale, locale, timezone, clock, Documents
+fixtures, pinned apps, window positions and pointer position. Each frame must
+settle to two identical consecutive captures. The active effect identity must
+match the captured source. Provenance excludes only screenshot outputs to avoid
+a circular commit hash. This makes the capture procedure repeatable; it does
+not promise identical pixels across different host GPUs/QEMU versions. Keep
+the same capture host for comparisons and retain each bundle with its logs.
+
 Capture only in a disposable VM. `src/scripts/screenshots` refuses a host
 session and checks Plasma, Qt, Kvantum, GTK preferences and the active GTK 4
 stylesheet before capturing. A successful theme-switch command alone is not

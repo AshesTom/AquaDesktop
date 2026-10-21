@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "vm_image_sha256": "a0db83c3dfbaa942e381ee4fcc9a0ae8f692ab20b968f55be5cd63a0d172e50f",
+  "vm_description": "Sealed KDE neon reference guest, Plasma 6.7.4, prepared offline SDK and desktop applications",
+  "resolution": [3840, 2160],
+  "scale": 2,
+  "locale": "en_US.UTF-8",
+  "timezone": "UTC",
+  "clock": "2026-01-01 10:00:00",
+  "memory_mib": 8192,
+  "cpus": 4,
+  "guest_user": "tester",
+  "pointer": [80, 1000],
+  "documents": ["Design", "Projects", "Screenshots", "Wallpapers"],
+  "pins": ["applications:org.gnome.Nautilus.desktop", "applications:org.kde.konsole.desktop", "applications:systemsettings.desktop"],
+  "windows": {
+    "Documents": {"x": 220, "y": 250, "width": 1000, "height": 620},
+    "About This Computer (preview)": {"x": 1330, "y": 180, "width": 360, "height": 700}
+  }
+}

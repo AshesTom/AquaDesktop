@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+"""Capture, review and gate release screenshots without touching the host desktop."""
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'src/scripts'))
+from release_screenshots_cli import main
+
+raise SystemExit(main())

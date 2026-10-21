@@ -581,6 +581,17 @@ its `upstream.json` to the published Tahoe release commit and verified archive
 SHA-256 before publishing the corresponding Golden Gate release. Each README
 shows its own default launcher preset and wallpaper in light and dark mode.
 
+Capture screenshots for EVERY release with `./release-screenshots capture`.
+Use the checksum-pinned disposable VM and fixed recipe in
+`src/scripts/release_capture_profile.json`; never capture on the host desktop.
+Capture both modes in both editions, verify the active effect matches the
+release source, and visually review every fresh image before staging. Missing,
+rejected, mixed-theme or older-release pictures block publication. Commit the
+reviewed images and provenance, run `./release-screenshots verify`, then push
+the release tag through `.github/workflows/release.yml`. Do not bypass the
+gate with a direct `gh release create`. Changes outside `src/screenshots/`
+after capture require a new run. See CONTRIBUTING.md for the full sequence.
+
 The same defaults file selects `launcher_preset` (Tahoe: 1, Golden Gate: 2).
 `launcher_defaults.py` stamps only the staged launcher's `defaultLauncherPreset`
 schema default, also during Nix asset assembly. `launcherPreset=0` follows that
