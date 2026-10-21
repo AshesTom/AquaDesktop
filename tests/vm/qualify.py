@@ -104,7 +104,7 @@ class Guest:
 
     def screenshot(self, name: str, *, mode: str | None = None, apps: dict | None = None):
         self.phase(name + '-capture', self.desktop_command(
-            'kscreen-doctor --dpms on && sleep 2 && '
+            'sudo loginctl unlock-sessions && kscreen-doctor --dpms on && sleep 2 && '
             'rm -f /tmp/mttkde-desktop.png && '
             'spectacle --background --nonotify --fullscreen --output /tmp/mttkde-desktop.png'))
         result = self.run('cat /tmp/mttkde-desktop.png')
@@ -124,6 +124,7 @@ class Guest:
             (self.output / f'{name}-pixels.json').write_text(json.dumps(pixels, indent=2) + '\n')
 
     def apps(self, name: str, mode: str):
+        self.run('sudo loginctl unlock-sessions')
         self.phase(name, self.desktop_command(
             f'python3 tests/vm/desktop_apps.py --mode {mode} --output /tmp/mttkde-apps.json'), timeout=180)
         report = json.loads(self.run('cat /tmp/mttkde-apps.json').stdout)

@@ -19,7 +19,11 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / 'src/scripts'))
 STATE = Path.home() / '.local/state/mttkde-vm-apps'
 PROFILE = Path.home() / '.mozilla/firefox/mttkde-vm-proof'
-PAGE = STATE / 'browser.html'
+SNAP_COMMON = Path.home() / 'snap/firefox/common'
+if SNAP_COMMON.is_dir():
+    PROFILE = SNAP_COMMON / '.mozilla/firefox/mttkde-vm-proof'
+# Confined Firefox must be able to read the fixture as well as its profile.
+PAGE = PROFILE / 'browser.html'
 
 
 class Marionette:

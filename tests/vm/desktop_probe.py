@@ -62,11 +62,15 @@ def probe(expected_distro: str, mode: str) -> dict:
     wanted = "opensuse-tumbleweed" if expected_distro == "opensuse" else expected_distro
     if actual != wanted:
         raise RuntimeError(f"Expected {wanted}, guest reports {actual}")
-    shell_pid = run("pgrep", "-u", str(os.getuid()), "-x", "plasmashell")
-    compositor = run("pgrep", "-u", str(os.getuid()), "-f", "^(/usr/bin/)?kwin_(wayland|x11)( |$)")
     qdbus = qdbus_cmd()
     if not qdbus:
         raise RuntimeError("No Qt 6 D-Bus client")
+    # Exiting shells can coexist briefly after installation; track the process
+    # serving the desktop instead of every process with the same executable.
+    shell_pid = run(qdbus, "org.freedesktop.DBus", "/org/freedesktop/DBus",
+                    "org.freedesktop.DBus.GetConnectionUnixProcessID", "org.kde.plasmashell")
+    compositor = run(qdbus, "org.freedesktop.DBus", "/org/freedesktop/DBus",
+                     "org.freedesktop.DBus.GetConnectionUnixProcessID", "org.kde.KWin")
     script = '''print(JSON.stringify(panels().map(function(p) {
         return {id:p.id, location:p.location, hiding:p.hiding,
             widgets:p.widgets().map(function(w) { return w.type; })};
