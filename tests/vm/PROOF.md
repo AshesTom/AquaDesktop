@@ -119,9 +119,34 @@ The current application checks and reviewed 4K screenshots have not been publish
 
 <a id="fedora"></a>
 <details>
-<summary><b>Fedora — evidence pending</b></summary>
+<summary><b>Fedora — ✅ VM verified · v0.57.8</b></summary>
 
-The current application checks and reviewed 4K screenshots have not been published yet.
+Plasma 6.7.5 · Qt 6.11.2 · Wayland · systemd · VirtIO/virgl.
+Official Fedora 44 cloud image with native KDE desktop and packages.
+
+| Check | Result |
+| --- | --- |
+| Full installation and host SDK builds | ✅ Passed |
+| Light and dark desktop, loaded Acrylic Glass, Dock autohide | ✅ Passed |
+| Firefox rendering, text input, button action and appearance | ✅ Passed |
+| Nautilus light/dark pixels and live switching | ✅ Passed |
+| Live switch preserves app, Plasma and KWin processes | ✅ Passed |
+| Reboot and desktop/app checks | ✅ Passed |
+| Full uninstall and removal checks | ✅ Passed |
+
+**Light**
+
+![Fedora light](../../src/screenshots/vm/fedora/light-1cad4eadcaef.png)
+
+**Dark**
+
+![Fedora dark](../../src/screenshots/vm/fedora/dark-be77aa2fe2dc.png)
+
+**After reboot**
+
+![Fedora after reboot](../../src/screenshots/vm/fedora/reboot-d9a595e8e001.png)
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/fedora/report.json).
 
 </details>
 
