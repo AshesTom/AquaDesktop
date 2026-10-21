@@ -179,8 +179,26 @@ def exercise(mode):
         const w = workspace.windowList().find(w=>String(w.resourceClass).toLowerCase().includes(name));
         if (w) { w.setMaximize(false,false); w.frameGeometry=geometry; }
       }""")
-    time.sleep(2)
-    observed = windows()
+    # Wayland clients acknowledge resize requests asynchronously. Sampling
+    # their old bounds would check wallpaper pixels instead of the Files view.
+    expected_positions = {'firefox': (45, 65), 'nautilus': (975, 65),
+                          'dolphin': (45, 565), 'konsole': (975, 565)}
+    deadline = time.monotonic() + 30
+    previous = None
+    while True:
+        observed = windows()
+        placed = all(any(marker in w['resourceClass'].lower()
+                         and abs(w['geometry']['x'] - x) <= 2
+                         and abs(w['geometry']['y'] - y) <= 2
+                         for w in observed)
+                     for marker, (x, y) in expected_positions.items())
+        bounds = [w['geometry'] for w in observed]
+        if placed and bounds == previous:
+            break
+        if time.monotonic() > deadline:
+            raise RuntimeError(f'Application window placement did not settle: {observed}')
+        previous = bounds
+        time.sleep(.5)
     classes = [w['resourceClass'].lower() for w in observed]
     for marker in ('firefox', 'nautilus', 'dolphin', 'konsole'):
         if not any(marker in value for value in classes):

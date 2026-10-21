@@ -995,6 +995,26 @@ GTK4_ADAPTIVE_CSS = """/* mac-tahoe-liquid-kde: adaptive GTK 4 */
 """
 
 
+def gtk4_legacy_adaptive_css(source: str) -> str:
+    """Keep libadwaita's live palette on GTK versions without media queries.
+
+    The installed GTK theme still supplies concrete colors for plain GTK apps.
+    Its user override must not freeze libadwaita's runtime light/dark palette.
+    """
+    colors = ("window_bg_color", "window_fg_color", "view_bg_color",
+              "popover_bg_color", "dialog_bg_color", "headerbar_bg_color",
+              "headerbar_fg_color", "headerbar_shade_color",
+              "headerbar_darker_shade_color", "shade_color")
+    source = re.sub(r"(?m)^@define-color (?:" + "|".join(colors) + r") [^;]+;\n",
+                    "", source)
+    # Older libadwaita does not export the newer sidebar palette names.
+    for suffix in ("bg", "fg"):
+        source = re.sub(rf"(?m)^@define-color sidebar_{suffix}_color [^;]+;",
+                        f"@define-color sidebar_{suffix}_color @window_{suffix}_color;",
+                        source)
+    return "/* mac-tahoe-liquid-kde: adaptive legacy GTK 4 */\n" + source
+
+
 def _gtk4_supports_media_queries() -> bool:
     """GTK 4.20 can restyle an already-open app through media queries."""
     import ctypes
@@ -1021,7 +1041,8 @@ def _gtk4_css_is_replaceable(path: Path, themes_root: Path) -> bool:
         return True
     if path.is_symlink():
         try:
-            return path.readlink().name in {"gtk-Dark.css", "gtk-Light.css", "gtk-Adaptive.css"}
+            return path.readlink().name in {"gtk-Dark.css", "gtk-Light.css", "gtk-Adaptive.css",
+                                           "gtk-AdaptiveLegacy.css"}
         except OSError:
             return False
     if not path.is_file():
@@ -1045,9 +1066,12 @@ def _gtk4_css_is_replaceable(path: Path, themes_root: Path) -> bool:
                      "gtk-dark.css"):
             candidate = gtk4 / name
             try:
-                if candidate.is_file() and candidate.read_text(
-                        encoding="utf-8").strip() == text:
-                    return True
+                if candidate.is_file():
+                    source = candidate.read_text(encoding="utf-8")
+                    if source.strip() == text:
+                        return True
+                    if name == "gtk-Light.css" and gtk4_legacy_adaptive_css(source).strip() == text:
+                        return True
             except OSError:
                 continue
     return False
@@ -1109,11 +1133,15 @@ def _apply_local_extras(mode: str) -> None:
             gtk4_css = gtk4_dest / "gtk.css"
             try:
                 if _gtk4_css_is_replaceable(gtk4_css, gtk_dest):
-                    target = f"gtk-{mode.capitalize()}.css"
                     if _gtk4_supports_media_queries():
                         adaptive = gtk4_dest / "gtk-Adaptive.css"
                         adaptive.write_text(GTK4_ADAPTIVE_CSS, encoding="utf-8")
-                        target = adaptive.name
+                    else:
+                        adaptive = gtk4_dest / "gtk-AdaptiveLegacy.css"
+                        adaptive.write_text(gtk4_legacy_adaptive_css(
+                            (gtk4_dest / "gtk-Light.css").read_text(encoding="utf-8")),
+                            encoding="utf-8")
+                    target = adaptive.name
                     if gtk4_css.is_symlink() or gtk4_css.exists():
                         gtk4_css.unlink()
                     gtk4_css.symlink_to(target)

@@ -451,19 +451,41 @@ def test_local_extras_switches_libadwaita_gtk4_override(monkeypatch, tmp_path, a
     theme_switch._apply_local_extras("dark")
 
     assert (dest_root / "gtk.css").is_symlink()
-    assert (dest_root / "gtk.css").readlink().name == ("gtk-Adaptive.css" if adaptive else "gtk-Dark.css")
+    assert (dest_root / "gtk.css").readlink().name == ("gtk-Adaptive.css" if adaptive else "gtk-AdaptiveLegacy.css")
     assert (dest_root / "gtk-Dark.css").read_text() == "/* dark */"
     assert (dest_root / "assets/button.png").read_bytes() == b"Dark"
 
     theme_switch._apply_local_extras("light")
 
     assert (dest_root / "gtk.css").is_symlink()
-    assert (dest_root / "gtk.css").readlink().name == ("gtk-Adaptive.css" if adaptive else "gtk-Light.css")
+    assert (dest_root / "gtk.css").readlink().name == ("gtk-Adaptive.css" if adaptive else "gtk-AdaptiveLegacy.css")
     assert (dest_root / "gtk-Light.css").read_text() == "/* light */"
     assert (dest_root / "assets/button.png").read_bytes() == b"Light"
 
     if adaptive:
         assert (dest_root / "gtk-Adaptive.css").read_text() == theme_switch.GTK4_ADAPTIVE_CSS
+    else:
+        assert (dest_root / "gtk-AdaptiveLegacy.css").read_text() == theme_switch.gtk4_legacy_adaptive_css("/* light */")
+
+
+def test_legacy_gtk4_palette_does_not_freeze_libadwaita_colors(tmp_path):
+    import theme_switch
+    source = (Path(__file__).parents[1] / "src/offline/gtk/MacTahoeLiquidKde-Light/gtk-4.0/gtk-Light.css").read_text()
+    generated = theme_switch.gtk4_legacy_adaptive_css(source)
+    assert "@define-color window_bg_color " not in generated
+    assert "@define-color view_bg_color " not in generated
+    assert "@define-color sidebar_bg_color @window_bg_color;" in generated
+    assert "@define-color accent_bg_color #0088FF;" in generated
+    assert "background-color: @view_bg_color;" in generated
+    root = tmp_path / "themes"
+    theme = root / "MacTahoeLiquidKde-Light/gtk-4.0"
+    theme.mkdir(parents=True)
+    (theme / "gtk-Light.css").write_text(source)
+    css = tmp_path / "gtk.css"
+    css.write_text(generated + "\n@import 'colors.css';")
+    assert theme_switch._gtk4_css_is_replaceable(css, root)
+    css.write_text(generated + "\nwindow { color: red; }")
+    assert not theme_switch._gtk4_css_is_replaceable(css, root)
 
 
 def test_local_extras_preserves_user_owned_gtk4_css(monkeypatch, tmp_path):
@@ -559,6 +581,7 @@ def test_local_extras_replaces_kde_generated_light_gtk4_sheet_in_dark_mode(
                 / "gtk-4.0")
         root.mkdir(parents=True)
         (root / f"gtk-{variant}.css").write_text(content)
+        (root / "gtk-Light.css").write_text("LIGHT")
     gtk4 = home / ".config/gtk-4.0"
     gtk4.mkdir(parents=True)
     (gtk4 / "gtk.css").write_text("LIGHT\n@import 'colors.css';")
@@ -571,7 +594,7 @@ def test_local_extras_replaces_kde_generated_light_gtk4_sheet_in_dark_mode(
     theme_switch._apply_local_extras("dark")
 
     assert (gtk4 / "gtk.css").is_symlink()
-    assert (gtk4 / "gtk.css").readlink().name == "gtk-Dark.css"
+    assert (gtk4 / "gtk.css").readlink().name == "gtk-AdaptiveLegacy.css"
 
 
 def test_cycle_restores_target_on_sigterm(monkeypatch):

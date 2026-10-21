@@ -11,7 +11,7 @@ VARIANTS = ("MacTahoeLiquidKde-Light", "MacTahoeLiquidKde-Dark")
 GTK4_DEST = HOME / ".config/gtk-4.0"
 GTK4_FILES_TO_REMOVE = (
     "gtk.css", "gtk-dark.css", "gtk-Dark.css", "gtk-Light.css",
-    "gtk-Adaptive.css",
+    "gtk-Adaptive.css", "gtk-AdaptiveLegacy.css",
     "colors.css", "window_decorations.css",
 )
 GTK4_DIRS_TO_REMOVE = ("assets", "windows-assets")
