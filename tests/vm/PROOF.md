@@ -111,9 +111,34 @@ Official Arch cloud image with KDE Plasma installed from its native repositories
 
 <a id="endeavouros"></a>
 <details>
-<summary><b>EndeavourOS — evidence pending</b></summary>
+<summary><b>EndeavourOS — ✅ VM verified · v0.57.9</b></summary>
 
-The current application checks and reviewed 4K screenshots have not been published yet.
+Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
+Official EndeavourOS ISO with native KDE desktop and a full distribution upgrade.
+
+| Check | Result |
+| --- | --- |
+| Full installation and host SDK builds | ✅ Passed |
+| Light and dark desktop, loaded Acrylic Glass, Dock autohide | ✅ Passed |
+| Firefox rendering, text input, button action and appearance | ✅ Passed |
+| Nautilus light/dark pixels and live switching | ✅ Passed |
+| Live switch preserves app, Plasma and KWin processes | ✅ Passed |
+| Reboot and desktop/app checks | ✅ Passed |
+| Full uninstall and removal checks | ✅ Passed |
+
+**Light**
+
+![EndeavourOS light](../../src/screenshots/vm/endeavouros/light-3839fb64ce80.png)
+
+**Dark**
+
+![EndeavourOS dark](../../src/screenshots/vm/endeavouros/dark-14a5b3a23a69.png)
+
+**After reboot**
+
+![EndeavourOS after reboot](../../src/screenshots/vm/endeavouros/reboot-94573a3b415e.png)
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/endeavouros/report.json).
 
 </details>
 
