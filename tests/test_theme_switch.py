@@ -914,7 +914,44 @@ def test_apply_install_context_skips_live_lookandfeel(monkeypatch):
     write_kwargs.clear()
     assert theme_switch.apply("dark") is True
     assert "_apply_lookandfeel_live" in calls
-    assert write_kwargs == [{"force_color_reload": False}]
+    assert write_kwargs == [{"force_color_reload": True}]
+
+
+@pytest.mark.parametrize("mode", ["light", "dark"])
+def test_manual_reapply_repairs_mixed_palette_without_changing_material(
+        seeded_color_schemes, monkeypatch, mode):
+    """Exercise KDE's real same-name no-op with an outgoing palette left over."""
+    import theme_switch
+    if not has_command("plasma-apply-colorscheme"):
+        pytest.skip("plasma-apply-colorscheme required")
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    monkeypatch.setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/nonexistent")
+    monkeypatch.setattr(theme_switch, "_has_session_dbus", lambda: False)
+    write_config = theme_switch.write_kde_theme_config
+    _stub_apply_subcalls(monkeypatch, [])
+    monkeypatch.setattr(theme_switch, "write_kde_theme_config", write_config)
+    scheme = "MacTahoeLiquidKde" + mode.title()
+    opposite = "MacTahoeLiquidKde" + ("Dark" if mode == "light" else "Light")
+    assert theme_switch.apply_color_scheme(opposite)
+    assert theme_switch._kwrite("--file", "kdeglobals", "--group", "General",
+                               "--key", "ColorScheme", scheme)
+    config = seeded_color_schemes / ".config/kdeglobals"
+    previous = ini_get(config, "Colors:Window", "BackgroundNormal")
+    # The ordinary KDE command succeeds without repairing the stale palette.
+    assert theme_switch.apply_color_scheme(scheme)
+    assert ini_get(config, "Colors:Window", "BackgroundNormal") == previous
+    kwin = seeded_color_schemes / ".config/kwinrc"
+    material = {"MaterialPreset": "2", "DarkGradientOverlay": "true",
+                "GradientTopOpacity": "0.95", "PopupCornerRadius": "6"}
+    kwin.write_text("[Effect-liquidglass]\n" + "".join(
+        f"{key}={value}\n" for key, value in material.items()))
+    assert theme_switch.apply(mode)
+    expected = seeded_color_schemes / f".local/share/color-schemes/{scheme}.colors"
+    for group in ("Colors:Window", "Colors:Button", "Colors:View", "Colors:Tooltip"):
+        for key in ("BackgroundNormal", "ForegroundNormal"):
+            assert ini_get(config, group, key) == ini_get(expected, group, key)
+    assert all(ini_get(kwin, "Effect-liquidglass", key) == value
+               for key, value in material.items())
 
 
 def test_main_passes_install_context_to_apply(monkeypatch):

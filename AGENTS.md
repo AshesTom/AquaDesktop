@@ -692,11 +692,12 @@ The gradient uses frame-local coordinates and changes color independently of
 blur coverage. Golden Gate uses exactly Tahoe's optical values and adds only
 a black upper gradient. Tahoe context menus, applet popups, tooltips,
 About This Computer and the detached search capsule use 55% white fills in light mode and 48% black fills
-in dark mode. Golden Gate stages those surfaces with a 1% white fill in both
-modes, so the upper gradient owns the dark tint. Golden Gate light native Qt
-menus are the sole exception: stage their Kvantum menu surface with 60% white
-fill so the system dark foreground stays readable above the gradient. Preserve
-the 1% Golden Gate dark menu fill, every Tahoe asset, and all non-menu surfaces.
+in dark mode. Golden Gate stages light Plasma popups, tooltips, the detached
+search capsule and native Qt menus with 60% white fill so the system dark
+foreground stays readable above the gradient, including over black backdrops.
+Golden Gate dark surfaces retain their 1% white fill. Preserve every Tahoe
+asset, the Dock fill, and all unrelated surfaces. Never disable or change the
+saved compositor gradient to repair light-mode foreground contrast.
 Apply the same staging in the imperative installer and Nix; preserve masks,
 contours and solid fallbacks.
 The Dock retains the same thin fill in both modes.

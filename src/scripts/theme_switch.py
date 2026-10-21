@@ -1181,10 +1181,10 @@ def write_kde_theme_config(
     # target is already active and skip its live palette notification, leaving
     # plasmashell popups on the previous colors even though disk is correct.
     #
-    # Reinstall is the self-healing path for an already-mixed session.  When
+    # Reapplying a mode is the self-healing path for an already-mixed session. When
     # the requested name is already on disk, briefly apply the opposite scheme
-    # first so KDE observes a real transition; the installer's final Plasma
-    # restart then loads the converged target into every containment.
+    # first so KDE observes a real transition and notifies running consumers,
+    # even outside the installer where Plasma will not be restarted.
     if force_color_reload and _kread(
             "kdeglobals", "General", "ColorScheme") == scheme:
         opposite = ("MacTahoeLiquidKdeLight" if mode == "dark"
@@ -1578,7 +1578,7 @@ def _apply_unlocked(mode: str, context: str = "user") -> bool:
                   file=sys.stderr)
 
     config_ok = write_kde_theme_config(
-        mode, force_color_reload=context == "install",
+        mode, force_color_reload=True,
     )
     if not config_ok:
         print("theme apply: core KDE config writes failed, theme not "

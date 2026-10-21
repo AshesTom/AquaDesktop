@@ -525,7 +525,12 @@ frame.element=menuitem
 interior.element=menuitem
 indicator.element=menuitem
 text.normal.color=#eff0f1
-text.focus.color=#ffffff
+text.focus.color=#eff0f1
+text.press.color=#eff0f1
+text.toggle.color=#eff0f1
+text.focus.inactive.color=#eff0f1
+text.press.inactive.color=#eff0f1
+text.toggle.inactive.color=#eff0f1
 
 text.margin.top=0
 text.margin.bottom=0
@@ -538,7 +543,7 @@ frame.right=3
 frame.expansion=0
 min_height=6
 
-text.shadow=true
+text.shadow=false
 text.shadow.color=black
 text.shadow.xshift=0
 text.shadow.yshift=1
