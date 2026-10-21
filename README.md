@@ -20,7 +20,11 @@ macOS Tahoe-inspired glass, Dock, global menu and app themes for KDE Plasma 6.6â
 
 ![Features and screenshots](https://img.shields.io/badge/features-%26%20screenshots-4B6B8A?style=for-the-badge&logo=kde&logoColor=white)
 
+Explore the desktop and its components in light and dark mode.
+
 ### Tahoe desktop
+
+The complete Tahoe desktop with matching light and dark wallpapers.
 
 <p align="center">
   <a href="src/screenshots/showcase_light_4k.png"><img src="src/screenshots/showcase_light_4k.png" alt="Tahoe light desktop with a backgroundless menu bar, Finder-style files, glass system information and Dock" width="840"></a>
@@ -31,7 +35,7 @@ macOS Tahoe-inspired glass, Dock, global menu and app themes for KDE Plasma 6.6â
 
 ### Acrylic Glass Tahoe Launcher
 
-The **Tahoe** glass preset combines strong blur with edge refraction. Choose **Tahoe** or **Golden Gate** in the Acrylic Glass effect settings, then customize opacity, refraction and gradient colors. [Material settings](docs/glass-materials.md).
+App search, favorites and categories with blurred glass and edge refraction. [Material settings](docs/glass-materials.md).
 
 <p align="center">
   <img src="src/screenshots/launcher_preset_1_light.png" alt="Default Tahoe preset 1 in light mode, with integrated search and Tahoe wallpaper" width="415">
@@ -74,6 +78,8 @@ System controls and global menus for compatible apps.
 
 ### System Information
 
+Hardware, software and theme details in About This Computer.
+
 <p align="center">
   <img src="src/screenshots/about_v4.png" alt="About This Computer in light mode" width="415">
   <img src="src/screenshots/about_dark_v4.png" alt="About This Computer in dark mode" width="415">
@@ -82,6 +88,8 @@ System controls and global menus for compatible apps.
 <br>
 
 ### Plasma Theme
+
+Translucent menus and popups with matching light and dark colors.
 
 <p align="center">
   <img src="src/screenshots/context_menu_v4.png" alt="Desktop context menu in light mode" width="415">
@@ -103,6 +111,8 @@ Plymouth startup and shutdown theme with LUKS2 unlock support.
 
 ![Getting started](https://img.shields.io/badge/getting-started-3B7B5B?style=for-the-badge&logo=gnubash&logoColor=white)
 
+Install with the graphical interface or terminal wizard.
+
 **Graphical installer**
 
 ```bash
@@ -120,6 +130,8 @@ English, Spanish and Simplified Chinese. All options: `sudo ./install --help`.
 
 <details>
 <summary><b>Requirements</b></summary>
+
+Required desktop, build tools and system packages.
 
 - KDE Plasma 6.6+
 - Python 3.10+
@@ -196,6 +208,8 @@ sudo ./install --reset
 <details>
 <summary><b>Glass and rounded-corner troubleshooting</b></summary>
 
+Fixes and known limitations for blur, refraction and window corners.
+
 - **Plasma 6.8:** reinstall to rebuild the effects and install the shader fixes, then log out and back in. An enabled checkbox alone does not confirm Acrylic Glass is rendering; the installer warns when activation cannot be verified.
 - **Corner artifacts:** Acrylic Glass follows the active Rounded Corners cutout and clips both glass and grain to it ([#89](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/89)). Independent radii remain available when Rounded Corners does not affect a surface; reinstall preserves custom values.
 - **Desktop-edit overlay:** Rounded Corners excludes desktop surfaces before offscreen redirection, even with explicit inclusion rules ([#77](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/77)). The guard is verified in an isolated compositor; the originally reported NVIDIA desktop-edit session still needs confirmation.
@@ -235,6 +249,8 @@ mac-tahoe-oled-care status
 
 <details>
 <summary><b>Test in a virtual machine</b></summary>
+
+Try the theme in an isolated Plasma desktop.
 
 ```bash
 ./vm <os>
@@ -310,8 +326,12 @@ the modules, select Breeze. Removal leaves user settings in place.
 
 ![Compatibility](https://img.shields.io/badge/compatibility-system%20support-4B6B8A?style=for-the-badge&logo=linux&logoColor=white)
 
+Check support for your distribution, init system and Plasma version.
+
 <details>
 <summary><b>Distributions</b></summary>
+
+Supported distributions and their current testing status.
 
 | | Name | Status |
 |:--:|------|---------|
@@ -334,6 +354,8 @@ this project. Anyone wishing to continue it will need to maintain it separately.
 <details>
 <summary><b>Init systems</b></summary>
 
+Scheduled features use systemd timers or OpenRC with cron.
+
 | Init system | Support | Testing |
 |-------------|---------|---------|
 | systemd | Supported | Completed |
@@ -346,6 +368,8 @@ validation; live installation testing is pending.
 
 <details>
 <summary><b>Plasma versions</b></summary>
+
+Plasma 6.6â€“6.8 is supported; compiled effects use the host SDK.
 
 | Plasma | Support | Since |
 |--------|---------|-------|
@@ -360,8 +384,12 @@ validation; live installation testing is pending.
 
 ![Roadmap](https://img.shields.io/badge/project-roadmap-6B4B8A?style=for-the-badge&logo=github&logoColor=white)
 
+Track completed features and upcoming work.
+
 <details>
 <summary><b>Component status</b></summary>
+
+Available components, ongoing work and planned additions.
 
 | Component | Status |
 |-----------|--------|
@@ -405,6 +433,8 @@ validation; live installation testing is pending.
 <br>
 
 ![Contributing](https://img.shields.io/badge/contributing-A04B4B?style=for-the-badge&logo=github&logoColor=white)
+
+Help with bug reports, fixes, testing and documentation.
 
 <p>
   <a href="https://github.com/lestercorderomurillo"><img src="src/screenshots/contributors/lestercorderomurillo.svg" width="40" height="40" alt="@lestercorderomurillo" title="@lestercorderomurillo"></a>
