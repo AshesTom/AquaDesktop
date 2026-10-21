@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "appmenumodel.h"
 #include "dbusmenutypes_p.h"
+#include <abstracttasksmodel.h>
 
 #include <QDBusConnection>
 #include <QDBusVariant>
@@ -8,6 +9,7 @@
 #include <QApplication>
 #include <QProcess>
 #include <QSignalSpy>
+#include <QStandardItemModel>
 #include <QTest>
 #include <QWindow>
 #include <netwm.h>
@@ -119,6 +121,50 @@ private Q_SLOTS:
     }
     void activeApplicationWinsWhilePanelStillAcceptsInput()
     {
+        using Roles = TaskManager::AbstractTasksModel;
+        QStandardItemModel tasks(2, 1);
+        const auto first = tasks.index(0, 0);
+        const auto second = tasks.index(1, 0);
+        tasks.setData(first, QVariantList{1}, Roles::WinIdList);
+        tasks.setData(second, QVariantList{2}, Roles::WinIdList);
+        tasks.setData(first, service, Roles::ApplicationMenuServiceName);
+        tasks.setData(first, path, Roles::ApplicationMenuObjectPath);
+        tasks.setData(second, true, Roles::IsActive);
+
+        AppMenuModel model;
+        QTRY_VERIFY(model.tasksModel()->sourceModel());
+        model.tasksModel()->setSourceModel(&tasks);
+        QVERIFY(model.setProperty("containmentStatus", Plasma::Types::AcceptingInputStatus));
+        QTRY_VERIFY(model.tasksModel()->activeTask().isValid());
+        QCOMPARE(model.rowCount(), 0);
+        auto activate = [&](const QModelIndex& previous, const QModelIndex& next) {
+            tasks.setData(previous, false, Roles::IsActive);
+            tasks.setData(next, true, Roles::IsActive);
+            QCOMPARE(model.tasksModel()->activeTask().data(Roles::WinIdList),
+                next.data(Roles::WinIdList));
+            // Older SDKs emit this from their window backend, newer SDKs
+            // from TasksModel itself. Supply the backend notification here.
+            Q_EMIT model.tasksModel()->activeTaskChanged();
+        };
+        activate(second, first);
+        QTRY_COMPARE(model.rowCount(), 2);
+        QCOMPARE(model.index(0).data(AppMenuModel::MenuRole).toString(), QStringLiteral("File"));
+        activate(first, second);
+        QTRY_COMPARE(model.rowCount(), 0);
+        activate(second, first);
+        QTRY_COMPARE(model.rowCount(), 2);
+        tasks.setData(first, false, Roles::IsActive);
+        Q_EMIT model.tasksModel()->activeTaskChanged();
+        QTRY_VERIFY(!model.tasksModel()->activeTask().isValid());
+        QCOMPARE(model.rowCount(), 2);
+        QVERIFY(model.setProperty("containmentStatus", Plasma::Types::ActiveStatus));
+        QTRY_COMPARE(model.rowCount(), 0);
+    }
+    void x11ActiveApplicationWinsWhilePanelStillAcceptsInput()
+    {
+#ifndef MTTKDE_HAS_X11_TASKS
+        QSKIP("Plasma 6.8 and newer have no X11 task backend");
+#endif
         if (!qEnvironmentVariableIsSet("MTTKDE_TEST_X11")) {
             QSKIP("Requires the isolated X11 server");
         }

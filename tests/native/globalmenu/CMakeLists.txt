@@ -16,5 +16,10 @@ pkg_check_modules(XCB REQUIRED IMPORTED_TARGET xcb)
 set(MENU_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/offline/plasmoids/org.kde.mac.tahoe.liquid.globalmenu" CACHE PATH "Global Menu source under test")
 add_subdirectory(${MENU_SOURCE}/libdbusmenuqt dbusmenu)
 add_executable(globalmenu-model-test model_test.cpp ${MENU_SOURCE}/appmenumodel.cpp)
+# Plasma 6.8 removed the X11 task backend. Keep its integration check on
+# older SDKs; the task-role and D-Bus regression runs on every version.
+if(LibTaskManager_VERSION VERSION_LESS "6.7.90")
+    target_compile_definitions(globalmenu-model-test PRIVATE MTTKDE_HAS_X11_TASKS)
+endif()
 target_include_directories(globalmenu-model-test PRIVATE ${MENU_SOURCE})
 target_link_libraries(globalmenu-model-test PRIVATE Qt6::Widgets Qt6::Quick Qt6::DBus Qt6::Test KF6::WindowSystem KF6::I18n Plasma::Plasma PW::LibTaskManager dbusmenuqt PkgConfig::XCB)
