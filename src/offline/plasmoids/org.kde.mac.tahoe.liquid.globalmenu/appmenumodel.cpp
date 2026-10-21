@@ -57,6 +57,9 @@ AppMenuModel::AppMenuModel(QObject* parent)
     connect(m_tasksModel, &TaskManager::TasksModel::virtualDesktopChanged, this, &AppMenuModel::onActiveWindowChanged);
     connect(m_tasksModel, &TaskManager::TasksModel::countChanged, this, &AppMenuModel::onActiveWindowChanged);
     connect(m_tasksModel, &TaskManager::TasksModel::screenGeometryChanged, this, &AppMenuModel::screenGeometryChanged);
+    // A focus change can arrive while the panel still accepts input. Replay
+    // it when the panel releases focus, even if activeTask does not change again.
+    connect(this, &AppMenuModel::containmentStatusChanged, this, &AppMenuModel::onActiveWindowChanged);
 
     connect(this, &AppMenuModel::modelNeedsUpdate, this, [this] {
         if (!m_updatePending) {
@@ -70,8 +73,16 @@ AppMenuModel::AppMenuModel(QObject* parent)
     m_serviceWatcher->setConnection(QDBusConnection::sessionBus());
     connect(m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered, this, [this](const QString& serviceName) {
         if (serviceName == m_serviceName) {
+            removeSearchActionsFromMenu();
+            m_menu.clear();
+            m_importer.reset();
             setMenuAvailable(false);
             Q_EMIT modelNeedsUpdate();
+        }
+    });
+    connect(m_serviceWatcher, &QDBusServiceWatcher::serviceRegistered, this, [this](const QString& serviceName) {
+        if (serviceName == m_serviceName) {
+            updateApplicationMenu(m_serviceName, m_menuObjectPath);
         }
     });
 
@@ -125,6 +136,7 @@ void AppMenuModel::setMenuAvailable(bool set)
         m_menuAvailable = set;
         setVisible(true);
         Q_EMIT menuAvailableChanged();
+        Q_EMIT modelNeedsUpdate();
     }
 }
 
@@ -213,11 +225,11 @@ void AppMenuModel::update()
 
 void AppMenuModel::onActiveWindowChanged()
 {
-    if (m_containmentStatus == Plasma::Types::AcceptingInputStatus) {
+    const QModelIndex activeTaskIndex = m_tasksModel->activeTask();
+    if (!activeTaskIndex.isValid() && m_containmentStatus == Plasma::Types::AcceptingInputStatus) {
         return;
     }
 
-    const QModelIndex activeTaskIndex = m_tasksModel->activeTask();
     const QString objectPath = m_tasksModel->data(activeTaskIndex, TaskManager::AbstractTasksModel::ApplicationMenuObjectPath).toString();
     const QString serviceName = m_tasksModel->data(activeTaskIndex, TaskManager::AbstractTasksModel::ApplicationMenuServiceName).toString();
     updateApplicationMenu(serviceName, objectPath);
@@ -295,12 +307,17 @@ QVariant AppMenuModel::data(const QModelIndex& index, int role) const
 /// one starts publishing via ``modelNeedsUpdate``.
 void AppMenuModel::updateApplicationMenu(const QString& serviceName, const QString& menuObjectPath)
 {
-    if (m_serviceName == serviceName && m_menuObjectPath == menuObjectPath) {
-        if (m_importer) {
-            QMetaObject::invokeMethod(m_importer.get(), "updateMenu", Qt::QueuedConnection);
-        }
+    if (m_serviceName == serviceName && m_menuObjectPath == menuObjectPath && m_importer) {
+        QMetaObject::invokeMethod(m_importer.get(), "updateMenu", Qt::QueuedConnection);
         return;
     }
+
+    // Do not expose the previous application's actions while the new menu is
+    // loading. The importer deletes its QMenu asynchronously.
+    removeSearchActionsFromMenu();
+    m_menu.clear();
+    setMenuAvailable(false);
+    Q_EMIT modelNeedsUpdate();
 
     if (serviceName.isEmpty() || menuObjectPath.isEmpty()) {
         setMenuAvailable(false);
@@ -363,7 +380,6 @@ void AppMenuModel::updateApplicationMenu(const QString& serviceName, const QStri
             }
         });
 
-        setMenuAvailable(true);
         setVisible(true);
         Q_EMIT modelNeedsUpdate();
     }

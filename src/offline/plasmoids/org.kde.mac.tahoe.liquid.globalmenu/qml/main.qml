@@ -158,7 +158,7 @@ PlasmoidItem {
         MenuDelegate {
             id: appNameButton
             readonly property int buttonIndex: -2
-            visible: appMenuModel.activeAppName !== "" && buttonRepeater.count > 0
+            visible: appMenuModel.activeAppName !== ""
             text: appMenuModel.activeAppName
             font.weight: Font.ExtraBold
             Layout.fillHeight: !root.vertical
