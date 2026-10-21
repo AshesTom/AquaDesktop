@@ -41,6 +41,10 @@ def test_nix_asset_assembly_matches_runtime_theme_names(repo, tmp_path, monkeypa
     assert not (share / "fonts").exists()
     assert not (share / "wallpapers").exists()
     assert not (share / "sounds").exists()
+    launcher = share / "plasma/plasmoids/org.kde.mac-tahoe-liquid-kde.launcher"
+    golden_gate = str(edition == "MacGoldenGate").lower()
+    assert f"readonly property bool goldenGateEdition: {golden_gate}" in (
+        launcher / "contents/ui/MainView.qml").read_text()
     # Both installation routes must ship identical edition surfaces, including
     # after reinstalling over the opposite edition's client fills.
     installed = tmp_path / "installed"

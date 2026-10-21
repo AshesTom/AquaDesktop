@@ -10,6 +10,8 @@ Timer {
     repeat: true
     property int phase: -2
     property int expectedPreset: 1
+    property bool expectedGoldenGate: false
+    property bool expectedDark: false
     property real inlineHeight: 0
     property real inlineWidth: 0
     property size initialPopupSize
@@ -42,6 +44,11 @@ Timer {
             const label = findCategoryLabel(delegate);
             verify(label !== null, "category label available: " + i);
             const pill = label.parent;
+            const alpha = expectedDark ? (pill.selected ? 0.12 : 0.06)
+                : expectedGoldenGate ? (pill.selected ? 0.56 : 0.40)
+                : (pill.selected ? 0.62 : 0.46);
+            verify(Math.abs(pill.testBackground.color.a - alpha) < 0.005,
+                   "category opacity follows edition and mode");
             const position = pill.mapToItem(view, 0, 0);
             verify(position.y >= 0 && position.y + pill.height <= view.height + 0.01,
                    "category pill fits its clipped viewport: " + position.y + " + " + pill.height + " <= " + view.height);
@@ -82,6 +89,20 @@ Timer {
         verify(icon !== null && icon.valid, "options icon loaded");
         verify(icon.Kirigami.Theme.textColor === search.textField.color, "options icon follows the search foreground");
     }
+    function verifySearchContrast(search) {
+        const stronger = expectedGoldenGate && !expectedDark;
+        verify(main.goldenGateEdition === expectedGoldenGate, "staged edition survives preset changes");
+        verify(main.isDarkTheme === expectedDark, "expected appearance mode");
+        verify(Math.abs(search.textField.placeholderTextColor.a - (stronger ? 1 : 0.85)) < 0.005,
+               "search placeholder contrast follows edition and mode");
+        // Instantiate the actual layer component even under CI's software renderer.
+        const halo = search.textField.layer.effect.createObject(search);
+        verify(halo !== null, "search halo loads");
+        verify(Math.abs(halo.color.a - (stronger ? 0.65 : 0.35)) < 0.005,
+               "search halo strength follows edition and mode");
+        verify(halo.radius === (stronger ? 3 : 2), "search halo remains diffuse");
+        halo.destroy();
+    }
     onTriggered: {
         try {
             console.log("PROBE_PHASE", phase, root.visible, kicker.launcherPreset, root.width, root.height, searchPopup.width, searchPopup.height, root.active, main.popupHasFocus, searchBar.textField.activeFocus);
@@ -110,6 +131,7 @@ Timer {
                 verify(!searchPopup.visible, "inline search has no second popup");
                 verify(searchBar.parent === inlineSearchSlot, "inline field parent");
                 verifyOptionsIcon(searchBar);
+                verifySearchContrast(searchBar);
                 verify(searchBar.textField.color === main.textColor, "search and app labels share the mode foreground");
                 presetProbe.inlineHeight = root.height;
                 presetProbe.inlineWidth = root.width;
@@ -129,6 +151,7 @@ Timer {
                 }
                 verify(searchBar.parent === detachedSearchSlot, "detached field parent");
                 verifyOptionsIcon(searchBar);
+                verifySearchContrast(searchBar);
                 verify(searchBar.textField.color === main.textColor, "search and app labels share the mode foreground");
                 verify(searchBar.textField.text === "terminal", "query survives preset change");
                 verify(root.height < presetProbe.inlineHeight, "no empty inline search row");

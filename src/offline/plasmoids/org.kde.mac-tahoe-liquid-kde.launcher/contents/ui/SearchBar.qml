@@ -11,13 +11,18 @@ RowLayout {
     property alias showMenuButton: menuButton.visible
     readonly property bool menuOpen: menuButton.menuOpen
     readonly property color textColor: main.textColor
-    readonly property color dimmedTextColor: Qt.rgba(textColor.r, textColor.g, textColor.b, 0.85)
+    readonly property color dimmedTextColor: main.goldenGateLight
+        ? textColor : Qt.rgba(textColor.r, textColor.g, textColor.b, 0.85)
     function closeMenu() { menuButton.closeMenu(); }
 
     Kirigami.Icon {
         id: searchIcon
         layer.enabled: true
-        layer.effect: GlassTextShadow {}
+        layer.effect: GlassTextShadow {
+            haloOpacity: main.goldenGateLight ? 0.65 : 0.35
+            radius: main.goldenGateLight ? 3 : 2
+            samples: main.goldenGateLight ? 13 : 9
+        }
         Layout.rightMargin: 0
         Layout.preferredWidth: main.detachedSearch ? Kirigami.Units.gridUnit * 2 : Kirigami.Units.iconSizes.medium
         Layout.preferredHeight: Layout.preferredWidth
@@ -29,7 +34,11 @@ RowLayout {
     TextField {
         id: textField
         layer.enabled: true
-        layer.effect: GlassTextShadow {}
+        layer.effect: GlassTextShadow {
+            haloOpacity: main.goldenGateLight ? 0.65 : 0.35
+            radius: main.goldenGateLight ? 3 : 2
+            samples: main.goldenGateLight ? 13 : 9
+        }
         Layout.fillHeight: true
         Layout.fillWidth: true
         font.family: Kirigami.Theme.defaultFont.family

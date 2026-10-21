@@ -13,6 +13,8 @@ import "js/colorType.js" as ColorType
 
 Item {
 	id: main
+	readonly property bool goldenGateEdition: false
+	readonly property bool goldenGateLight: goldenGateEdition && !isDarkTheme
 	property string searchText: ""
 	readonly property bool searching: searchText !== ""
 	readonly property var searchBar: detachedSearch ? detachedSearchBar : inlineSearchBar

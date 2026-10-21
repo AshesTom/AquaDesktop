@@ -700,6 +700,10 @@ of the opposite luminance to its system foreground color in both modes. Keep
 the halo low-opacity and diffuse; do not use a hard outline. Light-mode
 category pills use a translucent white backing to keep dark labels readable
 over the upper gradient.
+Golden Gate light mode uses full-opacity search text and a stronger diffuse
+halo in the Apps input; category fills use 56% white when selected and 40%
+otherwise. Stage the edition flag independently of the user's launcher preset.
+Tahoe and dark-mode search/category styling keep their existing values.
 Validate black and white
 backdrops as well as wallpapers. Preserve masks, shadows and solid fallbacks. GTK client-side popups retain their readable fills because they do
 not receive this compositor effect.
