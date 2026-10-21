@@ -123,13 +123,20 @@ def test_material_write_failure_does_not_report_success(monkeypatch, capsys, fai
     assert f"{failed_key} preset not applied" in capsys.readouterr().out
 
 
-def test_native_glass_shader_pixels(kcm_probe, tmp_path):
+def test_native_glass_shader_pixels(kcm_probe, tmp_path, monkeypatch):
+    import glass_surfaces
     if not shutil.which("Xvfb"):
         pytest.skip("Xvfb required for isolated software OpenGL")
     env = {k: v for k, v in os.environ.items() if k in ("PATH", "LANG")}
     env.update(HOME=str(tmp_path), XDG_CONFIG_HOME=str(tmp_path / "config"),
                XDG_CONFIG_DIRS=str(tmp_path / "system"), QT_QPA_PLATFORM="xcb",
                LIBGL_ALWAYS_SOFTWARE="1")
+    themes = tmp_path / "themes"
+    monkeypatch.setattr(glass_surfaces, "default_wallpaper", lambda: "MacGoldenGate")
+    for mode in ("Light", "Dark"):
+        name = "MacTahoeLiquidKde-" + mode
+        shutil.copytree(REPO / "src/offline/plasma-theme" / name, themes / name)
+        glass_surfaces.apply_plasma_surface_defaults(themes / name)
     with (tmp_path / "xvfb.log").open("w") as log:
         server = subprocess.Popen(["Xvfb", "-displayfd", "1", "-screen", "0", "640x480x24", "-nolisten", "tcp"],
                                   stdout=subprocess.PIPE, stderr=log, text=True, env=env)
@@ -138,7 +145,7 @@ def test_native_glass_shader_pixels(kcm_probe, tmp_path):
             display = server.stdout.readline().strip()
             assert display.isdigit(), (tmp_path / "xvfb.log").read_text()
             env["DISPLAY"] = ":" + display
-            result = subprocess.run([str(kcm_probe / "glass-shader-probe"), str(glass.SRC / "src/shaders")],
+            result = subprocess.run([str(kcm_probe / "glass-shader-probe"), str(glass.SRC / "src/shaders"), str(themes)],
                                     env=env, capture_output=True, text=True, timeout=30)
             assert result.returncode == 0, result.stdout + result.stderr
             assert "both profiles verified" in result.stderr

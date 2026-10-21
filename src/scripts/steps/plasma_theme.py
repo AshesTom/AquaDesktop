@@ -1,7 +1,9 @@
 import shutil
 
+from glass_surfaces import apply_plasma_surface_defaults
+
 from steps._helpers import (
-    DATA_HOME, fail, info, install_tree, kw_write, offline, remove_tree, warn,
+    DATA_HOME, fail, info, install_tree, kw_write, offline, remove_tree, temp_dir, warn,
 )
 
 DEST_DIR = DATA_HOME / "plasma/desktoptheme"
@@ -23,9 +25,12 @@ def install() -> None:
     for v in VARIANTS:
         if not (src / v).is_dir():
             continue
-        source = src / v
-        if install_tree(source, DEST_DIR / v, v):
-            n += 1
+        with temp_dir("plasma-surfaces-") as staging:
+            source = staging / v
+            shutil.copytree(src / v, source)
+            apply_plasma_surface_defaults(source)
+            if install_tree(source, DEST_DIR / v, v):
+                n += 1
     info(f"{n} Plasma themes installed/reinstalled")
 
 

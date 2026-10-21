@@ -5057,13 +5057,13 @@
   <path
      d="m 156,515.99998 h 48 v 48.00004 h -48 z"
      id="menu-normal"
-     style="opacity:.55;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none" />
+     style="opacity:0.48;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none" />
   <g
      transform="matrix(1.499999,0,0,1,-27.38538,-187.75301)"
      id="menu-normal-left">
     <path
        d="m 116.257,703.753 h 6 v 48 h -6 z"
-       style="opacity:.55;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke-width:1"
+       style="opacity:0.48;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke-width:1"
        id="path9036" />
     <g transform="matrix(0.6666671111,0,0,1,18.25693217,187.75301)">
       <rect x="147" y="515.99999" width=".75" height="48" fill="#000000" opacity=".18" />
@@ -5075,7 +5075,7 @@
      id="menu-normal-topleft"
      style="opacity:1;stroke:none;stroke-width:1">
     <path
-       style="opacity:.55;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke-width:1"
+       style="opacity:0.48;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke-width:1"
        d="m 122.25573,698.75378 c -3.32289,10e-4 -5.99768,2.6768 -5.99768,6.00001 h 6.00002 z"
        id="path3597" />
     <g transform="matrix(0.6666681333,0,0,0.6666681333,18.2578335,360.753007)">
@@ -5145,7 +5145,7 @@
     <path
        id="path4382-5"
        d="M 62.74998,879.45275 H 112.75 v 5.99991 H 62.74999 Z"
-       style="opacity:.55;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.755926" />
+       style="opacity:0.48;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.755926" />
     <g transform="matrix(1,0,0,0.6666752001,3.7499319,541.4481372)">
       <rect x="59.000048" y="507.00043" width="50.00002" height=".75" fill="#000000" opacity=".18" />
       <rect x="59.000048" y="507.75043" width="50.00002" height=".75" fill="#ffffff" opacity=".22" />
@@ -5159,7 +5159,7 @@
        d="M 109 503 L 109 507 A 9.0000003 8.9998017 0 0 1 118 516 L 122 516 A 12.99996 12.999674 0 0 0 109 503 z " />
 
     <path
-       style="opacity:.55;fill:#000000"
+       style="opacity:0.48;fill:#000000"
        d="m 118.00004,516 a 9.0000003,8.9998017 0 0 0 -9,-8.9998 V 516 Z"
        id="path4714-2" />
     <g transform="matrix(1,0,0,1,0,0)">

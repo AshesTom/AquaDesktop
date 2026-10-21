@@ -2,6 +2,7 @@
 import importlib.machinery
 import importlib.util
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -45,7 +46,9 @@ def test_about_capture_never_runs_when_preview_is_not_ready(capture_module, monk
     assert events == ['cleanup']
 
 
-def test_about_labels_survive_empty_host_translation_context(repo, tmp_path):
+@pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate"])
+def test_about_labels_survive_empty_host_translation_context(repo, tmp_path, monkeypatch, edition):
+    import glass_surfaces
     pytest.importorskip('PyQt6.QtQuick')
     from PyQt6.QtCore import QLibraryInfo
     imports = Path(QLibraryInfo.path(QLibraryInfo.LibraryPath.QmlImportsPath))
@@ -55,7 +58,7 @@ def test_about_labels_survive_empty_host_translation_context(repo, tmp_path):
 import sys
 from PyQt6.QtCore import QObject, QUrl, pyqtSlot
 from PyQt6.QtGui import QGuiApplication
-from PyQt6.QtQml import QQmlApplicationEngine, QQmlProperty, QQmlExpression
+from PyQt6.QtQml import QQmlApplicationEngine, QQmlComponent, QQmlProperty, QQmlExpression
 from PyQt6.QtQuick import QQuickItem
 class EmptyTranslations(QObject):
     @pyqtSlot(str, result=str)
@@ -63,6 +66,11 @@ class EmptyTranslations(QObject):
         return ''
 app = QGuiApplication([])
 engine = QQmlApplicationEngine()
+# Initialize Plasma's SVG image set as the plasmashell host does.
+host_component = QQmlComponent(engine)
+host_component.setData(b'import org.kde.plasma.core as PlasmaCore; PlasmaCore.Dialog { visible: false }', QUrl())
+host = host_component.create()
+assert host is not None, host_component.errors()
 errors = []
 engine.warnings.connect(lambda warnings: errors.extend(w.toString() for w in warnings))
 context = EmptyTranslations()
@@ -93,8 +101,9 @@ for mode, foreground in [('white', 255), ('black', 0)]:
     app.processEvents()
     assert abs(window.property('secondaryTextColor').alphaF() - .85) < .005
     fill = surface.property('color')
-    assert fill.red() == fill.green() == fill.blue() == foreground
-    assert abs(fill.alphaF() - .55) < .005
+    clear = sys.argv[2] == 'MacGoldenGate'
+    assert fill.red() == fill.green() == fill.blue() == (255 if clear else foreground)
+    assert abs(fill.alphaF() - (.01 if clear else .48 if foreground == 0 else .55)) < .005
     assert QQmlProperty(surface, 'border.width').read() == .75
     assert QQmlProperty(highlight, 'border.width').read() == .75
     outer = QQmlProperty(surface, 'border.color').read()
@@ -104,9 +113,16 @@ for mode, foreground in [('white', 255), ('black', 0)]:
     assert highlight.property('radius') == surface.property('radius') - .75
 '''
     qml = repo / 'src/offline/plasmoids/org.kde.mac.tahoe.liquid.globalmenu/qml/AboutWindow.qml'
+    name = 'MacTahoeLiquidKde-Dark'
+    theme = tmp_path / 'data/plasma/desktoptheme' / name
+    shutil.copytree(repo / 'src/offline/plasma-theme' / name, theme)
+    monkeypatch.setattr(glass_surfaces, 'default_wallpaper', lambda: edition)
+    glass_surfaces.apply_plasma_surface_defaults(theme)
+    (tmp_path / 'plasmarc').write_text('[Theme]\nname=' + name + '\n')
     env = dict(os.environ, QT_QPA_PLATFORM='offscreen', QT_QUICK_BACKEND='software',
                LANGUAGE='en', LC_ALL='C.UTF-8', HOME=str(tmp_path),
+               XDG_DATA_HOME=str(tmp_path / 'data'),
                XDG_CONFIG_HOME=str(tmp_path), DBUS_SESSION_BUS_ADDRESS='unix:path=/nonexistent')
-    result = subprocess.run([sys.executable, '-c', probe, str(qml)], env=env,
+    result = subprocess.run([sys.executable, '-c', probe, str(qml), edition], env=env,
                             capture_output=True, text=True, timeout=20)
     assert result.returncode == 0, result.stdout + result.stderr

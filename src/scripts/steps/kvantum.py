@@ -9,6 +9,7 @@ import tarfile
 from pathlib import Path, PurePosixPath
 
 from distro import is_debian_family, qt6_plugins_dir
+from glass_surfaces import apply_kvantum_surface_defaults
 from steps._helpers import (
     HOME, build_dir, cmake_build, fail, have, info, kw_write, offline, ok,
     reinstall, sudo_install_file, sudo_remove, warn,
@@ -289,6 +290,8 @@ def _install_one(name: str) -> None:
         f = src / f"{name}{ext}"
         if f.is_file():
             shutil.copy2(f, dst / f.name)
+            if ext == ".svg":
+                apply_kvantum_surface_defaults(dst / f.name)
         else:
             warn(f"Kvantum file {f.name} not found")
 

@@ -9,7 +9,7 @@ import sys
 import pytest
 
 
-def test_light_and_dark_menu_surfaces_have_equal_effective_opacity(repo):
+def test_light_and_dark_menu_surfaces_keep_matching_frame_opacity(repo):
     svg = pytest.importorskip("PyQt6.QtSvg")
     gui = pytest.importorskip("PyQt6.QtGui")
     core = pytest.importorskip("PyQt6.QtCore")
@@ -32,8 +32,9 @@ def test_light_and_dark_menu_surfaces_have_equal_effective_opacity(repo):
             alphas.append(image.pixelColor(48, 48).alpha() * factor)
         assert len(set(alphas)) == 1, "Popup frame and interior must match"
         samples.append(alphas[0])
-    # Context menus share the 55% light/dark popup fill in both modes.
-    assert samples[0] == samples[1] and 136 <= samples[0] <= 145
+    # Dark menus are slightly clearer than the unchanged light surfaces.
+    assert abs(samples[0] / 255 - .55) < .01
+    assert abs(samples[1] / 255 - .48) < .01
 
 
 @pytest.mark.parametrize("mode", ["", "Dark"])
@@ -53,7 +54,7 @@ def test_menu_contours_remain_visible_above_translucent_fill(repo, mode):
         x = size.width() // 2
         outer, inner, body = (image.pixelColor(x, inset + y) for y in (1, 4, 12))
         assert outer.red() < inner.red()
-        assert .54 <= body.alphaF() <= .56
+        assert abs(body.alphaF() - (.48 if mode else .55)) < .01
         assert outer.alphaF() > body.alphaF() and inner.alphaF() > body.alphaF()
         assert image.pixelColor(x, inset + 7) == body
         assert body.red() == (0 if mode else 255)

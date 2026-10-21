@@ -28,6 +28,7 @@ import QtQuick.Window
 import org.kde.kirigami as Kirigami
 import org.kde.ki18n as KI18n
 import org.kde.plasma.plasma5support as P5Support
+import org.kde.ksvg as KSvg
 
 Window {
     id: aboutWindow
@@ -229,13 +230,22 @@ Window {
         styleColor: Qt.rgba(0, 0, 0, 0.12)
     }
 
-    // unified glass frame
+    KSvg.Svg {
+        id: popupSurface
+        imagePath: "dialogs/background"
+        property bool clearSurface: false
+        onRepaintNeeded: clearSurface = hasElement("hint-clear-surface")
+        Component.onCompleted: clearSurface = hasElement("hint-clear-surface")
+    }
+
+    // Follow the installed edition's popup fill without changing its contour.
     Rectangle {
         id: glass
         objectName: "aboutGlassSurface"
         anchors.fill: parent
         radius: 22
-        color: aboutWindow.isDarkTheme ? Qt.rgba(0, 0, 0, 0.55) : Qt.rgba(1, 1, 1, 0.55)
+        color: popupSurface.clearSurface ? Qt.rgba(1, 1, 1, 0.01)
+            : aboutWindow.isDarkTheme ? Qt.rgba(0, 0, 0, 0.48) : Qt.rgba(1, 1, 1, 0.55)
         border.width: 0.75
         border.color: Qt.rgba(0, 0, 0, 0.18)
 

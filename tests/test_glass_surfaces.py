@@ -1,11 +1,76 @@
 """Render clear applet surfaces and readable contextual menu backgrounds."""
 import gzip
+import shutil
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1] / "src/offline/plasma-theme"
+
+
+@pytest.mark.parametrize("mode", ["Light", "Dark"])
+def test_golden_gate_client_fill_leaves_gradient_in_control(mode, tmp_path, monkeypatch):
+    import glass_surfaces
+    svg = pytest.importorskip("PyQt6.QtSvg")
+    gui = pytest.importorskip("PyQt6.QtGui")
+    core = pytest.importorskip("PyQt6.QtCore")
+    monkeypatch.setattr(glass_surfaces, "default_wallpaper", lambda: "MacGoldenGate")
+    theme = tmp_path / mode
+    shutil.copytree(ROOT / f"MacTahoeLiquidKde-{mode}", theme)
+    glass_surfaces.apply_plasma_surface_defaults(theme)
+    for name in glass_surfaces.PLASMA_SURFACES:
+        original = svg.QSvgRenderer(str(ROOT / f"MacTahoeLiquidKde-{mode}" / name))
+        renderer = svg.QSvgRenderer(str(theme / name))
+        image = gui.QImage(64, 64, gui.QImage.Format.Format_ARGB32)
+        image.fill(0)
+        painter = gui.QPainter(image)
+        renderer.render(painter, "center", core.QRectF(0, 0, 64, 64))
+        painter.end()
+        fill = image.pixelColor(32, 32)
+        assert fill.alphaF() < .015 and fill.red() == 255
+        # Alpha-derived blur masks and shadows must survive edition staging.
+        for element in ("mask-center", "mask-topleft", "shadow-top", "shadow-topleft"):
+            assert original.elementExists(element) == renderer.elementExists(element)
+            if not original.elementExists(element):
+                continue
+            rendered = []
+            for source in (original, renderer):
+                image.fill(0)
+                painter = gui.QPainter(image)
+                source.render(painter, element, core.QRectF(0, 0, 64, 64))
+                painter.end()
+                rendered.append(image.copy())
+            assert rendered[0] == rendered[1], (name, element)
+    assert svg.QSvgRenderer(str(theme / "dialogs/background.svgz")).elementExists("hint-clear-surface")
+    before = {path: path.read_bytes() for path in theme.rglob("*.svgz")}
+    glass_surfaces.apply_plasma_surface_defaults(theme)
+    assert all(path.read_bytes() == data for path, data in before.items())
+
+
+@pytest.mark.parametrize("mode", ["", "Dark"])
+def test_golden_gate_qt_menu_center_and_frame_stay_clear(mode, tmp_path, monkeypatch):
+    import glass_surfaces
+    svg = pytest.importorskip("PyQt6.QtSvg")
+    gui = pytest.importorskip("PyQt6.QtGui")
+    core = pytest.importorskip("PyQt6.QtCore")
+    monkeypatch.setattr(glass_surfaces, "default_wallpaper", lambda: "MacGoldenGate")
+    source = ROOT.parent / "kvantum/mac-tahoe-liquid-kde" / f"mac-tahoe-liquid-kde{mode}.svg"
+    target = tmp_path / source.name
+    shutil.copy2(source, target)
+    glass_surfaces.apply_kvantum_surface_defaults(target)
+    renderer = svg.QSvgRenderer(str(target))
+    for element in ("menu-normal", "path4382-5", "path4714-2"):
+        image = gui.QImage(64, 64, gui.QImage.Format.Format_ARGB32)
+        image.fill(0)
+        painter = gui.QPainter(image)
+        renderer.render(painter, element, core.QRectF(0, 0, 64, 64))
+        painter.end()
+        fill = image.pixelColor(48, 48)
+        assert fill.alphaF() < .015 and fill.red() == 255, element
+    before = target.read_bytes()
+    glass_surfaces.apply_kvantum_surface_defaults(target)
+    assert target.read_bytes() == before
 
 
 def _xml(path):
@@ -22,7 +87,7 @@ def test_shared_dialog_fills_keep_top_bar_clear(mode):
             if node.tag.endswith("}rect"):
                 style = dict(part.split(":", 1) for part in node.get("style", "").split(";") if ":" in part)
                 alpha = float(style.get("opacity", node.get("opacity", "1")))
-                assert alpha == pytest.approx(.55)
+                assert alpha == pytest.approx(.48 if mode == "Dark" else .55)
         # The preset owns the colored gradient. The capsule may retain only
         # a faint edge reflection; a baked dark cap would also affect Tahoe.
         for node in root.iter():
@@ -52,7 +117,8 @@ def test_qt_renders_transparent_dialogs_and_dock(mode):
         renderer.render(painter, "center", core.QRectF(0, 0, 64, 64))
         painter.end()
         alpha = image.pixelColor(32, 32).alphaF()
-        assert bounds[0] <= alpha <= bounds[1], (mode, name, alpha)
+        adjustment = .07 if mode == "Dark" and not name.endswith("panel-background") else 0
+        assert bounds[0] - adjustment <= alpha <= bounds[1] - adjustment, (mode, name, alpha)
         if name.startswith("dialogs/"):
             # Render at 200% so the subpixel contour covers a complete pixel.
             size = renderer.boundsOnElement("top").size().toSize() * 2
@@ -63,7 +129,7 @@ def test_qt_renders_transparent_dialogs_and_dock(mode):
             painter.end()
             rim = edge.pixelColor(size.width() // 2, 0).alphaF()
             interior = edge.pixelColor(size.width() // 2, size.height() // 2).alphaF()
-            assert .54 <= interior <= .56 and interior < rim < .75, (mode, name, rim, interior)
+            assert abs(interior - (.48 if mode == "Dark" else .55)) < .01 and interior < rim < .75, (mode, name, rim, interior)
             fill = image.pixelColor(32, 32)
             expected = 255 if mode == "Light" else 0
             assert abs(fill.red() - expected) <= 1

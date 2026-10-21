@@ -31,15 +31,17 @@ Golden Gate. This replaces previous material selections and optical adjustments,
 including the gradient toggle and colors. Corners and window rules remain
 independent and are preserved.
 
-Plasma applet popups, tooltips, Qt menus and the detached search capsule share a 55%
-white fill in light mode and a 55% black fill in dark mode. Text follows the
-system window foreground throughout, with a very light black shadow. The Dock
+Tahoe Plasma applet popups, tooltips, Qt menus and the detached search capsule
+use a 55% white fill in light mode and a slightly clearer 48% black fill in dark
+mode. Golden Gate installs a nearly clear 1% white fill in both modes, letting
+the upper gradient supply the dark tint while the lower half stays clear.
+Text follows the system window foreground throughout, with a very light black shadow. The Dock
 uses identical assets in both modes and retains its thin transparent fill.
 Contours use a 0.75 logical-pixel dark outer line and a 0.75 logical-pixel
 light inner line, following each surface's native rounded mask. The gradient
 only tints the blurred backdrop; it does not change text, blur coverage,
-contours or the Dock. Both editions ship the same surfaces; there is no
-separate reduced-transparency mode.
+contours or the Dock. Both editions share surface geometry with edition-specific
+fills; there is no separate reduced-transparency mode.
 GTK client-side popups keep their own readable fills; KWin cannot blur those
 surfaces in the same way as Plasma popups and Qt menus.
 

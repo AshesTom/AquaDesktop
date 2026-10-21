@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from launcher_defaults import LAUNCHER_ID, apply_launcher_default
+from glass_surfaces import apply_kvantum_surface_defaults, apply_plasma_surface_defaults
 
 source, out = map(Path, sys.argv[1:])
 share = out / "share"
@@ -21,6 +22,7 @@ for theme in sorted((source / "look-and-feel").glob("MacTahoeLiquidKde-*")):
     copy(theme, share / "plasma/look-and-feel" / name)
 for mode in ("Light", "Dark"):
     name = f"MacTahoeLiquidKde-{mode}"
+    apply_plasma_surface_defaults(share / "plasma/desktoptheme" / name)
     dest = share / "aurorae/themes" / name
     copy(source / "aurorae" / name, dest)
     copy(source / "aurorae" / f"icons-{mode}", dest)
@@ -32,6 +34,7 @@ for name in ("mac-tahoe-liquid-kde", "mac-tahoe-liquid-kdeDark"):
     dest.mkdir(parents=True)
     for ext in (".svg", ".kvconfig"):
         shutil.copy2(source / "kvantum/mac-tahoe-liquid-kde" / (name + ext), dest)
+    apply_kvantum_surface_defaults(dest / (name + ".svg"))
 for theme in (source / "plasmoids").iterdir():
     if (theme / "metadata.json").is_file() and not (theme / "CMakeLists.txt").exists():
         copy(theme, share / "plasma/plasmoids" / theme.name)

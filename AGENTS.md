@@ -632,9 +632,12 @@ and Restore replace them. Persist `MaterialPreset` even for schema-default Tahoe
 
 The gradient uses frame-local coordinates and changes color independently of
 blur coverage. Golden Gate uses exactly Tahoe's optical values and adds only
-a black upper gradient. Context menus share the same light/dark client fill;
-applet popups, tooltips, About This Computer and the detached search capsule
-share 55% white/black fills for light/dark mode. The Dock retains the same thin fill in both modes.
+a black upper gradient. Tahoe context menus, applet popups, tooltips,
+About This Computer and the detached search capsule use 55% white fills in light mode and 48% black fills
+in dark mode. Golden Gate stages those surfaces with a 1% white fill in both
+modes, so the upper gradient owns the dark tint. Apply the same staging in
+the imperative installer and Nix; preserve masks, contours and solid fallbacks.
+The Dock retains the same thin fill in both modes.
 Surface contours pair a 0.75 logical-pixel dark outer line with a 0.75
 logical-pixel light inner line; preserve each surface's native mask and radius.
 Only the Dock lowers centre coverage; Launcher and other

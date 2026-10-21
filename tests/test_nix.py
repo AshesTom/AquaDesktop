@@ -1,8 +1,11 @@
 """Pin integrity and build-time asset assembly for the declarative path (#86)."""
 import json
 import re
+import shutil
 import subprocess
 import sys
+
+import pytest
 
 
 def test_nix_inputs_are_locked_and_share_nixpkgs(repo):
@@ -14,8 +17,17 @@ def test_nix_inputs_are_locked_and_share_nixpkgs(repo):
     assert "plasma-manager" not in nodes  # supplied only by consumers who want panels
 
 
-def test_nix_asset_assembly_matches_runtime_theme_names(repo, tmp_path, monkeypatch):
-    monkeypatch.setenv("PYTHONPATH", str(repo / "src/scripts"))
+@pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate"])
+def test_nix_asset_assembly_matches_runtime_theme_names(repo, tmp_path, monkeypatch, edition):
+    import glass_surfaces
+    from steps import plasma_theme, kvantum
+
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    for name in ("glass_surfaces.py", "theme_switch.py", "launcher_defaults.py"):
+        shutil.copy2(repo / "src/scripts" / name, scripts / name)
+    (scripts / "defaults.json").write_text(json.dumps({"wallpaper": edition, "launcher_preset": 1}))
+    monkeypatch.setenv("PYTHONPATH", str(scripts))
     subprocess.run([sys.executable, str(repo / "nix/install-assets.py"),
                     str(repo / "src/offline"), str(tmp_path)], check=True)
     share = tmp_path / "share"
@@ -29,3 +41,23 @@ def test_nix_asset_assembly_matches_runtime_theme_names(repo, tmp_path, monkeypa
     assert not (share / "fonts").exists()
     assert not (share / "wallpapers").exists()
     assert not (share / "sounds").exists()
+    # Both installation routes must ship identical edition surfaces, including
+    # after reinstalling over the opposite edition's client fills.
+    installed = tmp_path / "installed"
+    monkeypatch.setattr(glass_surfaces, "default_wallpaper", lambda: edition)
+    monkeypatch.setattr(plasma_theme, "DEST_DIR", installed / "plasma")
+    monkeypatch.setattr(kvantum, "DEST_DIR", installed / "kvantum/light")
+    monkeypatch.setattr(kvantum, "DEST_DIR_DARK", installed / "kvantum/dark")
+    for current in ("MacGoldenGate" if edition == "MacTahoe" else "MacTahoe", edition):
+        monkeypatch.setattr(glass_surfaces, "default_wallpaper", lambda: current)
+        plasma_theme.install()
+        for name in kvantum._THEMES:
+            kvantum._install_one(name)
+    for mode in ("Light", "Dark"):
+        name = "MacTahoeLiquidKde-" + mode
+        for surface in glass_surfaces.PLASMA_SURFACES:
+            assert (installed / "plasma" / name / surface).read_bytes() == (
+                share / "plasma/desktoptheme" / name / surface).read_bytes()
+    for mode, name in zip(("light", "dark"), kvantum._THEMES):
+        assert (installed / "kvantum" / mode / (name + ".svg")).read_bytes() == (
+            share / "Kvantum" / name / (name + ".svg")).read_bytes()

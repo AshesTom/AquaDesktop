@@ -38,7 +38,7 @@ static QByteArray read(const QString &path)
 int main(int argc, char **argv)
 {
     QGuiApplication app(argc, argv);
-    require(argc == 2, QStringLiteral("shader source path required"));
+    require(argc == 3, QStringLiteral("shader source and staged Golden Gate themes required"));
     QSurfaceFormat format;
     format.setVersion(3, 0);
     format.setProfile(QSurfaceFormat::CompatibilityProfile);
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
             }
             for (const QString mode : {QStringLiteral("Light"), QStringLiteral("Dark")}) {
                 for (const QString name : {QStringLiteral("background"), QStringLiteral("launcher-search")}) {
-                    QSvgRenderer renderer(root + "/../../../../plasma-theme/MacTahoeLiquidKde-" + mode
+                    QSvgRenderer renderer(QString::fromLocal8Bit(argv[2]) + "/MacTahoeLiquidKde-" + mode
                                           + "/dialogs/" + name + ".svgz");
                     require(renderer.isValid(), QStringLiteral("popup surface unavailable"));
                     auto composite = [&](QImage surface) {
@@ -269,6 +269,8 @@ int main(int argc, char **argv)
                     };
                     const auto actual = composite(tinted);
                     const auto control = composite(untinted);
+                    require(std::abs(qRed(actual.pixel(96, 115)) - backdropColor.red()) <= 3,
+                            mode + " " + name + ": client fill obscures Golden Gate's clear lower half");
                     if (backdropColor == QColor(Qt::black)) {
                         require(actual == control,
                                 mode + " " + name + ": black tint must preserve a black backdrop");
