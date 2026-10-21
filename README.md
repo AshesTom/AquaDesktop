@@ -1,5 +1,6 @@
 <p align="center">
-  <img src="src/screenshots/banner_v3.svg" alt="tahoe 26" width="360">
+  <!-- Artwork: https://developer.apple.com/assets/elements/icons/macos-26/macos-26-128x128_2x.png -->
+  <img src="src/screenshots/macos-26.png" alt="macOS 26 circular emblem" width="180" height="180">
 </p>
 
 # macOS Tahoe for KDE Plasma
