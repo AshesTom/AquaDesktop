@@ -74,6 +74,11 @@ def _bounce_services() -> None:
             continue
 
 
+def deps() -> list[str]:
+    # Settings routing needs the GTK backend even on a minimal KDE desktop.
+    return ["xdg-desktop-portal-gtk:xdg-desktop-portal-gtk"]
+
+
 def install() -> None:
     CONF_DIR.mkdir(parents=True, exist_ok=True)
     try:

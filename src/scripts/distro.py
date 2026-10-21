@@ -464,6 +464,15 @@ def gtk3_appmenu_module() -> Path | None:
 # is portable.
 
 _PACKAGE_MAP: dict[str, dict[str, str]] = {
+    "xdg-desktop-portal-gtk": {
+        "arch": "xdg-desktop-portal-gtk",
+        "debian": "xdg-desktop-portal-gtk",
+        "ubuntu": "xdg-desktop-portal-gtk",
+        "fedora": "xdg-desktop-portal-gtk",
+        "rhel": "xdg-desktop-portal-gtk",
+        "centos": "xdg-desktop-portal-gtk",
+        "opensuse": "xdg-desktop-portal-gtk",
+    },
     "kde-gtk-config": {
         "arch":     "kde-gtk-config",
         "debian":   "kde-config-gtk-style",
