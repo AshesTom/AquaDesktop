@@ -156,8 +156,9 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
 
 ## UI/UX Conventions
 
-- Menu plasmoid dropdown items use icons (matches the macOS Tahoe
-  Apple menu).
+- System menu icons appear only beside About This Computer, System Settings
+  and App Store, matching the Golden Gate reference. Keep the remaining
+  actions icon-free without changing menu spacing.
 - Hover tiles: glass effect (semi-transparent fill, 0.5px micro
   border, 22px radius) — not outlined borders.
 - Native menu selection rounding uses Kvantum `expand-menuitem-normal` tiles
