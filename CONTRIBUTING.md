@@ -273,7 +273,11 @@ Be a decent human. I'll close anything abusive, off-topic, or trying to drag thi
 Every release requires a new complete capture. Use `./release-screenshots`,
 not the older single-window helper, for publication. The release workflow
 verifies committed provenance before creating the GitHub release. Never use
-old images to fill a failed or rejected case.
+old images to fill a failed or rejected case. Main README desktop galleries
+show Files and About This Computer separately in both modes. Each frame must
+contain only its featured application with that window focused; capture and
+release validation reject combined or unfocused desktops. Distro qualification
+screenshots are outside this gallery rule.
 
 1. Finish the source changes, set `VERSION`, and commit the release candidate.
 2. Run `./release-screenshots capture --ref HEAD --vm-image /path/to/neon-base.qcow2 --output build/captures/vVERSION`.

@@ -220,8 +220,8 @@ def capture(repo: Path, ref: str, image: Path, output: Path) -> dict:
                             vm.action('launch', 'finder')
                             vm.action('arrange', json.dumps({'Documents': profile['windows']['Documents']}))
                             shot('finder')
-                            vm.action('launch', 'about')
-                            vm.action('arrange', json.dumps(profile['windows']))
+                            vm.action('arrange', json.dumps({'Documents':
+                                      dict(profile['windows']['Documents'], x=460)}))
                             shot('showcase')
                             vm.action('close')
                             vm.action('launch', 'about')

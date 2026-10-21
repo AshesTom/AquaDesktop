@@ -93,6 +93,19 @@ def require(condition: bool, message: str) -> None:
         raise ValueError(message)
 
 
+def verify_desktop_window(case: str, windows: list[dict]) -> dict:
+    """Desktop showcase frames contain one focused application, never two."""
+    caption = 'About This Computer (preview)' if case == 'about' else 'Documents'
+    clients = [window for window in windows if window.get('type') not in (1, 2)]
+    require(len(clients) == 1, f'{case}: desktop capture must show exactly one application')
+    window = clients[0]
+    require(window.get('caption') == caption, f'{case}: unexpected desktop application')
+    if case != 'about':
+        require(window.get('resourceClass') == 'org.gnome.Nautilus', f'{case}: Files window is missing')
+    require(window.get('active') is True, f'{case}: desktop application is not focused')
+    return window
+
+
 def validate(repo: Path, ref: str, bundle: Path, *, reviewed: bool = True) -> dict:
     from PIL import Image
     manifest = json.loads((bundle / 'manifest.json').read_text())
@@ -132,6 +145,8 @@ def validate(repo: Path, ref: str, bundle: Path, *, reviewed: bool = True) -> di
         require(record['launcher_preset'] == EDITIONS[edition][1], f'Wrong launcher preset: {name}')
         require(record.get('stable_frames') is True, f'Unsettled capture: {name}')
         require(record.get('window_verified') is True, f'Unverified window: {name}')
+        if case in ('finder', 'showcase', 'about'):
+            verify_desktop_window(case, record['windows'])
         if case in ('finder', 'showcase'):
             from screenshot_checks import check_files_pixels
             with Image.open(path) as image:
@@ -199,6 +214,14 @@ def _stage(repo: Path, edition: str, bundle: Path, manifest: dict) -> None:
         replacements[filename] = hashed
         records[hashed] = dict(record, source_commit=manifest['source_commit'], source_release='v' + manifest['version'],
                                sha256=checksum)
+        if name.startswith(edition + '-') and case == 'about':
+            full_name = f'desktop_about_{mode}_4k.png'
+            full_hash = digest(source)
+            full_hashed = str(Path(full_name).with_suffix('')) + '-' + full_hash[:12] + '.png'
+            shutil.copyfile(source, out / full_hashed)
+            replacements[full_name] = full_hashed
+            records[full_hashed] = dict(record, crop=None, source_commit=manifest['source_commit'],
+                                       source_release='v' + manifest['version'], sha256=full_hash)
     readme = re.sub(r'src/screenshots/([\w.-]+\.png)',
                     lambda match: 'src/screenshots/' + replacements.get(original_image_name(match[1]), match[1]),
                     (repo / 'README.md').read_text())
@@ -255,10 +278,14 @@ def verify_committed(repo: Path, ref: str, *, tahoe: Path | None = None) -> dict
     require(review['manifest_sha256'] == hashlib.sha256(manifest_bytes).hexdigest(), 'Review belongs to another capture run')
     require(not review.get('rejected') and review['approved'] == {n: r['sha256'] for n, r in manifest['frames'].items()},
             'Every release capture must be reviewed')
+    for name, frame in manifest['frames'].items():
+        if name.endswith(('-finder', '-showcase', '-about')):
+            verify_desktop_window(name.rsplit('-', 1)[1], frame['windows'])
     required = set(re.findall(r'src/screenshots/([\w.-]+\.png)', blob(repo, ref, 'README.md').decode())) - STATIC_ART
     require(required <= record['images'].keys(), 'Missing release screenshots')
     expected = {image_name(edition, m, c) for m in MODES for c in CASES}
     expected.update(f'boot{s}_{EDITIONS[edition][2]}.png' for s in ('', '_shutdown'))
+    expected.update(f'desktop_about_{mode}_4k.png' for mode in MODES)
     require(expected <= {original_image_name(name) for name in record['images']}, 'Missing release screenshots')
     for name, image in record['images'].items():
         require(re.fullmatch(r'[\w.-]+\.png', name) is not None, 'Invalid screenshot filename')

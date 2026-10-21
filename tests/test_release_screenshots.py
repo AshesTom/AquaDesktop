@@ -54,7 +54,9 @@ def capture(tmp_path, monkeypatch):
             record.update(effect_build=manifest['effect_build'], appearance={'Plasma': 'MacTahoeLiquidKde-' + mode.capitalize()},
                           wallpaper=shots.EDITIONS[edition][0], launcher_preset=shots.EDITIONS[edition][1],
                           stable_frames=True, window_verified=True, windows=[{
-                              'caption': 'Documents', 'resourceClass': 'org.gnome.Nautilus',
+                              'caption': 'About This Computer (preview)' if case == 'about' else 'Documents',
+                              'resourceClass': 'qml6' if case == 'about' else 'org.gnome.Nautilus',
+                              'type': 0, 'active': True,
                               'geometry': dict(x=0, y=0, width=32, height=32)}])
         manifest['frames'][name] = record
     write_json(bundle / 'manifest.json', manifest)
@@ -156,6 +158,35 @@ def test_effect_identity_includes_nested_headers_and_shaders(capture):
     shader.write_text('changed shader')
     final = commit(repo)
     assert shots.effect_identity(repo, final) != shots.effect_identity(repo, ref)
+
+
+@pytest.mark.parametrize('case', ['finder', 'showcase', 'about'])
+@pytest.mark.parametrize('failure', ['inactive', 'focus-missing', 'combined'])
+def test_desktop_capture_rejects_unfocused_or_combined_apps(capture, case, failure):
+    repo, ref, bundle, manifest = capture
+    frame = manifest['frames']['tahoe-light-' + case]
+    if failure == 'combined':
+        frame['windows'].append({'caption': 'Other application', 'type': 0, 'active': True})
+    elif failure == 'inactive':
+        frame['windows'][0]['active'] = False
+    else:
+        del frame['windows'][0]['active']
+    write_json(bundle / 'manifest.json', manifest)
+    with pytest.raises(ValueError, match='exactly one application|not focused'):
+        shots.validate(repo, ref, bundle, reviewed=False)
+
+
+def test_staging_adds_a_separate_full_desktop_about_image(capture):
+    repo, _, bundle, manifest = capture
+    with (repo / 'README.md').open('a') as stream:
+        stream.write('![About desktop](src/screenshots/desktop_about_light_4k.png)\n')
+    shots.stage(repo, 'tahoe', bundle, manifest)
+    out = repo / 'src/screenshots'
+    records = json.loads((out / 'release-capture.json').read_text())['images']
+    name = next(name for name in records if name.startswith('desktop_about_light_4k-'))
+    assert (out / name).read_bytes() == (bundle / 'frames/tahoe-light-about.png').read_bytes()
+    assert records[name]['crop'] is None
+    assert name in (repo / 'README.md').read_text()
 
 
 def test_staging_changes_urls_and_removes_only_replaced_images(capture):

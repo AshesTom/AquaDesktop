@@ -55,7 +55,7 @@ def windows(script=''):
         path.write_text(script + 'callDBus(' + json.dumps(service) + ',"/Probe","org.mttkde.ReleaseCapture","record",'
                         'JSON.stringify(workspace.windowList().filter(w=>!w.minimized).map(w=>({'
                         'caption:w.caption,resourceClass:String(w.resourceClass),type:w.windowType,'
-                        'appletPopup:w.appletPopup,geometry:w.frameGeometry}))));')
+                        'appletPopup:w.appletPopup,active:w===workspace.activeWindow,geometry:w.frameGeometry}))));')
         api = QDBusInterface('org.kde.KWin', '/Scripting', 'org.kde.kwin.Scripting', bus)
         loaded = api.call('loadScript', str(path), service).arguments()
         assert loaded and isinstance(loaded[0], int)
@@ -187,7 +187,7 @@ def arrange(placements):
 
 def capture(repo, profile, edition, requested, case):
     from PIL import Image
-    from release_screenshots import EDITIONS, digest
+    from release_screenshots import EDITIONS, digest, verify_desktop_window
     from screenshot_checks import wait_for_session, check_files_pixels
     state = wait_for_session(requested)
     wallpaper = json.loads(plasma('print(JSON.stringify(desktops().map(d=>{'
@@ -203,6 +203,8 @@ def capture(repo, profile, edition, requested, case):
         raise RuntimeError(f'Wrong launcher preset: {presets}')
     run('sudo', 'date', '--set', profile['clock'])
     target = repo.parent / 'frame.png'
+    if case in ('finder', 'showcase', 'about'):
+        verify_desktop_window(case, windows())
     previous = None
     deadline = time.monotonic() + 25
     while time.monotonic() < deadline:
@@ -228,11 +230,8 @@ def capture(repo, profile, edition, requested, case):
     elif case in ('menu', 'context'):
         chosen = [w for w in shell if w['type'] not in (1, 2)]
         expected = 1
-    elif case == 'about':
-        chosen = [w for w in observed if w['caption'] == 'About This Computer (preview)']
-        expected = 1
     else:
-        chosen = [w for w in observed if w['caption'] == 'Documents' and w['resourceClass'] == 'org.gnome.Nautilus']
+        chosen = [verify_desktop_window(case, observed)]
         expected = 1
     if len(chosen) != expected:
         raise RuntimeError(f'{case}: expected {expected} windows, found {chosen}; observed {observed}')

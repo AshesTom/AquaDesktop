@@ -23,11 +23,16 @@ The desktop and its apps in light and dark mode.
 
 ### Tahoe desktop
 
-The complete Tahoe desktop with matching light and dark wallpapers.
+The Tahoe desktop in light and dark mode. Files and About This Computer are shown separately, each with its own window focused.
 
 <p align="center">
-  <a href="src/screenshots/showcase_light_4k-879047254361.png"><img src="src/screenshots/showcase_light_4k-879047254361.png" alt="Tahoe light desktop with a backgroundless menu bar, Finder-style files, glass system information and Dock" width="840"></a>
-  <a href="src/screenshots/showcase_dark_4k-780052c30f24.png"><img src="src/screenshots/showcase_dark_4k-780052c30f24.png" alt="Tahoe dark desktop with a backgroundless menu bar, Finder-style files, glass system information and Dock" width="840"></a>
+  <a href="src/screenshots/showcase_light_4k.png"><img src="src/screenshots/showcase_light_4k.png" alt="Tahoe light desktop with Files focused" width="415"></a>
+  <a href="src/screenshots/desktop_about_light_4k.png"><img src="src/screenshots/desktop_about_light_4k.png" alt="Tahoe light desktop with About This Computer focused" width="415"></a>
+</p>
+
+<p align="center">
+  <a href="src/screenshots/showcase_dark_4k.png"><img src="src/screenshots/showcase_dark_4k.png" alt="Tahoe dark desktop with Files focused" width="415"></a>
+  <a href="src/screenshots/desktop_about_dark_4k.png"><img src="src/screenshots/desktop_about_dark_4k.png" alt="Tahoe dark desktop with About This Computer focused" width="415"></a>
 </p>
 
 <br>
