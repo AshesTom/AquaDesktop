@@ -141,6 +141,36 @@ int main(int argc, char **argv)
         else require(reference == image, QStringLiteral("legacy and core shaders differ"));
 
         shader.setUniformValue("highlightStrength", 0.0f);
+        // A bright line must have one smooth lobe, never shifted replicas.
+        // Constant colors and ramps cannot detect sparse blur taps: both
+        // survive an incorrectly dilated Gaussian unchanged.
+        for (const float spacing : {1.0f, 1.5f, 2.0f}) {
+            shader.setUniformValue("offset", 2.5f * spacing);
+            for (const bool vertical : {false, true}) {
+                backdrop.fill(Qt::black);
+                for (int i = 0; i < (vertical ? height : width); ++i) {
+                    backdrop.setPixelColor(vertical ? width / 2 : i,
+                                           vertical ? i : height / 2 - 1, Qt::white);
+                }
+                texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
+                const auto line = render();
+                auto value = [&](int delta) {
+                    return qRed(line.pixel(width / 2 + (vertical ? delta : 0),
+                                           height / 2 + (vertical ? 0 : delta)));
+                };
+                require(value(0) > 0 && value(0) < 200,
+                        QStringLiteral("Gaussian must soften a thin bright line"));
+                for (const int direction : {-1, 1}) {
+                    for (int distance = 1; distance <= 16; ++distance) {
+                        require(value(direction * distance) <= value(direction * (distance - 1)) + 1,
+                                QStringLiteral("Blur creates a displaced copy of a bright line"));
+                    }
+                }
+            }
+        }
+        backdrop.fill(QColor(160, 160, 160));
+        texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
+        shader.setUniformValue("offset", 2.0f);
         // A clear-centre factor must never leak sharp backdrop into an applet.
         shader.setUniformValue("centerOpacity", 0.65f);
         image = render();

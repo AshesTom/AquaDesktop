@@ -406,9 +406,8 @@ void BlurEffect::reconfigure(ReconfigureFlags flags)
     // Fractional blur strength: interpolate offset between neighbouring table entries.
     // Strength 0 = no blur (passthrough).
     double blurStrengthD = qBound(0.0, BlurConfig::blurStrength(), (double) blurStrengthValues.size());
-    // The regular pyramid resets its offset at each deeper level. A Dock
-    // stays at one level, so derive its taps directly from the slider instead.
-    m_dockOffset = blurStrengthD * 0.25f;
+    // Keep Dock samples close together; pyramid levels provide the radius.
+    m_dockOffset = blurStrengthD * 0.14f;
 
     if (blurStrengthD <= 0.0) {
         m_iterationCount = 1;
@@ -1048,11 +1047,12 @@ void BlurEffect::blur(
         return;
     }
 
-    // Short panel surfaces need a shallow blur to retain the backdrop detail
-    // that makes their refracted rim visible. Keep the saved material intact.
+    // A single downsample with widely spaced finish taps splits backdrop
+    // edges into copies. Reconstruct a compact pyramid instead, and avoid
+    // leaking a sharp image through the centre of the blurred material.
     const bool dockSurface = w->isDock();
-    const float centerOpacity = dockSurface ? 0.90f : 1.0f;
-    const size_t iterationCount = dockSurface ? 1 : m_iterationCount;
+    const float centerOpacity = dockSurface ? 0.98f : 1.0f;
+    const size_t iterationCount = dockSurface ? std::min(size_t(3), m_iterationCount) : m_iterationCount;
     const float blurOffset = dockSurface ? m_dockOffset : m_offset;
 
     // 2. Effective blur shape
@@ -1457,10 +1457,8 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.colorMatrixLocation, colorMatrix);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.halfpixelLocation, halfpixel);
 
-    // Same scale compensation as the Kawase passes — the onscreen blur
-    // Gaussian kernel uses offset * 3 * texel as the tap
-    // radius, and texel = 1/device_width, so without scale the kernel
-    // tightens proportionally to viewport.scale() on HiDPI.
+    // The Gaussian finish is a fixed reconstruction filter in source texels.
+    // Scale compensation belongs to the Kawase passes; offset gates bypass.
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.offsetLocation, float(blurOffset * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.boxLocation,
         QVector4D(nativeBox.x() + nativeBox.width() * 0.5, nativeBox.y() + nativeBox.height() * 0.5, nativeBox.width() * 0.5, nativeBox.height() * 0.5));
@@ -1470,7 +1468,7 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.opacityLocation, modulation);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.blurSizeLocation, QVector2D(nativeBox.width(), nativeBox.height()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.rgbDriftStrengthLocation,
-        float(m_rgbDriftStrength * viewport.scale() * (dockSurface ? 0.20f : 1.0f)));
+        float(m_rgbDriftStrength * viewport.scale() * (dockSurface ? 0.24f : 1.0f)));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.magnifyGlassStrengthLocation, m_magnifyGlassStrength);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.refractionWidthLocation, float(m_refractionWidth * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightWidthLocation, float(m_highlightWidth * viewport.scale()));

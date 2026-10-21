@@ -349,7 +349,7 @@ private:
 
     size_t m_iterationCount; ///< Number of Kawase halve/double passes (drives texture chain length).
     float m_offset; ///< Kawase tap offset; 0.0 means "no blur, passthrough".
-    float m_dockOffset; ///< Shallow single-level blur, increasing with BlurStrength.
+    float m_dockOffset; ///< Compact Dock pyramid tap spacing, increasing with BlurStrength.
     int m_expandSize; ///< Pixels of dirty-region expansion needed for taps near the rim.
     int m_noiseStrength; ///< 0..N grain intensity; 0 disables the noise pass entirely.
 

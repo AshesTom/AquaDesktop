@@ -38,7 +38,8 @@ the upper gradient supply the dark tint while the lower half stays clear.
 Text follows the system window foreground throughout, with a very light black shadow. The Dock
 uses identical assets in both modes and retains its thin transparent fill.
 Contours use a 0.75 logical-pixel dark outer line and a 0.75 logical-pixel
-light inner line, following each surface's native rounded mask. The gradient
+light inner line, following each surface's native rounded mask. The Dock uses
+24% opacity on the outer line and 30% on the inner line for a visible thin edge. The gradient
 only tints the blurred backdrop; it does not change text, blur coverage,
 contours or the Dock. Both editions share surface geometry with edition-specific
 fills; there is no separate reduced-transparency mode.
@@ -57,8 +58,10 @@ screenshots and design guidance; they do not reproduce Apple's renderer.
 The Golden Gate preset adds a black upper gradient to menus in both appearance
 modes. It starts at 95% opacity and reaches zero at 50% of the surface height.
 The lower half retains untinted blurred glass. The Dock and panels use a clearer
-surface without the gradient: a shallow blur, less grain and a transparent
-centre, with a mild angled refraction and a thin bright edge.
+surface without the gradient: a smooth blur, less grain and 98% centre
+coverage, with a mild angled refraction and a thin bright edge. Its compact
+Dual Kawase pyramid uses up to three levels, followed by a dense Gaussian
+finish. The finish samples adjacent texels instead of separating image copies.
 The Dock uses more blur and less refraction and color separation
 to soften the backdrop without stretching it into a wide band.
 The Dock's blur taps and centre coverage soften backdrop detail without

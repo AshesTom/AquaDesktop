@@ -554,8 +554,10 @@ mode: 95% black at the top, fading completely within the first 50% of the
 surface height. The lower half keeps untinted glass. Dock surfaces are exempt
 from the gradient under every material; do not
 change the saved gradient settings or remove their blur and refraction.
-Dock/panel glass uses a shallow single-level Kawase blur, less grain and 90%
-centre coverage, with a mild angled lens near the rim. Blend the surface normal
+Dock/panel glass uses a compact Kawase pyramid (up to three levels), less grain
+and 98% centre coverage, with a mild angled lens near the rim. Keep the Gaussian
+finish dense: reconstruct its 5×5 binomial kernel with nine bilinear samples,
+never widen it by separating taps into displaced backdrop copies. Blend the surface normal
 with the centre-directed lens in normalized local coordinates. Derive this
 per surface from the selected material without rewriting optical preferences;
 menus retain their full blur. Keep the bevel displacement independent of the

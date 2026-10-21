@@ -60,7 +60,7 @@ void main(void)
     vec2 texel = halfpixel * 2.0;
     vec3 col;
     if (offset > 0.0) {
-        col = lgGaussianBlur(texUnit, texel, lensUV, vec2(offset * 3.0));
+        col = lgGaussianBlur(texUnit, texel, lensUV);
     } else {
         // Pixel-exact passthrough: snap to texel center so GL_LINEAR returns
         // the underlying texel exactly instead of a sub-pixel bilinear blend.
