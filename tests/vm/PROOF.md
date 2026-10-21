@@ -76,6 +76,78 @@ Installed from the official CachyOS ISO and upgraded with its native repositorie
 
 </details>
 
+<a id="arch"></a>
+<details>
+<summary><b>Arch Linux — evidence pending</b></summary>
+
+The current application checks and reviewed 4K screenshots have not been published yet.
+
+</details>
+
+<a id="endeavouros"></a>
+<details>
+<summary><b>EndeavourOS — evidence pending</b></summary>
+
+The current application checks and reviewed 4K screenshots have not been published yet.
+
+</details>
+
+<a id="fedora"></a>
+<details>
+<summary><b>Fedora — evidence pending</b></summary>
+
+The current application checks and reviewed 4K screenshots have not been published yet.
+
+</details>
+
+<a id="manjaro"></a>
+<details>
+<summary><b>Manjaro — evidence pending</b></summary>
+
+The current application checks and reviewed 4K screenshots have not been published yet.
+
+</details>
+
+<a id="artix"></a>
+<details>
+<summary><b>Artix Linux (OpenRC) — evidence pending</b></summary>
+
+The current application checks and reviewed 4K screenshots have not been published yet.
+
+</details>
+
+<a id="garuda"></a>
+<details>
+<summary><b>Garuda Linux — evidence pending</b></summary>
+
+The current application checks and reviewed 4K screenshots have not been published yet.
+
+</details>
+
+<a id="nobara"></a>
+<details>
+<summary><b>Nobara — evidence pending</b></summary>
+
+The current application checks and reviewed 4K screenshots have not been published yet.
+
+</details>
+
+<a id="opensuse"></a>
+<details>
+<summary><b>openSUSE Tumbleweed — evidence pending</b></summary>
+
+The current application checks and reviewed 4K screenshots have not been published yet.
+
+</details>
+
+<a id="neon"></a>
+<details>
+<summary><b>KDE neon — evidence pending</b></summary>
+
+The current application checks and reviewed 4K screenshots have not been published yet.
+
+</details>
+
 The remaining distributions are being qualified one at a time. Their existing
 README status stays unchanged until their application checks and screenshots
 have been reviewed.
