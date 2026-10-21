@@ -1,6 +1,6 @@
 {
   "edition": "Tahoe",
-  "source_version": "0.56.8",
+  "source_version": "0.56.9",
   "default_launcher_preset": 1,
   "wallpaper": "MacTahoe",
   "capture_date": "2026-10-20",
@@ -30,14 +30,15 @@
         "GradientBottomOpacity": 0.02,
         "MaterialPreset": 1
       },
-      "source_capture": "light-tahoe-off-wallpaper-launcher1.png",
+      "source_capture": "fixed-tahoe-light.png",
       "source_size": [
         3840,
         2160
       ],
       "crop": null,
       "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
-      "sha256": "44a201b30678b0cc1ad407870cf17b692b35e12069bce0406e71b7c302445776"
+      "sha256": "9e68012608d7b9a71e9a3c8c32f1b0c69af79fe35d98cc5ce2001d8b9daa734d",
+      "source_version": "0.56.9"
     },
     "menu_v4.png": {
       "theme_mode": "light",
@@ -73,7 +74,8 @@
         656
       ],
       "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
-      "sha256": "0c882490233d290dc6ce44bd64258da455ff49af5e9b98527b8ea79fb7eb044d"
+      "sha256": "0c882490233d290dc6ce44bd64258da455ff49af5e9b98527b8ea79fb7eb044d",
+      "source_version": "0.56.8"
     },
     "context_menu_v4.png": {
       "theme_mode": "light",
@@ -109,7 +111,8 @@
         1448
       ],
       "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
-      "sha256": "31e024093b79f414a5e8724534f8120093262ad0dc0cee78ec30a83078255687"
+      "sha256": "31e024093b79f414a5e8724534f8120093262ad0dc0cee78ec30a83078255687",
+      "source_version": "0.56.8"
     },
     "dock_1_v4.png": {
       "theme_mode": "light",
@@ -145,7 +148,8 @@
         2160
       ],
       "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
-      "sha256": "3056db2a3e04f3b84167797e3e515a3756f83f4fa3e600853584b5bb88aab0fe"
+      "sha256": "3056db2a3e04f3b84167797e3e515a3756f83f4fa3e600853584b5bb88aab0fe",
+      "source_version": "0.56.8"
     },
     "launcher_preset_1_dark.png": {
       "theme_mode": "dark",
@@ -169,14 +173,15 @@
         "GradientBottomOpacity": 0.02,
         "MaterialPreset": 1
       },
-      "source_capture": "dark-tahoe-off-wallpaper-launcher1.png",
+      "source_capture": "fixed-tahoe-dark.png",
       "source_size": [
         3840,
         2160
       ],
       "crop": null,
       "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
-      "sha256": "d32cc44fe88907ad36e4ea922045a170755e94f137e160172bba7227366b4f78"
+      "sha256": "ee43a1f99ace0997233afc94e9d1dd3d7c371cad854374c14e358abff7c1b699",
+      "source_version": "0.56.9"
     },
     "menu_dark_v4.png": {
       "theme_mode": "dark",
@@ -212,7 +217,8 @@
         656
       ],
       "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
-      "sha256": "dc23eca8a2c12e01ca2cf1cc64e69a48433c0b4428a1ebfeeeca0f7e9e7e2273"
+      "sha256": "dc23eca8a2c12e01ca2cf1cc64e69a48433c0b4428a1ebfeeeca0f7e9e7e2273",
+      "source_version": "0.56.8"
     },
     "context_menu_dark_v4.png": {
       "theme_mode": "dark",
@@ -248,7 +254,8 @@
         1448
       ],
       "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
-      "sha256": "ef62c54622ac65f3f9bd768b559ea8a22e2c9fc69c786a754694ed00a6be6432"
+      "sha256": "ef62c54622ac65f3f9bd768b559ea8a22e2c9fc69c786a754694ed00a6be6432",
+      "source_version": "0.56.8"
     }
   }
 }

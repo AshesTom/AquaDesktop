@@ -28,6 +28,17 @@ Timer {
         verify(searchPopup.y + searchPopup.height < root.y, "search above app panel");
         verify(Math.abs(searchPopup.x + searchPopup.width / 2 - root.x - root.width / 2) < 2, "capsule centered");
     }
+    function verifyCategoryPills() {
+        const view = appList.testCategories.testView;
+        verify(view.count > 0, "categories available");
+        for (let i = 0; i < view.count; ++i) {
+            const pill = view.itemAtIndex(i);
+            if (!pill) continue;
+            const position = pill.mapToItem(view, 0, 0);
+            verify(position.y >= 0 && position.y + pill.height <= view.height + 0.01,
+                   "category pill fits its clipped viewport: " + position.y + " + " + pill.height + " <= " + view.height);
+        }
+    }
     function findIcon(item) {
         if (item instanceof Kirigami.Icon) {
             return item;
@@ -67,6 +78,7 @@ Timer {
                 break;
             case 1:
                 verify(root.visible, "inline panel visible");
+                verifyCategoryPills();
                 verify(glassPalette.Kirigami.Theme.colorSet === Kirigami.Theme.Window, "labels use the popup color set");
                 verify(main.textColor === glassPalette.Kirigami.Theme.textColor, "labels follow the mode-specific window foreground");
                 verify(!searchPopup.visible, "inline search has no second popup");
@@ -125,6 +137,7 @@ Timer {
                 break;
             case 7:
                 verify(root.columns === 7, "Golden Gate starts with seven columns");
+                verifyCategoryPills();
                 verify(searchBar.textField.font.pointSize > main.appTextSize, "search text has its own hierarchy");
                 const view = appList.viewItem;
                 console.log("PROBE_CATEGORIES", JSON.stringify(appList.appsCategoriesList),

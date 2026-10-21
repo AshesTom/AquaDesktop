@@ -141,7 +141,8 @@ ColumnLayout {
 		id: categorySwitcher
 
 		Layout.preferredWidth: parent.width - (main.detachedSearch ? 0 : fs.innerPadding)
-		Layout.preferredHeight: visible ? main.categoryHeight : 0
+		Layout.preferredHeight: visible ? Math.max(main.categoryHeight, implicitHeight) : 0
+		Layout.minimumHeight: Layout.preferredHeight
 		model: appsCategoriesList
 		visible: true
 

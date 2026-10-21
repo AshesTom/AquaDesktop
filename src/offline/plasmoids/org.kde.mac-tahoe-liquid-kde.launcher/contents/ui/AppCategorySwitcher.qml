@@ -7,6 +7,7 @@ Item {
 
     property alias model: categorySwitcher.model
     property alias currentIndex: categorySwitcher.currentIndex
+    implicitHeight: categorySwitcher.currentItem ? categorySwitcher.currentItem.implicitHeight : 0
 
     signal categorySwitched(int index)
 
@@ -20,9 +21,6 @@ Item {
         clip: true
         highlightResizeDuration: 0
         highlightMoveDuration: 50
-        property var contentHeight: 0
-
-        anchors.topMargin: (parent.height - contentHeight) / 2
         anchors.fill: parent
 
         delegate: CategoryPill {
@@ -31,16 +29,13 @@ Item {
             required property var index
             selected: categorySwitcher.currentIndex == index
             text: model.name
+            y: (categorySwitcher.height - height) / 2
 
             // Emit on click only: currentIndex also moves when the
             // category list rebuilds, and that must not switch views.
             onClicked: {
                 categorySwitcher.currentIndex = index
                 scrollview.categorySwitched(model.modelIndex)
-            }
-
-            Component.onCompleted: {
-                categorySwitcher.contentHeight = del.height
             }
         }
 
