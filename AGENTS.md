@@ -160,6 +160,10 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   Apple menu).
 - Hover tiles: glass effect (semi-transparent fill, 0.5px micro
   border, 22px radius) — not outlined borders.
+- Native menu selection rounding uses Kvantum `expand-menuitem-normal` tiles
+  and `frame.expansion=12`. Keep the 3px layout frame, text margins, row
+  heights, icon sizes and separators unchanged; frame expansion affects
+  painting only. The system menu adds 65 logical pixels to its natural width.
 - System font always — never hardcode font names or sizes.
 - Popup plasmoids are fixed-size, not resizable.
 - Top panel is applets-only floating (not full-floating). Keep the menu bar
