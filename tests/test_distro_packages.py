@@ -940,9 +940,9 @@ def test_vulkan_headers_package_per_distro(
     ("nobara",              ("fedora",),   ["dnf", "install", "-y"]),
     ("rhel",                (),            ["dnf", "install", "-y"]),
     ("opensuse-tumbleweed", ("opensuse",), ["zypper", "--non-interactive", "install", "--no-recommends"]),
-    ("debian",              (),            ["apt-get", "install", "-y"]),
-    ("ubuntu",              (),            ["apt-get", "install", "-y"]),
-    ("neon",                ("ubuntu", "debian"), ["apt-get", "install", "-y"]),
+    ("debian",              (),            ["apt-get", "install", "-y", "--no-install-recommends"]),
+    ("ubuntu",              (),            ["apt-get", "install", "-y", "--no-install-recommends"]),
+    ("neon",                ("ubuntu", "debian"), ["apt-get", "install", "-y", "--no-install-recommends"]),
 ])
 def test_install_cmd_for_supported_families(monkeypatch, distro_id, id_like, expected):
     _force_distro(monkeypatch, distro_id, id_like)
@@ -1106,3 +1106,37 @@ def test_retired_gentoo_rejects_package_changes(monkeypatch, distro_id, id_like)
     for command in (distro.package_manager_install_cmd, distro.package_manager_sync_cmd):
         with pytest.raises(distro.UnsupportedDistroError, match="Gentoo support was retired"):
             command()
+
+
+@pytest.mark.parametrize('name,parent,package', [
+    ('arch', (), 'kde-gtk-config'),
+    ('debian', (), 'kde-config-gtk-style'),
+    ('neon', ('ubuntu', 'debian'), 'kde-config-gtk-style'),
+    ('fedora', (), 'kde-gtk-config'),
+    ('opensuse-tumbleweed', ('opensuse', 'suse'), 'kde-gtk-config6'),
+])
+def test_gtk_step_requires_desktop_integration(monkeypatch, name, parent, package):
+    from steps import gtk
+    _force_distro(monkeypatch, name, parent)
+    token, fallback = gtk.deps()[0].split(':')
+    assert distro.package_for(token, fallback) == package
+
+
+def test_opensuse_wayland_client_is_an_explicit_dependency(monkeypatch):
+    _force_distro(monkeypatch, 'opensuse-tumbleweed', ('opensuse', 'suse'))
+    assert distro.package_for('qt6-wayland-cmake', 'qt6-wayland') == 'qt6-waylandclient-devel'
+
+
+@pytest.mark.parametrize('distro_id,available,expected', [
+    ('endeavouros', {'dracut', 'reinstall-kernels'}, [['plymouth-set-default-theme', 'theme'], ['reinstall-kernels']]),
+    ('garuda', {'dracut', 'dracut-rebuild'}, [['plymouth-set-default-theme', 'theme'], ['dracut-rebuild']]),
+    ('arch', {'dracut'}, [['plymouth-set-default-theme', 'theme'], ['dracut', '--regenerate-all', '--force']]),
+    ('arch', {'dracut', 'mkinitcpio'}, [['plymouth-set-default-theme', '-R', 'theme']]),
+    ('fedora', {'dracut'}, [['plymouth-set-default-theme', '-R', 'theme']]),
+    ('debian', {'update-initramfs'}, [['plymouth-set-default-theme', '-R', 'theme']]),
+])
+def test_plymouth_rebuild_uses_native_initramfs_tool(monkeypatch, distro_id, available, expected):
+    monkeypatch.setattr(distro, 'current_distro', lambda: distro_id)
+    monkeypatch.setattr(distro, 'distro_id_like', lambda: ('arch',) if distro_id in ('endeavouros', 'garuda') else ())
+    monkeypatch.setattr(distro.shutil, 'which', lambda name: '/usr/bin/' + name if name in available else None)
+    assert distro.plymouth_activation_commands('theme') == expected

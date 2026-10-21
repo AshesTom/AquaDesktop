@@ -189,8 +189,8 @@ def _sync_session_env_from_plasmashell() -> None:
 def _sync_session_env() -> None:
     global _HAS_DBUS
     old_bus = os.environ.get("DBUS_SESSION_BUS_ADDRESS")
-    _sync_session_env_runtime_dir()
     _sync_session_env_from_plasmashell()
+    _sync_session_env_runtime_dir()
     if os.environ.get("DBUS_SESSION_BUS_ADDRESS") != old_bus:
         # A pre-sync probe may have cached a sparse cron env as bus-less.
         _HAS_DBUS = None
@@ -985,6 +985,30 @@ def _set_kvantum_theme(mode: str) -> None:
         pass
 
 
+GTK4_ADAPTIVE_CSS = """/* mac-tahoe-liquid-kde: adaptive GTK 4 */
+@media (prefers-color-scheme: light) {
+  @import url("gtk-Light.css");
+}
+@media (prefers-color-scheme: dark) {
+  @import url("gtk-Dark.css");
+}
+"""
+
+
+def _gtk4_supports_media_queries() -> bool:
+    """GTK 4.20 can restyle an already-open app through media queries."""
+    import ctypes
+    import ctypes.util
+    try:
+        library = ctypes.util.find_library("gtk-4")
+        if not library:
+            return False
+        gtk = ctypes.CDLL(library)
+        return (gtk.gtk_get_major_version(), gtk.gtk_get_minor_version()) >= (4, 20)
+    except (OSError, AttributeError):
+        return False
+
+
 def _gtk4_css_is_replaceable(path: Path, themes_root: Path) -> bool:
     """Whether gtk.css is generated/project-owned rather than user CSS.
 
@@ -997,7 +1021,7 @@ def _gtk4_css_is_replaceable(path: Path, themes_root: Path) -> bool:
         return True
     if path.is_symlink():
         try:
-            return path.readlink().name in {"gtk-Dark.css", "gtk-Light.css"}
+            return path.readlink().name in {"gtk-Dark.css", "gtk-Light.css", "gtk-Adaptive.css"}
         except OSError:
             return False
     if not path.is_file():
@@ -1011,6 +1035,8 @@ def _gtk4_css_is_replaceable(path: Path, themes_root: Path) -> bool:
         return True
     if text.endswith(import_line):
         text = text[:-len(import_line)].rstrip()
+    if text == GTK4_ADAPTIVE_CSS.strip():
+        return True
     for variant in ("MacTahoeLiquidKde-Light", "MacTahoeLiquidKde-Dark",
                     "MacTahoeLiquidKde-Light" + LEGACY_REDUCED_SUFFIX,
                     "MacTahoeLiquidKde-Dark" + LEGACY_REDUCED_SUFFIX):
@@ -1083,9 +1109,14 @@ def _apply_local_extras(mode: str) -> None:
             gtk4_css = gtk4_dest / "gtk.css"
             try:
                 if _gtk4_css_is_replaceable(gtk4_css, gtk_dest):
+                    target = f"gtk-{mode.capitalize()}.css"
+                    if _gtk4_supports_media_queries():
+                        adaptive = gtk4_dest / "gtk-Adaptive.css"
+                        adaptive.write_text(GTK4_ADAPTIVE_CSS, encoding="utf-8")
+                        target = adaptive.name
                     if gtk4_css.is_symlink() or gtk4_css.exists():
                         gtk4_css.unlink()
-                    gtk4_css.symlink_to(f"gtk-{mode.capitalize()}.css")
+                    gtk4_css.symlink_to(target)
                 else:
                     print("theme apply: custom gtk4 gtk.css preserved; "
                           "Nautilus theme override skipped", file=sys.stderr)
@@ -1470,6 +1501,25 @@ def cycle_widget_style_live(target: str) -> bool:
     return all(phase_ok)
 
 
+def refresh_icons_live() -> None:
+    """Reload running Qt apps after look-and-feel moves icon defaults.
+
+    The look-and-feel tool can briefly remove the explicit Icons/Theme key.
+    Refresh the platform theme's cached setting before rebuilding icon loaders,
+    otherwise already-open apps can retain Breeze after the final config write.
+    """
+    if not _has_session_dbus() or not _have("dbus-send"):
+        return
+    for arguments in (
+        ["/KGlobalSettings", "org.kde.KGlobalSettings.notifyChange", "int32:4", "int32:0"],
+        ["/KIconLoader", "org.kde.KIconLoader.iconChanged", "int32:0"],
+    ):
+        try:
+            _run_user(["dbus-send", "--session", "--type=signal", *arguments], timeout=5)
+        except subprocess.TimeoutExpired:
+            pass
+
+
 def _apply_unlocked(mode: str, context: str = "user") -> bool:
     """Config writes + best-effort live niceties. Returns False when the
     core config writes fail (kwriteconfig6 missing or a write error).
@@ -1520,6 +1570,7 @@ def _apply_unlocked(mode: str, context: str = "user") -> bool:
         print("theme apply: live cursor apply skipped", file=sys.stderr)
     if not cycle_widget_style_live(widget):
         print("theme apply: widget-style cycle skipped", file=sys.stderr)
+    refresh_icons_live()
     # Keep the dock translucent so the glass shows through (a theme apply can
     # drop panelOpacity, painting an opaque black panel over the effect).
     patch_dock_transparency()

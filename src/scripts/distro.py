@@ -104,6 +104,23 @@ def plymouth_use_simpledrm() -> bool:
     return "fedora" not in family
 
 
+def plymouth_activation_commands(theme: str) -> list[list[str]]:
+    """Select the theme and rebuild the images used by the installed OS.
+
+    Arch's Plymouth helper hardcodes mkinitcpio. Its dracut derivatives
+    provide wrappers that also know their kernel-install/bootloader layout.
+    Keep those wrappers instead of installing a second initramfs generator.
+    """
+    family = (current_distro(), *_compatibility_parents())
+    if "arch" in family and not shutil.which("mkinitcpio") and shutil.which("dracut"):
+        for helper in ("reinstall-kernels", "dracut-rebuild"):
+            if shutil.which(helper):
+                return [["plymouth-set-default-theme", theme], [helper]]
+        return [["plymouth-set-default-theme", theme],
+                ["dracut", "--regenerate-all", "--force"]]
+    return [["plymouth-set-default-theme", "-R", theme]]
+
+
 def is_debian_family() -> bool:
     """True on Debian, Ubuntu, or a distro whose ID_LIKE chain includes
     one of them (e.g. KDE neon) — the only per-distro-family predicate
@@ -447,6 +464,15 @@ def gtk3_appmenu_module() -> Path | None:
 # is portable.
 
 _PACKAGE_MAP: dict[str, dict[str, str]] = {
+    "kde-gtk-config": {
+        "arch":     "kde-gtk-config",
+        "debian":   "kde-config-gtk-style",
+        "ubuntu":   "kde-config-gtk-style",
+        "fedora":   "kde-gtk-config",
+        "rhel":     "kde-gtk-config",
+        "centos":   "kde-gtk-config",
+        "opensuse": "kde-gtk-config6",
+    },
     # Base/runtime tools whose package names are not portable even when the
     # executable name is. Keep identity mappings explicit so a newly-added
     # token cannot silently leak its Arch fallback to dnf/zypper.
@@ -715,7 +741,7 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "fedora":   "qt6-qtwayland-devel",
         "rhel":     "qt6-qtwayland-devel",
         "centos":   "qt6-qtwayland-devel",
-        "opensuse": "qt6-wayland-devel",
+        "opensuse": "qt6-waylandclient-devel",
         "alpine":   "qt6-qtwayland-dev",
         "void":     "qt6-wayland-devel",
     },
@@ -1145,8 +1171,10 @@ def package_for(cmd: str, fallback_pkg: str | None = None) -> str:
 _PACKAGE_MANAGER_INSTALL: dict[str, list[str]] = {
     # Root, NON-INTERACTIVE — every entry carries its assume-yes flag.
     "arch":     ["pacman", "-S", "--noconfirm", "--needed"],
-    "debian":   ["apt-get", "install", "-y"],
-    "ubuntu":   ["apt-get", "install", "-y"],
+    # Nautilus recommends a GNOME session and display manager on Debian.
+    # Install declared dependencies without replacing the user's KDE login.
+    "debian":   ["apt-get", "install", "-y", "--no-install-recommends"],
+    "ubuntu":   ["apt-get", "install", "-y", "--no-install-recommends"],
     "fedora":   ["dnf", "install", "-y"],
     "rhel":     ["dnf", "install", "-y"],
     "centos":   ["dnf", "install", "-y"],

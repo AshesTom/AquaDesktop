@@ -1,0 +1,38 @@
+{
+  "cachyos": {
+    "url": "https://cdn77.cachyos.org/ISO/desktop/260809/cachyos-desktop-linux-260809.iso",
+    "checksum_url": "https://cdn77.cachyos.org/ISO/desktop/260809/cachyos-desktop-linux-260809.iso.sha256",
+    "algorithm": "sha256",
+    "digest": "959f6577f45e25ee9fd8c220fd221b08e4ea79412c7315c0f922dd6d86d5e33c"
+  },
+  "manjaro": {
+    "url": "https://download.manjaro.org/kde/26.1.0/manjaro-kde-26.1.0-260812-linux71.iso",
+    "checksum_url": "https://download.manjaro.org/kde/26.1.0/manjaro-kde-26.1.0-260812-linux71.iso.sha256",
+    "algorithm": "sha256",
+    "digest": "711b64362abe0b45348dc33bd4a2c654641e069b50ae9ae37c01771da880aa99"
+  },
+  "endeavouros": {
+    "url": "https://mirror.alpix.eu/endeavouros/iso/EndeavourOS_Titan-Nova-2026.08.15.iso",
+    "checksum_url": "https://mirror.alpix.eu/endeavouros/iso/EndeavourOS_Titan-Nova-2026.08.15.iso.sha512sum",
+    "algorithm": "sha512",
+    "digest": "3f83bd745e9d5d518bdf6fc9a24092fb5347da449a6e109c6572bf999097b8b548c4cf1848fdfb3c7c2823f558c3f5b51a127060d9c5b81b9ad89b4041bee7fa"
+  },
+  "garuda": {
+    "url": "https://iso.builds.garudalinux.org/iso/garuda/dr460nized/260819/garuda-dr460nized-linux-garuda-260819.iso",
+    "checksum_url": "https://iso.builds.garudalinux.org/iso/latest/garuda/dr460nized/latest.iso.sha256",
+    "algorithm": "sha256",
+    "digest": "3dac6b04225fe9577ea0143a1c712e13316dff26985c2c4417f8c5e4af77f7f7"
+  },
+  "nobara": {
+    "url": "https://nobara-images.nobaraproject.org/Nobara-44-KDE-2026-09-02.iso",
+    "checksum_url": "https://nobara-images.nobaraproject.org/Nobara-44-KDE-2026-09-02.iso.sha256sum",
+    "algorithm": "sha256",
+    "digest": "7cfb83c09b7c1026233235e909b77726b004ea89b42a1a990e2e5c3e9060e859"
+  },
+  "artix": {
+    "url": "https://mirror1.artixlinux.org/iso/artix-plasma-openrc-20260813-x86_64.iso",
+    "checksum_url": "https://mirror1.artixlinux.org/iso/sha256sums",
+    "algorithm": "sha256",
+    "digest": "6945292c0d92b134cb8792af43f87ec7907b6ec98f45064139e27e89dbd6c30d"
+  }
+}

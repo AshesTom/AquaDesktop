@@ -56,7 +56,12 @@ def check_session(mode: str, *, home: Path | None = None) -> dict[str, str]:
     if actual.endswith(palette_import):
         actual = actual[:-len(palette_import)].rstrip()
     wanted = (home / '.themes' / theme / 'gtk-4.0/gtk.css').read_text().strip()
-    if actual != wanted:
+    from theme_switch import GTK4_ADAPTIVE_CSS
+    if actual == GTK4_ADAPTIVE_CSS.strip():
+        imported = home / '.config/gtk-4.0' / f'gtk-{mode.capitalize()}.css'
+        if imported.read_text().strip() != wanted:
+            raise AppearanceMismatch(f'GTK 4 adaptive sheet imports stale {mode} CSS')
+    elif actual != wanted:
         raise AppearanceMismatch(f'GTK 4 stylesheet differs from {theme}; stale or custom CSS must be reviewed')
     observed['GTK 4 stylesheet'] = theme
     return observed
@@ -80,7 +85,8 @@ def wait_for_session(mode: str, timeout: float = 15) -> dict[str, str]:
     raise AppearanceMismatch(last_error)
 
 
-def check_files_pixels(image, mode: str, windows: list[dict], scale: float) -> dict:
+def check_files_pixels(image, mode: str, windows: list[dict], scale: float,
+                       *, caption: str = 'Documents') -> dict:
     """Verify the real Files content area, even if all saved settings agree.
 
     The documentation fixture opens Documents with folders in its first row.
@@ -90,7 +96,7 @@ def check_files_pixels(image, mode: str, windows: list[dict], scale: float) -> d
     if mode not in ('light', 'dark'):
         raise ValueError(mode)
     matches = [w for w in windows if w['resourceClass'] == 'org.gnome.Nautilus'
-               and w['caption'] == 'Documents']
+               and w['caption'] == caption]
     if len(matches) != 1:
         raise AppearanceMismatch(f'Expected one Documents window, found {len(matches)}')
     g = matches[0]['geometry']

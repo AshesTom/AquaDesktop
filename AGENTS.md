@@ -53,7 +53,13 @@ Debian testing and sid are supported with Plasma 6.6 or newer and matching
 host development packages. Debian 13's stock Plasma 6.3 is below the minimum.
 Never add testing/unstable APT sources or upgrade the distribution automatically.
 `Dockerfile.debian` defaults to testing; `DEBIAN_SUITE=sid-slim` checks sid.
-Debian live desktop qualification remains pending.
+`./vm debian` boots the official Forky generic cloud image, verified against
+Debian's SHA512SUMS, on SSH port 2232. The provisioner installs a normal KDE
+desktop and leaves build dependency resolution to the installer. Keep the host
+9p mount read-only and run the GUI/CLI from the writable guest copy. VM SSH
+forwards bind to loopback because the disposable guests use known passwords.
+Debian Forky has live VM qualification with Firefox/Nautilus light and dark
+checks, reboot and uninstall. Evidence is in `tests/vm/PROOF.md`.
 
 **Distribution target:** GitHub releases + AUR.
 **License:** GPL-3.0 for the work as a whole — the bundled Acrylic

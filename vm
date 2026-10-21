@@ -1,12 +1,12 @@
 #!/bin/bash
 # ./vm <distro> [--clean]
-#   Boot a graphical KDE Plasma VM with this repo mounted at /repo.
-#   You log in as `tester` (password `tester`) and the installer UI
-#   opens automatically. Or open Konsole and run
-#   `cd /repo && sudo ./install` to test the installer by hand.
+#   Boot a genuine distro guest with a read-only repository share.
+#   Cloud targets provision KDE and a writable copy automatically.
+#   ISO targets open their official OS installer; create user tester,
+#   then follow tests/vm/README.md to prepare and qualify the desktop.
 #
 # ./vm all [--clean]  boot every supported distro at once, each in its
-#                     own window, with the installer UI pre-opened.
+#                     own window. ISO targets still require OS setup.
 #                     Per-VM resources are trimmed so the fleet fits in
 #                     RAM — override with VM_CPUS / VM_MEM_MIB.
 # ./vm list           list supported distros
@@ -17,31 +17,56 @@
 #                     install — picks up any cloud-init changes)
 #
 # Supported: cachyos arch manjaro endeavouros garuda
-#            fedora nobara opensuse neon
+#            fedora nobara opensuse neon debian artix
 
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CACHE="$REPO/.vm/cache"
+CACHE="${VM_CACHE_DIR:-$REPO/.vm/cache}"
 CI="$REPO/.vm/cloud-init"
-RUN="$REPO/.vm/run"
+RUN="${VM_RUN_DIR:-$REPO/.vm/run}"
 
 declare -A BASE=(
-    [arch]=arch.qcow2     [cachyos]=arch.qcow2  [manjaro]=arch.qcow2
-    [endeavouros]=arch.qcow2 [garuda]=arch.qcow2
-    [fedora]=fedora.qcow2 [nobara]=fedora.qcow2
+    [arch]=arch.qcow2
+    [fedora]=fedora.qcow2
     [opensuse]=opensuse.qcow2
     [neon]=ubuntu-noble.qcow2
+    [debian]=debian-testing.qcow2
 )
 declare -A URL=(
     [arch.qcow2]="https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
     [fedora.qcow2]="https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2"
     [opensuse.qcow2]="https://download.opensuse.org/tumbleweed/appliances/openSUSE-Tumbleweed-Minimal-VM.x86_64-Cloud.qcow2"
     [ubuntu-noble.qcow2]="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+    [debian-testing.qcow2]="https://cloud.debian.org/images/cloud/forky/daily/latest/debian-14-generic-amd64-daily.qcow2"
 )
-declare -A PORT=([arch]=2221 [cachyos]=2222 [manjaro]=2223 [endeavouros]=2224 [garuda]=2225 [fedora]=2226 [nobara]=2227 [opensuse]=2228 [neon]=2231)
+declare -A PORT=([arch]=2221 [cachyos]=2222 [manjaro]=2223 [endeavouros]=2224 [garuda]=2225 [fedora]=2226 [nobara]=2227 [opensuse]=2228 [neon]=2231 [debian]=2232 [artix]=2233)
 
-ORDER=(cachyos arch manjaro endeavouros garuda fedora nobara opensuse neon)
+ORDER=(cachyos arch manjaro endeavouros garuda fedora nobara opensuse neon debian artix)
+
+image_rows="$(python3 - "$REPO/.vm/images.json" <<'PY_IMAGES'
+import hashlib, json, re, sys
+images = json.load(open(sys.argv[1]))
+if set(images) != {'cachyos', 'manjaro', 'endeavouros', 'garuda', 'nobara', 'artix'}:
+    raise ValueError('The manifest must cover every official ISO target')
+for name, image in images.items():
+    if (name not in ('cachyos', 'manjaro', 'endeavouros', 'garuda', 'nobara', 'artix')
+            or image['algorithm'] not in ('sha256', 'sha512')
+            or not image['url'].startswith('https://')
+            or not image['url'].endswith('.iso')
+            or not re.fullmatch('[0-9a-f]{' + str(hashlib.new(image['algorithm']).digest_size * 2) + '}', image['digest'])):
+        raise ValueError(f'Invalid VM image pin: {name}')
+    print(name, image['url'], image['algorithm'], image['digest'], sep="\t")
+PY_IMAGES
+)" || { echo 'Invalid .vm/images.json' >&2; exit 1; }
+declare -A IMAGE_DIGEST=() IMAGE_HASH_COMMAND=()
+while IFS=$'\t' read -r distro image_url algorithm digest; do
+    base="${distro}-${digest:0:12}.iso"
+    BASE[$distro]="$base"
+    URL[$base]="$image_url"
+    IMAGE_DIGEST[$base]="$digest"
+    IMAGE_HASH_COMMAND[$base]="${algorithm}sum"
+done <<< "$image_rows"
 
 die()  { echo "✗ $*" >&2; exit 1; }
 warn() { echo "⚠ $*" >&2; }
@@ -55,12 +80,26 @@ require_tools() {
 
 ensure_base() {
     local base="$1"
-    local source_url
+    local source_url checksum="${IMAGE_DIGEST[$base]:-}" image_name
+    local hash_command="${IMAGE_HASH_COMMAND[$base]:-sha512sum}"
     [[ -f "$CACHE/$base" ]] && return 0
     mkdir -p "$CACHE"
     source_url="${URL[$base]}"
+    if [[ "$base" == "debian-testing.qcow2" ]]; then
+        command -v sha512sum >/dev/null 2>&1 || die "missing tool: sha512sum"
+        image_name="${source_url##*/}"
+        curl -L --fail "${source_url%/*}/SHA512SUMS" -o "$CACHE/$base.SHA512SUMS" || return 1
+        checksum="$(awk -v name="$image_name" '$2 == name || $2 == "*" name {print $1}' "$CACHE/$base.SHA512SUMS")"
+        [[ "$checksum" =~ ^[[:xdigit:]]{128}$ ]] || { warn "missing Debian image checksum"; return 1; }
+    fi
+    [[ -z "$checksum" ]] || command -v "$hash_command" >/dev/null 2>&1 || die "missing tool: $hash_command"
     say "downloading $base (first run only)"
-    curl -L --fail -C - -o "$CACHE/$base.part" "$source_url"
+    curl -A "Mozilla/5.0" -L --fail -C - -o "$CACHE/$base.part" "$source_url" || return 1
+    if [[ -n "$checksum" ]] && ! printf '%s  %s\n' "$checksum" "$CACHE/$base.part" | "$hash_command" --check --status; then
+        warn "$base checksum mismatch; retry to download a fresh image"
+        rm -f "$CACHE/$base.part"
+        return 1
+    fi
     mv "$CACHE/$base.part" "$CACHE/$base"
 }
 
@@ -85,24 +124,52 @@ prepare_one() {
     cidata="$work/cidata.iso"
     console="$work/console.log"
 
-    [[ -f "$disk" ]] || qemu-img create -f qcow2 -F qcow2 -b "$CACHE/$base" "$disk" 60G >/dev/null
-
-    ci="$CI/$distro.yaml"
-    [[ -f "$ci" ]] || { warn "$distro: no cloud-init at $ci"; return 1; }
-
-    tmp="$(mktemp -d)"
-    cp "$ci" "$tmp/user-data"
-    printf "instance-id: vm-%s-%s\nlocal-hostname: %s\n" \
-        "$distro" "$(date +%s)" "$distro" > "$tmp/meta-data"
-    genisoimage -output "$cidata" -volid cidata -joliet -rock \
-        "$tmp/user-data" "$tmp/meta-data" 2>/dev/null
-    rm -rf "$tmp"
-
-    local extra=(
-        -drive file="$disk",if=virtio,format=qcow2
-        -drive file="$cidata",if=virtio,format=raw,readonly=on
-        -boot c
-    )
+    local extra=()
+    if [[ "$base" == *.iso ]]; then
+        [[ -f "$disk" ]] || qemu-img create -f qcow2 "$disk" 60G >/dev/null
+        local firmware_code="${VM_UEFI_CODE:-}" firmware_vars="${VM_UEFI_VARS:-}" candidate
+        if [[ -z "$firmware_code" || -z "$firmware_vars" ]]; then
+            for candidate in /usr/share/edk2/x64 /usr/share/OVMF /usr/share/edk2/ovmf; do
+                if [[ -f "$candidate/OVMF_CODE.4m.fd" && -f "$candidate/OVMF_VARS.4m.fd" ]]; then
+                    firmware_code="$candidate/OVMF_CODE.4m.fd"
+                    firmware_vars="$candidate/OVMF_VARS.4m.fd"
+                    break
+                elif [[ -f "$candidate/OVMF_CODE_4M.fd" && -f "$candidate/OVMF_VARS_4M.fd" ]]; then
+                    firmware_code="$candidate/OVMF_CODE_4M.fd"
+                    firmware_vars="$candidate/OVMF_VARS_4M.fd"
+                    break
+                fi
+            done
+        fi
+        [[ -f "$firmware_code" && -f "$firmware_vars" ]] || {
+            warn "UEFI firmware missing; set VM_UEFI_CODE and VM_UEFI_VARS"; return 1;
+        }
+        [[ -f "$work/OVMF_VARS.fd" ]] || cp "$firmware_vars" "$work/OVMF_VARS.fd"
+        extra=(
+            -machine q35
+            -drive if=pflash,format=raw,readonly=on,file="$firmware_code"
+            -drive if=pflash,format=raw,file="$work/OVMF_VARS.fd"
+            -drive file="$disk",if=virtio,format=qcow2
+            -drive file="$CACHE/$base",media=cdrom,readonly=on
+            -boot order=cd,menu=on
+        )
+    else
+        [[ -f "$disk" ]] || qemu-img create -f qcow2 -F qcow2 -b "$CACHE/$base" "$disk" 60G >/dev/null
+        ci="$CI/$distro.yaml"
+        [[ -f "$ci" ]] || { warn "$distro: no cloud-init at $ci"; return 1; }
+        tmp="$(mktemp -d)"
+        cp "$ci" "$tmp/user-data"
+        printf "instance-id: vm-%s-%s\nlocal-hostname: %s\n" \
+            "$distro" "$(date +%s)" "$distro" > "$tmp/meta-data"
+        genisoimage -output "$cidata" -volid cidata -joliet -rock \
+            "$tmp/user-data" "$tmp/meta-data" 2>/dev/null
+        rm -rf "$tmp"
+        extra=(
+            -drive file="$disk",if=virtio,format=qcow2
+            -drive file="$cidata",if=virtio,format=raw,readonly=on
+            -boot c
+        )
+    fi
 
     QEMU_ARGV=(
         qemu-system-x86_64
@@ -111,10 +178,10 @@ prepare_one() {
         "${extra[@]}"
         -serial file:"$console"
         -virtfs local,path="$REPO",mount_tag=repo,security_model=none,readonly=on
-        -netdev user,id=net0,hostfwd=tcp::"$port"-:22
+        -netdev user,id=net0,hostfwd=tcp:127.0.0.1:"$port"-:22
         -device virtio-net-pci,netdev=net0
-        -device virtio-vga-gl,xres="${VM_XRES:-1920}",yres="${VM_YRES:-1080}"
-        -display "${VM_DISPLAY:-gtk}",gl=on,show-cursor=on
+        -device "${VM_GPU:-virtio-vga-gl}",xres="${VM_XRES:-1920}",yres="${VM_YRES:-1080}"
+        -display "${VM_DISPLAY:-gtk}",gl="${VM_GL:-on}",show-cursor=on
         -qmp unix:"$work/qmp.sock",server,nowait
     )
     return 0
@@ -133,7 +200,7 @@ boot_all() {
         ensure_base "$b" || warn "$b: download failed (distros using it will be skipped)"
     done
 
-    say "booting ${#ORDER[@]} VMs — each opens its own window with the installer UI"
+    say "booting ${#ORDER[@]} VMs — cloud desktops and official ISO installers"
     say "per-VM: ${VM_CPUS:-$DEFAULT_CPUS} vCPU / ${VM_MEM_MIB:-$DEFAULT_MEM} MiB (override VM_CPUS / VM_MEM_MIB)"
 
     local pids=() started=0
@@ -142,7 +209,7 @@ boot_all() {
             warn "skipping $d"
             continue
         fi
-        say "  $d → ssh -p ${PORT[$d]} tester@127.0.0.1 (password tester)"
+        say "  $d → loopback SSH port ${PORT[$d]} (ISO guests require setup)"
         "${QEMU_ARGV[@]}" &
         pids+=("$!")
         started=$((started + 1))
@@ -160,11 +227,12 @@ boot_one() {
     local distro="$1" clean="$2"
     require_tools
     prepare_one "$distro" "$clean" || die "cannot boot $distro"
-    say "booting $distro VM (ssh: ssh -p ${PORT[$distro]} tester@127.0.0.1, password tester)"
-    if [[ "$distro" == "neon" ]]; then
-        say "the installer UI opens from a writable copy; manual path: /home/tester/macos-tahoe-liquid-kde"
+    say "booting $distro VM (loopback SSH port: ${PORT[$distro]})"
+    if [[ "${BASE[$distro]}" == *.iso ]]; then
+        say "install $distro from its official media onto the disposable guest disk; see tests/vm/README.md"
     else
-        say "the installer UI opens automatically; or run cd /home/tester/repo && sudo ./install"
+        say "the installer UI opens from a writable copy; manual path: /home/tester/macos-tahoe-liquid-kde"
+        say "login: tester / tester"
     fi
     exec "${QEMU_ARGV[@]}"
 }

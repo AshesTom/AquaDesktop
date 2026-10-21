@@ -416,10 +416,12 @@ def test_apply_finishes_cycle_and_reconfigure_when_extras_raise(monkeypatch):
     assert any(c[0] == "qdbus" and c[1][0] == "org.kde.KWin" for c in calls)
 
 
-def test_local_extras_switches_libadwaita_gtk4_override(monkeypatch, tmp_path):
+@pytest.mark.parametrize("adaptive", [False, True])
+def test_local_extras_switches_libadwaita_gtk4_override(monkeypatch, tmp_path, adaptive):
     """Modern Nautilus needs GTK's user stylesheet in addition to the GTK
     theme setting, so the project-managed link must track both modes."""
     import theme_switch
+    monkeypatch.setattr(theme_switch, "_gtk4_supports_media_queries", lambda: adaptive)
 
     home = tmp_path / "home"
     home.mkdir()
@@ -449,16 +451,19 @@ def test_local_extras_switches_libadwaita_gtk4_override(monkeypatch, tmp_path):
     theme_switch._apply_local_extras("dark")
 
     assert (dest_root / "gtk.css").is_symlink()
-    assert (dest_root / "gtk.css").readlink().name == "gtk-Dark.css"
+    assert (dest_root / "gtk.css").readlink().name == ("gtk-Adaptive.css" if adaptive else "gtk-Dark.css")
     assert (dest_root / "gtk-Dark.css").read_text() == "/* dark */"
     assert (dest_root / "assets/button.png").read_bytes() == b"Dark"
 
     theme_switch._apply_local_extras("light")
 
     assert (dest_root / "gtk.css").is_symlink()
-    assert (dest_root / "gtk.css").readlink().name == "gtk-Light.css"
+    assert (dest_root / "gtk.css").readlink().name == ("gtk-Adaptive.css" if adaptive else "gtk-Light.css")
     assert (dest_root / "gtk-Light.css").read_text() == "/* light */"
     assert (dest_root / "assets/button.png").read_bytes() == b"Light"
+
+    if adaptive:
+        assert (dest_root / "gtk-Adaptive.css").read_text() == theme_switch.GTK4_ADAPTIVE_CSS
 
 
 def test_local_extras_preserves_user_owned_gtk4_css(monkeypatch, tmp_path):
@@ -546,6 +551,7 @@ def test_local_extras_replaces_kde_generated_light_gtk4_sheet_in_dark_mode(
     """kde-gtk-config expands the light sheet and appends colors.css. That is
     generated state, not user CSS, and must not remain active in dark mode."""
     import theme_switch
+    monkeypatch.setattr(theme_switch, "_gtk4_supports_media_queries", lambda: False)
 
     home = tmp_path / "home"
     for variant, content in (("Light", "LIGHT"), ("Dark", "DARK")):
@@ -2269,3 +2275,20 @@ def test_uninstall_does_not_overwrite_state_retained_by_failed_switcher_cleanup(
     apply_step._record_wallpaper_reset(_wp("file:///usr/share/wallpapers/Next"))
     assert ts._wallpaper_state_file().read_bytes() == before
     assert warnings == ["Wallpaper reset ownership retained: switcher state was not cleared"]
+
+
+def test_scheduled_job_prefers_plasma_bus_over_runtime_socket(tmp_path, monkeypatch):
+    import theme_switch as target
+    import socket
+    monkeypatch.setattr(os, 'environ', {'HOME': str(tmp_path), 'XDG_RUNTIME_DIR': str(tmp_path)})
+    proc = tmp_path / 'proc'
+    process = proc / '123'
+    process.mkdir(parents=True)
+    (process / 'comm').write_text('plasmashell\n')
+    (process / 'environ').write_bytes(b'DBUS_SESSION_BUS_ADDRESS=unix:path=/tmp/plasma-session\0WAYLAND_DISPLAY=wayland-1\0')
+    monkeypatch.setattr(target, '_PROC_ROOT', proc)
+    with socket.socket(socket.AF_UNIX) as bus:
+        bus.bind(str(tmp_path / 'bus'))
+        target._sync_session_env()
+    assert os.environ['DBUS_SESSION_BUS_ADDRESS'] == 'unix:path=/tmp/plasma-session'
+    assert os.environ['WAYLAND_DISPLAY'] == 'wayland-1'

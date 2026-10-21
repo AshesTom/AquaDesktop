@@ -427,14 +427,23 @@ def _sync_session_env() -> bool:
     """Best-effort recovery of the desktop session env for scheduled
     fires. Runtime sockets cover Wayland/DBus, while a same-user plasmashell
     supplies X11/Xauthority. Neither path depends on the host init system."""
+    found = _sync_session_env_from_plasmashell()
     _sync_session_env_runtime_dir()
-    return _sync_session_env_from_plasmashell()
+    return found
+
+
+def _run_qdbus(*args, **kwargs):
+    # The installer imports restore() after dropping only its effective UID.
+    # Qt refuses that setuid-looking process; give the child matching IDs.
+    if os.getuid() != os.geteuid():
+        kwargs.update(user=os.geteuid(), group=os.getegid())
+    return subprocess.run(*args, **kwargs)
 
 
 def _plasmashell_has_owner(qdbus: str) -> bool:
     """Prove the remote name exists before a potentially mutating call."""
     try:
-        result = subprocess.run(
+        result = _run_qdbus(
             [qdbus, "org.freedesktop.DBus", "/org/freedesktop/DBus",
              "org.freedesktop.DBus.NameHasOwner", "org.kde.plasmashell"],
             check=False, capture_output=True, text=True,
@@ -458,7 +467,7 @@ def _evaluate_script(script: str) -> str | None | object:
         if not _plasmashell_has_owner(q):
             return None
         try:
-            res = subprocess.run(
+            res = _run_qdbus(
                 [q, "org.kde.plasmashell", "/PlasmaShell",
                  "org.kde.PlasmaShell.evaluateScript", script],
                 check=False, capture_output=True, text=True,

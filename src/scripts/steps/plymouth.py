@@ -1,5 +1,5 @@
 """Plymouth boot splash: installs the theme to /usr/share/plymouth/themes/
-and activates via ``plymouth-set-default-theme -R`` (rebuilds the initramfs).
+and rebuilds the initramfs through the installed distro tooling.
 Contract: snapshot the previous theme, then validate BEFORE activating."""
 
 import configparser
@@ -10,7 +10,9 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from distro import package_for, plymouth_use_simpledrm, system_lib_dir
+from distro import (
+    package_for, plymouth_activation_commands, plymouth_use_simpledrm, system_lib_dir,
+)
 from steps._helpers import (
     HOME, _as_root, fail, info, ok, offline, sudo_install_tree, sudo_remove, warn,
 )
@@ -26,7 +28,7 @@ PREV_THEME_FILE = STATE_DIR / "plymouth-previous-theme"
 PREV_SIMPLEDRM_NAME = "plymouth-previous-simpledrm.json"
 
 PLYMOUTH_BIN = "plymouth-set-default-theme"
-ACTIVATE_TIMEOUT_SEC = 60
+ACTIVATE_TIMEOUT_SEC = 300
 
 MKINITCPIO_CONF = Path("/etc/mkinitcpio.conf")
 GRUB_DEFAULT = Path("/etc/default/grub")
@@ -253,22 +255,23 @@ def _run_as_root(cmd: list[str], timeout: int) -> subprocess.CompletedProcess:
 
 
 def _activate(theme: str) -> bool:
-    """Set ``theme`` as default AND rebuild the initramfs. -R is mandatory —
-    without it the new images never reach the initrd."""
-    try:
-        res = _run_as_root([PLYMOUTH_BIN, "-R", theme], ACTIVATE_TIMEOUT_SEC)
-    except subprocess.TimeoutExpired:
-        fail(f"{PLYMOUTH_BIN} -R {theme} timed out after {ACTIVATE_TIMEOUT_SEC}s")
-        return False
-    except OSError as exc:
-        fail(f"{PLYMOUTH_BIN}: {exc}")
-        return False
-    if res.returncode != 0:
-        tail = (res.stderr or res.stdout or "").strip().splitlines()[-5:]
-        fail(f"{PLYMOUTH_BIN} -R {theme} failed (exit {res.returncode})")
-        for line in tail:
-            print(f"     \033[2m{line}\033[0m")
-        return False
+    """Set the theme and complete the distro's initramfs rebuild transaction."""
+    for command in plymouth_activation_commands(theme):
+        label = " ".join(command)
+        try:
+            res = _run_as_root(command, ACTIVATE_TIMEOUT_SEC)
+        except subprocess.TimeoutExpired:
+            fail(f"{label} timed out after {ACTIVATE_TIMEOUT_SEC}s")
+            return False
+        except OSError as exc:
+            fail(f"{label}: {exc}")
+            return False
+        if res.returncode != 0:
+            tail = (res.stderr or res.stdout or "").strip().splitlines()[-5:]
+            fail(f"{label} failed (exit {res.returncode})")
+            for line in tail:
+                print(f"     \033[2m{line}\033[0m")
+            return False
     return True
 
 
