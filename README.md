@@ -46,7 +46,7 @@ The desktop and its apps in light and dark mode.
 
 ### Tahoe desktop
 
-The Tahoe desktop in light and dark mode. Files and About This Computer are shown separately, each with its own window focused.
+The Tahoe desktop in light and dark mode.
 
 <p align="center">
   <a href="src/screenshots/showcase_light_4k-73587fb7261c.png"><img src="src/screenshots/showcase_light_4k-73587fb7261c.png" alt="Tahoe light desktop with Files focused" width="415"></a>
