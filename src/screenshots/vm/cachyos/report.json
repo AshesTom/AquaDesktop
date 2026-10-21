@@ -1,0 +1,1190 @@
+{
+  "release": "v0.57.4",
+  "tested_source_commit": "33e55f01066d2c95a1e85256792fc877e9a3467c",
+  "result": {
+    "distro": "cachyos",
+    "started": "2026-10-21T04:43:08.491009+00:00",
+    "status": "pass",
+    "phases": [
+      {
+        "name": "prepare",
+        "started": "2026-10-21T04:43:08.685444+00:00",
+        "finished": "2026-10-21T04:43:09.916062+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "baseline",
+        "started": "2026-10-21T04:43:09.916187+00:00",
+        "finished": "2026-10-21T04:43:10.279634+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-profile",
+        "started": "2026-10-21T04:43:10.483420+00:00",
+        "finished": "2026-10-21T04:43:12.761332+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "resolution",
+        "started": "2026-10-21T04:43:12.761594+00:00",
+        "finished": "2026-10-21T04:43:13.056281+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "install",
+        "started": "2026-10-21T04:43:13.056418+00:00",
+        "finished": "2026-10-21T04:44:50.802914+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark",
+        "started": "2026-10-21T04:44:50.803162+00:00",
+        "finished": "2026-10-21T04:44:51.175438+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-dark",
+        "started": "2026-10-21T04:44:51.348074+00:00",
+        "finished": "2026-10-21T04:45:00.183927+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark-capture",
+        "started": "2026-10-21T04:45:00.362240+00:00",
+        "finished": "2026-10-21T04:45:03.023632+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "switch-light",
+        "started": "2026-10-21T04:45:03.343962+00:00",
+        "finished": "2026-10-21T04:45:07.856446+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "light",
+        "started": "2026-10-21T04:45:07.856601+00:00",
+        "finished": "2026-10-21T04:45:08.218236+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-light",
+        "started": "2026-10-21T04:45:08.390297+00:00",
+        "finished": "2026-10-21T04:45:14.833726+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "light-capture",
+        "started": "2026-10-21T04:45:15.010019+00:00",
+        "finished": "2026-10-21T04:45:17.634742+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "switch-dark",
+        "started": "2026-10-21T04:45:17.928416+00:00",
+        "finished": "2026-10-21T04:45:22.420977+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark-again",
+        "started": "2026-10-21T04:45:22.421126+00:00",
+        "finished": "2026-10-21T04:45:22.767188+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-dark-again",
+        "started": "2026-10-21T04:45:22.954750+00:00",
+        "finished": "2026-10-21T04:45:29.411353+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "reboot",
+        "started": "2026-10-21T04:45:57.794392+00:00",
+        "finished": "2026-10-21T04:45:58.173560+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-reboot",
+        "started": "2026-10-21T04:45:58.355919+00:00",
+        "finished": "2026-10-21T04:46:06.294198+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "reboot-capture",
+        "started": "2026-10-21T04:46:06.467695+00:00",
+        "finished": "2026-10-21T04:46:09.083097+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstall",
+        "started": "2026-10-21T04:46:09.367792+00:00",
+        "finished": "2026-10-21T04:46:39.318091+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstalled",
+        "started": "2026-10-21T04:46:39.318246+00:00",
+        "finished": "2026-10-21T04:46:39.606307+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstalled-capture",
+        "started": "2026-10-21T04:46:39.784722+00:00",
+        "finished": "2026-10-21T04:46:42.317561+00:00",
+        "exit_code": 0
+      }
+    ],
+    "finished": "2026-10-21T04:46:42.541655+00:00"
+  },
+  "images": {
+    "light": {
+      "filename": "light-34d9c45c3a52.png",
+      "sha256": "34d9c45c3a52fff966ab148319811749974a89c14ea317dd3e94b1d4d33855f8"
+    },
+    "dark": {
+      "filename": "dark-6dcf101c30cf.png",
+      "sha256": "6dcf101c30cf921b6b7aaff554c35eb43fa233aff1cc51a4e38d557b72e4c6d6"
+    },
+    "reboot": {
+      "filename": "reboot-bc01b2bc88bb.png",
+      "sha256": "bc01b2bc88bbf871db3b23e2f49d60b9e04af1d25b07edb6095be9888e072191"
+    }
+  },
+  "checks": {
+    "baseline": {
+      "mode": "baseline",
+      "expected_distro": "cachyos",
+      "timestamp": "2026-10-21T04:43:09.625790+00:00",
+      "distro": "cachyos",
+      "os_release": "NAME=\"CachyOS Linux\"\nPRETTY_NAME=\"CachyOS\"\nID=cachyos\nID_LIKE=arch\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://cachyos.org/\"\nDOCUMENTATION_URL=\"https://wiki.cachyos.org/\"\nSUPPORT_URL=\"https://discuss.cachyos.org/\"\nBUG_REPORT_URL=\"https://github.com/cachyos\"\nPRIVACY_POLICY_URL=\"https://terms.archlinux.org/docs/privacy-policy/\"\nLOGO=cachyos\n",
+      "kernel": "7.2.10-1-cachyos",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "521",
+      "compositor_pid": "512",
+      "panels": [
+        {
+          "id": 23,
+          "location": "bottom",
+          "hiding": "none",
+          "widgets": [
+            "org.kde.plasma.kickoff",
+            "org.kde.plasma.pager",
+            "org.kde.plasma.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.digitalclock",
+            "org.kde.plasma.showdesktop"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "blur",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "squash",
+        "scale",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "50c50eb0-5f6d-408c-af7b-5e4bba5b619e",
+      "original_gtk_profile_saved": true,
+      "status": "pass"
+    },
+    "dark": {
+      "mode": "dark",
+      "expected_distro": "cachyos",
+      "timestamp": "2026-10-21T04:44:51.003765+00:00",
+      "distro": "cachyos",
+      "os_release": "NAME=\"CachyOS Linux\"\nPRETTY_NAME=\"CachyOS\"\nID=cachyos\nID_LIKE=arch\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://cachyos.org/\"\nDOCUMENTATION_URL=\"https://wiki.cachyos.org/\"\nSUPPORT_URL=\"https://discuss.cachyos.org/\"\nBUG_REPORT_URL=\"https://github.com/cachyos\"\nPRIVACY_POLICY_URL=\"https://terms.archlinux.org/docs/privacy-policy/\"\nLOGO=cachyos\n",
+      "kernel": "7.2.10-1-cachyos",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "14776",
+      "compositor_pid": "512",
+      "panels": [
+        {
+          "id": 44,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 64,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "squash",
+        "scale",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "50c50eb0-5f6d-408c-af7b-5e4bba5b619e",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T22:43:12-06:00",
+        "finished_at": "2026-10-20T22:44:50-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-dark": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "15000"
+        ],
+        "nautilus": [
+          "15001"
+        ],
+        "dolphin": [
+          "15002"
+        ],
+        "konsole": [
+          "15003"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 743,
+            "y": 996,
+            "width": 434,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "dark-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 42.0,
+      "matching_fraction": 1.0
+    },
+    "light": {
+      "mode": "light",
+      "expected_distro": "cachyos",
+      "timestamp": "2026-10-21T04:45:08.062346+00:00",
+      "distro": "cachyos",
+      "os_release": "NAME=\"CachyOS Linux\"\nPRETTY_NAME=\"CachyOS\"\nID=cachyos\nID_LIKE=arch\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://cachyos.org/\"\nDOCUMENTATION_URL=\"https://wiki.cachyos.org/\"\nSUPPORT_URL=\"https://discuss.cachyos.org/\"\nBUG_REPORT_URL=\"https://github.com/cachyos\"\nPRIVACY_POLICY_URL=\"https://terms.archlinux.org/docs/privacy-policy/\"\nLOGO=cachyos\n",
+      "kernel": "7.2.10-1-cachyos",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "14776",
+      "compositor_pid": "512",
+      "panels": [
+        {
+          "id": 44,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 64,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "squash",
+        "scale",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "50c50eb0-5f6d-408c-af7b-5e4bba5b619e",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Light",
+        "Qt": "MacTahoeLiquidKdeLight",
+        "Kvantum": "mac-tahoe-liquid-kde",
+        "GTK preference": "'prefer-light'",
+        "GTK theme": "'MacTahoeLiquidKde-Light'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T22:43:12-06:00",
+        "finished_at": "2026-10-20T22:44:50-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-light": {
+      "mode": "light",
+      "status": "pass",
+      "firefox": {
+        "dark": false,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "15000"
+        ],
+        "nautilus": [
+          "15001"
+        ],
+        "dolphin": [
+          "15002"
+        ],
+        "konsole": [
+          "15003"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 743,
+            "y": 996,
+            "width": 434,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "light-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 244.99999999999997,
+      "matching_fraction": 1.0
+    },
+    "dark-again": {
+      "mode": "dark",
+      "expected_distro": "cachyos",
+      "timestamp": "2026-10-21T04:45:22.616423+00:00",
+      "distro": "cachyos",
+      "os_release": "NAME=\"CachyOS Linux\"\nPRETTY_NAME=\"CachyOS\"\nID=cachyos\nID_LIKE=arch\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://cachyos.org/\"\nDOCUMENTATION_URL=\"https://wiki.cachyos.org/\"\nSUPPORT_URL=\"https://discuss.cachyos.org/\"\nBUG_REPORT_URL=\"https://github.com/cachyos\"\nPRIVACY_POLICY_URL=\"https://terms.archlinux.org/docs/privacy-policy/\"\nLOGO=cachyos\n",
+      "kernel": "7.2.10-1-cachyos",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "14776",
+      "compositor_pid": "512",
+      "panels": [
+        {
+          "id": 44,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 64,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "squash",
+        "scale",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "50c50eb0-5f6d-408c-af7b-5e4bba5b619e",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T22:43:12-06:00",
+        "finished_at": "2026-10-20T22:44:50-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-dark-again": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "15000"
+        ],
+        "nautilus": [
+          "15001"
+        ],
+        "dolphin": [
+          "15002"
+        ],
+        "konsole": [
+          "15003"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 743,
+            "y": 996,
+            "width": 434,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "reboot": {
+      "mode": "dark",
+      "expected_distro": "cachyos",
+      "timestamp": "2026-10-21T04:45:59.219749+00:00",
+      "distro": "cachyos",
+      "os_release": "NAME=\"CachyOS Linux\"\nPRETTY_NAME=\"CachyOS\"\nID=cachyos\nID_LIKE=arch\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://cachyos.org/\"\nDOCUMENTATION_URL=\"https://wiki.cachyos.org/\"\nSUPPORT_URL=\"https://discuss.cachyos.org/\"\nBUG_REPORT_URL=\"https://github.com/cachyos\"\nPRIVACY_POLICY_URL=\"https://terms.archlinux.org/docs/privacy-policy/\"\nLOGO=cachyos\n",
+      "kernel": "7.2.10-1-cachyos",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "521",
+      "compositor_pid": "512",
+      "panels": [
+        {
+          "id": 44,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 64,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "squash",
+        "scale",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "36923bc1-6058-4db1-9033-a0519beea4bf",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T22:43:12-06:00",
+        "finished_at": "2026-10-20T22:44:50-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-reboot": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "1349"
+        ],
+        "nautilus": [
+          "1350"
+        ],
+        "dolphin": [
+          "1351"
+        ],
+        "konsole": [
+          "1352"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 743,
+            "y": 996,
+            "width": 434,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "reboot-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 42.0,
+      "matching_fraction": 1.0
+    },
+    "uninstalled": {
+      "mode": "uninstalled",
+      "expected_distro": "cachyos",
+      "timestamp": "2026-10-21T04:46:39.513571+00:00",
+      "distro": "cachyos",
+      "os_release": "NAME=\"CachyOS Linux\"\nPRETTY_NAME=\"CachyOS\"\nID=cachyos\nID_LIKE=arch\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://cachyos.org/\"\nDOCUMENTATION_URL=\"https://wiki.cachyos.org/\"\nSUPPORT_URL=\"https://discuss.cachyos.org/\"\nBUG_REPORT_URL=\"https://github.com/cachyos\"\nPRIVACY_POLICY_URL=\"https://terms.archlinux.org/docs/privacy-policy/\"\nLOGO=cachyos\n",
+      "kernel": "7.2.10-1-cachyos",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "11222",
+      "compositor_pid": "512",
+      "panels": [
+        {
+          "id": 72,
+          "location": "bottom",
+          "hiding": "none",
+          "widgets": [
+            "org.kde.plasma.kickoff",
+            "org.kde.plasma.pager",
+            "org.kde.plasma.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.digitalclock",
+            "org.kde.plasma.showdesktop"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "squash",
+        "scale",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "36923bc1-6058-4db1-9033-a0519beea4bf",
+      "original_gtk_profile_saved": true,
+      "last_run": {
+        "script": "uninstall",
+        "argv": [],
+        "command": "./uninstall",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "auto",
+        "status": "completed",
+        "started_at": "2026-10-20T22:46:10-06:00",
+        "finished_at": "2026-10-20T22:46:39-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    }
+  }
+}

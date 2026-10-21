@@ -1463,3 +1463,30 @@ def test_cli_export_env_publishes_one_shot_update_actions(monkeypatch):
                     "_reset_wallpapers": True})
     assert os.environ["MTTKDE_EXISTING_INSTALL"] == "true"
     assert os.environ["MTTKDE_RESET_WALLPAPERS"] == "true"
+
+
+def test_scheduled_job_prefers_plasma_bus_over_runtime_socket(tmp_path, monkeypatch):
+    import oled_care as target
+    import socket
+    monkeypatch.setattr(os, 'environ', {'HOME': str(tmp_path), 'XDG_RUNTIME_DIR': str(tmp_path)})
+    proc = tmp_path / 'proc'
+    process = proc / '123'
+    process.mkdir(parents=True)
+    (process / 'comm').write_text('plasmashell\n')
+    (process / 'environ').write_bytes(b'DBUS_SESSION_BUS_ADDRESS=unix:path=/tmp/plasma-session\0WAYLAND_DISPLAY=wayland-1\0')
+    monkeypatch.setattr(target, '_PROC_ROOT', proc)
+    with socket.socket(socket.AF_UNIX) as bus:
+        bus.bind(str(tmp_path / 'bus'))
+        target._sync_session_env()
+    assert os.environ['DBUS_SESSION_BUS_ADDRESS'] == 'unix:path=/tmp/plasma-session'
+    assert os.environ['WAYLAND_DISPLAY'] == 'wayland-1'
+
+
+def test_qt_child_gets_matching_ids_during_installer_restore(monkeypatch):
+    monkeypatch.setattr(oled_care.os, 'getuid', lambda: 0)
+    monkeypatch.setattr(oled_care.os, 'geteuid', lambda: 1000)
+    monkeypatch.setattr(oled_care.os, 'getegid', lambda: 1000)
+    calls = []
+    monkeypatch.setattr(oled_care.subprocess, 'run', lambda *a, **k: calls.append(k))
+    oled_care._run_qdbus(['qdbus6'], check=False)
+    assert calls == [{'check': False, 'user': 1000, 'group': 1000}]

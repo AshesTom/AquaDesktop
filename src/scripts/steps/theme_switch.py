@@ -222,14 +222,23 @@ def deps():
 
 
 def _install_units() -> bool:
+    # A persistent timer can run immediately when started. Keep both launch
+    # paths stopped until install has recorded its initial wallpaper choice.
+    if not _teardown_units():
+        return False
     for u in UNITS:
         src = offline(u)
         if src.is_file():
             shutil.copy2(src, SVC_DIR / u)
     results = [_user_service("daemon-reload")]
-    for verb in ("enable", "start"):
-        results.append(_user_service(verb, *UNITS))
+    results.append(_user_service("enable", *UNITS))
     return all(results)
+
+
+def start_schedule() -> None:
+    if theme_mode() == "auto" and is_systemd():
+        if not _user_service("start", UNITS[1]):
+            warn("Theme switch: user timer could not be started")
 
 
 def _teardown_units(units=UNITS) -> bool:

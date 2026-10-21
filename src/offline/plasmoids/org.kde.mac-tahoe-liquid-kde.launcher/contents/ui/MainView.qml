@@ -13,6 +13,8 @@ import "js/colorType.js" as ColorType
 
 Item {
 	id: main
+	readonly property bool goldenGateEdition: false
+	readonly property bool goldenGateLight: goldenGateEdition && !isDarkTheme
 	property string searchText: ""
 	readonly property bool searching: searchText !== ""
 	readonly property var searchBar: detachedSearch ? detachedSearchBar : inlineSearchBar
@@ -22,7 +24,19 @@ Item {
 	readonly property real searchPopupGap: Kirigami.Units.gridUnit * 0.75
 	readonly property real categoryHeight: detachedSearch ? Kirigami.Units.gridUnit * 16 / 9 : 40
 	readonly property real gridTopSpacing: detachedSearch ? Kirigami.Units.gridUnit * 16 / 9 : 0
-	readonly property bool searchPopupActive: searchPopup.visible && searchPopup.hasFocus
+	// QWindow.active also includes transient parents/siblings, such as the panel.
+	readonly property bool popupHasFocus: {
+		var window = searchPopup.focusWindow;
+		while (window) {
+			if (window === root || (searchPopup.visible && window === searchPopup)) {
+				return true;
+			}
+			// Include our context menus, but never the panel or its other popups.
+			window = window.transientParent;
+		}
+		return false;
+	}
+	onPopupHasFocusChanged: root.checkDismissal()
 	readonly property bool menuOpen: searchBar.menuOpen
 
 	function focusSearch() {
@@ -62,7 +76,6 @@ Item {
 		hideOnWindowDeactivate: false
 		width: root.width * 0.617
 		height: Kirigami.Units.iconSizes.huge * 1.625
-		onHasFocusChanged: root.checkDismissal()
 
 		mainItem: FocusScope {
 			id: detachedSearchSlot
@@ -79,7 +92,7 @@ Item {
 	Item {
 		id: glassPalette
 		Kirigami.Theme.inherit: false
-		Kirigami.Theme.colorSet: Kirigami.Theme.Complementary
+		Kirigami.Theme.colorSet: Kirigami.Theme.Window
 	}
 	readonly property color textColor: glassPalette.Kirigami.Theme.textColor
 	readonly property string textFont: Kirigami.Theme.defaultFont.family

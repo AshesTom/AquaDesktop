@@ -4,6 +4,9 @@ import os
 import signal
 import subprocess
 
+import distro
+import pytest
+
 from steps import portals
 
 
@@ -54,3 +57,12 @@ def test_openrc_portals_terminate_only_same_user_managed_processes(
     portals._bounce_services()
 
     assert killed == [(101, signal.SIGTERM)]
+
+
+@pytest.mark.parametrize("family", ["arch", "debian", "ubuntu", "fedora", "rhel", "centos", "opensuse"])
+def test_settings_route_installs_its_backend(monkeypatch, family):
+    monkeypatch.setattr(distro, "current_distro", lambda: family)
+    monkeypatch.setattr(distro, "distro_id_like", lambda: ())
+    assert "org.freedesktop.impl.portal.Settings=gtk" in portals.ROUTING
+    packages = [distro.package_for(*token.split(":", 1)) for token in portals.deps()]
+    assert "xdg-desktop-portal-gtk" in packages

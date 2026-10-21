@@ -1094,6 +1094,7 @@ def _run_install_body(feat: dict[str, object]) -> int:
             step("Retrying Layout")
             note("Retries the panel layout after Plasma reloads new plasmoids")
             run_phase("layout", "install")
+        run_phase("theme_switch", "start_schedule")
     else:
         step("Skipping Activation")
         note("--no-apply-theme: files installed but Plasma left untouched. "

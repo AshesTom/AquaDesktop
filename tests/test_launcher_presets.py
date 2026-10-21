@@ -17,13 +17,15 @@ from steps import plasmoids
 
 
 @pytest.mark.parametrize("preset", [1, 2])
+@pytest.mark.parametrize("wallpaper", ["MacTahoe", "MacGoldenGate"])
 def test_installed_launcher_uses_edition_default_without_changing_source(
-        repo, tmp_path, monkeypatch, preset):
+        repo, tmp_path, monkeypatch, preset, wallpaper):
     defaults = tmp_path / "defaults.json"
-    defaults.write_text(json.dumps({"launcher_preset": preset}))
+    defaults.write_text(json.dumps({"launcher_preset": preset, "wallpaper": wallpaper}))
     monkeypatch.setattr(launcher_defaults, "DEFAULTS_FILE", defaults)
     widget = repo / "src/offline/plasmoids" / launcher_defaults.LAUNCHER_ID
     original = (widget / "contents/config/main.xml").read_bytes()
+    original_view = (widget / "contents/ui/MainView.qml").read_bytes()
     monkeypatch.setattr(plasmoids, "DEST_DIR", tmp_path / "installed")
 
     def install_tree(source, destination, label):
@@ -38,6 +40,10 @@ def test_installed_launcher_uses_edition_default_without_changing_source(
     assert root.find(".//k:entry[@name='defaultLauncherPreset']/k:default", ns).text == str(preset)
     assert root.find(".//k:entry[@name='launcherPreset']/k:default", ns).text == "0"
     assert (widget / "contents/config/main.xml").read_bytes() == original
+    view = installed.parent.parent / "ui/MainView.qml"
+    golden_gate = str(wallpaper == "MacGoldenGate").lower()
+    assert f"readonly property bool goldenGateEdition: {golden_gate}" in view.read_text()
+    assert (widget / "contents/ui/MainView.qml").read_bytes() == original_view
 
 
 @pytest.mark.parametrize("raw", ["{}", "[]", "{", '{"launcher_preset":true}',
@@ -117,7 +123,8 @@ def launcher_popup_module(repo, tmp_path_factory):
 
 @pytest.mark.parametrize("preset", [1, 2])
 @pytest.mark.parametrize("mode", ["Light", "Dark"])
-def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_popup_module, preset, mode):
+@pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate"])
+def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_popup_module, preset, mode, edition):
     for tool in ("plasmoidviewer", "Xvfb", "dbus-run-session", "xprop"):
         if not shutil.which(tool):
             pytest.skip(f"{tool} required for the isolated launcher preview")
@@ -140,6 +147,9 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
     shutil.copy2(repo / f"src/offline/color-schemes/MacTahoeLiquidKde{mode}.colors",
                  tmp_path / "config/kdeglobals")
     monkeypatch.setattr(launcher_defaults, "default_launcher_preset", lambda: preset)
+    defaults = tmp_path / "defaults.json"
+    defaults.write_text(json.dumps({"wallpaper": edition}))
+    monkeypatch.setattr(launcher_defaults, "DEFAULTS_FILE", defaults)
     launcher_defaults.apply_launcher_default(package)
     ui = package / "contents/ui"
     entry = ui / "main.qml"
@@ -159,10 +169,17 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
     main = ui / "MainView.qml"
     source = main.read_text()
     end = source.rfind("}")
-    main.write_text(source[:end] + f"LauncherPresetProbe {{ expectedPreset: {preset} }}\n" + source[end:])
+    golden_gate = str(edition == "MacGoldenGate").lower()
+    dark = str(mode == "Dark").lower()
+    main.write_text(source[:end] + f"LauncherPresetProbe {{ expectedPreset: {preset}; "
+                    f"expectedGoldenGate: {golden_gate}; expectedDark: {dark} }}\n" + source[end:])
     for name, original, replacement in (
-        ("MenuButton.qml", "Item {", "Item { property alias testMenu: contextMenu"),
+        ("AllAppsList.qml", "ColumnLayout {", "ColumnLayout { property alias testCategories: categorySwitcher"),
+        ("AppCategorySwitcher.qml", "Item {", "Item { property alias testView: categorySwitcher"),
+        ("AppGridViewDelegate.qml", "Item {", "Item { property alias testActionMenu: actionMenu"),
+        ("MenuButton.qml", "Item {", "Item { property alias testMenu: contextMenu; property alias testButton: button"),
         ("SearchBar.qml", "RowLayout {", "RowLayout { property alias testMenuButton: menuButton"),
+        ("CategoryPill.qml", "Item {", "Item { property alias testBackground: pillBg"),
     ):
         path = ui / name
         path.write_text(path.read_text().replace(original, replacement, 1))

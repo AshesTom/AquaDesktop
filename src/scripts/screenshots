@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the README screenshots for plasmoids on this machine.
+"""Generate README plasmoid screenshots inside a disposable VM.
 
 Targets:
     about     — AboutWindow ("System Information")
@@ -8,7 +8,7 @@ Targets:
 
 For each, captures both the ``_v2`` (light) and ``_dark_v2`` variant
 into ``src/screenshots/``. The active theme is restored at exit so the
-maintainer's running session is left as it was found.
+guest session is left as it was found.
 
 Mock data:
     The About panel uses ``MAC_TAHOE_ABOUT_MOCK=1`` against the helper
@@ -48,6 +48,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from paths import REPO_ROOT
+from screenshot_checks import require_virtual_machine, wait_for_session
 
 
 SCREENSHOTS_DIR = REPO_ROOT / "src/screenshots"
@@ -77,10 +78,9 @@ def _switch_theme(mode: str) -> None:
     if not THEME_SWITCH.is_file():
         sys.exit(f"theme switch not installed: {THEME_SWITCH}\n"
                  f"run ./install first")
-    subprocess.run([str(THEME_SWITCH), mode], check=False, timeout=20)
-    # Theme switch is mostly synchronous, but Plasma needs a beat to
-    # re-render the active windows.
-    time.sleep(0.8)
+    subprocess.run([str(THEME_SWITCH), mode], check=True, timeout=45)
+    # GTK can settle after Plasma; reject partial transitions.
+    wait_for_session(mode)
 
 
 # ── capture primitives ──────────────────────────────────────────────────
@@ -184,6 +184,7 @@ def shoot_about(theme: str) -> Path:
     proc = _spawn(["qml6", str(PREVIEW_QML)], readiness=True)
     try:
         _wait_ready(proc)
+        wait_for_session(theme)
         _spectacle_activewindow(out)
     finally:
         _kill_group(proc)
@@ -201,6 +202,7 @@ def shoot_launcher(theme: str) -> Path:
     proc = _spawn(["plasma-windowed", LAUNCHER_ID])
     try:
         time.sleep(1.4)
+        wait_for_session(theme)
         _spectacle_activewindow(out)
     finally:
         _kill_group(proc)
@@ -231,6 +233,8 @@ def main(argv: list[str]) -> int:
         help="Capture only one variant, or both (default).",
     )
     args = parser.parse_args(argv)
+
+    require_virtual_machine()
 
     if not shutil.which("spectacle"):
         sys.exit("spectacle not found — install kde-spectacle")

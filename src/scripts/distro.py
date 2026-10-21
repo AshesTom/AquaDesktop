@@ -104,6 +104,23 @@ def plymouth_use_simpledrm() -> bool:
     return "fedora" not in family
 
 
+def plymouth_activation_commands(theme: str) -> list[list[str]]:
+    """Select the theme and rebuild the images used by the installed OS.
+
+    Arch's Plymouth helper hardcodes mkinitcpio. Its dracut derivatives
+    provide wrappers that also know their kernel-install/bootloader layout.
+    Keep those wrappers instead of installing a second initramfs generator.
+    """
+    family = (current_distro(), *_compatibility_parents())
+    if "arch" in family and not shutil.which("mkinitcpio") and shutil.which("dracut"):
+        for helper in ("reinstall-kernels", "dracut-rebuild"):
+            if shutil.which(helper):
+                return [["plymouth-set-default-theme", theme], [helper]]
+        return [["plymouth-set-default-theme", theme],
+                ["dracut", "--regenerate-all", "--force"]]
+    return [["plymouth-set-default-theme", "-R", theme]]
+
+
 def is_debian_family() -> bool:
     """True on Debian, Ubuntu, or a distro whose ID_LIKE chain includes
     one of them (e.g. KDE neon) — the only per-distro-family predicate
@@ -412,6 +429,14 @@ def system_lib_dir() -> Path:
     return parent
 
 
+def global_menu_exporter_deps() -> list[str]:
+    """GTK's optional exporter is not packaged in every supported family."""
+    family = {current_distro(), *_compatibility_parents()}
+    if family & {"arch", "debian", "ubuntu", "neon"}:
+        return ["gtk3-appmenu:appmenu-gtk-module"]
+    return []
+
+
 def gtk3_appmenu_module() -> Path | None:
     """Find the installed native GTK3 appmenu module without loading it.
 
@@ -447,6 +472,34 @@ def gtk3_appmenu_module() -> Path | None:
 # is portable.
 
 _PACKAGE_MAP: dict[str, dict[str, str]] = {
+    "dbusmenu-glib": {
+        "arch": "libdbusmenu-glib", "debian": "libdbusmenu-glib4",
+        "ubuntu": "libdbusmenu-glib4", "fedora": "libdbusmenu",
+        "rhel": "libdbusmenu", "centos": "libdbusmenu",
+        "opensuse": "libdbusmenu-glib4",
+    },
+    "gtk3-appmenu": {
+        "arch": "appmenu-gtk-module", "debian": "appmenu-gtk3-module",
+        "ubuntu": "appmenu-gtk3-module",
+    },
+    "xdg-desktop-portal-gtk": {
+        "arch": "xdg-desktop-portal-gtk",
+        "debian": "xdg-desktop-portal-gtk",
+        "ubuntu": "xdg-desktop-portal-gtk",
+        "fedora": "xdg-desktop-portal-gtk",
+        "rhel": "xdg-desktop-portal-gtk",
+        "centos": "xdg-desktop-portal-gtk",
+        "opensuse": "xdg-desktop-portal-gtk",
+    },
+    "kde-gtk-config": {
+        "arch":     "kde-gtk-config",
+        "debian":   "kde-config-gtk-style",
+        "ubuntu":   "kde-config-gtk-style",
+        "fedora":   "kde-gtk-config",
+        "rhel":     "kde-gtk-config",
+        "centos":   "kde-gtk-config",
+        "opensuse": "kde-gtk-config6",
+    },
     # Base/runtime tools whose package names are not portable even when the
     # executable name is. Keep identity mappings explicit so a newly-added
     # token cannot silently leak its Arch fallback to dnf/zypper.
@@ -740,7 +793,7 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "fedora":   "qt6-qtwayland-devel",
         "rhel":     "qt6-qtwayland-devel",
         "centos":   "qt6-qtwayland-devel",
-        "opensuse": "qt6-wayland-devel",
+        "opensuse": "qt6-waylandclient-devel",
         "alpine":   "qt6-qtwayland-dev",
         "void":     "qt6-wayland-devel",
     },
@@ -1221,8 +1274,10 @@ def package_for(cmd: str, fallback_pkg: str | None = None) -> str:
 _PACKAGE_MANAGER_INSTALL: dict[str, list[str]] = {
     # Root, NON-INTERACTIVE — every entry carries its assume-yes flag.
     "arch":     ["pacman", "-S", "--noconfirm", "--needed"],
-    "debian":   ["apt-get", "install", "-y"],
-    "ubuntu":   ["apt-get", "install", "-y"],
+    # Nautilus recommends a GNOME session and display manager on Debian.
+    # Install declared dependencies without replacing the user's KDE login.
+    "debian":   ["apt-get", "install", "-y", "--no-install-recommends"],
+    "ubuntu":   ["apt-get", "install", "-y", "--no-install-recommends"],
     "fedora":   ["dnf", "install", "-y"],
     "rhel":     ["dnf", "install", "-y"],
     "centos":   ["dnf", "install", "-y"],
@@ -1309,6 +1364,23 @@ def _package_version_query_builder():
 def package_installed(pkg: str) -> bool:
     """True when the package manager reports ``pkg`` installed; False
     when the distro has no query builder (caller just attempts install)."""
+    if is_debian_family():
+        # dpkg retains version metadata for removed packages with config
+        # files left behind, and for unpacked but unconfigured packages.
+        architecture = pkg.rpartition(":")[2] if ":" in pkg else _run_query([
+            "dpkg", "--print-architecture",
+        ])
+        if not architecture:
+            return False
+        statuses = _run_query([
+            "dpkg-query", "-W", "-f=${Architecture}\t${db:Status-Status}\n", pkg,
+        ])
+        # An unqualified name can return several architectures. A foreign
+        # package must not hide a missing native dependency (or vice versa).
+        return any(
+            line in (f"{architecture}\tinstalled", "all\tinstalled")
+            for line in (statuses or "").splitlines()
+        )
     build_cmd = _package_version_query_builder()
     if build_cmd is None:
         return False

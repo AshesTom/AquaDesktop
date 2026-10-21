@@ -1,0 +1,1208 @@
+{
+  "release": "v0.57.9",
+  "tested_source_commit": "bdbdcdb68f81ad5df396d61520af8efcdb98c00f",
+  "result": {
+    "distro": "endeavouros",
+    "started": "2026-10-21T05:12:25.221619+00:00",
+    "status": "pass",
+    "phases": [
+      {
+        "name": "prepare",
+        "started": "2026-10-21T05:12:46.450652+00:00",
+        "finished": "2026-10-21T05:12:57.533834+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "baseline",
+        "started": "2026-10-21T05:12:57.534030+00:00",
+        "finished": "2026-10-21T05:12:58.320840+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "screen-unlocked",
+        "started": "2026-10-21T05:12:58.498564+00:00",
+        "finished": "2026-10-21T05:12:58.815924+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-profile",
+        "started": "2026-10-21T05:12:58.816107+00:00",
+        "finished": "2026-10-21T05:13:01.598277+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "resolution",
+        "started": "2026-10-21T05:13:01.598507+00:00",
+        "finished": "2026-10-21T05:13:02.711669+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "install",
+        "started": "2026-10-21T05:13:02.712045+00:00",
+        "finished": "2026-10-21T05:15:02.455706+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark",
+        "started": "2026-10-21T05:15:02.456064+00:00",
+        "finished": "2026-10-21T05:15:02.891423+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-dark",
+        "started": "2026-10-21T05:15:03.053030+00:00",
+        "finished": "2026-10-21T05:15:13.129514+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark-capture",
+        "started": "2026-10-21T05:15:13.310952+00:00",
+        "finished": "2026-10-21T05:15:16.243436+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "switch-light",
+        "started": "2026-10-21T05:15:16.577327+00:00",
+        "finished": "2026-10-21T05:15:22.690405+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "light",
+        "started": "2026-10-21T05:15:22.690658+00:00",
+        "finished": "2026-10-21T05:15:23.240587+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-light",
+        "started": "2026-10-21T05:15:23.426629+00:00",
+        "finished": "2026-10-21T05:15:29.925777+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "light-capture",
+        "started": "2026-10-21T05:15:30.084570+00:00",
+        "finished": "2026-10-21T05:15:32.938588+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "switch-dark",
+        "started": "2026-10-21T05:15:33.230459+00:00",
+        "finished": "2026-10-21T05:15:39.159000+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark-again",
+        "started": "2026-10-21T05:15:39.159149+00:00",
+        "finished": "2026-10-21T05:15:39.541627+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-dark-again",
+        "started": "2026-10-21T05:15:39.714643+00:00",
+        "finished": "2026-10-21T05:15:46.188712+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "reboot",
+        "started": "2026-10-21T05:16:24.413495+00:00",
+        "finished": "2026-10-21T05:16:24.803049+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-reboot",
+        "started": "2026-10-21T05:16:24.951235+00:00",
+        "finished": "2026-10-21T05:16:34.283218+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "reboot-capture",
+        "started": "2026-10-21T05:16:34.451551+00:00",
+        "finished": "2026-10-21T05:16:37.671192+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstall",
+        "started": "2026-10-21T05:16:37.942223+00:00",
+        "finished": "2026-10-21T05:17:22.959547+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstalled",
+        "started": "2026-10-21T05:17:22.959699+00:00",
+        "finished": "2026-10-21T05:17:23.246114+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstalled-capture",
+        "started": "2026-10-21T05:17:23.394060+00:00",
+        "finished": "2026-10-21T05:17:26.222909+00:00",
+        "exit_code": 0
+      }
+    ],
+    "finished": "2026-10-21T05:17:26.445166+00:00"
+  },
+  "images": {
+    "light": {
+      "filename": "light-3839fb64ce80.png",
+      "sha256": "3839fb64ce80f1678cc6cb5e1af6d5254920a2762a6481ef705e3ac89fc638e9"
+    },
+    "dark": {
+      "filename": "dark-14a5b3a23a69.png",
+      "sha256": "14a5b3a23a690522714c48316babc5050392488a40e63ca2d0b8a5ce767d4b9d"
+    },
+    "reboot": {
+      "filename": "reboot-94573a3b415e.png",
+      "sha256": "94573a3b415ecd6b735eb1ad45fba34f48c27d5073f8c6f91bfbc1b809aed63d"
+    }
+  },
+  "checks": {
+    "baseline": {
+      "mode": "baseline",
+      "expected_distro": "endeavouros",
+      "timestamp": "2026-10-21T05:12:57.286584+00:00",
+      "distro": "endeavouros",
+      "os_release": "NAME=\"EndeavourOS\"\nPRETTY_NAME=\"EndeavourOS\"\nID=\"endeavouros\"\nID_LIKE=\"arch\"\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://endeavouros.com\"\nDOCUMENTATION_URL=\"https://discovery.endeavouros.com\"\nSUPPORT_URL=\"https://forum.endeavouros.com\"\nBUG_REPORT_URL=\"https://forum.endeavouros.com/c/general-system/endeavouros-installation\"\nPRIVACY_POLICY_URL=\"https://endeavouros.com/privacy-policy-2\"\nLOGO=\"endeavouros\"\n",
+      "kernel": "7.2.11-arch1-1",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "606",
+      "compositor_pid": "597",
+      "panels": [
+        {
+          "id": 83,
+          "location": "bottom",
+          "hiding": "none",
+          "widgets": [
+            "org.kde.plasma.kickoff",
+            "org.kde.plasma.pager",
+            "org.kde.plasma.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.digitalclock",
+            "org.kde.plasma.showdesktop"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "login",
+        "sessionquit",
+        "logout",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "fullscreen",
+        "squash",
+        "maximize",
+        "frozenapp",
+        "fadingpopups",
+        "scale",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "6f3949d6-353e-4627-9652-90ccc5545211",
+      "original_gtk_profile_saved": true,
+      "status": "pass"
+    },
+    "dark": {
+      "mode": "dark",
+      "expected_distro": "endeavouros",
+      "timestamp": "2026-10-21T05:15:02.697893+00:00",
+      "distro": "endeavouros",
+      "os_release": "NAME=\"EndeavourOS\"\nPRETTY_NAME=\"EndeavourOS\"\nID=\"endeavouros\"\nID_LIKE=\"arch\"\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://endeavouros.com\"\nDOCUMENTATION_URL=\"https://discovery.endeavouros.com\"\nSUPPORT_URL=\"https://forum.endeavouros.com\"\nBUG_REPORT_URL=\"https://forum.endeavouros.com/c/general-system/endeavouros-installation\"\nPRIVACY_POLICY_URL=\"https://endeavouros.com/privacy-policy-2\"\nLOGO=\"endeavouros\"\n",
+      "kernel": "7.2.11-arch1-1",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "13085",
+      "compositor_pid": "597",
+      "panels": [
+        {
+          "id": 107,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 128,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "login",
+        "sessionquit",
+        "logout",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "fullscreen",
+        "squash",
+        "maximize",
+        "frozenapp",
+        "fadingpopups",
+        "scale",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "6f3949d6-353e-4627-9652-90ccc5545211",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T23:13:02-06:00",
+        "finished_at": "2026-10-20T23:15:02-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-dark": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "13294"
+        ],
+        "nautilus": [
+          "13295"
+        ],
+        "dolphin": [
+          "13296"
+        ],
+        "konsole": [
+          "13297"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 743,
+            "y": 996,
+            "width": 434,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "dark-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 42.0,
+      "matching_fraction": 1.0
+    },
+    "light": {
+      "mode": "light",
+      "expected_distro": "endeavouros",
+      "timestamp": "2026-10-21T05:15:22.962523+00:00",
+      "distro": "endeavouros",
+      "os_release": "NAME=\"EndeavourOS\"\nPRETTY_NAME=\"EndeavourOS\"\nID=\"endeavouros\"\nID_LIKE=\"arch\"\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://endeavouros.com\"\nDOCUMENTATION_URL=\"https://discovery.endeavouros.com\"\nSUPPORT_URL=\"https://forum.endeavouros.com\"\nBUG_REPORT_URL=\"https://forum.endeavouros.com/c/general-system/endeavouros-installation\"\nPRIVACY_POLICY_URL=\"https://endeavouros.com/privacy-policy-2\"\nLOGO=\"endeavouros\"\n",
+      "kernel": "7.2.11-arch1-1",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "13085",
+      "compositor_pid": "597",
+      "panels": [
+        {
+          "id": 107,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 128,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "login",
+        "sessionquit",
+        "logout",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "fullscreen",
+        "squash",
+        "maximize",
+        "frozenapp",
+        "fadingpopups",
+        "scale",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "6f3949d6-353e-4627-9652-90ccc5545211",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Light",
+        "Qt": "MacTahoeLiquidKdeLight",
+        "Kvantum": "mac-tahoe-liquid-kde",
+        "GTK preference": "'prefer-light'",
+        "GTK theme": "'MacTahoeLiquidKde-Light'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T23:13:02-06:00",
+        "finished_at": "2026-10-20T23:15:02-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-light": {
+      "mode": "light",
+      "status": "pass",
+      "firefox": {
+        "dark": false,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "13294"
+        ],
+        "nautilus": [
+          "13295"
+        ],
+        "dolphin": [
+          "13296"
+        ],
+        "konsole": [
+          "13297"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 743,
+            "y": 996,
+            "width": 434,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "light-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 244.99999999999997,
+      "matching_fraction": 1.0
+    },
+    "dark-again": {
+      "mode": "dark",
+      "expected_distro": "endeavouros",
+      "timestamp": "2026-10-21T05:15:39.372256+00:00",
+      "distro": "endeavouros",
+      "os_release": "NAME=\"EndeavourOS\"\nPRETTY_NAME=\"EndeavourOS\"\nID=\"endeavouros\"\nID_LIKE=\"arch\"\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://endeavouros.com\"\nDOCUMENTATION_URL=\"https://discovery.endeavouros.com\"\nSUPPORT_URL=\"https://forum.endeavouros.com\"\nBUG_REPORT_URL=\"https://forum.endeavouros.com/c/general-system/endeavouros-installation\"\nPRIVACY_POLICY_URL=\"https://endeavouros.com/privacy-policy-2\"\nLOGO=\"endeavouros\"\n",
+      "kernel": "7.2.11-arch1-1",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "13085",
+      "compositor_pid": "597",
+      "panels": [
+        {
+          "id": 107,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 128,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "login",
+        "sessionquit",
+        "logout",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "fullscreen",
+        "squash",
+        "maximize",
+        "frozenapp",
+        "fadingpopups",
+        "scale",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "6f3949d6-353e-4627-9652-90ccc5545211",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T23:13:02-06:00",
+        "finished_at": "2026-10-20T23:15:02-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-dark-again": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "13294"
+        ],
+        "nautilus": [
+          "13295"
+        ],
+        "dolphin": [
+          "13296"
+        ],
+        "konsole": [
+          "13297"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 743,
+            "y": 996,
+            "width": 434,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "reboot": {
+      "mode": "dark",
+      "expected_distro": "endeavouros",
+      "timestamp": "2026-10-21T05:16:24.738329+00:00",
+      "distro": "endeavouros",
+      "os_release": "NAME=\"EndeavourOS\"\nPRETTY_NAME=\"EndeavourOS\"\nID=\"endeavouros\"\nID_LIKE=\"arch\"\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://endeavouros.com\"\nDOCUMENTATION_URL=\"https://discovery.endeavouros.com\"\nSUPPORT_URL=\"https://forum.endeavouros.com\"\nBUG_REPORT_URL=\"https://forum.endeavouros.com/c/general-system/endeavouros-installation\"\nPRIVACY_POLICY_URL=\"https://endeavouros.com/privacy-policy-2\"\nLOGO=\"endeavouros\"\n",
+      "kernel": "7.2.11-arch1-1",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "606",
+      "compositor_pid": "597",
+      "panels": [
+        {
+          "id": 107,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 128,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "login",
+        "sessionquit",
+        "logout",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "fullscreen",
+        "squash",
+        "maximize",
+        "frozenapp",
+        "fadingpopups",
+        "scale",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "1629907a-8ec0-43cb-bd77-302ec49c63c0",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T23:13:02-06:00",
+        "finished_at": "2026-10-20T23:15:02-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-reboot": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "2034"
+        ],
+        "nautilus": [
+          "2035"
+        ],
+        "dolphin": [
+          "2036"
+        ],
+        "konsole": [
+          "2037"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 779,
+            "y": 996,
+            "width": 362,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "reboot-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 42.0,
+      "matching_fraction": 1.0
+    },
+    "uninstalled": {
+      "mode": "uninstalled",
+      "expected_distro": "endeavouros",
+      "timestamp": "2026-10-21T05:17:23.151321+00:00",
+      "distro": "endeavouros",
+      "os_release": "NAME=\"EndeavourOS\"\nPRETTY_NAME=\"EndeavourOS\"\nID=\"endeavouros\"\nID_LIKE=\"arch\"\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://endeavouros.com\"\nDOCUMENTATION_URL=\"https://discovery.endeavouros.com\"\nSUPPORT_URL=\"https://forum.endeavouros.com\"\nBUG_REPORT_URL=\"https://forum.endeavouros.com/c/general-system/endeavouros-installation\"\nPRIVACY_POLICY_URL=\"https://endeavouros.com/privacy-policy-2\"\nLOGO=\"endeavouros\"\n",
+      "kernel": "7.2.11-arch1-1",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "12101",
+      "compositor_pid": "597",
+      "panels": [
+        {
+          "id": 136,
+          "location": "bottom",
+          "hiding": "none",
+          "widgets": [
+            "org.kde.plasma.kickoff",
+            "org.kde.plasma.pager",
+            "org.kde.plasma.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.digitalclock",
+            "org.kde.plasma.showdesktop"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "login",
+        "sessionquit",
+        "logout",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "fullscreen",
+        "squash",
+        "maximize",
+        "frozenapp",
+        "fadingpopups",
+        "scale",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "1629907a-8ec0-43cb-bd77-302ec49c63c0",
+      "original_gtk_profile_saved": true,
+      "last_run": {
+        "script": "uninstall",
+        "argv": [],
+        "command": "./uninstall",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "auto",
+        "status": "completed",
+        "started_at": "2026-10-20T23:16:38-06:00",
+        "finished_at": "2026-10-20T23:17:22-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "visual-review": {
+      "approved": [
+        "light.png",
+        "dark.png",
+        "reboot.png"
+      ],
+      "sha256": {
+        "light.png": "3839fb64ce80f1678cc6cb5e1af6d5254920a2762a6481ef705e3ac89fc638e9",
+        "dark.png": "14a5b3a23a690522714c48316babc5050392488a40e63ca2d0b8a5ce767d4b9d",
+        "reboot.png": "94573a3b415ecd6b735eb1ad45fba34f48c27d5073f8c6f91bfbc1b809aed63d"
+      },
+      "notes": "All three original 4K captures visually reviewed. Firefox input and expected appearance are visible; Nautilus has the matching light/dark surface, blue folder icons and left window controls. Reboot returns to the themed desktop."
+    }
+  }
+}

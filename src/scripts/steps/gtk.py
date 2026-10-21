@@ -12,9 +12,14 @@ VARIANTS = ("MacTahoeLiquidKde-Light", "MacTahoeLiquidKde-Dark")
 GTK4_DEST = HOME / ".config/gtk-4.0"
 GTK4_FILES_TO_REMOVE = (
     "gtk.css", "gtk-dark.css", "gtk-Dark.css", "gtk-Light.css",
+    "gtk-Adaptive.css", "gtk-AdaptiveLegacy.css",
     "colors.css", "window_decorations.css",
 )
 GTK4_DIRS_TO_REMOVE = ("assets", "windows-assets")
+
+
+def deps() -> list[str]:
+    return ["kde-gtk-config:kde-gtk-config"]
 
 
 def install() -> None:
@@ -31,6 +36,9 @@ def install() -> None:
         if install_tree(src / v, DEST_DIR / v, v):
             n += 1
             install_reduced_variant(src / v, DEST_DIR / (v + SUFFIX), "gtk")
+    # A minimal Plasma session may have started before deps installed this
+    # module. Load it now so the final theme switch also reaches GTK settings.
+    qdbus_call("org.kde.kded6", "/kded", "org.kde.kded6.loadModule", "gtkconfig")
     if have("gsettings"):
         run_user(
             ["gsettings", "set", "org.gnome.desktop.wm.preferences",

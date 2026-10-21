@@ -1,0 +1,1228 @@
+{
+  "release": "v0.57.6",
+  "tested_source_commit": "3ee94c3b00cd9747cb6f6b217a6c2a2afb0250a6",
+  "result": {
+    "distro": "neon",
+    "started": "2026-10-21T05:33:25.333489+00:00",
+    "status": "pass",
+    "phases": [
+      {
+        "name": "prepare",
+        "started": "2026-10-21T05:33:25.463223+00:00",
+        "finished": "2026-10-21T05:33:26.491734+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "baseline",
+        "started": "2026-10-21T05:33:26.491869+00:00",
+        "finished": "2026-10-21T05:33:26.783679+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "screen-unlocked",
+        "started": "2026-10-21T05:33:26.952532+00:00",
+        "finished": "2026-10-21T05:33:27.140904+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-profile",
+        "started": "2026-10-21T05:33:27.141045+00:00",
+        "finished": "2026-10-21T05:33:29.393675+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "resolution",
+        "started": "2026-10-21T05:33:29.393835+00:00",
+        "finished": "2026-10-21T05:33:29.589244+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "install",
+        "started": "2026-10-21T05:33:29.589420+00:00",
+        "finished": "2026-10-21T05:35:02.012465+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark",
+        "started": "2026-10-21T05:35:02.012732+00:00",
+        "finished": "2026-10-21T05:35:02.470412+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-dark",
+        "started": "2026-10-21T05:35:02.724231+00:00",
+        "finished": "2026-10-21T05:35:10.832137+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark-capture",
+        "started": "2026-10-21T05:35:10.955907+00:00",
+        "finished": "2026-10-21T05:35:13.687979+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "switch-light",
+        "started": "2026-10-21T05:35:13.952085+00:00",
+        "finished": "2026-10-21T05:35:18.881715+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "light",
+        "started": "2026-10-21T05:35:18.881883+00:00",
+        "finished": "2026-10-21T05:35:19.760979+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-light",
+        "started": "2026-10-21T05:35:20.015672+00:00",
+        "finished": "2026-10-21T05:35:24.906192+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "light-capture",
+        "started": "2026-10-21T05:35:25.029398+00:00",
+        "finished": "2026-10-21T05:35:27.668666+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "switch-dark",
+        "started": "2026-10-21T05:35:27.920725+00:00",
+        "finished": "2026-10-21T05:35:32.880564+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark-again",
+        "started": "2026-10-21T05:35:32.880772+00:00",
+        "finished": "2026-10-21T05:35:33.500400+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-dark-again",
+        "started": "2026-10-21T05:35:33.754498+00:00",
+        "finished": "2026-10-21T05:35:38.645323+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "reboot",
+        "started": "2026-10-21T05:36:11.861380+00:00",
+        "finished": "2026-10-21T05:36:12.368580+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-reboot",
+        "started": "2026-10-21T05:36:12.579935+00:00",
+        "finished": "2026-10-21T05:36:20.823997+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "reboot-capture",
+        "started": "2026-10-21T05:36:20.925934+00:00",
+        "finished": "2026-10-21T05:36:23.609726+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstall",
+        "started": "2026-10-21T05:36:23.829248+00:00",
+        "finished": "2026-10-21T05:36:51.272614+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstalled",
+        "started": "2026-10-21T05:36:51.272782+00:00",
+        "finished": "2026-10-21T05:36:52.554925+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstalled-capture",
+        "started": "2026-10-21T05:36:52.708428+00:00",
+        "finished": "2026-10-21T05:36:55.974812+00:00",
+        "exit_code": 0
+      }
+    ],
+    "finished": "2026-10-21T05:36:56.143533+00:00"
+  },
+  "images": {
+    "light": {
+      "filename": "light-d8708e27c32d.png",
+      "sha256": "d8708e27c32da18616c4df370b6db17e77538807c3e36d887a163f4dce7e531b"
+    },
+    "dark": {
+      "filename": "dark-93d514e99c22.png",
+      "sha256": "93d514e99c22a0830d67b3ec53ef1b8b7ffd8548e3ee925bdcc461f54d13ef18"
+    },
+    "reboot": {
+      "filename": "reboot-02f200918339.png",
+      "sha256": "02f200918339860866f8adbd06d5639375c09851d184c001f1c94f5ee960b1c1"
+    }
+  },
+  "checks": {
+    "baseline": {
+      "mode": "baseline",
+      "expected_distro": "neon",
+      "timestamp": "2026-10-21T05:33:26.711011+00:00",
+      "distro": "neon",
+      "os_release": "PRETTY_NAME=\"KDE neon User Edition\"\nNAME=\"KDE neon\"\nVERSION_ID=\"24.04\"\nVERSION=\"User Edition\"\nVERSION_CODENAME=noble\nID=neon\nID_LIKE=\"ubuntu debian\"\nHOME_URL=\"https://neon.kde.org/\"\nSUPPORT_URL=\"https://neon.kde.org/\"\nBUG_REPORT_URL=\"https://bugs.kde.org/\"\nPRIVACY_POLICY_URL=\"https://kde.org/privacypolicy/\"\nUBUNTU_CODENAME=noble\nLOGO=start-here-kde-neon",
+      "kernel": "7.0.0-38-generic",
+      "plasma": "plasmashell 6.8.1",
+      "qt": "6.11.1",
+      "init_system": "systemd",
+      "shell_pid": "1353",
+      "compositor_pid": "1277",
+      "panels": [
+        {
+          "id": 82,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 104,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "login",
+        "sessionquit",
+        "logout",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "squash",
+        "dimscreen",
+        "maximize",
+        "scale",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "4d2cff78-68f7-43c9-b313-51449158f855",
+      "original_gtk_profile_saved": false,
+      "status": "pass"
+    },
+    "dark": {
+      "mode": "dark",
+      "expected_distro": "neon",
+      "timestamp": "2026-10-21T05:35:02.314838+00:00",
+      "distro": "neon",
+      "os_release": "PRETTY_NAME=\"KDE neon User Edition\"\nNAME=\"KDE neon\"\nVERSION_ID=\"24.04\"\nVERSION=\"User Edition\"\nVERSION_CODENAME=noble\nID=neon\nID_LIKE=\"ubuntu debian\"\nHOME_URL=\"https://neon.kde.org/\"\nSUPPORT_URL=\"https://neon.kde.org/\"\nBUG_REPORT_URL=\"https://bugs.kde.org/\"\nPRIVACY_POLICY_URL=\"https://kde.org/privacypolicy/\"\nUBUNTU_CODENAME=noble\nLOGO=start-here-kde-neon",
+      "kernel": "7.0.0-38-generic",
+      "plasma": "plasmashell 6.8.1",
+      "qt": "6.11.1",
+      "init_system": "systemd",
+      "shell_pid": "8010",
+      "compositor_pid": "1277",
+      "panels": [
+        {
+          "id": 112,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 134,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "login",
+        "sessionquit",
+        "logout",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "squash",
+        "dimscreen",
+        "maximize",
+        "scale",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "4d2cff78-68f7-43c9-b313-51449158f855",
+      "original_gtk_profile_saved": false,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-21T05:33:29+00:00",
+        "finished_at": "2026-10-21T05:35:02+00:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-dark": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "8544"
+        ],
+        "nautilus": [
+          "8545"
+        ],
+        "dolphin": [
+          "8546"
+        ],
+        "konsole": [
+          "8547"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 851,
+            "y": 996,
+            "width": 218,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox_firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "dark-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 36.00000000000001,
+      "matching_fraction": 1.0
+    },
+    "light": {
+      "mode": "light",
+      "expected_distro": "neon",
+      "timestamp": "2026-10-21T05:35:19.147456+00:00",
+      "distro": "neon",
+      "os_release": "PRETTY_NAME=\"KDE neon User Edition\"\nNAME=\"KDE neon\"\nVERSION_ID=\"24.04\"\nVERSION=\"User Edition\"\nVERSION_CODENAME=noble\nID=neon\nID_LIKE=\"ubuntu debian\"\nHOME_URL=\"https://neon.kde.org/\"\nSUPPORT_URL=\"https://neon.kde.org/\"\nBUG_REPORT_URL=\"https://bugs.kde.org/\"\nPRIVACY_POLICY_URL=\"https://kde.org/privacypolicy/\"\nUBUNTU_CODENAME=noble\nLOGO=start-here-kde-neon",
+      "kernel": "7.0.0-38-generic",
+      "plasma": "plasmashell 6.8.1",
+      "qt": "6.11.1",
+      "init_system": "systemd",
+      "shell_pid": "8010",
+      "compositor_pid": "1277",
+      "panels": [
+        {
+          "id": 112,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 134,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "login",
+        "sessionquit",
+        "logout",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "squash",
+        "dimscreen",
+        "maximize",
+        "scale",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "4d2cff78-68f7-43c9-b313-51449158f855",
+      "original_gtk_profile_saved": false,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Light",
+        "Qt": "MacTahoeLiquidKdeLight",
+        "Kvantum": "mac-tahoe-liquid-kde",
+        "GTK preference": "'prefer-light'",
+        "GTK theme": "'MacTahoeLiquidKde-Light'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-21T05:33:29+00:00",
+        "finished_at": "2026-10-21T05:35:02+00:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-light": {
+      "mode": "light",
+      "status": "pass",
+      "firefox": {
+        "dark": false,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "8544"
+        ],
+        "nautilus": [
+          "8545"
+        ],
+        "dolphin": [
+          "8546"
+        ],
+        "konsole": [
+          "8547"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 851,
+            "y": 996,
+            "width": 218,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox_firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "light-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 250.0,
+      "matching_fraction": 1.0
+    },
+    "dark-again": {
+      "mode": "dark",
+      "expected_distro": "neon",
+      "timestamp": "2026-10-21T05:35:33.117062+00:00",
+      "distro": "neon",
+      "os_release": "PRETTY_NAME=\"KDE neon User Edition\"\nNAME=\"KDE neon\"\nVERSION_ID=\"24.04\"\nVERSION=\"User Edition\"\nVERSION_CODENAME=noble\nID=neon\nID_LIKE=\"ubuntu debian\"\nHOME_URL=\"https://neon.kde.org/\"\nSUPPORT_URL=\"https://neon.kde.org/\"\nBUG_REPORT_URL=\"https://bugs.kde.org/\"\nPRIVACY_POLICY_URL=\"https://kde.org/privacypolicy/\"\nUBUNTU_CODENAME=noble\nLOGO=start-here-kde-neon",
+      "kernel": "7.0.0-38-generic",
+      "plasma": "plasmashell 6.8.1",
+      "qt": "6.11.1",
+      "init_system": "systemd",
+      "shell_pid": "8010",
+      "compositor_pid": "1277",
+      "panels": [
+        {
+          "id": 112,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 134,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "login",
+        "sessionquit",
+        "logout",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "squash",
+        "dimscreen",
+        "maximize",
+        "scale",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "4d2cff78-68f7-43c9-b313-51449158f855",
+      "original_gtk_profile_saved": false,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-21T05:33:29+00:00",
+        "finished_at": "2026-10-21T05:35:02+00:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-dark-again": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "8544"
+        ],
+        "nautilus": [
+          "8545"
+        ],
+        "dolphin": [
+          "8546"
+        ],
+        "konsole": [
+          "8547"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 851,
+            "y": 996,
+            "width": 218,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox_firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "reboot": {
+      "mode": "dark",
+      "expected_distro": "neon",
+      "timestamp": "2026-10-21T05:36:12.088781+00:00",
+      "distro": "neon",
+      "os_release": "PRETTY_NAME=\"KDE neon User Edition\"\nNAME=\"KDE neon\"\nVERSION_ID=\"24.04\"\nVERSION=\"User Edition\"\nVERSION_CODENAME=noble\nID=neon\nID_LIKE=\"ubuntu debian\"\nHOME_URL=\"https://neon.kde.org/\"\nSUPPORT_URL=\"https://neon.kde.org/\"\nBUG_REPORT_URL=\"https://bugs.kde.org/\"\nPRIVACY_POLICY_URL=\"https://kde.org/privacypolicy/\"\nUBUNTU_CODENAME=noble\nLOGO=start-here-kde-neon",
+      "kernel": "7.0.0-38-generic",
+      "plasma": "plasmashell 6.8.1",
+      "qt": "6.11.1",
+      "init_system": "systemd",
+      "shell_pid": "1300",
+      "compositor_pid": "1275",
+      "panels": [
+        {
+          "id": 112,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 134,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "login",
+        "sessionquit",
+        "logout",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "squash",
+        "dimscreen",
+        "maximize",
+        "scale",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "68cbffc3-d91a-4828-9637-c807c710b5a3",
+      "original_gtk_profile_saved": false,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-21T05:33:29+00:00",
+        "finished_at": "2026-10-21T05:35:02+00:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-reboot": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "2458"
+        ],
+        "nautilus": [
+          "2459"
+        ],
+        "dolphin": [
+          "2460"
+        ],
+        "konsole": [
+          "2461"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 878,
+            "y": 996,
+            "width": 164,
+            "height": 84
+          }
+        },
+        {
+          "caption": "plasmashell",
+          "resourceClass": "org.kde.plasmashell",
+          "type": 13,
+          "appletPopup": false,
+          "geometry": {
+            "x": 1544,
+            "y": 68,
+            "width": 340,
+            "height": 128
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox_firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "reboot-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 36.00000000000001,
+      "matching_fraction": 1.0
+    },
+    "uninstalled": {
+      "mode": "uninstalled",
+      "expected_distro": "neon",
+      "timestamp": "2026-10-21T05:36:51.390983+00:00",
+      "distro": "neon",
+      "os_release": "PRETTY_NAME=\"KDE neon User Edition\"\nNAME=\"KDE neon\"\nVERSION_ID=\"24.04\"\nVERSION=\"User Edition\"\nVERSION_CODENAME=noble\nID=neon\nID_LIKE=\"ubuntu debian\"\nHOME_URL=\"https://neon.kde.org/\"\nSUPPORT_URL=\"https://neon.kde.org/\"\nBUG_REPORT_URL=\"https://bugs.kde.org/\"\nPRIVACY_POLICY_URL=\"https://kde.org/privacypolicy/\"\nUBUNTU_CODENAME=noble\nLOGO=start-here-kde-neon",
+      "kernel": "7.0.0-38-generic",
+      "plasma": "plasmashell 6.8.1",
+      "qt": "6.11.1",
+      "init_system": "systemd",
+      "shell_pid": "4641",
+      "compositor_pid": "1275",
+      "panels": [
+        {
+          "id": 142,
+          "location": "bottom",
+          "hiding": "none",
+          "widgets": [
+            "org.kde.plasma.kickoff",
+            "org.kde.plasma.pager",
+            "org.kde.plasma.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.digitalclock",
+            "org.kde.plasma.showdesktop"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "login",
+        "sessionquit",
+        "logout",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "squash",
+        "dimscreen",
+        "maximize",
+        "scale",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "68cbffc3-d91a-4828-9637-c807c710b5a3",
+      "original_gtk_profile_saved": false,
+      "last_run": {
+        "script": "uninstall",
+        "argv": [],
+        "command": "./uninstall",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "auto",
+        "status": "completed",
+        "started_at": "2026-10-21T05:36:23+00:00",
+        "finished_at": "2026-10-21T05:36:51+00:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "visual-review": {
+      "approved": [
+        "light.png",
+        "dark.png",
+        "reboot.png"
+      ],
+      "notes": "Original 4K images reviewed. Firefox and Nautilus display the expected light/dark appearance; native input, unchanged live application PIDs, reboot and uninstall checks passed. Reboot capture includes the guest KDE neon upgrade notification."
+    }
+  }
+}

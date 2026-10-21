@@ -7,6 +7,7 @@ Item {
 
     property alias model: categorySwitcher.model
     property alias currentIndex: categorySwitcher.currentIndex
+    implicitHeight: categorySwitcher.currentItem ? categorySwitcher.currentItem.implicitHeight : 0
 
     signal categorySwitched(int index)
 
@@ -20,27 +21,29 @@ Item {
         clip: true
         highlightResizeDuration: 0
         highlightMoveDuration: 50
-        property var contentHeight: 0
-
-        anchors.topMargin: (parent.height - contentHeight) / 2
         anchors.fill: parent
 
-        delegate: CategoryPill {
+        delegate: Item {
             id: del
             required property var model
             required property var index
-            selected: categorySwitcher.currentIndex == index
-            text: model.name
+            implicitWidth: pill.implicitWidth
+            implicitHeight: pill.implicitHeight
+            height: categorySwitcher.height
 
-            // Emit on click only: currentIndex also moves when the
-            // category list rebuilds, and that must not switch views.
-            onClicked: {
-                categorySwitcher.currentIndex = index
-                scrollview.categorySwitched(model.modelIndex)
-            }
+            // ListView owns the delegate position; center its contents instead.
+            CategoryPill {
+                id: pill
+                anchors.verticalCenter: parent.verticalCenter
+                selected: categorySwitcher.currentIndex == del.index
+                text: del.model.name
 
-            Component.onCompleted: {
-                categorySwitcher.contentHeight = del.height
+                // Emit on click only: currentIndex also moves when the
+                // category list rebuilds, and that must not switch views.
+                onClicked: {
+                    categorySwitcher.currentIndex = del.index
+                    scrollview.categorySwitched(del.model.modelIndex)
+                }
             }
         }
 

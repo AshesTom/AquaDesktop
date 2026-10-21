@@ -16,7 +16,6 @@ PlasmaCore.Dialog {
 
 	location: Plasmoid.configuration.floating || Plasmoid.configuration.launcherPosition == 2 ? "Floating" : Plasmoid.location
 	hideOnWindowDeactivate: false
-	onActiveChanged: checkDismissal()
 
 	function checkDismissal() {
 		if (visible) {
@@ -28,7 +27,7 @@ PlasmaCore.Dialog {
 		// Focus can pass between the app panel, search capsule and options menu.
 		interval: 150
 		onTriggered: {
-			if (root.visible && !root.active && !main.searchPopupActive && !main.menuOpen) {
+			if (root.visible && !main.popupHasFocus && !main.menuOpen) {
 				root.visible = false;
 			}
 		}
@@ -157,14 +156,24 @@ PlasmaCore.Dialog {
 	FocusScope {
 		id: fs
 		focus: true
-		width: root.cellSizeWidth * root.columns + innerPadding * 2
+		implicitWidth: root.cellSizeWidth * root.columns + innerPadding * 2
 			- (root.goldenGate ? dialogSvg.margins.left + dialogSvg.margins.right : 0)
 		// Searchbar + separator + categories + grid
-		height: root.goldenGate
+		implicitHeight: root.goldenGate
 			? innerPadding * 3 + main.categoryHeight + main.gridTopSpacing + root.cellSizeHeight * rows
 				- dialogSvg.margins.top - dialogSvg.margins.bottom
 			: 40 + 2 + 12 + 40 + root.cellSizeHeight * rows + innerPadding
-		
+		// Dialog can write back the previous window size during a preset switch.
+		// Keep the requested size independent of that feedback and constrain the
+		// native window to the selected preset's dimensions.
+		width: implicitWidth
+		height: implicitHeight
+		Layout.minimumWidth: implicitWidth
+		Layout.maximumWidth: implicitWidth
+		Layout.preferredWidth: implicitWidth
+		Layout.minimumHeight: implicitHeight
+		Layout.maximumHeight: implicitHeight
+		Layout.preferredHeight: implicitHeight
 		
 		// We want the MainView to have an uniform margin through different plasma themes
 		property real innerPadding: root.goldenGate ? root.configuredIconSize * 0.375 : 15

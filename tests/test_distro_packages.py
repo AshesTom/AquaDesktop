@@ -172,7 +172,17 @@ def _declared_dependency_tokens() -> dict[str, set[str]]:
                 if not isinstance(node, ast.Return) or node.value is None:
                     continue
                 try:
-                    value = ast.literal_eval(node.value)
+                    expression = node.value
+                    # GTK exporters are available only in selected repository
+                    # families; the explicit matrix below covers those tokens.
+                    if (source_path.name == "globalmenu.py"
+                            and isinstance(expression, ast.BinOp)
+                            and isinstance(expression.op, ast.Add)
+                            and isinstance(expression.right, ast.Call)
+                            and isinstance(expression.right.func, ast.Name)
+                            and expression.right.func.id == "global_menu_exporter_deps"):
+                        expression = expression.left
+                    value = ast.literal_eval(expression)
                 except (TypeError, ValueError) as exc:
                     raise AssertionError(
                         f"{source_path.name}: deps() return on line "
@@ -940,9 +950,9 @@ def test_vulkan_headers_package_per_distro(
     ("nobara",              ("fedora",),   ["dnf", "install", "-y"]),
     ("rhel",                (),            ["dnf", "install", "-y"]),
     ("opensuse-tumbleweed", ("opensuse",), ["zypper", "--non-interactive", "install", "--no-recommends"]),
-    ("debian",              (),            ["apt-get", "install", "-y"]),
-    ("ubuntu",              (),            ["apt-get", "install", "-y"]),
-    ("neon",                ("ubuntu", "debian"), ["apt-get", "install", "-y"]),
+    ("debian",              (),            ["apt-get", "install", "-y", "--no-install-recommends"]),
+    ("ubuntu",              (),            ["apt-get", "install", "-y", "--no-install-recommends"]),
+    ("neon",                ("ubuntu", "debian"), ["apt-get", "install", "-y", "--no-install-recommends"]),
 ])
 def test_install_cmd_for_supported_families(monkeypatch, distro_id, id_like, expected):
     _force_distro(monkeypatch, distro_id, id_like)
@@ -1030,6 +1040,55 @@ def test_package_installed_uses_pacman_q_on_arch(monkeypatch):
     assert seen["cmd"] == ["pacman", "-Q", "cmake"]
 
 
+@pytest.mark.parametrize("distro_id,id_like", [
+    ("debian", ()), ("ubuntu", ("debian",)),
+    ("neon", ("ubuntu", "debian")), ("derivative", ("debian",)),
+])
+@pytest.mark.parametrize("status,expected", [
+    ("installed", True), ("config-files", False), ("unpacked", False),
+    ("half-configured", False), ("half-installed", False),
+    ("triggers-awaited", False), ("triggers-pending", False),
+    ("not-installed", False), (None, False),
+])
+def test_debian_package_installed_requires_configured_package(
+    monkeypatch, distro_id, id_like, status, expected,
+):
+    _force_distro(monkeypatch, distro_id, id_like)
+    queries = []
+
+    def query(argv):
+        queries.append(argv)
+        if argv == ["dpkg", "--print-architecture"]:
+            return "amd64"
+        return f"amd64\t{status}" if status is not None else None
+
+    monkeypatch.setattr(distro, "_run_query", query)
+    assert distro.package_installed("cmake") is expected
+    assert queries == [
+        ["dpkg", "--print-architecture"],
+        ["dpkg-query", "-W", "-f=${Architecture}\t${db:Status-Status}\n", "cmake"],
+    ]
+    # Version fallback must still return the version, including Debian epochs.
+    assert distro.plasma_version_probe_cmds() == (
+        ["dpkg-query", "-W", "-f=${Version}\n", "plasma-workspace"],
+    )
+
+
+@pytest.mark.parametrize("statuses,expected", [
+    ("amd64\tinstalled\ni386\tconfig-files", True),
+    ("amd64\tconfig-files\ni386\tinstalled", False),
+    ("all\tinstalled", True),
+])
+def test_debian_package_status_selects_native_or_architecture_independent_package(
+    monkeypatch, statuses, expected,
+):
+    _force_distro(monkeypatch, "debian")
+    monkeypatch.setattr(distro, "_run_query", lambda argv: (
+        "amd64" if argv == ["dpkg", "--print-architecture"] else statuses
+    ))
+    assert distro.package_installed("example") is expected
+
+
 def test_kde_libexec_binary_prefers_an_executable_on_path(monkeypatch):
     monkeypatch.setattr(
         distro.shutil,
@@ -1057,3 +1116,57 @@ def test_retired_gentoo_rejects_package_changes(monkeypatch, distro_id, id_like)
     for command in (distro.package_manager_install_cmd, distro.package_manager_sync_cmd):
         with pytest.raises(distro.UnsupportedDistroError, match="Gentoo support was retired"):
             command()
+
+
+@pytest.mark.parametrize('name,parent,package', [
+    ('arch', (), 'kde-gtk-config'),
+    ('debian', (), 'kde-config-gtk-style'),
+    ('neon', ('ubuntu', 'debian'), 'kde-config-gtk-style'),
+    ('fedora', (), 'kde-gtk-config'),
+    ('opensuse-tumbleweed', ('opensuse', 'suse'), 'kde-gtk-config6'),
+])
+def test_gtk_step_requires_desktop_integration(monkeypatch, name, parent, package):
+    from steps import gtk
+    _force_distro(monkeypatch, name, parent)
+    token, fallback = gtk.deps()[0].split(':')
+    assert distro.package_for(token, fallback) == package
+
+
+def test_opensuse_wayland_client_is_an_explicit_dependency(monkeypatch):
+    _force_distro(monkeypatch, 'opensuse-tumbleweed', ('opensuse', 'suse'))
+    assert distro.package_for('qt6-wayland-cmake', 'qt6-wayland') == 'qt6-waylandclient-devel'
+
+
+@pytest.mark.parametrize('distro_id,available,expected', [
+    ('endeavouros', {'dracut', 'reinstall-kernels'}, [['plymouth-set-default-theme', 'theme'], ['reinstall-kernels']]),
+    ('garuda', {'dracut', 'dracut-rebuild'}, [['plymouth-set-default-theme', 'theme'], ['dracut-rebuild']]),
+    ('arch', {'dracut'}, [['plymouth-set-default-theme', 'theme'], ['dracut', '--regenerate-all', '--force']]),
+    ('arch', {'dracut', 'mkinitcpio'}, [['plymouth-set-default-theme', '-R', 'theme']]),
+    ('fedora', {'dracut'}, [['plymouth-set-default-theme', '-R', 'theme']]),
+    ('debian', {'update-initramfs'}, [['plymouth-set-default-theme', '-R', 'theme']]),
+])
+def test_plymouth_rebuild_uses_native_initramfs_tool(monkeypatch, distro_id, available, expected):
+    monkeypatch.setattr(distro, 'current_distro', lambda: distro_id)
+    monkeypatch.setattr(distro, 'distro_id_like', lambda: ('arch',) if distro_id in ('endeavouros', 'garuda') else ())
+    monkeypatch.setattr(distro.shutil, 'which', lambda name: '/usr/bin/' + name if name in available else None)
+    assert distro.plymouth_activation_commands('theme') == expected
+
+
+@pytest.mark.parametrize("name,parents,library,exporter", [
+    ("arch", (), "libdbusmenu-glib", "appmenu-gtk-module"),
+    ("artix", (), "libdbusmenu-glib", "appmenu-gtk-module"),
+    ("neon", ("ubuntu", "debian"), "libdbusmenu-glib4", "appmenu-gtk3-module"),
+    ("debian", (), "libdbusmenu-glib4", "appmenu-gtk3-module"),
+    ("fedora", (), "libdbusmenu", None),
+    ("nobara", ("fedora",), "libdbusmenu", None),
+    ("opensuse-tumbleweed", ("opensuse",), "libdbusmenu-glib4", None),
+])
+def test_globalmenu_installs_available_runtime_exporters(monkeypatch, name, parents, library, exporter):
+    from steps import globalmenu
+    _force_distro(monkeypatch, name, parents)
+    dependencies = dict(token.split(":", 1) for token in globalmenu.deps() if ":" in token)
+    assert distro.package_for("dbusmenu-glib", dependencies["dbusmenu-glib"]) == library
+    if exporter:
+        assert distro.package_for("gtk3-appmenu", dependencies["gtk3-appmenu"]) == exporter
+    else:
+        assert "gtk3-appmenu" not in dependencies

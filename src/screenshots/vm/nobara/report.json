@@ -1,0 +1,1229 @@
+{
+  "release": "v0.57.13",
+  "tested_source_commit": "3ee94c3b00cd9747cb6f6b217a6c2a2afb0250a6",
+  "result": {
+    "distro": "nobara",
+    "started": "2026-10-21T05:36:51.574665+00:00",
+    "status": "pass",
+    "phases": [
+      {
+        "name": "prepare",
+        "started": "2026-10-21T05:36:51.772352+00:00",
+        "finished": "2026-10-21T05:37:01.907092+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "baseline",
+        "started": "2026-10-21T05:37:01.907265+00:00",
+        "finished": "2026-10-21T05:37:02.262011+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "screen-unlocked",
+        "started": "2026-10-21T05:37:02.455194+00:00",
+        "finished": "2026-10-21T05:37:03.357268+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-profile",
+        "started": "2026-10-21T05:37:03.357528+00:00",
+        "finished": "2026-10-21T05:37:05.641508+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "resolution",
+        "started": "2026-10-21T05:37:05.641650+00:00",
+        "finished": "2026-10-21T05:37:05.974656+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "install",
+        "started": "2026-10-21T05:37:05.974877+00:00",
+        "finished": "2026-10-21T05:39:15.214344+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark",
+        "started": "2026-10-21T05:39:15.214612+00:00",
+        "finished": "2026-10-21T05:39:15.574919+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-dark",
+        "started": "2026-10-21T05:39:15.908947+00:00",
+        "finished": "2026-10-21T05:39:24.747479+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark-capture",
+        "started": "2026-10-21T05:39:24.912398+00:00",
+        "finished": "2026-10-21T05:39:27.825076+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "switch-light",
+        "started": "2026-10-21T05:39:28.159771+00:00",
+        "finished": "2026-10-21T05:39:33.545243+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "light",
+        "started": "2026-10-21T05:39:33.545413+00:00",
+        "finished": "2026-10-21T05:39:33.966742+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-light",
+        "started": "2026-10-21T05:39:34.307261+00:00",
+        "finished": "2026-10-21T05:39:39.908706+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "light-capture",
+        "started": "2026-10-21T05:39:40.057505+00:00",
+        "finished": "2026-10-21T05:39:43.035668+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "switch-dark",
+        "started": "2026-10-21T05:39:43.349955+00:00",
+        "finished": "2026-10-21T05:39:49.181632+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark-again",
+        "started": "2026-10-21T05:39:49.181887+00:00",
+        "finished": "2026-10-21T05:39:49.583774+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-dark-again",
+        "started": "2026-10-21T05:39:49.929534+00:00",
+        "finished": "2026-10-21T05:39:54.986496+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "reboot",
+        "started": "2026-10-21T05:40:33.245377+00:00",
+        "finished": "2026-10-21T05:40:33.657628+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-reboot",
+        "started": "2026-10-21T05:40:33.988426+00:00",
+        "finished": "2026-10-21T05:40:42.145711+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "reboot-capture",
+        "started": "2026-10-21T05:40:42.354780+00:00",
+        "finished": "2026-10-21T05:40:45.304566+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstall",
+        "started": "2026-10-21T05:40:45.646394+00:00",
+        "finished": "2026-10-21T05:41:28.986544+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstalled",
+        "started": "2026-10-21T05:41:28.986724+00:00",
+        "finished": "2026-10-21T05:41:29.289946+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstalled-capture",
+        "started": "2026-10-21T05:41:29.438039+00:00",
+        "finished": "2026-10-21T05:41:32.155640+00:00",
+        "exit_code": 0
+      }
+    ],
+    "finished": "2026-10-21T05:41:32.364973+00:00"
+  },
+  "images": {
+    "light": {
+      "filename": "light-c21b13ec9011.png",
+      "sha256": "c21b13ec90118a60562df1f5c605f4933a6e606b89b5d6d000d549f0340f0bd1"
+    },
+    "dark": {
+      "filename": "dark-59dd73b989cc.png",
+      "sha256": "59dd73b989cc82135e2bdd8eb1ef9a670c6fb8272c7e87d9d1cc47ddfa0f5395"
+    },
+    "reboot": {
+      "filename": "reboot-797c0e9aecda.png",
+      "sha256": "797c0e9aecda9f54f99e0037b405eeab6558baa439a925c164a06e7939d7dccc"
+    }
+  },
+  "checks": {
+    "baseline": {
+      "mode": "baseline",
+      "expected_distro": "nobara",
+      "timestamp": "2026-10-21T05:37:02.136118+00:00",
+      "distro": "nobara",
+      "os_release": "NAME=\"Nobara Linux\"\nVERSION=\"44 (KDE Plasma Desktop Edition)\"\nID=nobara\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=44\nVERSION_CODENAME=\"\"\nPLATFORM_ID=\"platform:f44\"\nPRETTY_NAME=\"Nobara Linux 44 (KDE Plasma Desktop Edition)\"\nANSI_COLOR=\"0;38;2;60;110;180\"\nLOGO=nobara-logo-icon\nCPE_NAME=\"cpe:/o:nobaraproject:nobara:44\"\nDEFAULT_HOSTNAME=\"nobara\"\nHOME_URL=\"https://nobaraproject.org/\"\nDOCUMENTATION_URL=\"https://wiki.nobaraproject.org/\"\nSUPPORT_URL=\"https://www.nobaraproject.org/\"\nBUG_REPORT_URL=\"https://github.com/nobara-project/rpm-baseos\"\nREDHAT_BUGZILLA_PRODUCT=\"Nobara\"\nREDHAT_BUGZILLA_PRODUCT_VERSION=44\nREDHAT_SUPPORT_PRODUCT=\"Nobara\"\nREDHAT_SUPPORT_PRODUCT_VERSION=44\nSUPPORT_END=2026-12-02\nVARIANT=\"KDE Plasma Desktop Edition\"\nVARIANT_ID=kde\n",
+      "kernel": "7.2.11-200.nobara.fc44.x86_64",
+      "plasma": "plasmashell 6.7.5",
+      "qt": "6.11.2",
+      "init_system": "systemd",
+      "shell_pid": "1428",
+      "compositor_pid": "1259",
+      "panels": [
+        {
+          "id": 2,
+          "location": "bottom",
+          "hiding": "none",
+          "widgets": [
+            "org.kde.plasma.kickoff",
+            "org.kde.plasma.pager",
+            "org.kde.plasma.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.digitalclock",
+            "org.kde.plasma.showdesktop"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "blur",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "squash",
+        "scale",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "2b90b867-2bcb-4532-b05c-5db2ff3bb308",
+      "original_gtk_profile_saved": true,
+      "status": "pass"
+    },
+    "dark": {
+      "mode": "dark",
+      "expected_distro": "nobara",
+      "timestamp": "2026-10-21T05:39:15.396904+00:00",
+      "distro": "nobara",
+      "os_release": "NAME=\"Nobara Linux\"\nVERSION=\"44 (KDE Plasma Desktop Edition)\"\nID=nobara\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=44\nVERSION_CODENAME=\"\"\nPLATFORM_ID=\"platform:f44\"\nPRETTY_NAME=\"Nobara Linux 44 (KDE Plasma Desktop Edition)\"\nANSI_COLOR=\"0;38;2;60;110;180\"\nLOGO=nobara-logo-icon\nCPE_NAME=\"cpe:/o:nobaraproject:nobara:44\"\nDEFAULT_HOSTNAME=\"nobara\"\nHOME_URL=\"https://nobaraproject.org/\"\nDOCUMENTATION_URL=\"https://wiki.nobaraproject.org/\"\nSUPPORT_URL=\"https://www.nobaraproject.org/\"\nBUG_REPORT_URL=\"https://github.com/nobara-project/rpm-baseos\"\nREDHAT_BUGZILLA_PRODUCT=\"Nobara\"\nREDHAT_BUGZILLA_PRODUCT_VERSION=44\nREDHAT_SUPPORT_PRODUCT=\"Nobara\"\nREDHAT_SUPPORT_PRODUCT_VERSION=44\nSUPPORT_END=2026-12-02\nVARIANT=\"KDE Plasma Desktop Edition\"\nVARIANT_ID=kde\n",
+      "kernel": "7.2.11-200.nobara.fc44.x86_64",
+      "plasma": "plasmashell 6.7.5",
+      "qt": "6.11.2",
+      "init_system": "systemd",
+      "shell_pid": "16000",
+      "compositor_pid": "1259",
+      "panels": [
+        {
+          "id": 26,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 47,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "squash",
+        "scale",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "2b90b867-2bcb-4532-b05c-5db2ff3bb308",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T23:37:06-06:00",
+        "finished_at": "2026-10-20T23:39:15-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-dark": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:157.0) Gecko/20100101 Firefox/157.0"
+      },
+      "processes": {
+        "firefox": [
+          "16463"
+        ],
+        "nautilus": [
+          "16464"
+        ],
+        "dolphin": [
+          "16465"
+        ],
+        "konsole": [
+          "16468"
+        ]
+      },
+      "browser_version": "157.0",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 851,
+            "y": 996,
+            "width": 218,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "org.mozilla.firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "dark-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 42.0,
+      "matching_fraction": 1.0
+    },
+    "light": {
+      "mode": "light",
+      "expected_distro": "nobara",
+      "timestamp": "2026-10-21T05:39:33.735011+00:00",
+      "distro": "nobara",
+      "os_release": "NAME=\"Nobara Linux\"\nVERSION=\"44 (KDE Plasma Desktop Edition)\"\nID=nobara\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=44\nVERSION_CODENAME=\"\"\nPLATFORM_ID=\"platform:f44\"\nPRETTY_NAME=\"Nobara Linux 44 (KDE Plasma Desktop Edition)\"\nANSI_COLOR=\"0;38;2;60;110;180\"\nLOGO=nobara-logo-icon\nCPE_NAME=\"cpe:/o:nobaraproject:nobara:44\"\nDEFAULT_HOSTNAME=\"nobara\"\nHOME_URL=\"https://nobaraproject.org/\"\nDOCUMENTATION_URL=\"https://wiki.nobaraproject.org/\"\nSUPPORT_URL=\"https://www.nobaraproject.org/\"\nBUG_REPORT_URL=\"https://github.com/nobara-project/rpm-baseos\"\nREDHAT_BUGZILLA_PRODUCT=\"Nobara\"\nREDHAT_BUGZILLA_PRODUCT_VERSION=44\nREDHAT_SUPPORT_PRODUCT=\"Nobara\"\nREDHAT_SUPPORT_PRODUCT_VERSION=44\nSUPPORT_END=2026-12-02\nVARIANT=\"KDE Plasma Desktop Edition\"\nVARIANT_ID=kde\n",
+      "kernel": "7.2.11-200.nobara.fc44.x86_64",
+      "plasma": "plasmashell 6.7.5",
+      "qt": "6.11.2",
+      "init_system": "systemd",
+      "shell_pid": "16000",
+      "compositor_pid": "1259",
+      "panels": [
+        {
+          "id": 26,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 47,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "squash",
+        "scale",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "2b90b867-2bcb-4532-b05c-5db2ff3bb308",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Light",
+        "Qt": "MacTahoeLiquidKdeLight",
+        "Kvantum": "mac-tahoe-liquid-kde",
+        "GTK preference": "'prefer-light'",
+        "GTK theme": "'MacTahoeLiquidKde-Light'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T23:37:06-06:00",
+        "finished_at": "2026-10-20T23:39:15-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-light": {
+      "mode": "light",
+      "status": "pass",
+      "firefox": {
+        "dark": false,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:157.0) Gecko/20100101 Firefox/157.0"
+      },
+      "processes": {
+        "firefox": [
+          "16463"
+        ],
+        "nautilus": [
+          "16464"
+        ],
+        "dolphin": [
+          "16465"
+        ],
+        "konsole": [
+          "16468"
+        ]
+      },
+      "browser_version": "157.0",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 851,
+            "y": 996,
+            "width": 218,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "org.mozilla.firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "light-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 244.99999999999997,
+      "matching_fraction": 1.0
+    },
+    "dark-again": {
+      "mode": "dark",
+      "expected_distro": "nobara",
+      "timestamp": "2026-10-21T05:39:49.405085+00:00",
+      "distro": "nobara",
+      "os_release": "NAME=\"Nobara Linux\"\nVERSION=\"44 (KDE Plasma Desktop Edition)\"\nID=nobara\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=44\nVERSION_CODENAME=\"\"\nPLATFORM_ID=\"platform:f44\"\nPRETTY_NAME=\"Nobara Linux 44 (KDE Plasma Desktop Edition)\"\nANSI_COLOR=\"0;38;2;60;110;180\"\nLOGO=nobara-logo-icon\nCPE_NAME=\"cpe:/o:nobaraproject:nobara:44\"\nDEFAULT_HOSTNAME=\"nobara\"\nHOME_URL=\"https://nobaraproject.org/\"\nDOCUMENTATION_URL=\"https://wiki.nobaraproject.org/\"\nSUPPORT_URL=\"https://www.nobaraproject.org/\"\nBUG_REPORT_URL=\"https://github.com/nobara-project/rpm-baseos\"\nREDHAT_BUGZILLA_PRODUCT=\"Nobara\"\nREDHAT_BUGZILLA_PRODUCT_VERSION=44\nREDHAT_SUPPORT_PRODUCT=\"Nobara\"\nREDHAT_SUPPORT_PRODUCT_VERSION=44\nSUPPORT_END=2026-12-02\nVARIANT=\"KDE Plasma Desktop Edition\"\nVARIANT_ID=kde\n",
+      "kernel": "7.2.11-200.nobara.fc44.x86_64",
+      "plasma": "plasmashell 6.7.5",
+      "qt": "6.11.2",
+      "init_system": "systemd",
+      "shell_pid": "16000",
+      "compositor_pid": "1259",
+      "panels": [
+        {
+          "id": 26,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 47,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "squash",
+        "scale",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "2b90b867-2bcb-4532-b05c-5db2ff3bb308",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T23:37:06-06:00",
+        "finished_at": "2026-10-20T23:39:15-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-dark-again": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:157.0) Gecko/20100101 Firefox/157.0"
+      },
+      "processes": {
+        "firefox": [
+          "16463"
+        ],
+        "nautilus": [
+          "16464"
+        ],
+        "dolphin": [
+          "16465"
+        ],
+        "konsole": [
+          "16468"
+        ]
+      },
+      "browser_version": "157.0",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 851,
+            "y": 996,
+            "width": 218,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "org.mozilla.firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "reboot": {
+      "mode": "dark",
+      "expected_distro": "nobara",
+      "timestamp": "2026-10-21T05:40:33.469326+00:00",
+      "distro": "nobara",
+      "os_release": "NAME=\"Nobara Linux\"\nVERSION=\"44 (KDE Plasma Desktop Edition)\"\nID=nobara\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=44\nVERSION_CODENAME=\"\"\nPLATFORM_ID=\"platform:f44\"\nPRETTY_NAME=\"Nobara Linux 44 (KDE Plasma Desktop Edition)\"\nANSI_COLOR=\"0;38;2;60;110;180\"\nLOGO=nobara-logo-icon\nCPE_NAME=\"cpe:/o:nobaraproject:nobara:44\"\nDEFAULT_HOSTNAME=\"nobara\"\nHOME_URL=\"https://nobaraproject.org/\"\nDOCUMENTATION_URL=\"https://wiki.nobaraproject.org/\"\nSUPPORT_URL=\"https://www.nobaraproject.org/\"\nBUG_REPORT_URL=\"https://github.com/nobara-project/rpm-baseos\"\nREDHAT_BUGZILLA_PRODUCT=\"Nobara\"\nREDHAT_BUGZILLA_PRODUCT_VERSION=44\nREDHAT_SUPPORT_PRODUCT=\"Nobara\"\nREDHAT_SUPPORT_PRODUCT_VERSION=44\nSUPPORT_END=2026-12-02\nVARIANT=\"KDE Plasma Desktop Edition\"\nVARIANT_ID=kde\n",
+      "kernel": "7.2.11-200.nobara.fc44.x86_64",
+      "plasma": "plasmashell 6.7.5",
+      "qt": "6.11.2",
+      "init_system": "systemd",
+      "shell_pid": "1437",
+      "compositor_pid": "1272",
+      "panels": [
+        {
+          "id": 26,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 47,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "squash",
+        "scale",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "9525f217-3d7f-4a95-98f5-5e6333b8b1cc",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T23:37:06-06:00",
+        "finished_at": "2026-10-20T23:39:15-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-reboot": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:157.0) Gecko/20100101 Firefox/157.0"
+      },
+      "processes": {
+        "firefox": [
+          "2523"
+        ],
+        "nautilus": [
+          "2524"
+        ],
+        "dolphin": [
+          "2526"
+        ],
+        "konsole": [
+          "2528"
+        ]
+      },
+      "browser_version": "157.0",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 851,
+            "y": 996,
+            "width": 218,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "org.mozilla.firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "reboot-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 42.0,
+      "matching_fraction": 1.0
+    },
+    "uninstalled": {
+      "mode": "uninstalled",
+      "expected_distro": "nobara",
+      "timestamp": "2026-10-21T05:41:29.183933+00:00",
+      "distro": "nobara",
+      "os_release": "NAME=\"Nobara Linux\"\nVERSION=\"44 (KDE Plasma Desktop Edition)\"\nID=nobara\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=44\nVERSION_CODENAME=\"\"\nPLATFORM_ID=\"platform:f44\"\nPRETTY_NAME=\"Nobara Linux 44 (KDE Plasma Desktop Edition)\"\nANSI_COLOR=\"0;38;2;60;110;180\"\nLOGO=nobara-logo-icon\nCPE_NAME=\"cpe:/o:nobaraproject:nobara:44\"\nDEFAULT_HOSTNAME=\"nobara\"\nHOME_URL=\"https://nobaraproject.org/\"\nDOCUMENTATION_URL=\"https://wiki.nobaraproject.org/\"\nSUPPORT_URL=\"https://www.nobaraproject.org/\"\nBUG_REPORT_URL=\"https://github.com/nobara-project/rpm-baseos\"\nREDHAT_BUGZILLA_PRODUCT=\"Nobara\"\nREDHAT_BUGZILLA_PRODUCT_VERSION=44\nREDHAT_SUPPORT_PRODUCT=\"Nobara\"\nREDHAT_SUPPORT_PRODUCT_VERSION=44\nSUPPORT_END=2026-12-02\nVARIANT=\"KDE Plasma Desktop Edition\"\nVARIANT_ID=kde\n",
+      "kernel": "7.2.11-200.nobara.fc44.x86_64",
+      "plasma": "plasmashell 6.7.5",
+      "qt": "6.11.2",
+      "init_system": "systemd",
+      "shell_pid": "14416",
+      "compositor_pid": "1272",
+      "panels": [
+        {
+          "id": 55,
+          "location": "bottom",
+          "hiding": "none",
+          "widgets": [
+            "org.kde.plasma.kickoff",
+            "org.kde.plasma.pager",
+            "org.kde.plasma.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.digitalclock",
+            "org.kde.plasma.showdesktop"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "squash",
+        "scale",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "dimscreen",
+        "dialogparent",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "9525f217-3d7f-4a95-98f5-5e6333b8b1cc",
+      "original_gtk_profile_saved": true,
+      "last_run": {
+        "script": "uninstall",
+        "argv": [],
+        "command": "./uninstall",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "auto",
+        "status": "completed",
+        "started_at": "2026-10-20T23:40:45-06:00",
+        "finished_at": "2026-10-20T23:41:28-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "visual-review": {
+      "approved": [
+        "light.png",
+        "dark.png",
+        "reboot.png"
+      ],
+      "reviewed_at": "2026-10-21T05:41:35.064388+00:00",
+      "source_commit": "3ee94c3b00cd9747cb6f6b217a6c2a2afb0250a6",
+      "notes": "Each original 4K screenshot visually inspected. Firefox and Nautilus are visible in the expected mode, with native Nobara identity shown in Konsole. Reboot retains dark mode.",
+      "frames": {
+        "light.png": {
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "sha256": "c21b13ec90118a60562df1f5c605f4933a6e606b89b5d6d000d549f0340f0bd1"
+        },
+        "dark.png": {
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "sha256": "59dd73b989cc82135e2bdd8eb1ef9a670c6fb8272c7e87d9d1cc47ddfa0f5395"
+        },
+        "reboot.png": {
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "sha256": "797c0e9aecda9f54f99e0037b405eeab6558baa439a925c164a06e7939d7dccc"
+        }
+      }
+    }
+  }
+}

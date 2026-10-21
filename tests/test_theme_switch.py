@@ -422,10 +422,12 @@ def test_apply_finishes_cycle_and_reconfigure_when_extras_raise(monkeypatch):
     assert any(c[0] == "qdbus" and c[1][0] == "org.kde.KWin" for c in calls)
 
 
-def test_local_extras_switches_libadwaita_gtk4_override(monkeypatch, tmp_path):
+@pytest.mark.parametrize("adaptive", [False, True])
+def test_local_extras_switches_libadwaita_gtk4_override(monkeypatch, tmp_path, adaptive):
     """Modern Nautilus needs GTK's user stylesheet in addition to the GTK
     theme setting, so the project-managed link must track both modes."""
     import theme_switch
+    monkeypatch.setattr(theme_switch, "_gtk4_supports_media_queries", lambda: adaptive)
 
     home = tmp_path / "home"
     home.mkdir()
@@ -455,16 +457,41 @@ def test_local_extras_switches_libadwaita_gtk4_override(monkeypatch, tmp_path):
     theme_switch._apply_local_extras("dark")
 
     assert (dest_root / "gtk.css").is_symlink()
-    assert (dest_root / "gtk.css").readlink().name == "gtk-Dark.css"
+    assert (dest_root / "gtk.css").readlink().name == ("gtk-Adaptive.css" if adaptive else "gtk-AdaptiveLegacy.css")
     assert (dest_root / "gtk-Dark.css").read_text() == "/* dark */"
     assert (dest_root / "assets/button.png").read_bytes() == b"Dark"
 
     theme_switch._apply_local_extras("light")
 
     assert (dest_root / "gtk.css").is_symlink()
-    assert (dest_root / "gtk.css").readlink().name == "gtk-Light.css"
+    assert (dest_root / "gtk.css").readlink().name == ("gtk-Adaptive.css" if adaptive else "gtk-AdaptiveLegacy.css")
     assert (dest_root / "gtk-Light.css").read_text() == "/* light */"
     assert (dest_root / "assets/button.png").read_bytes() == b"Light"
+
+    if adaptive:
+        assert (dest_root / "gtk-Adaptive.css").read_text() == theme_switch.GTK4_ADAPTIVE_CSS
+    else:
+        assert (dest_root / "gtk-AdaptiveLegacy.css").read_text() == theme_switch.gtk4_legacy_adaptive_css("/* light */")
+
+
+def test_legacy_gtk4_palette_does_not_freeze_libadwaita_colors(tmp_path):
+    import theme_switch
+    source = (Path(__file__).parents[1] / "src/offline/gtk/MacTahoeLiquidKde-Light/gtk-4.0/gtk-Light.css").read_text()
+    generated = theme_switch.gtk4_legacy_adaptive_css(source)
+    assert "@define-color window_bg_color " not in generated
+    assert "@define-color view_bg_color " not in generated
+    assert "@define-color sidebar_bg_color @window_bg_color;" in generated
+    assert "@define-color accent_bg_color #0088FF;" in generated
+    assert "background-color: @view_bg_color;" in generated
+    root = tmp_path / "themes"
+    theme = root / "MacTahoeLiquidKde-Light/gtk-4.0"
+    theme.mkdir(parents=True)
+    (theme / "gtk-Light.css").write_text(source)
+    css = tmp_path / "gtk.css"
+    css.write_text(generated + "\n@import 'colors.css';")
+    assert theme_switch._gtk4_css_is_replaceable(css, root)
+    css.write_text(generated + "\nwindow { color: red; }")
+    assert not theme_switch._gtk4_css_is_replaceable(css, root)
 
 
 def test_local_extras_preserves_user_owned_gtk4_css(monkeypatch, tmp_path):
@@ -552,6 +579,7 @@ def test_local_extras_replaces_kde_generated_light_gtk4_sheet_in_dark_mode(
     """kde-gtk-config expands the light sheet and appends colors.css. That is
     generated state, not user CSS, and must not remain active in dark mode."""
     import theme_switch
+    monkeypatch.setattr(theme_switch, "_gtk4_supports_media_queries", lambda: False)
 
     home = tmp_path / "home"
     for variant, content in (("Light", "LIGHT"), ("Dark", "DARK")):
@@ -559,6 +587,7 @@ def test_local_extras_replaces_kde_generated_light_gtk4_sheet_in_dark_mode(
                 / "gtk-4.0")
         root.mkdir(parents=True)
         (root / f"gtk-{variant}.css").write_text(content)
+        (root / "gtk-Light.css").write_text("LIGHT")
     gtk4 = home / ".config/gtk-4.0"
     gtk4.mkdir(parents=True)
     (gtk4 / "gtk.css").write_text("LIGHT\n@import 'colors.css';")
@@ -571,7 +600,7 @@ def test_local_extras_replaces_kde_generated_light_gtk4_sheet_in_dark_mode(
     theme_switch._apply_local_extras("dark")
 
     assert (gtk4 / "gtk.css").is_symlink()
-    assert (gtk4 / "gtk.css").readlink().name == "gtk-Dark.css"
+    assert (gtk4 / "gtk.css").readlink().name == "gtk-AdaptiveLegacy.css"
 
 
 def test_local_extras_replaces_a_stale_sheet_from_an_older_release(
@@ -600,8 +629,9 @@ def test_local_extras_replaces_a_stale_sheet_from_an_older_release(
 
     theme_switch._apply_local_extras("dark")
 
+    # Replaced by the adaptive sheet, which follows light and dark live.
     assert (gtk4 / "gtk.css").is_symlink()
-    assert (gtk4 / "gtk.css").readlink().name == "gtk-Dark.css"
+    assert (gtk4 / "gtk.css").readlink().name in {"gtk-Adaptive.css", "gtk-AdaptiveLegacy.css"}
 
 
 def test_cycle_restores_target_on_sigterm(monkeypatch):
@@ -992,6 +1022,48 @@ def test_first_install_applies_theme_wallpaper(monkeypatch, tmp_path):
     assert calls == ["light"]
     assert state["user_screens"] == []
     assert state["last_applied"] == _wp(f"file://{theme}")
+
+
+def test_auto_install_records_wallpaper_before_persistent_timer_can_fire(monkeypatch, tmp_path):
+    import steps.theme_switch as step
+
+    ts, theme = _smart_wallpaper_env(monkeypatch, tmp_path)
+    current = {"value": _wp("file:///usr/share/wallpapers/Next")}
+    calls = []
+    monkeypatch.setenv("FEAT_WALLPAPERS", "true")
+    monkeypatch.setenv("MTTKDE_EXISTING_INSTALL", "false")
+    monkeypatch.setattr(ts, "_current_wallpapers", lambda: current["value"])
+
+    def apply_theme(mode):
+        current["value"] = _wp(theme.as_uri())
+        return True, theme
+
+    def service(*args):
+        calls.append(args)
+        if args[0] == "start":
+            # A persistent timer can fire as soon as it is started. This
+            # background process has none of the installer's environment.
+            with monkeypatch.context() as env:
+                env.delenv("MTTKDE_EXISTING_INSTALL")
+                assert ts._apply_wallpaper("light", context="user")
+        return True
+
+    monkeypatch.setattr(ts, "_apply_theme_wallpaper", apply_theme)
+    monkeypatch.setattr(step, "SVC_DIR", tmp_path / "units")
+    step.SVC_DIR.mkdir()
+    monkeypatch.setattr(step, "_teardown_units", lambda: True)
+    monkeypatch.setattr(step, "_user_service", service)
+    monkeypatch.setattr(step, "theme_mode", lambda: "auto")
+    monkeypatch.setattr(step, "is_systemd", lambda: True)
+
+    assert step._install_units()
+    assert not ts._wallpaper_state_file().exists()
+    assert ts._apply_wallpaper("light", context="install")
+    step.start_schedule()
+    assert current["value"] == _wp(theme.as_uri())
+    assert ts._load_wallpaper_state()["user_screens"] == []
+    assert ("start", step.UNITS[1]) in calls
+    assert not any(call[0] == "start" and step.UNITS[0] in call for call in calls)
 
 
 def test_theme_wallpaper_helper_failure_uses_config_fallback(
@@ -2329,3 +2401,99 @@ def test_wallpaper_capture_retry_exhaustion(monkeypatch):
     assert ts._capture_wallpapers_with_retry() == []
     assert len(calls) == 4
     assert waits == [5, 5, 5]
+
+
+@pytest.mark.parametrize("reset_path", ["lookandfeel", "helper", "config"])
+@pytest.mark.parametrize("user_choice", [None, "file:///pictures/photo.jpg",
+                                         "file:///usr/share/wallpapers/Flow"])
+def test_reinstall_after_uninstall_reclaims_only_unchanged_reset_backgrounds(
+        monkeypatch, tmp_path, reset_path, user_choice):
+    import steps.apply as apply_step
+
+    ts, theme = _smart_wallpaper_env(monkeypatch, tmp_path)
+    breeze = Path("/usr/share/wallpapers/Next")
+    reset = _wp(breeze.as_uri(), 0) + _wp(breeze.as_uri(), 1)
+    # Residual installed assets still make this an existing installation.
+    # A missing ownership file used to misclassify both Breeze screens.
+    monkeypatch.setenv("MTTKDE_EXISTING_INSTALL", "true")
+    monkeypatch.setattr(apply_step, "_lookandfeel_default_wallpaper", lambda _: breeze)
+    monkeypatch.setattr(apply_step, "_wallpaper_reset_candidates", lambda _: (breeze,))
+    monkeypatch.setattr(apply_step, "_current_wallpapers", lambda: reset)
+    monkeypatch.setattr(apply_step, "_wallpapers_from_config", lambda: reset)
+    monkeypatch.setattr(apply_step, "have", lambda cmd: cmd == "plasma-apply-wallpaperimage")
+    monkeypatch.setattr(apply_step, "_run_live", lambda _: True)
+    monkeypatch.setattr(apply_step, "_write_wallpapers_to_config", lambda snapshot: snapshot == reset)
+    apply_step._reset_wallpaper(live_ready=reset_path != "config",
+                               native_reset=reset_path == "lookandfeel")
+    recorded = ts._load_wallpaper_state()
+    assert recorded["initialized"] is True
+    assert recorded["user_screens"] == []
+    assert recorded["last_applied"] == reset
+
+    current = [dict(item) for item in reset]
+    if user_choice:
+        current[1]["image"] = user_choice
+    applied = []
+    monkeypatch.setattr(ts, "_apply_theme_wallpaper",
+                        lambda mode: applied.append(ts._theme_wallpaper_snapshot(current, theme)) or (True, theme))
+    monkeypatch.setattr(ts, "_apply_wallpaper_snapshot",
+                        lambda snapshot: applied.append(snapshot) or True)
+    assert ts._apply_wallpaper("dark", context="install", current_snapshot=current)
+    expected = _wp(theme.as_uri(), 0) + _wp(user_choice or theme.as_uri(), 1)
+    assert applied == [expected]
+    assert ts._load_wallpaper_state()["last_applied"] == expected
+    assert ts._load_wallpaper_state()["user_screens"] == ([1] if user_choice else [])
+
+
+def test_breeze_without_uninstall_evidence_still_belongs_to_user(monkeypatch, tmp_path):
+    ts, _ = _smart_wallpaper_env(monkeypatch, tmp_path)
+    monkeypatch.setenv("MTTKDE_EXISTING_INSTALL", "true")
+    monkeypatch.setattr(ts, "_apply_theme_wallpaper",
+                        lambda _: pytest.fail("Breeze name alone does not prove ownership"))
+    current = _wp("file:///usr/share/wallpapers/Next")
+    assert ts._apply_wallpaper("light", context="install", current_snapshot=current)
+    assert ts._load_wallpaper_state()["user_screens"] == [0]
+
+
+def test_uninstall_reports_failure_to_record_reset_background(monkeypatch, tmp_path):
+    import steps.apply as apply_step
+
+    ts, _ = _smart_wallpaper_env(monkeypatch, tmp_path)
+    warnings = []
+    monkeypatch.setattr(apply_step, "_save_wallpaper_state", lambda _: False)
+    monkeypatch.setattr(apply_step, "warn", warnings.append)
+    apply_step._record_wallpaper_reset(_wp("file:///usr/share/wallpapers/Next"))
+    assert warnings == ["Wallpaper reset ownership could not be recorded"]
+    assert not ts._wallpaper_state_file().exists()
+
+
+def test_uninstall_does_not_overwrite_state_retained_by_failed_switcher_cleanup(monkeypatch, tmp_path):
+    import steps.apply as apply_step
+
+    ts, _ = _smart_wallpaper_env(monkeypatch, tmp_path)
+    state = ts._empty_wallpaper_state()
+    state.update(initialized=True, user_screens=[0], last_applied=_wp("file:///pictures/custom.jpg"))
+    assert ts._save_wallpaper_state(state)
+    before = ts._wallpaper_state_file().read_bytes()
+    warnings = []
+    monkeypatch.setattr(apply_step, "warn", warnings.append)
+    apply_step._record_wallpaper_reset(_wp("file:///usr/share/wallpapers/Next"))
+    assert ts._wallpaper_state_file().read_bytes() == before
+    assert warnings == ["Wallpaper reset ownership retained: switcher state was not cleared"]
+
+
+def test_scheduled_job_prefers_plasma_bus_over_runtime_socket(tmp_path, monkeypatch):
+    import theme_switch as target
+    import socket
+    monkeypatch.setattr(os, 'environ', {'HOME': str(tmp_path), 'XDG_RUNTIME_DIR': str(tmp_path)})
+    proc = tmp_path / 'proc'
+    process = proc / '123'
+    process.mkdir(parents=True)
+    (process / 'comm').write_text('plasmashell\n')
+    (process / 'environ').write_bytes(b'DBUS_SESSION_BUS_ADDRESS=unix:path=/tmp/plasma-session\0WAYLAND_DISPLAY=wayland-1\0')
+    monkeypatch.setattr(target, '_PROC_ROOT', proc)
+    with socket.socket(socket.AF_UNIX) as bus:
+        bus.bind(str(tmp_path / 'bus'))
+        target._sync_session_env()
+    assert os.environ['DBUS_SESSION_BUS_ADDRESS'] == 'unix:path=/tmp/plasma-session'
+    assert os.environ['WAYLAND_DISPLAY'] == 'wayland-1'

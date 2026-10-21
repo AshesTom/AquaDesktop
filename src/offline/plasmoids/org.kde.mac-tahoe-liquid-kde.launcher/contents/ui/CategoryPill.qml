@@ -31,7 +31,8 @@ Item {
         z: -1
         color: main.isDarkTheme
             ? Qt.rgba(1, 1, 1, selected ? 0.12 : 0.06)
-            : Qt.rgba(0, 0, 0, selected ? 0.12 : 0.06)
+            : Qt.rgba(1, 1, 1, main.goldenGateLight
+                ? (selected ? 0.68 : 0.52) : (selected ? 0.62 : 0.46))
         radius: main.detachedSearch ? height * 0.45 : 8
     }
 

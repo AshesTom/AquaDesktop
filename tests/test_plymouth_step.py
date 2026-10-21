@@ -1437,3 +1437,18 @@ def test_install_skips_grub_patch_when_no_regen_binary(tmp_path, monkeypatch):
     # No backup file created.
     bak = grub.with_suffix(grub.suffix + ".mttkde.bak")
     assert not bak.exists()
+
+
+@pytest.mark.parametrize('failed_step', [None, 0, 1])
+def test_native_rebuild_is_required_and_errors_propagate(monkeypatch, failed_step):
+    import subprocess
+    commands = [['plymouth-set-default-theme', 'theme'], ['dracut-rebuild']]
+    monkeypatch.setattr(plymouth, 'plymouth_activation_commands', lambda theme: commands)
+    calls = []
+    def run(command, timeout):
+        calls.append(command)
+        return subprocess.CompletedProcess(command, 1 if len(calls) - 1 == failed_step else 0, '', '')
+    monkeypatch.setattr(plymouth, '_run_as_root', run)
+    monkeypatch.setattr(plymouth, 'fail', lambda message: None)
+    assert plymouth._activate('theme') is (failed_step is None)
+    assert calls == (commands[:1] if failed_step == 0 else commands)

@@ -92,12 +92,15 @@ def test_install_copies_globalmenu_runtime_qml(tmp_path, monkeypatch):
 
     _stub_sudo_helpers(monkeypatch)
 
+    calls = []
+    monkeypatch.setattr(globalmenu, "qdbus_call", lambda *args: calls.append(args) or True)
     failures = []
     monkeypatch.setattr(globalmenu, "fail", lambda msg: failures.append(msg))
 
     globalmenu.install()
 
     assert not failures, failures
+    assert calls == [("org.kde.kded6", "/kded", "org.kde.kded6.loadModule", "appmenu")]
     expected_so = fake_plugins / "plasma/applets/org.kde.mac.tahoe.liquid.globalmenu.so"
     expected_qml = fake_qml / "plasma/applet/org/kde/mac/tahoe/liquid/globalmenu"
     assert expected_so.is_file()

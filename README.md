@@ -190,6 +190,10 @@ sudo ./install
 
 ## Contributing
 
+Help with bug reports, fixes, testing and documentation.
+
+Thanks to the people who contribute to Tahoe and Golden Gate:
+
 <p>
   <a href="https://github.com/lestercorderomurillo"><img src="src/screenshots/contributors/lestercorderomurillo.svg" width="40" height="40" alt="@lestercorderomurillo" title="@lestercorderomurillo"></a>
   <a href="https://github.com/yanhenrique-dev"><img src="src/screenshots/contributors/yanhenrique-dev.svg" width="40" height="40" alt="@yanhenrique-dev" title="@yanhenrique-dev"></a>

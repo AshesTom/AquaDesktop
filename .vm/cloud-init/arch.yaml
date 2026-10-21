@@ -65,20 +65,15 @@ write_files:
       mkdir -p /var/lib/mttkde /repo
       mkdir -p /home/tester/.config/autostart
 
-      pacman -Sy --noconfirm
-      pacman -S --noconfirm --needed \
-          base-devel \
-          extra-cmake-modules \
-          kdecoration \
-          libksysguard \
-          libplasma \
+      pacman -Syu --noconfirm --needed \
+          python-pyqt6 \
           openssh \
-          plasma-activities-stats \
           plasma-login-manager \
           plasma-workspace \
           plasma-meta \
           konsole \
           dolphin \
+          firefox \
           qt6-tools \
           rsync \
           sddm \
@@ -130,12 +125,31 @@ write_files:
       grep -q '^repo /home/tester/repo' /etc/fstab \
           || echo 'repo /home/tester/repo 9p trans=virtio,version=9p2000.L,msize=262144,ro,nofail 0 0' >> /etc/fstab
 
+      cat > /usr/local/bin/mttkde-vm-installer <<'EOF'
+      #!/bin/bash
+      set -euo pipefail
+      source_dir=/home/tester/repo
+      worktree=/home/tester/macos-tahoe-liquid-kde
+      for _attempt in $(seq 1 30); do
+          [[ -f "$source_dir/install" ]] && break
+          sleep 1
+      done
+      [[ -f "$source_dir/install" ]] || exit 1
+      mkdir -p "$worktree"
+      rsync -a --delete \
+          --exclude=.git --exclude=.vm --exclude=build \
+          "$source_dir/" "$worktree/"
+      cd "$worktree"
+      exec ./installer
+      EOF
+      chmod 0755 /usr/local/bin/mttkde-vm-installer
+
       cat > /home/tester/Desktop/macos-tahoe-liquid-kde.desktop <<'EOF'
       [Desktop Entry]
       Type=Link
-      Name=macos-tahoe-liquid-kde — cd repo && sudo ./install
+      Name=macos-tahoe-liquid-kde — writable VM copy
       Icon=folder
-      URL=file:///home/tester/repo
+      URL=file:///home/tester/macos-tahoe-liquid-kde
       EOF
 
       # Open the installer UI automatically on first Plasma login so
@@ -145,7 +159,7 @@ write_files:
       Type=Application
       Name=macos-tahoe-liquid-kde Installer
       Comment=Opens the macOS Tahoe installer UI
-      Exec=bash -lc 'sleep 8; cd /home/tester/repo && exec ./installer'
+      Exec=bash -lc 'sleep 8; exec /usr/local/bin/mttkde-vm-installer'
       Icon=system-software-install
       Terminal=false
       X-KDE-autostart-phase=2

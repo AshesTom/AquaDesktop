@@ -58,18 +58,31 @@ line under OpenRC, chosen by `init_system()` in the distro layer.
 OpenRC scheduling remains available generically; Gentoo support was retired in
 v0.54.7 and its VM/SDK workflows have been removed. The
 Artix package mapping uses the Arch family even when `ID_LIKE` is absent;
-Artix OpenRC remains testing and is not part of the container matrix. The
+Artix OpenRC has live VM qualification and is not part of the container matrix. The
 container matrix covers Arch, CachyOS, Manjaro, EndeavourOS, Garuda,
-Fedora, Nobara, openSUSE Tumbleweed, and KDE neon on their default
-(systemd) profiles. The README marks CachyOS heavily tested, Arch stable,
-Fedora and EndeavourOS relatively stable, and KDE neon container + VM
-qualified. The other listed distros need more testing. Container checks
-alone do not establish live desktop compatibility. Immutable rpm-ostree distros
+Fedora, Nobara, openSUSE Tumbleweed, Debian testing, and KDE neon on their default
+(systemd) profiles. All 11 README distributions have live VM qualification,
+including Firefox and Nautilus light/dark checks, live switching, native
+builds, reboot and uninstall. Reviewed 4K screenshots and configuration-specific
+results are in `tests/vm/PROOF.md`; README badges link to each distro section.
+Container checks alone do not establish live desktop compatibility. Immutable rpm-ostree distros
 (Silverblue, Kinoite) are explicitly out of scope: the installer
 writes into `/usr/lib*` and `/usr/share`, which are read-only on those
 systems and need either an rpm/Flatpak-extension wrapper or an
 rpm-ostree layering path that this project does not maintain. There is
 no non-KDE path.
+
+Debian testing and sid are supported with Plasma 6.6 or newer and matching
+host development packages. Debian 13's stock Plasma 6.3 is below the minimum.
+Never add testing/unstable APT sources or upgrade the distribution automatically.
+`Dockerfile.debian` defaults to testing; `DEBIAN_SUITE=sid-slim` checks sid.
+`./vm debian` boots the official Forky generic cloud image, verified against
+Debian's SHA512SUMS, on SSH port 2232. The provisioner installs a normal KDE
+desktop and leaves build dependency resolution to the installer. Keep the host
+9p mount read-only and run the GUI/CLI from the writable guest copy. VM SSH
+forwards bind to loopback because the disposable guests use known passwords.
+Debian Forky has live VM qualification with Firefox/Nautilus light and dark
+checks, reboot and uninstall. Evidence is in `tests/vm/PROOF.md`.
 
 **Distribution target:** GitHub releases + AUR.
 **License:** GPL-3.0 for the work as a whole — the bundled Better Blur DX
@@ -106,6 +119,11 @@ release is downloaded, checksum-verified, and built best-effort.
   plasmoids (Panel Colorizer, Downloads stack) keep their own metadata
   authors and license files.
 - Mirror files keep source URLs (functional, not attribution).
+- Preserve existing copyright, license, and attribution notices, including
+  upstream notices; the branding convention never authorizes removing them.
+  Follow `NOTICE`, `LICENSING.md`, and `THIRD_PARTY_NOTICES.md`.
+  Keep the standard GPL text intact and do not add copying, rebranding, or
+  commercial-use bans. Do not claim third-party marks or artwork as project-owned.
 - README **Credits** section is managed manually by the user.
 - This repository *is* a fork: README and AGENTS state plainly that
   AquaDesktop is a fork of macos-tahoe-liquid-kde and credit it.
@@ -160,7 +178,8 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   border, 22px radius) — not outlined borders.
 - System font always — never hardcode font names or sizes.
 - Popup plasmoids are fixed-size, not resizable.
-- Top panel is applets-only floating (not full-floating).
+- Top panel is applets-only floating (not full-floating). Keep the menu bar
+  backgroundless, including behind its individual applets.
 - The bottom Dock uses `autohide` in all three bundled layouts (issue #87).
   Reinstall rebuilds the Dock with this mode while preserving pinned apps;
   the scripting API persists visibility, so no extra config patch is needed.
@@ -1078,7 +1097,10 @@ The same binary runs:
 In automatic mode, `./install` enables the service and timer under
 `~/.config/systemd/user/` on systemd. OpenRC uses per-user cron entries at
 06:00 / 18:00 and has no login-time oneshot equivalent. Explicit light/dark
-mode removes previous schedules so they cannot override the selected mode.
+mode removes previous schedules so they cannot override the selected mode. The installer enables
+the login service without starting it and starts the persistent timer only
+after theme activation has recorded wallpaper ownership; starting either
+earlier can misclassify the uninstaller's Breeze wallpaper as a user override.
 
 There is no background xdg-portal appearance watcher. Automatic mode is
 driven only by the post-login service and the 06:00 / 18:00 scheduler;
@@ -1115,6 +1137,11 @@ user's too, though `org.kde.image`'s leftover `Image` key still names ours
 (`_foreign_wallpaper_screens`): the apply script skips it and the
 all-screens `plasma-apply-wallpaperimage` is never used while one exists. A user opts every screen back into managed bundled wallpapers
 only with the installer's explicit `--reset-wallpapers` action.
+After a successful uninstall wallpaper reset, record its exact per-screen
+snapshot as project-applied state, after switcher cleanup. A reinstall may
+replace that unchanged reset background; a subsequent user change still wins.
+Never infer ownership from a wallpaper name such as Breeze or Next alone.
+Older installations without this evidence need an explicit wallpaper reset.
 Empty captures are retried before applying the look-and-feel.
 If capture still fails on an existing desktop, preserve wallpapers and ownership
 state; only a fresh install or explicit reset may apply without a snapshot.
@@ -1151,6 +1178,11 @@ unload a module loaded only through `gtk-3.0/settings.ini` when settings change;
 the next callback then jumps into unmapped memory (issue #81). The reported
 ChatGPT builds explicitly clear `gtk-modules` during Chromium initialization;
 GDB reproduced both reported application offsets at the subsequent GIO crash.
+
+The Global Menu step installs the native D-Bus menu runtime and, on Arch and
+Debian families, the packaged GTK3 exporter. It loads KDE's `appmenu` module
+after installation. Other applications must export a menu themselves; never
+claim that a window title or a synthetic shortcut menu proves native export.
 
 The Global Menu step installs an ownership-marked, per-user Plasma environment
 hook at `$XDG_CONFIG_HOME/plasma-workspace/env/mac-tahoe-gtk-appmenu.sh` when
@@ -1249,14 +1281,32 @@ The Nix package carries the same defaults beside its switcher. Preserve
 per-screen ownership: selecting an edition never resets custom wallpapers;
 `--reset-wallpapers` remains the explicit opt-in.
 
+Capture screenshots for EVERY release with `./release-screenshots capture`.
+Use the checksum-pinned disposable VM and fixed recipe in
+`src/scripts/release_capture_profile.json`; never capture on the host desktop.
+Capture both modes in both editions, verify the active effect matches the
+release source, and visually review every fresh image before staging. Missing,
+rejected, mixed-theme or older-release pictures block publication. Commit the
+reviewed images and provenance, run `./release-screenshots verify`, then push
+the release tag through `.github/workflows/release.yml`. Do not bypass the
+gate with a direct `gh release create`. Changes outside `src/screenshots/`
+after capture require a new run, except README screenshot filename hash updates. See CONTRIBUTING.md for the full sequence.
+
 The same defaults file selects `launcher_preset` (Tahoe: 1, Golden Gate: 2).
 `launcher_defaults.py` stamps only the staged launcher's `defaultLauncherPreset`
 schema default, also during Nix asset assembly. `launcherPreset=0` follows that
 edition default; explicit 1/2 choices persist per applet and survive panel
-rebuilds per screen in all three layouts. Both presets remain available in
+rebuilds per screen in all three layouts. Each preset owns its fixed popup
+dimensions; switching presets must resize the native window to the newly
+selected preset, including after compositor geometry feedback and round trips.
+Both presets remain available in
 the Launcher's options menu and General settings. Preset 2 uses a separate
 native Plasma search popup above the app panel; treat both popups and their
 options menu as one focus group for dismissal.
+Category pills in both presets share a vertically centered row, including
+delegates created while scrolling. Let ListView position full-height delegate
+cells and center each pill inside its cell; setting the delegate's own `y`
+competes with ListView layout and can misalign any category.
 Preset 2 starts with seven columns, a single favorites row and a flat app grid.
 Its column setting (`goldenGateColumns`) is independent of preset 1's
 `numberColumns`; typography scales from the system font and geometry from the
@@ -1510,3 +1560,15 @@ Highlights:
 - Don't add `Co-Authored-By: Claude` (or any AI) trailers to commits.
 - Don't `--amend` published commits. Don't `--no-verify` to skip
   hooks. Don't force-push to `main`.
+
+Published screenshots must include the first 12 hexadecimal characters of their
+content SHA-256 in the filename (for example, `launcher_preset_1_light-abc123def456.png`).
+Update README links and provenance together, remove replaced image files and
+obsolete aliases, and preserve unrelated artwork. Apply this in both repositories
+every time images are published; never overwrite a changed image at its old URL.
+
+Main README desktop screenshots must show Files and About This Computer in
+separate images in each appearance mode. Each frame must contain only its
+featured application with that window focused; reject combined or unfocused
+frames. Enforce this in capture and release validation. This requirement is
+for the main README gallery, not distro qualification/OS screenshots.

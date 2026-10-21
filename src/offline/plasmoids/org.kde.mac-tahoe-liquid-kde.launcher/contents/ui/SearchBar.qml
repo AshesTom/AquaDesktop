@@ -10,30 +10,41 @@ RowLayout {
     property alias textField: textField
     property alias showMenuButton: menuButton.visible
     readonly property bool menuOpen: menuButton.menuOpen
+    readonly property color textColor: main.textColor
+    readonly property color dimmedTextColor: main.goldenGateLight
+        ? textColor : Qt.rgba(textColor.r, textColor.g, textColor.b, 0.85)
     function closeMenu() { menuButton.closeMenu(); }
 
     Kirigami.Icon {
         id: searchIcon
         layer.enabled: true
-        layer.effect: GlassTextShadow {}
+        layer.effect: GlassTextShadow {
+            haloOpacity: main.goldenGateLight ? 0.65 : 0.35
+            radius: main.goldenGateLight ? 3 : 2
+            samples: main.goldenGateLight ? 13 : 9
+        }
         Layout.rightMargin: 0
         Layout.preferredWidth: main.detachedSearch ? Kirigami.Units.gridUnit * 2 : Kirigami.Units.iconSizes.medium
         Layout.preferredHeight: Layout.preferredWidth
         source: Qt.resolvedUrl('icons/AppsIcon.svg')
         isMask: true
-        color: main.dimmedTextColor
+        color: searchFieldBar.dimmedTextColor
     }
 
     TextField {
         id: textField
         layer.enabled: true
-        layer.effect: GlassTextShadow {}
+        layer.effect: GlassTextShadow {
+            haloOpacity: main.goldenGateLight ? 0.65 : 0.35
+            radius: main.goldenGateLight ? 3 : 2
+            samples: main.goldenGateLight ? 13 : 9
+        }
         Layout.fillHeight: true
         Layout.fillWidth: true
         font.family: Kirigami.Theme.defaultFont.family
         font.pointSize: main.textSize * (main.detachedSearch ? 2 : 1)
         font.weight: Kirigami.Theme.defaultFont.weight
-        color: main.textColor
+        color: searchFieldBar.textColor
 
         Component.onCompleted: text = main.searchText
         Connections {
@@ -44,7 +55,7 @@ RowLayout {
             }
         }
         placeholderText: i18n("Apps")
-        placeholderTextColor: main.dimmedTextColor
+        placeholderTextColor: searchFieldBar.dimmedTextColor
         background: Rectangle{
             color: "transparent"
         }
@@ -71,6 +82,7 @@ RowLayout {
 
     MenuButton {
         id: menuButton
+        foregroundColor: searchFieldBar.textColor
         Layout.alignment: Qt.AlignVCenter
     }
 }

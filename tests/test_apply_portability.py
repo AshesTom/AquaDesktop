@@ -8,6 +8,12 @@ from pathlib import Path
 
 import utils
 import steps.apply as apply
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def isolated_wallpaper_state(monkeypatch, tmp_path):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
 
 
 def _force_qdbus_binaries(monkeypatch, present):

@@ -65,36 +65,9 @@ write_files:
       mkdir -p /var/lib/mttkde /repo
       mkdir -p /home/tester/.config/autostart
 
-      dnf install -y \
-          @kde-desktop-environment \
-          spectacle \
-          extra-cmake-modules \
-          kdecoration-devel \
-          kf6-kcmutils-devel \
-          kf6-kconfig-devel \
-          kf6-kconfigwidgets-devel \
-          kf6-kcoreaddons-devel \
-          kf6-kcrash-devel \
-          kf6-kglobalaccel-devel \
-          kf6-kguiaddons-devel \
-          kf6-ki18n-devel \
-          kf6-kitemmodels-devel \
-          kf6-kio-devel \
-          kf6-knotifications-devel \
-          kf6-kservice-devel \
-          kf6-kwidgetsaddons-devel \
-          kf6-kwindowsystem-devel \
-          libdrm-devel \
-          kwin-devel \
-          libX11-devel \
-          libepoxy-devel \
-          libksysguard-devel \
-          libplasma-devel \
-          libxcb-devel \
-          plasma-activities-devel \
-          plasma-activities-stats-devel \
-          plasma-workspace-devel \
-          qt6-qttools-devel
+      dnf upgrade -y
+      dnf install -y @kde-desktop-environment \
+          firefox spectacle openssh-server rsync sudo python3-pyqt6 qt6-qtbase-devel
 
       systemctl enable sshd
       systemctl daemon-reload || true
@@ -132,12 +105,31 @@ write_files:
       grep -q '^repo /home/tester/repo' /etc/fstab \
           || echo 'repo /home/tester/repo 9p trans=virtio,version=9p2000.L,msize=262144,ro,nofail 0 0' >> /etc/fstab
 
+      cat > /usr/local/bin/mttkde-vm-installer <<'EOF'
+      #!/bin/bash
+      set -euo pipefail
+      source_dir=/home/tester/repo
+      worktree=/home/tester/macos-tahoe-liquid-kde
+      for _attempt in $(seq 1 30); do
+          [[ -f "$source_dir/install" ]] && break
+          sleep 1
+      done
+      [[ -f "$source_dir/install" ]] || exit 1
+      mkdir -p "$worktree"
+      rsync -a --delete \
+          --exclude=.git --exclude=.vm --exclude=build \
+          "$source_dir/" "$worktree/"
+      cd "$worktree"
+      exec ./installer
+      EOF
+      chmod 0755 /usr/local/bin/mttkde-vm-installer
+
       cat > /home/tester/Desktop/macos-tahoe-liquid-kde.desktop <<'EOF'
       [Desktop Entry]
       Type=Link
-      Name=macos-tahoe-liquid-kde — cd repo && sudo ./install
+      Name=macos-tahoe-liquid-kde — writable VM copy
       Icon=folder
-      URL=file:///home/tester/repo
+      URL=file:///home/tester/macos-tahoe-liquid-kde
       EOF
 
       # Open the installer UI automatically on first Plasma login so
@@ -147,7 +139,7 @@ write_files:
       Type=Application
       Name=macos-tahoe-liquid-kde Installer
       Comment=Opens the macOS Tahoe installer UI
-      Exec=bash -lc 'sleep 8; cd /home/tester/repo && exec ./installer'
+      Exec=bash -lc 'sleep 8; exec /usr/local/bin/mttkde-vm-installer'
       Icon=system-software-install
       Terminal=false
       X-KDE-autostart-phase=2
