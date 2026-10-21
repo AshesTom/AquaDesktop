@@ -126,8 +126,9 @@ sudo ./uninstall
 
 English, Spanish and Simplified Chinese. All options: `sudo ./install --help`.
 
-<details>
-<summary><b>Project contributions</b></summary>
+<br>
+
+![Project contributions](https://img.shields.io/badge/project-contributions-6B4B8A?style=for-the-badge&logo=github&logoColor=white)
 
 Here is what we added or improved in the components we ship.
 
@@ -145,7 +146,7 @@ Here is what we added or improved in the components we ship.
 - **Optional features:** OLED panel shifts and experimental NixOS/Home Manager modules.
 - **Testing:** regression tests, container checks across distributions and Plasma VMs for checking desktop behavior and appearance.
 
-</details>
+<br>
 
 <details>
 <summary><b>Requirements</b></summary>
