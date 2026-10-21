@@ -425,6 +425,19 @@ def inside(output):
                     "x11" if os.environ["PROBE_BACKEND"] == "xcb" else "wayland"
                 ),
             }
+            if case == "dock":
+                # Dialog supplies the native Dock role and blur mask. Use the
+                # real panel surface instead of its light/dark popup fill.
+                theme = "MacTahoeLiquidKde-" + os.environ["PROBE_MODE"]
+                theme_root = output / "data/plasma/desktoptheme"
+                dock_theme = theme_root / "DockProbe"
+                shutil.copytree(theme_root / theme, dock_theme)
+                shutil.copyfile(dock_theme / "widgets/panel-background.svgz",
+                                dock_theme / "dialogs/background.svgz")
+                dock_config = case_output / "config"
+                shutil.copytree(output / "config", dock_config)
+                (dock_config / "plasmarc").write_text("[Theme]\nname=DockProbe\n")
+                client_env["XDG_CONFIG_HOME"] = str(dock_config)
             with (case_output / "client.log").open("w") as log:
                 client = subprocess.Popen(
                     [

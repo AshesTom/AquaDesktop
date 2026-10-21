@@ -3,13 +3,16 @@
 #ifndef LIQUIDGLASS_DISTORT_GLSL
 #define LIQUIDGLASS_DISTORT_GLSL
 
-vec2 lgDockLensUV(vec2 uv, vec2 outwardNormal, vec2 surfaceSize,
+vec2 lgDockLensUV(vec2 uv, vec2 outwardNormal, vec2 surfacePosition, vec2 surfaceSize,
                   vec2 backgroundSize, float strength, float edgeQ)
 {
-    // Bend across the bevel, not toward the centre of a long Dock: the latter
-    // stretches its top edge sideways as the number of pinned apps changes.
-    float thickness = min(surfaceSize.x, surfaceSize.y) * strength * 7.5;
-    vec2 textureNormal = vec2(outwardNormal.x, -outwardNormal.y);
+    // Blend the rim normal with a centre-directed lens. Normalized local
+    // coordinates keep the angled reflection independent of Dock length.
+    float thickness = min(surfaceSize.x, surfaceSize.y) * strength * 3.5;
+    vec2 local = surfacePosition / max(surfaceSize * 0.5, vec2(1.0));
+    vec2 radial = local / max(length(local), 0.001);
+    vec2 direction = normalize(mix(outwardNormal, radial, 0.65));
+    vec2 textureNormal = vec2(direction.x, -direction.y);
     return clamp(uv - textureNormal * thickness * edgeQ / max(backgroundSize, vec2(1.0)), 0.0, 1.0);
 }
 

@@ -408,7 +408,7 @@ void BlurEffect::reconfigure(ReconfigureFlags flags)
     double blurStrengthD = qBound(0.0, BlurConfig::blurStrength(), (double) blurStrengthValues.size());
     // The regular pyramid resets its offset at each deeper level. A Dock
     // stays at one level, so derive its taps directly from the slider instead.
-    m_dockOffset = blurStrengthD * 0.15f;
+    m_dockOffset = blurStrengthD * 0.25f;
 
     if (blurStrengthD <= 0.0) {
         m_iterationCount = 1;
@@ -1051,7 +1051,7 @@ void BlurEffect::blur(
     // Short panel surfaces need a shallow blur to retain the backdrop detail
     // that makes their refracted rim visible. Keep the saved material intact.
     const bool dockSurface = w->isDock();
-    const float centerOpacity = dockSurface ? 0.60f : 1.0f;
+    const float centerOpacity = dockSurface ? 0.90f : 1.0f;
     const size_t iterationCount = dockSurface ? 1 : m_iterationCount;
     const float blurOffset = dockSurface ? m_dockOffset : m_offset;
 
@@ -1470,7 +1470,7 @@ void BlurEffect::blur(
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.opacityLocation, modulation);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.blurSizeLocation, QVector2D(nativeBox.width(), nativeBox.height()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.rgbDriftStrengthLocation,
-        float(m_rgbDriftStrength * viewport.scale() * (dockSurface ? 0.35f : 1.0f)));
+        float(m_rgbDriftStrength * viewport.scale() * (dockSurface ? 0.20f : 1.0f)));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.magnifyGlassStrengthLocation, m_magnifyGlassStrength);
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.refractionWidthLocation, float(m_refractionWidth * viewport.scale()));
     m_roundedOnscreenPass.shader->setUniform(m_roundedOnscreenPass.highlightWidthLocation, float(m_highlightWidth * viewport.scale()));

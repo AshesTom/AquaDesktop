@@ -554,11 +554,14 @@ mode: 95% black at the top, fading completely within the first 50% of the
 surface height. The lower half keeps untinted glass. Dock surfaces are exempt
 from the gradient under every material; do not
 change the saved gradient settings or remove their blur and refraction.
-Dock/panel glass uses a shallow single-level Kawase blur, less grain and lower
-centre coverage, with a broader normal-directed refracting bevel. Derive this
+Dock/panel glass uses a shallow single-level Kawase blur, less grain and 90%
+centre coverage, with a mild angled lens near the rim. Blend the surface normal
+with the centre-directed lens in normalized local coordinates. Derive this
 per surface from the selected material without rewriting optical preferences;
 menus retain their full blur. Keep the bevel displacement independent of the
 Dock's length and scale it in device pixels.
+Dock captures must use `widgets/panel-background.svgz`, not a light/dark dialog
+fill. Its glass is identical in both appearance modes.
 
 Publish Tahoe and Golden Gate with matching release versions and `v<version>`
 tags. Deliver completed changes to both `dev` and `main` in both repositories,

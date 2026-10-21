@@ -164,7 +164,7 @@ int main(int argc, char **argv)
         }
 
         // Clear Dock glass must bend the backdrop across its bevel without
-        // shrinking it along the long axis or displacing the centre.
+        // stretching it along the long axis or displacing the centre.
         shader.setUniformValue("dockSurface", true);
         shader.setUniformValue("centerOpacity", 0.55f);
         shader.setUniformValue("highlightStrength", 0.0f);
@@ -189,12 +189,18 @@ int main(int argc, char **argv)
         require(bentDock.pixel(96,64) == flatDock.pixel(96,64),
                 QStringLiteral("Dock centre must remain undistorted"));
         for (const int x : {48, 144}) {
-            require(std::abs(qRed(bentDock.pixel(x,4)) - qRed(flatDock.pixel(x,4))) <= 1,
-                    QStringLiteral("Dock top edge must not stretch sideways"));
+            const int horizontalShift = qRed(bentDock.pixel(x,4)) - qRed(flatDock.pixel(x,4));
+            require(std::abs(horizontalShift) >= 2 && std::abs(horizontalShift) <= 6
+                        && horizontalShift * (96 - x) > 0,
+                    QStringLiteral("Dock lens must bend diagonally toward its centre without excessive stretch"));
             const int topShift = qGreen(bentDock.pixel(x,4)) - qGreen(flatDock.pixel(x,4));
             const int bottomShift = qGreen(bentDock.pixel(x,123)) - qGreen(flatDock.pixel(x,123));
             require(std::abs(topShift) > 12 && topShift * bottomShift < 0,
                     QStringLiteral("Dock bevel must visibly bend opposite edges inward"));
+            // Green changes by two units per source pixel. At the default
+            // strength, neither edge should shift by more than nine pixels.
+            require(std::abs(topShift) <= 18 && std::abs(bottomShift) <= 18,
+                    QStringLiteral("Dock refraction must not stretch the backdrop into a wide band"));
         }
         if (dockReference.isNull()) dockReference = bentDock;
         else require(dockReference == bentDock, QStringLiteral("Dock differs between shader profiles"));

@@ -45,16 +45,16 @@ void main(void)
     vec2 outNorm = lgRoundedRectNormal(pos, halfSize, cornerRadius);
     float inside = max(-d, 0.0);
 
-    float refrBand = max(refractionWidth * (dockSurface ? 1.5 : 1.0), 1.0);
+    float refrBand = max(refractionWidth * (dockSurface ? 1.25 : 1.0), 1.0);
     float edgeT = smoothstep(-refrBand, 0.0, d);
-    // A broader bevel makes the Dock read as clear, thick glass.
+    // Keep the Dock's refraction near the rim.
     // Both profiles leave the centre undistorted.
     float edgeQ = edgeT * edgeT * (dockSurface ? 1.0 : edgeT);
 
     vec2 lensUV = uv;
     if (magnifyGlassStrength > 0.0) {
         lensUV = dockSurface
-            ? lgDockLensUV(uv, outNorm, blurSize, backgroundSize, magnifyGlassStrength, edgeQ)
+            ? lgDockLensUV(uv, outNorm, pos, blurSize, backgroundSize, magnifyGlassStrength, edgeQ)
             : lgLensUV(uv, magnifyGlassStrength, edgeQ);
     }
     vec2 texel = halfpixel * 2.0;
