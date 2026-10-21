@@ -158,7 +158,8 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
 
 - System menu icons appear only beside About This Computer, System Settings
   and App Store, matching the Golden Gate reference. Keep the remaining
-  actions icon-free without changing menu spacing.
+  actions icon-free and omit their reserved icon column; preserve the
+  surrounding menu margins and row spacing.
 - Hover tiles: glass effect (semi-transparent fill, 0.5px micro
   border, 22px radius) — not outlined borders.
 - Native menu selection rounding uses Kvantum `expand-menuitem-normal` tiles

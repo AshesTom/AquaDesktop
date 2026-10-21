@@ -22,6 +22,7 @@
 #include <QQuickWindow>
 #include <QScreen>
 #include <QStandardPaths>
+#include <QStyleOptionMenuItem>
 #include <QTimer>
 #include <abstracttasksmodel.h>
 
@@ -30,6 +31,18 @@
 int AppMenuApplet::s_refs = 0;
 
 namespace {
+class SystemMenu : public QMenu
+{
+protected:
+    void initStyleOption(QStyleOptionMenuItem* option, const QAction* action) const override
+    {
+        QMenu::initStyleOption(option, action);
+        if (!action->isSeparator() && !action->isIconVisibleInMenu()) {
+            option->maxIconWidth = 0;
+        }
+    }
+};
+
 /// DBus name we register as while at least one AppMenuApplet is alive.
 /// Other system pieces (Latte, Plank, etc.) listen for this to know a
 /// global menu view is on screen and suppress their own in-window menubar.
@@ -515,7 +528,7 @@ void AppMenuApplet::triggerSystemMenu(QQuickItem* ctx)
         m_windowMenu->hide();
     }
 
-    auto* menu = new QMenu;
+    auto* menu = new SystemMenu;
     menu->setAttribute(Qt::WA_DeleteOnClose);
     applyActiveColorScheme(menu);
     m_systemMenu = menu;
