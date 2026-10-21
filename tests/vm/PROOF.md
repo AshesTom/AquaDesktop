@@ -159,9 +159,34 @@ The current application checks and reviewed 4K screenshots have not been publish
 
 <a id="opensuse"></a>
 <details>
-<summary><b>openSUSE Tumbleweed — evidence pending</b></summary>
+<summary><b>openSUSE Tumbleweed — ✅ VM verified · v0.57.7</b></summary>
 
-The current application checks and reviewed 4K screenshots have not been published yet.
+Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
+Official openSUSE Tumbleweed cloud image with native KDE desktop and packages.
+
+| Check | Result |
+| --- | --- |
+| Full installation and host SDK builds | ✅ Passed |
+| Light and dark desktop, loaded Acrylic Glass, Dock autohide | ✅ Passed |
+| Firefox rendering, text input, button action and appearance | ✅ Passed |
+| Nautilus light/dark pixels and live switching | ✅ Passed |
+| Live switch preserves app, Plasma and KWin processes | ✅ Passed |
+| Reboot and desktop/app checks | ✅ Passed |
+| Full uninstall and removal checks | ✅ Passed |
+
+**Light**
+
+![openSUSE Tumbleweed light](../../src/screenshots/vm/opensuse/light-69bdc7c5e780.png)
+
+**Dark**
+
+![openSUSE Tumbleweed dark](../../src/screenshots/vm/opensuse/dark-3f6bac045843.png)
+
+**After reboot**
+
+![openSUSE Tumbleweed after reboot](../../src/screenshots/vm/opensuse/reboot-bcb6af863f92.png)
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/opensuse/report.json).
 
 </details>
 
