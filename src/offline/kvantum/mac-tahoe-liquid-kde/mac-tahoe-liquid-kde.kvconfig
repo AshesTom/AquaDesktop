@@ -523,14 +523,9 @@ frame=true
 frame.element=menuitem
 interior.element=menuitem
 indicator.element=menuitem
-highlight.text.color=#333333
+highlight.text.color=#ffffff
 text.normal.color=#333333
-text.focus.color=#333333
-text.press.color=#333333
-text.toggle.color=#333333
-text.focus.inactive.color=#333333
-text.press.inactive.color=#333333
-text.toggle.inactive.color=#333333
+text.focus.color=#ffffff
 
 text.margin.top=0
 text.margin.bottom=0

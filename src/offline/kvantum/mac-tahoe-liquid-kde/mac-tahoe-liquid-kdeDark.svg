@@ -8881,32 +8881,4 @@
      xlink:href="#spin-down-disabled"
      id="spin-minus-disabled"
      transform="translate(8.8821782e-7,26)" />
-  <!-- Neutral translucent menu selection; explicit states avoid the blue fallback. -->
-  <path id="menuitem-focused" d="M 8,8 H 16 V 16 H 8 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-focused-top" d="M 8,0 H 16 V 8 H 8 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-focused-bottom" d="M 8,16 H 16 V 24 H 8 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-focused-left" d="M 0,8 H 8 V 16 H 0 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-focused-right" d="M 16,8 H 24 V 16 H 16 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-focused-topleft" d="M 8,0 V 8 H 0 A 8,8 0 0 1 8,0 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-focused-topright" d="M 16,0 A 8,8 0 0 1 24,8 H 16 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-focused-bottomleft" d="M 0,16 H 8 V 24 A 8,8 0 0 1 0,16 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-focused-bottomright" d="M 16,16 H 24 A 8,8 0 0 1 16,24 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-pressed" d="M 8,8 H 16 V 16 H 8 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-pressed-top" d="M 8,0 H 16 V 8 H 8 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-pressed-bottom" d="M 8,16 H 16 V 24 H 8 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-pressed-left" d="M 0,8 H 8 V 16 H 0 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-pressed-right" d="M 16,8 H 24 V 16 H 16 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-pressed-topleft" d="M 8,0 V 8 H 0 A 8,8 0 0 1 8,0 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-pressed-topright" d="M 16,0 A 8,8 0 0 1 24,8 H 16 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-pressed-bottomleft" d="M 0,16 H 8 V 24 A 8,8 0 0 1 0,16 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-pressed-bottomright" d="M 16,16 H 24 A 8,8 0 0 1 16,24 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-toggled" d="M 8,8 H 16 V 16 H 8 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-toggled-top" d="M 8,0 H 16 V 8 H 8 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-toggled-bottom" d="M 8,16 H 16 V 24 H 8 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-toggled-left" d="M 0,8 H 8 V 16 H 0 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-toggled-right" d="M 16,8 H 24 V 16 H 16 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-toggled-topleft" d="M 8,0 V 8 H 0 A 8,8 0 0 1 8,0 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-toggled-topright" d="M 16,0 A 8,8 0 0 1 24,8 H 16 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-toggled-bottomleft" d="M 0,16 H 8 V 24 A 8,8 0 0 1 0,16 Z" fill="#ffffff" fill-opacity="0.16" />
-  <path id="menuitem-toggled-bottomright" d="M 16,16 H 24 A 8,8 0 0 1 16,24 Z" fill="#ffffff" fill-opacity="0.16" />
 </svg>
