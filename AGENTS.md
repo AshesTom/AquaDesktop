@@ -609,6 +609,10 @@ the Launcher's options menu and General settings. Preset 2 uses a separate
 native Plasma search popup above the app panel; each window owns its search
 field and shares the query, so text layers never migrate across render contexts; treat both popups and their
 options menu as one focus group for dismissal.
+Category pills in both presets share a vertically centered row, including
+delegates created while scrolling. Let ListView position full-height delegate
+cells and center each pill inside its cell; setting the delegate's own `y`
+competes with ListView layout and can misalign any category.
 Preset 2 starts with seven columns, a single favorites row and a flat app grid.
 Its column setting (`goldenGateColumns`) is independent of preset 1's
 `numberColumns`; typography scales from the system font and geometry from the

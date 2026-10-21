@@ -23,19 +23,27 @@ Item {
         highlightMoveDuration: 50
         anchors.fill: parent
 
-        delegate: CategoryPill {
+        delegate: Item {
             id: del
             required property var model
             required property var index
-            selected: categorySwitcher.currentIndex == index
-            text: model.name
-            y: (categorySwitcher.height - height) / 2
+            implicitWidth: pill.implicitWidth
+            implicitHeight: pill.implicitHeight
+            height: categorySwitcher.height
 
-            // Emit on click only: currentIndex also moves when the
-            // category list rebuilds, and that must not switch views.
-            onClicked: {
-                categorySwitcher.currentIndex = index
-                scrollview.categorySwitched(model.modelIndex)
+            // ListView owns the delegate position; center its contents instead.
+            CategoryPill {
+                id: pill
+                anchors.verticalCenter: parent.verticalCenter
+                selected: categorySwitcher.currentIndex == del.index
+                text: del.model.name
+
+                // Emit on click only: currentIndex also moves when the
+                // category list rebuilds, and that must not switch views.
+                onClicked: {
+                    categorySwitcher.currentIndex = del.index
+                    scrollview.categorySwitched(del.model.modelIndex)
+                }
             }
         }
 

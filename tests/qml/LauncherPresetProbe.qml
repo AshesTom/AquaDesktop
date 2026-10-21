@@ -31,13 +31,39 @@ Timer {
     function verifyCategoryPills() {
         const view = appList.testCategories.testView;
         verify(view.count > 0, "categories available");
+        const originalX = view.contentX;
+        let firstTop = null;
+        let firstHeight = null;
         for (let i = 0; i < view.count; ++i) {
-            const pill = view.itemAtIndex(i);
-            if (!pill) continue;
+            view.positionViewAtIndex(i, ListView.Center);
+            view.forceLayout();
+            const delegate = view.itemAtIndex(i);
+            verify(delegate !== null, "category delegate available: " + i);
+            const label = findCategoryLabel(delegate);
+            verify(label !== null, "category label available: " + i);
+            const pill = label.parent;
             const position = pill.mapToItem(view, 0, 0);
             verify(position.y >= 0 && position.y + pill.height <= view.height + 0.01,
                    "category pill fits its clipped viewport: " + position.y + " + " + pill.height + " <= " + view.height);
+            // Qt snaps center anchors to whole logical pixels.
+            verify(Math.abs(position.y + pill.height / 2 - view.height / 2) <= 0.5,
+                   "category pill centered: " + label.text + " at " + position.y + " height " + pill.height + " viewport " + view.height);
+            if (firstTop === null) {
+                firstTop = position.y;
+                firstHeight = pill.height;
+            }
+            verify(position.y === firstTop && pill.height === firstHeight,
+                   "all category pills share their top and height: " + label.text);
         }
+        view.contentX = originalX;
+    }
+    function findCategoryLabel(item) {
+        if (item instanceof Text) return item;
+        for (const child of item.children) {
+            const label = findCategoryLabel(child);
+            if (label) return label;
+        }
+        return null;
     }
     function findIcon(item) {
         if (item instanceof Kirigami.Icon) {
