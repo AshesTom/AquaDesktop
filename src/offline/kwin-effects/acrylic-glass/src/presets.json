@@ -39,7 +39,7 @@
       "DarkGradientOverlay": true,
       "GradientTopColor": "#000000",
       "GradientBottomColor": "#000000",
-      "GradientTopOpacity": 0.95,
+      "GradientTopOpacity": 0.85,
       "GradientBottomOpacity": 0.0
     }
   }

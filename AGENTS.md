@@ -567,8 +567,8 @@ per-screen ownership: selecting an edition never resets custom wallpapers;
 wrapper selecting `MacGoldenGate`, not a separate theme implementation.
 
 Golden Gate's upper glass gradient applies to menus in both light and dark
-mode: 95% black at the top, fading completely within the first 50% of the
-surface height. The lower half keeps untinted glass. Dock surfaces are exempt
+mode: 85% black at the top, fading completely within the first 55% of the
+surface height. The lower 45% keeps untinted glass. Dock surfaces are exempt
 from the gradient under every material; do not
 change the saved gradient settings or remove their blur and refraction.
 Dock/panel glass uses a compact Kawase pyramid (up to three levels), less grain
@@ -685,7 +685,11 @@ colors and strengths. Keep legacy/core shaders equivalent, output premultiplied,
 and pixel widths scaled to the viewport. Shared light/dark Plasma and Kvantum
 surface fills let the effect define the material in either edition. Keep popup
 fills translucent; use the system window foreground consistently on popups
-and the detached search capsule, with a very light black text shadow.
+and the detached search capsule. Launcher text uses a soft, centered halo
+of the opposite luminance to its system foreground color in both modes. Keep
+the halo low-opacity and diffuse; do not use a hard outline. Light-mode
+category pills use a translucent white backing to keep dark labels readable
+over the upper gradient.
 Validate black and white
 backdrops as well as wallpapers. Preserve masks, shadows and solid fallbacks. GTK client-side popups retain their readable fills because they do
 not receive this compositor effect.

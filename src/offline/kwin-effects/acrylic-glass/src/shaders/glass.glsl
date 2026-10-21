@@ -79,7 +79,7 @@ void main(void)
         // Frame-local geometry keeps top/bottom upright on all backends.
         // Tint changes color only: the bottom retains the same blurred glass.
         float heightFraction = clamp((pos.y + halfSize.y) / max(blurSize.y, 1.0), 0.0, 1.0);
-        float t = smoothstep(0.0, 0.5, heightFraction);
+        float t = smoothstep(0.0, 0.55, heightFraction);
         float tintAlpha = mix(gradientTop.a, gradientBottom.a, t);
         vec3 tint = mix(gradientTop.rgb * gradientTop.a, gradientBottom.rgb * gradientBottom.a, t);
         surface.rgb = surface.rgb * (1.0 - tintAlpha) + tint;

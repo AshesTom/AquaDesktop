@@ -6,7 +6,7 @@ Choose a preset, adjust its controls if desired, and press **Apply**.
 | Preset | Appearance |
 | --- | --- |
 | Tahoe | Strongly blurred glass with a narrow refracted edge. Default in Tahoe. |
-| Golden Gate | Tahoe's optical values with a 95% black tint that fades out over the upper half of menus. The lower half and Dock stay untinted. Default in Golden Gate. |
+| Golden Gate | Tahoe's optical values with an 85% black tint that fades out at 55% of menu height. The lower 45% and Dock stay untinted. Default in Golden Gate. |
 
 Each preset replaces the complete material: blur, opacity, refraction, color
 separation, highlights, grain, brightness, contrast, saturation and gradient.
@@ -56,9 +56,12 @@ screenshots and design guidance; they do not reproduce Apple's renderer.
 - [Meet Liquid Glass](https://developer.apple.com/videos/play/wwdc2025/219/): blur and tint preserve legibility, with clearer and more substantial materials for different surfaces.
 
 The Golden Gate preset adds a black upper gradient to menus in both appearance
-modes. It starts at 95% opacity and reaches zero at 50% of the surface height.
-The lower half retains untinted blurred glass. The Dock and panels use a clearer
-surface without the gradient: a smooth blur, less grain and 98% centre
+modes. It starts at 85% opacity and reaches zero at 55% of the surface height.
+The lower 45% retains untinted blurred glass. Launcher text has a soft, low-opacity
+halo: white behind dark text and black behind light text. The halo is centered
+and diffused rather than drawn as a hard outline. In light mode, category pills
+use a translucent white backing to separate dark labels from the upper gradient.
+The Dock and panels use a clearer surface without the gradient: a smooth blur, less grain and 98% centre
 coverage, with a mild angled refraction and a thin bright edge. Its compact
 Dual Kawase pyramid uses up to three levels, followed by a dense Gaussian
 finish. The finish samples adjacent texels instead of separating image copies.
