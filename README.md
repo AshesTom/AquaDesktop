@@ -26,8 +26,8 @@ The desktop and its apps in light and dark mode.
 The complete Tahoe desktop with matching light and dark wallpapers.
 
 <p align="center">
-  <a href="src/screenshots/showcase_light_4k-e107b803dde3.png"><img src="src/screenshots/showcase_light_4k-e107b803dde3.png" alt="Tahoe light desktop with a backgroundless menu bar, Finder-style files, glass system information and Dock" width="840"></a>
-  <a href="src/screenshots/showcase_dark_4k-6ad86d420012.png"><img src="src/screenshots/showcase_dark_4k-6ad86d420012.png" alt="Tahoe dark desktop with a backgroundless menu bar, Finder-style files, glass system information and Dock" width="840"></a>
+  <a href="src/screenshots/showcase_light_4k-02a68f36c7e4.png"><img src="src/screenshots/showcase_light_4k-02a68f36c7e4.png" alt="Tahoe light desktop with a backgroundless menu bar, Finder-style files, glass system information and Dock" width="840"></a>
+  <a href="src/screenshots/showcase_dark_4k-5372f8145e6d.png"><img src="src/screenshots/showcase_dark_4k-5372f8145e6d.png" alt="Tahoe dark desktop with a backgroundless menu bar, Finder-style files, glass system information and Dock" width="840"></a>
 </p>
 
 <br>
@@ -37,8 +37,8 @@ The complete Tahoe desktop with matching light and dark wallpapers.
 App search, favorites and categories with blurred glass and edge refraction. [Material settings](docs/glass-materials.md).
 
 <p align="center">
-  <img src="src/screenshots/launcher_preset_1_light-ced997b21a1f.png" alt="Default Tahoe preset 1 in light mode, with integrated search and Tahoe wallpaper" width="415">
-  <img src="src/screenshots/launcher_preset_1_dark-bf806e560524.png" alt="Default Tahoe preset 1 in dark mode, with integrated search and Tahoe wallpaper" width="415">
+  <img src="src/screenshots/launcher_preset_1_light-c99b2a445e84.png" alt="Default Tahoe preset 1 in light mode, with integrated search and Tahoe wallpaper" width="415">
+  <img src="src/screenshots/launcher_preset_1_dark-5bab803057e9.png" alt="Default Tahoe preset 1 in dark mode, with integrated search and Tahoe wallpaper" width="415">
 </p>
 
 <br>
@@ -80,8 +80,8 @@ System controls and global menus for compatible apps.
 Hardware, software and theme details in About This Computer.
 
 <p align="center">
-  <img src="src/screenshots/about_v4-30df12099bad.png" alt="About This Computer in light mode" width="415">
-  <img src="src/screenshots/about_dark_v4-cd8861853667.png" alt="About This Computer in dark mode" width="415">
+  <img src="src/screenshots/about_v4-8fbf9b54ad91.png" alt="About This Computer in light mode" width="415">
+  <img src="src/screenshots/about_dark_v4-807dd87b6b41.png" alt="About This Computer in dark mode" width="415">
 </p>
 
 <br>
