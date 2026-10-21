@@ -42,6 +42,38 @@ stock Plasma 6.3 is below this project's minimum; this run does not qualify it.
 
 </details>
 
+<details>
+<summary><b>CachyOS — ✅ VM verified · v0.57.4</b></summary>
+
+Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
+Installed from the official CachyOS ISO and upgraded with its native repositories.
+
+| Check | Result |
+| --- | --- |
+| Full installation and host SDK builds | ✅ Passed |
+| Light and dark desktop, loaded Acrylic Glass, Dock autohide | ✅ Passed |
+| Firefox rendering, text input, button action and appearance | ✅ Passed |
+| Nautilus light/dark pixels and live switching | ✅ Passed |
+| Live switch preserves app, Plasma and KWin processes | ✅ Passed |
+| Reboot and desktop/app checks | ✅ Passed |
+| Full uninstall and removal checks | ✅ Passed |
+
+**Light**
+
+![CachyOS light](../../src/screenshots/vm/cachyos/light-34d9c45c3a52.png)
+
+**Dark**
+
+![CachyOS dark](../../src/screenshots/vm/cachyos/dark-6dcf101c30cf.png)
+
+**After reboot**
+
+![CachyOS after reboot](../../src/screenshots/vm/cachyos/reboot-bc01b2bc88bb.png)
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/cachyos/report.json).
+
+</details>
+
 The remaining distributions are being qualified one at a time. Their existing
 README status stays unchanged until their application checks and screenshots
 have been reviewed.

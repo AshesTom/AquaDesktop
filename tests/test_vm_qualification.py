@@ -97,7 +97,7 @@ def test_gtk_bridge_is_loaded_after_theme_files_are_installed(tmp_path, monkeypa
 @pytest.mark.parametrize('color', [(0, 0, 0), (255, 255, 255), (0, 0, 0, 0)])
 def test_blank_or_transparent_capture_cannot_qualify(color):
     import io
-    from PIL import Image
+    Image = pytest.importorskip('PIL.Image')
     image = Image.new('RGBA' if len(color) == 4 else 'RGB', (640, 480), color)
     data = io.BytesIO()
     image.save(data, format='PNG')
@@ -107,7 +107,8 @@ def test_blank_or_transparent_capture_cannot_qualify(color):
 
 def test_visible_capture_positive_control():
     import io
-    from PIL import Image, ImageDraw
+    Image = pytest.importorskip('PIL.Image')
+    ImageDraw = pytest.importorskip('PIL.ImageDraw')
     image = Image.new('RGB', (640, 480), 'black')
     ImageDraw.Draw(image).rectangle((50, 50, 400, 300), fill='white')
     data = io.BytesIO()

@@ -148,6 +148,10 @@ class Guest:
                    f'rsync -a --delete --exclude=.git --exclude=.vm --exclude=build '
                    f'/home/tester/repo/ {WORKTREE}/')
         self.probe('baseline', 'baseline')
+        self.phase('screen-unlocked', self.desktop_command(
+            'kwriteconfig6 --file kscreenlockerrc --group Daemon --key Autolock false && '
+            'kwriteconfig6 --file kscreenlockerrc --group Daemon --key LockOnResume false && '
+            'sudo loginctl unlock-sessions'))
         self.phase('apps-profile', self.desktop_command('python3 tests/vm/desktop_apps.py --prepare'))
         self.phase('resolution', self.desktop_command('kscreen-doctor output.1.mode.3840x2160@60 output.1.scale.2'))
         self.phase('install', f'cd {WORKTREE} && sudo env MTTKDE_NO_CONFIRM=1 '
