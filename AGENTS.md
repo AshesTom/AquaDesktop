@@ -672,8 +672,12 @@ blur coverage. Golden Gate uses exactly Tahoe's optical values and adds only
 a black upper gradient. Tahoe context menus, applet popups, tooltips,
 About This Computer and the detached search capsule use 55% white fills in light mode and 48% black fills
 in dark mode. Golden Gate stages those surfaces with a 1% white fill in both
-modes, so the upper gradient owns the dark tint. Apply the same staging in
-the imperative installer and Nix; preserve masks, contours and solid fallbacks.
+modes, so the upper gradient owns the dark tint. Golden Gate light native Qt
+menus are the sole exception: stage their Kvantum menu surface with 60% white
+fill so the system dark foreground stays readable above the gradient. Preserve
+the 1% Golden Gate dark menu fill, every Tahoe asset, and all non-menu surfaces.
+Apply the same staging in the imperative installer and Nix; preserve masks,
+contours and solid fallbacks.
 The Dock retains the same thin fill in both modes.
 Surface contours pair a 0.75 logical-pixel dark outer line with a 0.75
 logical-pixel light inner line; preserve each surface's native mask and radius.

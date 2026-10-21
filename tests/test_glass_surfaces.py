@@ -49,7 +49,7 @@ def test_golden_gate_client_fill_leaves_gradient_in_control(mode, tmp_path, monk
 
 
 @pytest.mark.parametrize("mode", ["", "Dark"])
-def test_golden_gate_qt_menu_center_and_frame_stay_clear(mode, tmp_path, monkeypatch):
+def test_golden_gate_qt_menu_center_and_frame_follow_appearance(mode, tmp_path, monkeypatch):
     import glass_surfaces
     svg = pytest.importorskip("PyQt6.QtSvg")
     gui = pytest.importorskip("PyQt6.QtGui")
@@ -67,10 +67,85 @@ def test_golden_gate_qt_menu_center_and_frame_stay_clear(mode, tmp_path, monkeyp
         renderer.render(painter, element, core.QRectF(0, 0, 64, 64))
         painter.end()
         fill = image.pixelColor(48, 48)
-        assert fill.alphaF() < .015 and fill.red() == 255, element
+        expected = .01 if mode == "Dark" else .60
+        assert fill.alphaF() == pytest.approx(expected, abs=.005) and fill.red() == 255, element
     before = target.read_bytes()
     glass_surfaces.apply_kvantum_surface_defaults(target)
     assert target.read_bytes() == before
+
+
+@pytest.mark.parametrize("mode", ["", "Dark"])
+def test_tahoe_qt_surfaces_remain_byte_identical(mode, tmp_path, monkeypatch):
+    import glass_surfaces
+    monkeypatch.setattr(glass_surfaces, "default_wallpaper", lambda: "MacTahoe")
+    source = ROOT.parent / "kvantum/mac-tahoe-liquid-kde" / f"mac-tahoe-liquid-kde{mode}.svg"
+    target = tmp_path / source.name
+    shutil.copy2(source, target)
+    before = target.read_bytes()
+    glass_surfaces.apply_kvantum_surface_defaults(target)
+    assert target.read_bytes() == before
+
+
+@pytest.mark.parametrize("mode", ["", "Dark"])
+def test_golden_gate_menu_fix_preserves_other_surfaces(mode, tmp_path, monkeypatch):
+    import glass_surfaces
+    svg = pytest.importorskip("PyQt6.QtSvg")
+    gui = pytest.importorskip("PyQt6.QtGui")
+    core = pytest.importorskip("PyQt6.QtCore")
+    monkeypatch.setattr(glass_surfaces, "default_wallpaper", lambda: "MacGoldenGate")
+    source = ROOT.parent / "kvantum/mac-tahoe-liquid-kde" / f"mac-tahoe-liquid-kde{mode}.svg"
+    target = tmp_path / source.name
+    shutil.copy2(source, target)
+    previous = ET.parse(source).getroot()
+    ids = tuple(node.get("id") for node in previous.iter()
+                if node.get("id", "").startswith(("menu-normal", "menu-shadow")))
+    glass_surfaces.set_surface_fill(previous, ids, "0.01", "#ffffff")
+    old = tmp_path / "previous.svg"
+    glass_surfaces._write_svg(old, previous)
+    glass_surfaces.apply_kvantum_surface_defaults(target)
+    if mode == "Dark":
+        assert target.read_bytes() == old.read_bytes()
+    for element in ("window-normal", "dialog-normal", "tooltip-normal",
+                    "toolbar-normal", "menuitem-separator"):
+        rendered = []
+        for path in (old, target):
+            renderer = svg.QSvgRenderer(str(path))
+            assert renderer.elementExists(element), element
+            image = gui.QImage(64, 64, gui.QImage.Format.Format_ARGB32)
+            image.fill(0)
+            painter = gui.QPainter(image)
+            renderer.render(painter, element, core.QRectF(0, 0, 64, 64))
+            painter.end()
+            rendered.append(image)
+        assert rendered[0] == rendered[1], element
+
+
+def test_golden_gate_light_menu_text_contrasts_over_black(tmp_path, monkeypatch):
+    import configparser
+    import glass_surfaces
+    svg = pytest.importorskip("PyQt6.QtSvg")
+    gui = pytest.importorskip("PyQt6.QtGui")
+    core = pytest.importorskip("PyQt6.QtCore")
+    monkeypatch.setattr(glass_surfaces, "default_wallpaper", lambda: "MacGoldenGate")
+    source = ROOT.parent / "kvantum/mac-tahoe-liquid-kde/mac-tahoe-liquid-kde.svg"
+    target = tmp_path / source.name
+    shutil.copy2(source, target)
+    glass_surfaces.apply_kvantum_surface_defaults(target)
+    image = gui.QImage(64, 64, gui.QImage.Format.Format_ARGB32)
+    image.fill(gui.QColor("black"))
+    painter = gui.QPainter(image)
+    svg.QSvgRenderer(str(target)).render(painter, "menu-normal", core.QRectF(0, 0, 64, 64))
+    painter.end()
+    scheme = configparser.ConfigParser()
+    scheme.read(ROOT.parent / "color-schemes/MacTahoeLiquidKdeLight.colors")
+    foreground = gui.QColor(*map(int, scheme["Colors:Window"]["ForegroundNormal"].split(",")))
+    def luminance(color):
+        def linear(value):
+            return value / 12.92 if value <= .04045 else ((value + .055) / 1.055) ** 2.4
+        return sum(weight * linear(value) for weight, value in zip(
+            (.2126, .7152, .0722), (color.redF(), color.greenF(), color.blueF())))
+    contrast = (luminance(image.pixelColor(32, 32)) + .05) / (luminance(foreground) + .05)
+    assert contrast >= 4.5
 
 
 def _xml(path):

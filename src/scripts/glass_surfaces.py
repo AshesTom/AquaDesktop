@@ -89,5 +89,8 @@ def apply_kvantum_surface_defaults(path: Path) -> None:
     # The shadow frame also references the menu's surface tiles.
     ids = tuple(node.get("id") for node in root.iter()
                 if node.get("id", "").startswith(("menu-normal", "menu-shadow")))
-    set_surface_fill(root, ids, "0.01", "#ffffff")
+    # Native Qt menus retain dark text in light mode. A translucent white
+    # client surface keeps it readable above the compositor's dark gradient.
+    opacity = "0.60" if path.stem == "mac-tahoe-liquid-kde" else "0.01"
+    set_surface_fill(root, ids, opacity, "#ffffff")
     _write_svg(path, root)
