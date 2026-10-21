@@ -167,9 +167,34 @@ The current application checks and reviewed 4K screenshots have not been publish
 
 <a id="neon"></a>
 <details>
-<summary><b>KDE neon — evidence pending</b></summary>
+<summary><b>KDE neon — ✅ VM verified · v0.57.6</b></summary>
 
-The current application checks and reviewed 4K screenshots have not been published yet.
+Plasma 6.8.1 · Qt 6.11.1 · Wayland · systemd · VirtIO/virgl.
+Official KDE neon image with its native KDE desktop and packages.
+
+| Check | Result |
+| --- | --- |
+| Full installation and host SDK builds | ✅ Passed |
+| Light and dark desktop, loaded Acrylic Glass, Dock autohide | ✅ Passed |
+| Firefox rendering, text input, button action and appearance | ✅ Passed |
+| Nautilus light/dark pixels and live switching | ✅ Passed |
+| Live switch preserves app, Plasma and KWin processes | ✅ Passed |
+| Reboot and desktop/app checks | ✅ Passed |
+| Full uninstall and removal checks | ✅ Passed |
+
+**Light**
+
+![KDE neon light](../../src/screenshots/vm/neon/light-d8708e27c32d.png)
+
+**Dark**
+
+![KDE neon dark](../../src/screenshots/vm/neon/dark-93d514e99c22.png)
+
+**After reboot**
+
+![KDE neon after reboot](../../src/screenshots/vm/neon/reboot-02f200918339.png)
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/neon/report.json).
 
 </details>
 

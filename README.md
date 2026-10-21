@@ -5,7 +5,7 @@
 
 # macOS Tahoe for KDE Plasma
 
-[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1643_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
+[![release](https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&color=blue)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases) [![tests](https://img.shields.io/badge/tests-1649_passing-brightgreen)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml) [![plasma](https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde)](https://kde.org/plasma-desktop/) [![license](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![report a bug](https://img.shields.io/badge/report-a%20bug-red?logo=github)](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new)
 
 The ultimate macOS Tahoe experience, reimagined for Linux. Immersive glass, an iconic Dock and a complete desktop transformation for KDE Plasma 6.6, 6.7 and 6.8+. One vision: every distro.
 
@@ -372,7 +372,7 @@ Supported distributions and their current testing status.
 | <img src="https://cdn.simpleicons.org/linux" alt="Linux" width="22"> | Garuda Linux | [![Needs more testing](https://img.shields.io/badge/needs%20more%20testing-B42318)](tests/vm/PROOF.md#garuda) |
 | <img src="https://cdn.simpleicons.org/nobaralinux" alt="Nobara" width="22"> | Nobara | [![Needs more testing](https://img.shields.io/badge/needs%20more%20testing-B42318)](tests/vm/PROOF.md#nobara) |
 | <img src="https://cdn.simpleicons.org/opensuse" alt="openSUSE" width="22"> | openSUSE Tumbleweed | [![Needs more testing](https://img.shields.io/badge/needs%20more%20testing-B42318)](tests/vm/PROOF.md#opensuse) |
-| <img src="https://cdn.simpleicons.org/kde" alt="KDE" width="22"> | KDE neon | [![Container + VM qualified](https://img.shields.io/badge/container%20%2B%20VM%20qualified-D4A72C)](tests/vm/PROOF.md#neon) |
+| <img src="https://cdn.simpleicons.org/kde" alt="KDE" width="22"> | KDE neon | [![VM verified](https://img.shields.io/badge/VM%20verified-1A7F37)](tests/vm/PROOF.md#neon) |
 | <img src="https://cdn.simpleicons.org/debian" alt="Debian" width="22"> | Debian testing / sid (Plasma 6.6+) | [![VM verified](https://img.shields.io/badge/VM%20verified-1A7F37)](tests/vm/PROOF.md#debian) |
 
 </details>
