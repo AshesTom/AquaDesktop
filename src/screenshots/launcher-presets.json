@@ -9,14 +9,14 @@
   "capture_tool": "Spectacle fullscreen; original 4K launcher frames and lossless detail crops",
   "captures": {
     "launcher_preset_1_light.png": {
-      "source": "tahoe-light-launcher.png",
+      "source": "light-2.png",
       "source_resolution": [
         3840,
         2160
       ],
       "mode": "light",
       "crop": null,
-      "sha256": "df88c81523756f596ef095838cc947451ba7fb8b7e05d7a649401321c56c0f46",
+      "sha256": "9b3f01144200f3fbf73e29a21a4f2bdf5bbc6013429ab05afce338296dd45cd3",
       "appearance": {
         "Plasma": "MacTahoeLiquidKde-Light",
         "Qt": "MacTahoeLiquidKdeLight",
@@ -26,10 +26,9 @@
         "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
       },
       "files_pixels": null,
-      "source_release": "v0.57.0",
-      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "effect_source_identity": "fa2c10bbf5cc68237eef386751323c8e15e0bbc96e9b0ad15b98925ad45eba85",
       "visual_review": "accepted",
-      "source_version": "0.57.0",
+      "source_version": "0.57.2",
       "theme_mode": "light",
       "material_preset": "tahoe",
       "material_values": {
@@ -51,7 +50,82 @@
         "GradientBottomOpacity": 0.02,
         "MaterialPreset": 1
       },
-      "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26"
+      "effect_build": "fa2c10bbf5cc68237eef386751323c8e15e0bbc96e9b0ad15b98925ad45eba85",
+      "source_commit": "04cbf4449e80a9c460ea389197f30baba3282005",
+      "capture_date": "2026-10-20",
+      "vm_image_sha256": "a0db83c3dfbaa942e381ee4fcc9a0ae8f692ab20b968f55be5cd63a0d172e50f",
+      "profile_sha256": "a5e23cf9661304156d8665455a4a18bec232a23ddd30c8426206aeab16fe62f1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 779,
+            "y": 996,
+            "width": 362,
+            "height": 84
+          }
+        },
+        {
+          "caption": "plasmashell",
+          "resourceClass": "org.kde.plasmashell",
+          "type": 18,
+          "appletPopup": true,
+          "geometry": {
+            "x": 607,
+            "y": 213,
+            "width": 706,
+            "height": 653
+          }
+        }
+      ],
+      "window_verified": true,
+      "stable_frames": true,
+      "timing_verification": {
+        "initial_settle_seconds": 8,
+        "samples": [
+          {
+            "sha256": "5f6e1b017de80399c8ad6e30006ec2eec1adb7251f06a6b23c99fa6283d26c0f",
+            "elapsed_seconds": 0.0
+          },
+          {
+            "sha256": "5f6e1b017de80399c8ad6e30006ec2eec1adb7251f06a6b23c99fa6283d26c0f",
+            "elapsed_seconds": 7.117
+          },
+          {
+            "sha256": "9b3f01144200f3fbf73e29a21a4f2bdf5bbc6013429ab05afce338296dd45cd3",
+            "elapsed_seconds": 15.55
+          }
+        ],
+        "only_changed_pixels": "Blinking search caret at x=1326..1333, y=480..515; all remaining pixels identical.",
+        "dock_fixture": "Pins supplied as a list through Plasma scripting after reopening the installed disposable guest."
+      }
     },
     "menu_v4.png": {
       "source": "tahoe-light-menu.png",
@@ -204,14 +278,14 @@
       "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26"
     },
     "launcher_preset_1_dark.png": {
-      "source": "tahoe-dark-launcher.png",
+      "source": "dark-2.png",
       "source_resolution": [
         3840,
         2160
       ],
       "mode": "dark",
       "crop": null,
-      "sha256": "fcb028ded1d29e720b292d5025fd79a2928c2a40e300c360023b13ae35b9a2a8",
+      "sha256": "92ef386f168184755849dd6506b32b542b0f9125677b541ffc9e1b906e1c5b87",
       "appearance": {
         "Plasma": "MacTahoeLiquidKde-Dark",
         "Qt": "MacTahoeLiquidKdeDark",
@@ -221,10 +295,9 @@
         "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
       },
       "files_pixels": null,
-      "source_release": "v0.57.0",
-      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "effect_source_identity": "fa2c10bbf5cc68237eef386751323c8e15e0bbc96e9b0ad15b98925ad45eba85",
       "visual_review": "accepted",
-      "source_version": "0.57.0",
+      "source_version": "0.57.2",
       "theme_mode": "dark",
       "material_preset": "tahoe",
       "material_values": {
@@ -246,7 +319,82 @@
         "GradientBottomOpacity": 0.02,
         "MaterialPreset": 1
       },
-      "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26"
+      "effect_build": "fa2c10bbf5cc68237eef386751323c8e15e0bbc96e9b0ad15b98925ad45eba85",
+      "source_commit": "04cbf4449e80a9c460ea389197f30baba3282005",
+      "capture_date": "2026-10-20",
+      "vm_image_sha256": "a0db83c3dfbaa942e381ee4fcc9a0ae8f692ab20b968f55be5cd63a0d172e50f",
+      "profile_sha256": "a5e23cf9661304156d8665455a4a18bec232a23ddd30c8426206aeab16fe62f1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 779,
+            "y": 996,
+            "width": 362,
+            "height": 84
+          }
+        },
+        {
+          "caption": "plasmashell",
+          "resourceClass": "org.kde.plasmashell",
+          "type": 18,
+          "appletPopup": true,
+          "geometry": {
+            "x": 607,
+            "y": 213,
+            "width": 706,
+            "height": 653
+          }
+        }
+      ],
+      "window_verified": true,
+      "stable_frames": true,
+      "timing_verification": {
+        "initial_settle_seconds": 8,
+        "samples": [
+          {
+            "sha256": "92ef386f168184755849dd6506b32b542b0f9125677b541ffc9e1b906e1c5b87",
+            "elapsed_seconds": 0.0
+          },
+          {
+            "sha256": "6bb2d21c74285c90db01870ebd1dc33c4ad281263bde37beaba9e56d4a84c1a6",
+            "elapsed_seconds": 8.569
+          },
+          {
+            "sha256": "92ef386f168184755849dd6506b32b542b0f9125677b541ffc9e1b906e1c5b87",
+            "elapsed_seconds": 17.073
+          }
+        ],
+        "only_changed_pixels": "Blinking search caret at x=1326..1333, y=480..515; all remaining pixels identical.",
+        "dock_fixture": "Pins supplied as a list through Plasma scripting after reopening the installed disposable guest."
+      }
     },
     "menu_dark_v4.png": {
       "source": "tahoe-dark-menu.png",
@@ -349,5 +497,6 @@
       "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26"
     }
   },
-  "pending_captures": []
+  "pending_captures": [],
+  "provenance_note": "The source_version above describes the original capture batch; individual captures record subsequent source versions and commits."
 }

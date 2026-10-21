@@ -22,5 +22,21 @@
     "expected_mode": "light",
     "result": "rejected",
     "reason": "Files pixels contradict light: median=36.0, matching=0.0%"
+  },
+  "recaptures": {
+    "launcher_preset_1_light.png": {
+      "source_commit": "04cbf4449e80a9c460ea389197f30baba3282005",
+      "source_version": "0.57.2",
+      "capture_date": "2026-10-20",
+      "sha256": "9b3f01144200f3fbf73e29a21a4f2bdf5bbc6013429ab05afce338296dd45cd3",
+      "review": "Accepted after visual inspection: aligned category pills, complete app and Dock icons, correct appearance, settled glass. Three captures agree outside the blinking search caret."
+    },
+    "launcher_preset_1_dark.png": {
+      "source_commit": "04cbf4449e80a9c460ea389197f30baba3282005",
+      "source_version": "0.57.2",
+      "capture_date": "2026-10-20",
+      "sha256": "92ef386f168184755849dd6506b32b542b0f9125677b541ffc9e1b906e1c5b87",
+      "review": "Accepted after visual inspection: aligned category pills, complete app and Dock icons, correct appearance, settled glass. Three captures agree outside the blinking search caret."
+    }
   }
 }
