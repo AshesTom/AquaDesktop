@@ -1030,6 +1030,55 @@ def test_package_installed_uses_pacman_q_on_arch(monkeypatch):
     assert seen["cmd"] == ["pacman", "-Q", "cmake"]
 
 
+@pytest.mark.parametrize("distro_id,id_like", [
+    ("debian", ()), ("ubuntu", ("debian",)),
+    ("neon", ("ubuntu", "debian")), ("derivative", ("debian",)),
+])
+@pytest.mark.parametrize("status,expected", [
+    ("installed", True), ("config-files", False), ("unpacked", False),
+    ("half-configured", False), ("half-installed", False),
+    ("triggers-awaited", False), ("triggers-pending", False),
+    ("not-installed", False), (None, False),
+])
+def test_debian_package_installed_requires_configured_package(
+    monkeypatch, distro_id, id_like, status, expected,
+):
+    _force_distro(monkeypatch, distro_id, id_like)
+    queries = []
+
+    def query(argv):
+        queries.append(argv)
+        if argv == ["dpkg", "--print-architecture"]:
+            return "amd64"
+        return f"amd64\t{status}" if status is not None else None
+
+    monkeypatch.setattr(distro, "_run_query", query)
+    assert distro.package_installed("cmake") is expected
+    assert queries == [
+        ["dpkg", "--print-architecture"],
+        ["dpkg-query", "-W", "-f=${Architecture}\t${db:Status-Status}\n", "cmake"],
+    ]
+    # Version fallback must still return the version, including Debian epochs.
+    assert distro.plasma_version_probe_cmds() == (
+        ["dpkg-query", "-W", "-f=${Version}\n", "plasma-workspace"],
+    )
+
+
+@pytest.mark.parametrize("statuses,expected", [
+    ("amd64\tinstalled\ni386\tconfig-files", True),
+    ("amd64\tconfig-files\ni386\tinstalled", False),
+    ("all\tinstalled", True),
+])
+def test_debian_package_status_selects_native_or_architecture_independent_package(
+    monkeypatch, statuses, expected,
+):
+    _force_distro(monkeypatch, "debian")
+    monkeypatch.setattr(distro, "_run_query", lambda argv: (
+        "amd64" if argv == ["dpkg", "--print-architecture"] else statuses
+    ))
+    assert distro.package_installed("example") is expected
+
+
 def test_kde_libexec_binary_prefers_an_executable_on_path(monkeypatch):
     monkeypatch.setattr(
         distro.shutil,

@@ -518,6 +518,27 @@ def test_plasma_version_falls_back_to_package_metadata_after_timeout(monkeypatch
     ]
 
 
+@pytest.mark.parametrize("version,accepted", [
+    ("4:6.3.6-2", False), ("4:6.6.0-1", True), ("4:6.7.4-2", True),
+])
+def test_debian_plasma_package_version_keeps_minimum(monkeypatch, version, accepted):
+    from types import SimpleNamespace
+    import distro
+
+    monkeypatch.setattr(distro, "current_distro", lambda: "debian")
+    monkeypatch.setattr(distro, "distro_id_like", lambda: ())
+    monkeypatch.setattr(preflight.shutil, "which", lambda cmd: f"/usr/bin/{cmd}")
+
+    def run(argv, **kwargs):
+        if argv[0] == "plasmashell":
+            return SimpleNamespace(returncode=1, stdout="", stderr="")
+        assert argv == ["dpkg-query", "-W", "-f=${Version}\n", "plasma-workspace"]
+        return SimpleNamespace(returncode=0, stdout=version + "\n", stderr="")
+
+    monkeypatch.setattr(preflight, "run_user", run)
+    assert preflight._check_plasma_version() is accepted
+
+
 # ── 5. KDE config tools ─────────────────────────────────────────────
 
 

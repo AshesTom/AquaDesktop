@@ -87,6 +87,8 @@ jobs:
           - fedora
           - nobara
           - opensuse
+          # Debian testing: native Debian packages and Plasma SDK.
+          - debian
           # KDE's current User Edition container. This proves APT package
           # names and the Neon Qt/KF6/Plasma SDK before VM qualification.
           - neon

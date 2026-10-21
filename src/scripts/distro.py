@@ -1233,6 +1233,23 @@ def _package_version_query_builder():
 def package_installed(pkg: str) -> bool:
     """True when the package manager reports ``pkg`` installed; False
     when the distro has no query builder (caller just attempts install)."""
+    if is_debian_family():
+        # dpkg retains version metadata for removed packages with config
+        # files left behind, and for unpacked but unconfigured packages.
+        architecture = pkg.rpartition(":")[2] if ":" in pkg else _run_query([
+            "dpkg", "--print-architecture",
+        ])
+        if not architecture:
+            return False
+        statuses = _run_query([
+            "dpkg-query", "-W", "-f=${Architecture}\t${db:Status-Status}\n", pkg,
+        ])
+        # An unqualified name can return several architectures. A foreign
+        # package must not hide a missing native dependency (or vice versa).
+        return any(
+            line in (f"{architecture}\tinstalled", "all\tinstalled")
+            for line in (statuses or "").splitlines()
+        )
     build_cmd = _package_version_query_builder()
     if build_cmd is None:
         return False

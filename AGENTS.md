@@ -38,7 +38,7 @@ v0.54.7 and its VM/SDK workflows have been removed. The
 Artix package mapping uses the Arch family even when `ID_LIKE` is absent;
 Artix OpenRC remains testing and is not part of the container matrix. The
 container matrix covers Arch, CachyOS, Manjaro, EndeavourOS, Garuda,
-Fedora, Nobara, openSUSE Tumbleweed, and KDE neon on their default
+Fedora, Nobara, openSUSE Tumbleweed, Debian testing, and KDE neon on their default
 (systemd) profiles. The README marks CachyOS heavily tested, Arch stable,
 Fedora and EndeavourOS relatively stable, and KDE neon container + VM
 qualified. The other listed distros need more testing. Container checks
@@ -48,6 +48,12 @@ writes into `/usr/lib*` and `/usr/share`, which are read-only on those
 systems and need either an rpm/Flatpak-extension wrapper or an
 rpm-ostree layering path that this project does not maintain. There is
 no non-KDE path.
+
+Debian testing and sid are supported with Plasma 6.6 or newer and matching
+host development packages. Debian 13's stock Plasma 6.3 is below the minimum.
+Never add testing/unstable APT sources or upgrade the distribution automatically.
+`Dockerfile.debian` defaults to testing; `DEBIAN_SUITE=sid-slim` checks sid.
+Debian live desktop qualification remains pending.
 
 **Distribution target:** GitHub releases + AUR.
 **License:** GPL-3.0 for the work as a whole — the bundled Acrylic
