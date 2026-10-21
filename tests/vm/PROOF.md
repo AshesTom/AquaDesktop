@@ -243,9 +243,34 @@ Official Artix Plasma OpenRC ISO with native packages and per-user cron scheduli
 
 <a id="garuda"></a>
 <details>
-<summary><b>Garuda Linux — evidence pending</b></summary>
+<summary><b>Garuda Linux — ✅ VM verified · v0.57.12</b></summary>
 
-The current application checks and reviewed 4K screenshots have not been published yet.
+Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
+Official Garuda KDE ISO with native packages.
+
+| Check | Result |
+| --- | --- |
+| Full installation and host SDK builds | ✅ Passed |
+| Light and dark desktop, loaded Acrylic Glass, Dock autohide | ✅ Passed |
+| Firefox rendering, text input, button action and appearance | ✅ Passed |
+| Nautilus light/dark pixels and live switching | ✅ Passed |
+| Live switch preserves app, Plasma and KWin processes | ✅ Passed |
+| Reboot and desktop/app checks | ✅ Passed |
+| Full uninstall and removal checks | ✅ Passed |
+
+**Light**
+
+![Garuda Linux light](../../src/screenshots/vm/garuda/light-25b88204a5c9.png)
+
+**Dark**
+
+![Garuda Linux dark](../../src/screenshots/vm/garuda/dark-5dcc9fdb6b2b.png)
+
+**After reboot**
+
+![Garuda Linux after reboot](../../src/screenshots/vm/garuda/reboot-6f493a2a9d9b.png)
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/garuda/report.json).
 
 </details>
 

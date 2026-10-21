@@ -1,0 +1,1215 @@
+{
+  "release": "v0.57.12",
+  "tested_source_commit": "3ee94c3b00cd9747cb6f6b217a6c2a2afb0250a6",
+  "result": {
+    "distro": "garuda",
+    "started": "2026-10-21T05:36:32.747956+00:00",
+    "status": "pass",
+    "phases": [
+      {
+        "name": "prepare",
+        "started": "2026-10-21T05:36:32.912019+00:00",
+        "finished": "2026-10-21T05:36:41.619692+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "baseline",
+        "started": "2026-10-21T05:36:41.619823+00:00",
+        "finished": "2026-10-21T05:36:42.036748+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "screen-unlocked",
+        "started": "2026-10-21T05:36:42.459476+00:00",
+        "finished": "2026-10-21T05:36:44.373639+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-profile",
+        "started": "2026-10-21T05:36:44.373799+00:00",
+        "finished": "2026-10-21T05:36:47.337934+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "resolution",
+        "started": "2026-10-21T05:36:47.338077+00:00",
+        "finished": "2026-10-21T05:36:48.392851+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "install",
+        "started": "2026-10-21T05:36:48.392987+00:00",
+        "finished": "2026-10-21T05:38:44.016411+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark",
+        "started": "2026-10-21T05:38:44.016609+00:00",
+        "finished": "2026-10-21T05:38:44.391731+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-dark",
+        "started": "2026-10-21T05:38:44.701961+00:00",
+        "finished": "2026-10-21T05:38:52.429704+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark-capture",
+        "started": "2026-10-21T05:38:52.645332+00:00",
+        "finished": "2026-10-21T05:38:55.560035+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "switch-light",
+        "started": "2026-10-21T05:38:55.869546+00:00",
+        "finished": "2026-10-21T05:39:03.422858+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "light",
+        "started": "2026-10-21T05:39:03.423020+00:00",
+        "finished": "2026-10-21T05:39:03.755346+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-light",
+        "started": "2026-10-21T05:39:04.058176+00:00",
+        "finished": "2026-10-21T05:39:09.018486+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "light-capture",
+        "started": "2026-10-21T05:39:09.169236+00:00",
+        "finished": "2026-10-21T05:39:11.914097+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "switch-dark",
+        "started": "2026-10-21T05:39:12.194764+00:00",
+        "finished": "2026-10-21T05:39:19.918167+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "dark-again",
+        "started": "2026-10-21T05:39:19.918360+00:00",
+        "finished": "2026-10-21T05:39:20.278641+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-dark-again",
+        "started": "2026-10-21T05:39:20.598486+00:00",
+        "finished": "2026-10-21T05:39:25.558076+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "reboot",
+        "started": "2026-10-21T05:40:03.495269+00:00",
+        "finished": "2026-10-21T05:40:03.880299+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "apps-reboot",
+        "started": "2026-10-21T05:40:04.229884+00:00",
+        "finished": "2026-10-21T05:40:12.057957+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "reboot-capture",
+        "started": "2026-10-21T05:40:12.380778+00:00",
+        "finished": "2026-10-21T05:40:15.377097+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstall",
+        "started": "2026-10-21T05:40:15.691758+00:00",
+        "finished": "2026-10-21T05:40:58.109294+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstalled",
+        "started": "2026-10-21T05:40:58.109455+00:00",
+        "finished": "2026-10-21T05:40:58.402674+00:00",
+        "exit_code": 0
+      },
+      {
+        "name": "uninstalled-capture",
+        "started": "2026-10-21T05:40:58.575120+00:00",
+        "finished": "2026-10-21T05:41:01.250905+00:00",
+        "exit_code": 0
+      }
+    ],
+    "finished": "2026-10-21T05:41:01.493596+00:00"
+  },
+  "images": {
+    "light": {
+      "filename": "light-25b88204a5c9.png",
+      "sha256": "25b88204a5c9d8df102e3e5d097fb7fdc1b69aa3570eb191173a500dd79b7be3"
+    },
+    "dark": {
+      "filename": "dark-5dcc9fdb6b2b.png",
+      "sha256": "5dcc9fdb6b2ba002ce4eea660028408bc02a6fccff08b3c5a9303e784893c673"
+    },
+    "reboot": {
+      "filename": "reboot-6f493a2a9d9b.png",
+      "sha256": "6f493a2a9d9b131eeef6d84e997da4011e26f9991c6bf809f3566c8f09d5e05d"
+    }
+  },
+  "checks": {
+    "baseline": {
+      "mode": "baseline",
+      "expected_distro": "garuda",
+      "timestamp": "2026-10-21T05:36:41.916257+00:00",
+      "distro": "garuda",
+      "os_release": "NAME=\"Garuda Linux\"\nPRETTY_NAME=\"Garuda Linux\"\nID=garuda\nID_LIKE=arch\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://garudalinux.org/\"\nDOCUMENTATION_URL=\"https://wiki.garudalinux.org/\"\nSUPPORT_URL=\"https://forum.garudalinux.org/\"\nBUG_REPORT_URL=\"https://gitlab.com/groups/garuda-linux/\"\nPRIVACY_POLICY_URL=\"https://terms.archlinux.org/docs/privacy-policy/\"\nLOGO=garudalinux\n",
+      "kernel": "7.2.11-1-garuda",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "653",
+      "compositor_pid": "644",
+      "panels": [
+        {
+          "id": 86,
+          "location": "bottom",
+          "hiding": "none",
+          "widgets": [
+            "org.kde.plasma.kickoff",
+            "org.kde.plasma.pager",
+            "org.kde.plasma.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.digitalclock",
+            "org.kde.plasma.showdesktop"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "magiclamp",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "fade",
+        "dimscreen",
+        "dialogparent",
+        "wobblywindows",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "dc767334-ae87-4652-bafa-61df231862cd",
+      "original_gtk_profile_saved": true,
+      "status": "pass"
+    },
+    "dark": {
+      "mode": "dark",
+      "expected_distro": "garuda",
+      "timestamp": "2026-10-21T05:38:44.216238+00:00",
+      "distro": "garuda",
+      "os_release": "NAME=\"Garuda Linux\"\nPRETTY_NAME=\"Garuda Linux\"\nID=garuda\nID_LIKE=arch\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://garudalinux.org/\"\nDOCUMENTATION_URL=\"https://wiki.garudalinux.org/\"\nSUPPORT_URL=\"https://forum.garudalinux.org/\"\nBUG_REPORT_URL=\"https://gitlab.com/groups/garuda-linux/\"\nPRIVACY_POLICY_URL=\"https://terms.archlinux.org/docs/privacy-policy/\"\nLOGO=garudalinux\n",
+      "kernel": "7.2.11-1-garuda",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "9742",
+      "compositor_pid": "644",
+      "panels": [
+        {
+          "id": 109,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 129,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "magiclamp",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "fade",
+        "dimscreen",
+        "dialogparent",
+        "wobblywindows",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "dc767334-ae87-4652-bafa-61df231862cd",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T23:36:49-06:00",
+        "finished_at": "2026-10-20T23:38:44-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-dark": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "9964"
+        ],
+        "nautilus": [
+          "9965"
+        ],
+        "dolphin": [
+          "9966"
+        ],
+        "konsole": [
+          "9967"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 598.5,
+            "y": 996,
+            "width": 723,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "/home/tester/Documents/VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "dark-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 42.0,
+      "matching_fraction": 1.0
+    },
+    "light": {
+      "mode": "light",
+      "expected_distro": "garuda",
+      "timestamp": "2026-10-21T05:39:03.610080+00:00",
+      "distro": "garuda",
+      "os_release": "NAME=\"Garuda Linux\"\nPRETTY_NAME=\"Garuda Linux\"\nID=garuda\nID_LIKE=arch\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://garudalinux.org/\"\nDOCUMENTATION_URL=\"https://wiki.garudalinux.org/\"\nSUPPORT_URL=\"https://forum.garudalinux.org/\"\nBUG_REPORT_URL=\"https://gitlab.com/groups/garuda-linux/\"\nPRIVACY_POLICY_URL=\"https://terms.archlinux.org/docs/privacy-policy/\"\nLOGO=garudalinux\n",
+      "kernel": "7.2.11-1-garuda",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "9742",
+      "compositor_pid": "644",
+      "panels": [
+        {
+          "id": 109,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 129,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "magiclamp",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "fade",
+        "dimscreen",
+        "dialogparent",
+        "wobblywindows",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "dc767334-ae87-4652-bafa-61df231862cd",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Light",
+        "Qt": "MacTahoeLiquidKdeLight",
+        "Kvantum": "mac-tahoe-liquid-kde",
+        "GTK preference": "'prefer-light'",
+        "GTK theme": "'MacTahoeLiquidKde-Light'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T23:36:49-06:00",
+        "finished_at": "2026-10-20T23:38:44-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-light": {
+      "mode": "light",
+      "status": "pass",
+      "firefox": {
+        "dark": false,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "9964"
+        ],
+        "nautilus": [
+          "9965"
+        ],
+        "dolphin": [
+          "9966"
+        ],
+        "konsole": [
+          "9967"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 598.5,
+            "y": 996,
+            "width": 723,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "/home/tester/Documents/VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "light-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 244.99999999999997,
+      "matching_fraction": 1.0
+    },
+    "dark-again": {
+      "mode": "dark",
+      "expected_distro": "garuda",
+      "timestamp": "2026-10-21T05:39:20.112847+00:00",
+      "distro": "garuda",
+      "os_release": "NAME=\"Garuda Linux\"\nPRETTY_NAME=\"Garuda Linux\"\nID=garuda\nID_LIKE=arch\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://garudalinux.org/\"\nDOCUMENTATION_URL=\"https://wiki.garudalinux.org/\"\nSUPPORT_URL=\"https://forum.garudalinux.org/\"\nBUG_REPORT_URL=\"https://gitlab.com/groups/garuda-linux/\"\nPRIVACY_POLICY_URL=\"https://terms.archlinux.org/docs/privacy-policy/\"\nLOGO=garudalinux\n",
+      "kernel": "7.2.11-1-garuda",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "9742",
+      "compositor_pid": "644",
+      "panels": [
+        {
+          "id": 109,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 129,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "magiclamp",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "fade",
+        "dimscreen",
+        "dialogparent",
+        "wobblywindows",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "dc767334-ae87-4652-bafa-61df231862cd",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T23:36:49-06:00",
+        "finished_at": "2026-10-20T23:38:44-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-dark-again": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "9964"
+        ],
+        "nautilus": [
+          "9965"
+        ],
+        "dolphin": [
+          "9966"
+        ],
+        "konsole": [
+          "9967"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 598.5,
+            "y": 996,
+            "width": 723,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "/home/tester/Documents/VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "reboot": {
+      "mode": "dark",
+      "expected_distro": "garuda",
+      "timestamp": "2026-10-21T05:40:04.135826+00:00",
+      "distro": "garuda",
+      "os_release": "NAME=\"Garuda Linux\"\nPRETTY_NAME=\"Garuda Linux\"\nID=garuda\nID_LIKE=arch\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://garudalinux.org/\"\nDOCUMENTATION_URL=\"https://wiki.garudalinux.org/\"\nSUPPORT_URL=\"https://forum.garudalinux.org/\"\nBUG_REPORT_URL=\"https://gitlab.com/groups/garuda-linux/\"\nPRIVACY_POLICY_URL=\"https://terms.archlinux.org/docs/privacy-policy/\"\nLOGO=garudalinux\n",
+      "kernel": "7.2.11-1-garuda",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "655",
+      "compositor_pid": "646",
+      "panels": [
+        {
+          "id": 109,
+          "location": "top",
+          "hiding": "none",
+          "widgets": [
+            "luisbocanegra.panel.colorizer",
+            "org.kde.mac.tahoe.liquid.globalmenu",
+            "org.kde.plasma.panelspacer",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.digitalclock"
+          ]
+        },
+        {
+          "id": 129,
+          "location": "bottom",
+          "hiding": "autohide",
+          "widgets": [
+            "org.kde.mac-tahoe-liquid-kde.launcher",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac.tahoe.liquid.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.mac-tahoe-liquid-kde.trashcan"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "liquidglass",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "magiclamp",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "fade",
+        "dimscreen",
+        "dialogparent",
+        "wobblywindows",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "kwin4_effect_shapecorners",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "d20a9a20-538f-4cbd-ab7b-112a7af69cc0",
+      "original_gtk_profile_saved": true,
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "glass_build_matches": true,
+      "last_run": {
+        "script": "install",
+        "argv": [
+          "--dark"
+        ],
+        "command": "./install --dark",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "dark",
+        "status": "completed",
+        "started_at": "2026-10-20T23:36:49-06:00",
+        "finished_at": "2026-10-20T23:38:44-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "apps-reboot": {
+      "mode": "dark",
+      "status": "pass",
+      "firefox": {
+        "dark": true,
+        "result": "Plasma desktop input passed",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0"
+      },
+      "processes": {
+        "firefox": [
+          "1517"
+        ],
+        "nautilus": [
+          "1518"
+        ],
+        "dolphin": [
+          "1519"
+        ],
+        "konsole": [
+          "1520"
+        ]
+      },
+      "browser_version": "158.0.1",
+      "windows": [
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 1,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 32
+          }
+        },
+        {
+          "caption": "",
+          "resourceClass": "plasmashell",
+          "type": 2,
+          "appletPopup": false,
+          "geometry": {
+            "x": 598.5,
+            "y": 996,
+            "width": 723,
+            "height": 84
+          }
+        },
+        {
+          "caption": "macos-tahoe-liquid-kde : \u2014 Konsole",
+          "resourceClass": "org.kde.konsole",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "/home/tester/Documents/VM Proof \u2014 Dolphin",
+          "resourceClass": "org.kde.dolphin",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 565,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "VM Proof",
+          "resourceClass": "org.gnome.Nautilus",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 975,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        },
+        {
+          "caption": "Firefox desktop verification \u2014 Mozilla Firefox",
+          "resourceClass": "firefox",
+          "type": 0,
+          "appletPopup": false,
+          "geometry": {
+            "x": 45,
+            "y": 65,
+            "width": 900,
+            "height": 475
+          }
+        }
+      ]
+    },
+    "reboot-pixels": {
+      "window": {
+        "caption": "VM Proof",
+        "resourceClass": "org.gnome.Nautilus",
+        "type": 0,
+        "appletPopup": false,
+        "geometry": {
+          "x": 975,
+          "y": 65,
+          "width": 900,
+          "height": 475
+        }
+      },
+      "sample": [
+        3030,
+        748,
+        3480,
+        938
+      ],
+      "median_luminance": 42.0,
+      "matching_fraction": 1.0
+    },
+    "uninstalled": {
+      "mode": "uninstalled",
+      "expected_distro": "garuda",
+      "timestamp": "2026-10-21T05:40:58.319287+00:00",
+      "distro": "garuda",
+      "os_release": "NAME=\"Garuda Linux\"\nPRETTY_NAME=\"Garuda Linux\"\nID=garuda\nID_LIKE=arch\nBUILD_ID=rolling\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://garudalinux.org/\"\nDOCUMENTATION_URL=\"https://wiki.garudalinux.org/\"\nSUPPORT_URL=\"https://forum.garudalinux.org/\"\nBUG_REPORT_URL=\"https://gitlab.com/groups/garuda-linux/\"\nPRIVACY_POLICY_URL=\"https://terms.archlinux.org/docs/privacy-policy/\"\nLOGO=garudalinux\n",
+      "kernel": "7.2.11-1-garuda",
+      "plasma": "plasmashell 6.8.0",
+      "qt": "6.12.0",
+      "init_system": "systemd",
+      "shell_pid": "8124",
+      "compositor_pid": "646",
+      "panels": [
+        {
+          "id": 137,
+          "location": "bottom",
+          "hiding": "none",
+          "widgets": [
+            "org.kde.plasma.kickoff",
+            "org.kde.plasma.pager",
+            "org.kde.plasma.icontasks",
+            "org.kde.plasma.marginsseparator",
+            "org.kde.plasma.systemtray",
+            "org.kde.plasma.digitalclock",
+            "org.kde.plasma.showdesktop"
+          ]
+        }
+      ],
+      "loaded_effects": [
+        "shakecursor",
+        "outputlocator",
+        "colorpicker",
+        "zoom",
+        "screenedge",
+        "sessionquit",
+        "logout",
+        "login",
+        "slidingpopups",
+        "slidingnotifications",
+        "windowaperture",
+        "slide",
+        "magiclamp",
+        "maximize",
+        "fullscreen",
+        "frozenapp",
+        "fadingpopups",
+        "fade",
+        "dimscreen",
+        "dialogparent",
+        "wobblywindows",
+        "windowview",
+        "tileseditor",
+        "overview",
+        "highlightwindow",
+        "blendchanges",
+        "startupfeedback",
+        "systembell",
+        "screentransform",
+        "kscreen"
+      ],
+      "boot_id": "d20a9a20-538f-4cbd-ab7b-112a7af69cc0",
+      "original_gtk_profile_saved": true,
+      "last_run": {
+        "script": "uninstall",
+        "argv": [],
+        "command": "./uninstall",
+        "cwd": "/home/tester/macos-tahoe-liquid-kde",
+        "theme_mode": "auto",
+        "status": "completed",
+        "started_at": "2026-10-20T23:40:15-06:00",
+        "finished_at": "2026-10-20T23:40:58-06:00",
+        "exit_code": 0
+      },
+      "status": "pass"
+    },
+    "visual-review": {
+      "approved": [
+        "light.png",
+        "dark.png",
+        "reboot.png"
+      ],
+      "source_commit": "3ee94c3b00cd9747cb6f6b217a6c2a2afb0250a6",
+      "sha256": {
+        "light.png": "25b88204a5c9d8df102e3e5d097fb7fdc1b69aa3570eb191173a500dd79b7be3",
+        "dark.png": "5dcc9fdb6b2ba002ce4eea660028408bc02a6fccff08b3c5a9303e784893c673",
+        "reboot.png": "6f493a2a9d9b131eeef6d84e997da4011e26f9991c6bf809f3566c8f09d5e05d"
+      },
+      "notes": "Each original 4K screenshot visually inspected. Firefox and Nautilus are visible in the expected light/dark mode; Firefox keyboard input and appearance checks pass. Reboot preserves the dark desktop. Live switches preserve app, Plasma and KWin PIDs. Full install, host-SDK native builds, reboot and uninstall checks pass."
+    }
+  }
+}
