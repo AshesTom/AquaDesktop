@@ -210,9 +210,34 @@ Official Manjaro KDE ISO with native packages.
 
 <a id="artix"></a>
 <details>
-<summary><b>Artix Linux (OpenRC) — evidence pending</b></summary>
+<summary><b>Artix Linux (OpenRC) — ✅ VM verified · v0.57.11</b></summary>
 
-The current application checks and reviewed 4K screenshots have not been published yet.
+Plasma 6.8.0 · Qt 6.12.0 · Wayland · openrc · VirtIO/virgl.
+Official Artix Plasma OpenRC ISO with native packages and per-user cron scheduling.
+
+| Check | Result |
+| --- | --- |
+| Full installation and host SDK builds | ✅ Passed |
+| Light and dark desktop, loaded Acrylic Glass, Dock autohide | ✅ Passed |
+| Firefox rendering, text input, button action and appearance | ✅ Passed |
+| Nautilus light/dark pixels and live switching | ✅ Passed |
+| Live switch preserves app, Plasma and KWin processes | ✅ Passed |
+| Reboot and desktop/app checks | ✅ Passed |
+| Full uninstall and removal checks | ✅ Passed |
+
+**Light**
+
+![Artix Linux (OpenRC) light](../../src/screenshots/vm/artix/light-9383135cdff4.png)
+
+**Dark**
+
+![Artix Linux (OpenRC) dark](../../src/screenshots/vm/artix/dark-ba8f3dd4a617.png)
+
+**After reboot**
+
+![Artix Linux (OpenRC) after reboot](../../src/screenshots/vm/artix/reboot-058ac23fe050.png)
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/artix/report.json).
 
 </details>
 
