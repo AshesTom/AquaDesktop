@@ -21,6 +21,9 @@ from theme_switch import (
     _apply_wallpaper_snapshot,
     cycle_widget_style_live,
     _current_wallpapers,
+    _empty_wallpaper_state,
+    _save_wallpaper_state,
+    _wallpaper_state_file,
     _parse_ini,
     _wallpapers_from_config,
     _write_wallpapers_to_config,
@@ -508,6 +511,23 @@ def _scrub_kdedefaults() -> None:
     ok("kdedefaults cleaned")
 
 
+def _record_wallpaper_reset(snapshot: list[dict[str, object]]) -> None:
+    # Breeze was selected by our uninstaller. Retain that exact per-screen
+    # baseline after switcher cleanup so a reinstall can distinguish it from
+    # a wallpaper the user chose after uninstalling.
+    path = _wallpaper_state_file()
+    if path.exists() or path.is_symlink():
+        # Switcher teardown deliberately retains this file when schedules or
+        # running processes could not be neutralized. Do not undo that guard.
+        warn("Wallpaper reset ownership retained: switcher state was not cleared")
+        return
+    state = _empty_wallpaper_state()
+    state["initialized"] = True
+    state["last_applied"] = snapshot
+    if not snapshot or not _save_wallpaper_state(state):
+        warn("Wallpaper reset ownership could not be recorded")
+
+
 def _reset_wallpaper(*, live_ready: bool, native_reset: bool) -> None:
     """Restore a system wallpaper through every safe KDE path available."""
     declared = _lookandfeel_default_wallpaper(_BREEZE_LOOK_AND_FEEL)
@@ -527,6 +547,7 @@ def _reset_wallpaper(*, live_ready: bool, native_reset: bool) -> None:
         current = _current_wallpapers()
         expected = (declared,) if declared is not None else candidates
         if _snapshot_uses_candidates(current, expected):
+            _record_wallpaper_reset(current)
             ok("Wallpaper reset")
             return
 
@@ -540,6 +561,7 @@ def _reset_wallpaper(*, live_ready: bool, native_reset: bool) -> None:
                 continue
             current = _current_wallpapers()
             if _snapshot_uses_candidates(current, (wallpaper,)):
+                _record_wallpaper_reset(current)
                 ok("Wallpaper reset")
                 return
 
@@ -557,6 +579,7 @@ def _reset_wallpaper(*, live_ready: bool, native_reset: bool) -> None:
             if live_ready else _write_wallpapers_to_config(snapshot)
         )
         if reset:
+            _record_wallpaper_reset(snapshot)
             ok("Wallpaper reset")
             return
 

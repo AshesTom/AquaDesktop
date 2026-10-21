@@ -427,6 +427,11 @@ background on one screen, that is treated as a user choice and login plus the
 06:00/18:00 transitions leave that screen untouched while still updating the
 managed screens. A user opts every screen back into managed bundled wallpapers
 only with the installer's explicit `--reset-wallpapers` action.
+After a successful uninstall wallpaper reset, record its exact per-screen
+snapshot as project-applied state, after switcher cleanup. A reinstall may
+replace that unchanged reset background; a subsequent user change still wins.
+Never infer ownership from a wallpaper name such as Breeze or Next alone.
+Older installations without this evidence need an explicit wallpaper reset.
 Empty captures are retried before applying the look-and-feel.
 If capture still fails on an existing desktop, preserve wallpapers and ownership
 state; only a fresh install or explicit reset may apply without a snapshot.

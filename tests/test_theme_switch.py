@@ -2190,3 +2190,82 @@ def test_wallpaper_capture_retry_exhaustion(monkeypatch):
     assert ts._capture_wallpapers_with_retry() == []
     assert len(calls) == 4
     assert waits == [5, 5, 5]
+
+
+@pytest.mark.parametrize("reset_path", ["lookandfeel", "helper", "config"])
+@pytest.mark.parametrize("user_choice", [None, "file:///pictures/photo.jpg",
+                                         "file:///usr/share/wallpapers/Flow"])
+def test_reinstall_after_uninstall_reclaims_only_unchanged_reset_backgrounds(
+        monkeypatch, tmp_path, reset_path, user_choice):
+    import steps.apply as apply_step
+
+    ts, theme = _smart_wallpaper_env(monkeypatch, tmp_path)
+    breeze = Path("/usr/share/wallpapers/Next")
+    reset = _wp(breeze.as_uri(), 0) + _wp(breeze.as_uri(), 1)
+    # Residual installed assets still make this an existing installation.
+    # A missing ownership file used to misclassify both Breeze screens.
+    monkeypatch.setenv("MTTKDE_EXISTING_INSTALL", "true")
+    monkeypatch.setattr(apply_step, "_lookandfeel_default_wallpaper", lambda _: breeze)
+    monkeypatch.setattr(apply_step, "_wallpaper_reset_candidates", lambda _: (breeze,))
+    monkeypatch.setattr(apply_step, "_current_wallpapers", lambda: reset)
+    monkeypatch.setattr(apply_step, "_wallpapers_from_config", lambda: reset)
+    monkeypatch.setattr(apply_step, "have", lambda cmd: cmd == "plasma-apply-wallpaperimage")
+    monkeypatch.setattr(apply_step, "_run_live", lambda _: True)
+    monkeypatch.setattr(apply_step, "_write_wallpapers_to_config", lambda snapshot: snapshot == reset)
+    apply_step._reset_wallpaper(live_ready=reset_path != "config",
+                               native_reset=reset_path == "lookandfeel")
+    recorded = ts._load_wallpaper_state()
+    assert recorded["initialized"] is True
+    assert recorded["user_screens"] == []
+    assert recorded["last_applied"] == reset
+
+    current = [dict(item) for item in reset]
+    if user_choice:
+        current[1]["image"] = user_choice
+    applied = []
+    monkeypatch.setattr(ts, "_apply_theme_wallpaper",
+                        lambda mode: applied.append(ts._theme_wallpaper_snapshot(current, theme)) or (True, theme))
+    monkeypatch.setattr(ts, "_apply_wallpaper_snapshot",
+                        lambda snapshot: applied.append(snapshot) or True)
+    assert ts._apply_wallpaper("dark", context="install", current_snapshot=current)
+    expected = _wp(theme.as_uri(), 0) + _wp(user_choice or theme.as_uri(), 1)
+    assert applied == [expected]
+    assert ts._load_wallpaper_state()["last_applied"] == expected
+    assert ts._load_wallpaper_state()["user_screens"] == ([1] if user_choice else [])
+
+
+def test_breeze_without_uninstall_evidence_still_belongs_to_user(monkeypatch, tmp_path):
+    ts, _ = _smart_wallpaper_env(monkeypatch, tmp_path)
+    monkeypatch.setenv("MTTKDE_EXISTING_INSTALL", "true")
+    monkeypatch.setattr(ts, "_apply_theme_wallpaper",
+                        lambda _: pytest.fail("Breeze name alone does not prove ownership"))
+    current = _wp("file:///usr/share/wallpapers/Next")
+    assert ts._apply_wallpaper("light", context="install", current_snapshot=current)
+    assert ts._load_wallpaper_state()["user_screens"] == [0]
+
+
+def test_uninstall_reports_failure_to_record_reset_background(monkeypatch, tmp_path):
+    import steps.apply as apply_step
+
+    ts, _ = _smart_wallpaper_env(monkeypatch, tmp_path)
+    warnings = []
+    monkeypatch.setattr(apply_step, "_save_wallpaper_state", lambda _: False)
+    monkeypatch.setattr(apply_step, "warn", warnings.append)
+    apply_step._record_wallpaper_reset(_wp("file:///usr/share/wallpapers/Next"))
+    assert warnings == ["Wallpaper reset ownership could not be recorded"]
+    assert not ts._wallpaper_state_file().exists()
+
+
+def test_uninstall_does_not_overwrite_state_retained_by_failed_switcher_cleanup(monkeypatch, tmp_path):
+    import steps.apply as apply_step
+
+    ts, _ = _smart_wallpaper_env(monkeypatch, tmp_path)
+    state = ts._empty_wallpaper_state()
+    state.update(initialized=True, user_screens=[0], last_applied=_wp("file:///pictures/custom.jpg"))
+    assert ts._save_wallpaper_state(state)
+    before = ts._wallpaper_state_file().read_bytes()
+    warnings = []
+    monkeypatch.setattr(apply_step, "warn", warnings.append)
+    apply_step._record_wallpaper_reset(_wp("file:///usr/share/wallpapers/Next"))
+    assert ts._wallpaper_state_file().read_bytes() == before
+    assert warnings == ["Wallpaper reset ownership retained: switcher state was not cleared"]
