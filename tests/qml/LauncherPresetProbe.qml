@@ -45,7 +45,7 @@ Timer {
             verify(label !== null, "category label available: " + i);
             const pill = label.parent;
             const alpha = expectedDark ? (pill.selected ? 0.12 : 0.06)
-                : expectedGoldenGate ? (pill.selected ? 0.56 : 0.40)
+                : expectedGoldenGate ? (pill.selected ? 0.68 : 0.52)
                 : (pill.selected ? 0.62 : 0.46);
             verify(Math.abs(pill.testBackground.color.a - alpha) < 0.005,
                    "category opacity follows edition and mode");

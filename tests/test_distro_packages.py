@@ -172,7 +172,17 @@ def _declared_dependency_tokens() -> dict[str, set[str]]:
                 if not isinstance(node, ast.Return) or node.value is None:
                     continue
                 try:
-                    value = ast.literal_eval(node.value)
+                    expression = node.value
+                    # GTK exporters are available only in selected repository
+                    # families; the explicit matrix below covers those tokens.
+                    if (source_path.name == "globalmenu.py"
+                            and isinstance(expression, ast.BinOp)
+                            and isinstance(expression.op, ast.Add)
+                            and isinstance(expression.right, ast.Call)
+                            and isinstance(expression.right.func, ast.Name)
+                            and expression.right.func.id == "global_menu_exporter_deps"):
+                        expression = expression.left
+                    value = ast.literal_eval(expression)
                 except (TypeError, ValueError) as exc:
                     raise AssertionError(
                         f"{source_path.name}: deps() return on line "
@@ -1140,3 +1150,23 @@ def test_plymouth_rebuild_uses_native_initramfs_tool(monkeypatch, distro_id, ava
     monkeypatch.setattr(distro, 'distro_id_like', lambda: ('arch',) if distro_id in ('endeavouros', 'garuda') else ())
     monkeypatch.setattr(distro.shutil, 'which', lambda name: '/usr/bin/' + name if name in available else None)
     assert distro.plymouth_activation_commands('theme') == expected
+
+
+@pytest.mark.parametrize("name,parents,library,exporter", [
+    ("arch", (), "libdbusmenu-glib", "appmenu-gtk-module"),
+    ("artix", (), "libdbusmenu-glib", "appmenu-gtk-module"),
+    ("neon", ("ubuntu", "debian"), "libdbusmenu-glib4", "appmenu-gtk3-module"),
+    ("debian", (), "libdbusmenu-glib4", "appmenu-gtk3-module"),
+    ("fedora", (), "libdbusmenu", None),
+    ("nobara", ("fedora",), "libdbusmenu", None),
+    ("opensuse-tumbleweed", ("opensuse",), "libdbusmenu-glib4", None),
+])
+def test_globalmenu_installs_available_runtime_exporters(monkeypatch, name, parents, library, exporter):
+    from steps import globalmenu
+    _force_distro(monkeypatch, name, parents)
+    dependencies = dict(token.split(":", 1) for token in globalmenu.deps() if ":" in token)
+    assert distro.package_for("dbusmenu-glib", dependencies["dbusmenu-glib"]) == library
+    if exporter:
+        assert distro.package_for("gtk3-appmenu", dependencies["gtk3-appmenu"]) == exporter
+    else:
+        assert "gtk3-appmenu" not in dependencies

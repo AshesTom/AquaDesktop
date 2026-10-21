@@ -3,12 +3,12 @@ import shlex
 import shutil
 from pathlib import Path
 
-from distro import gtk3_appmenu_module, qt6_plugins_dir, qt6_qml_dir
+from distro import global_menu_exporter_deps, gtk3_appmenu_module, qt6_plugins_dir, qt6_qml_dir
 from log import note
 from paths import REPO_ROOT, read_version
 from steps._helpers import (
     DATA_HOME, HOME, build_dir, cmake_build, fail, ok, offline,
-    sudo_install_file, sudo_install_tree, sudo_remove, temp_dir, warn,
+    sudo_install_file, sudo_install_tree, sudo_remove, temp_dir, warn, qdbus_call,
 )
 
 SRC = offline("plasmoids/org.kde.mac.tahoe.liquid.globalmenu")
@@ -63,6 +63,7 @@ LEGACY_QML_MODULES_USER = (
 
 def deps():
     return [
+        "dbusmenu-glib:libdbusmenu-glib",
         "qmake6:qt6-base",
         "qt6-gui-cmake:qt6-base",
         "qt6-widgets-cmake:qt6-base",
@@ -83,7 +84,7 @@ def deps():
         # Plasma + plasma-workspace (provides LibTaskManager cmake config).
         "plasma-cmake:libplasma",
         "libtaskmanager-cmake:plasma-workspace",
-    ]
+    ] + global_menu_exporter_deps()
 
 
 def build_artifacts() -> list[Path]:
@@ -140,6 +141,10 @@ def install() -> None:
     _install_translations()
     _install_about_info()
     _install_gtk_appmenu_environment()
+    # The applet advertises the menu view; kded owns the registrar that
+    # exporters need. A minimal session may not have loaded that module yet.
+    if not qdbus_call("org.kde.kded6", "/kded", "org.kde.kded6.loadModule", "appmenu"):
+        warn("Global Menu registrar could not be loaded; log out and back in")
 
 
 def gtk_appmenu_env_path() -> Path:

@@ -429,6 +429,14 @@ def system_lib_dir() -> Path:
     return parent
 
 
+def global_menu_exporter_deps() -> list[str]:
+    """GTK's optional exporter is not packaged in every supported family."""
+    family = {current_distro(), *_compatibility_parents()}
+    if family & {"arch", "debian", "ubuntu", "neon"}:
+        return ["gtk3-appmenu:appmenu-gtk-module"]
+    return []
+
+
 def gtk3_appmenu_module() -> Path | None:
     """Find the installed native GTK3 appmenu module without loading it.
 
@@ -464,6 +472,16 @@ def gtk3_appmenu_module() -> Path | None:
 # is portable.
 
 _PACKAGE_MAP: dict[str, dict[str, str]] = {
+    "dbusmenu-glib": {
+        "arch": "libdbusmenu-glib", "debian": "libdbusmenu-glib4",
+        "ubuntu": "libdbusmenu-glib4", "fedora": "libdbusmenu",
+        "rhel": "libdbusmenu", "centos": "libdbusmenu",
+        "opensuse": "libdbusmenu-glib4",
+    },
+    "gtk3-appmenu": {
+        "arch": "appmenu-gtk-module", "debian": "appmenu-gtk3-module",
+        "ubuntu": "appmenu-gtk3-module",
+    },
     "xdg-desktop-portal-gtk": {
         "arch": "xdg-desktop-portal-gtk",
         "debian": "xdg-desktop-portal-gtk",

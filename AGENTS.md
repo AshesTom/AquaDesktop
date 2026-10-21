@@ -481,6 +481,11 @@ the next callback then jumps into unmapped memory (issue #81). The reported
 ChatGPT builds explicitly clear `gtk-modules` during Chromium initialization;
 GDB reproduced both reported application offsets at the subsequent GIO crash.
 
+The Global Menu step installs the native D-Bus menu runtime and, on Arch and
+Debian families, the packaged GTK3 exporter. It loads KDE's `appmenu` module
+after installation. Other applications must export a menu themselves; never
+claim that a window title or a synthetic shortcut menu proves native export.
+
 The Global Menu step installs an ownership-marked, per-user Plasma environment
 hook at `$XDG_CONFIG_HOME/plasma-workspace/env/mac-tahoe-gtk-appmenu.sh` when
 `distro.gtk3_appmenu_module()` finds the native GTK3 module. The hook appends it
@@ -701,7 +706,7 @@ the halo low-opacity and diffuse; do not use a hard outline. Light-mode
 category pills use a translucent white backing to keep dark labels readable
 over the upper gradient.
 Golden Gate light mode uses full-opacity search text and a stronger diffuse
-halo in the Apps input; category fills use 56% white when selected and 40%
+halo in the Apps input; category fills use 68% white when selected and 52%
 otherwise. Stage the edition flag independently of the user's launcher preset.
 Tahoe and dark-mode search/category styling keep their existing values.
 Validate black and white
