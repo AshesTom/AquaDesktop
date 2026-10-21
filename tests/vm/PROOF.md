@@ -177,9 +177,34 @@ Official Fedora 44 cloud image with native KDE desktop and packages.
 
 <a id="manjaro"></a>
 <details>
-<summary><b>Manjaro — evidence pending</b></summary>
+<summary><b>Manjaro — ✅ VM verified · v0.57.10</b></summary>
 
-The current application checks and reviewed 4K screenshots have not been published yet.
+Plasma 6.7.4 · Qt 6.11.2 · Wayland · systemd · VirtIO/virgl.
+Official Manjaro KDE ISO with native packages.
+
+| Check | Result |
+| --- | --- |
+| Full installation and host SDK builds | ✅ Passed |
+| Light and dark desktop, loaded Acrylic Glass, Dock autohide | ✅ Passed |
+| Firefox rendering, text input, button action and appearance | ✅ Passed |
+| Nautilus light/dark pixels and live switching | ✅ Passed |
+| Live switch preserves app, Plasma and KWin processes | ✅ Passed |
+| Reboot and desktop/app checks | ✅ Passed |
+| Full uninstall and removal checks | ✅ Passed |
+
+**Light**
+
+![Manjaro light](../../src/screenshots/vm/manjaro/light-d297dffbe487.png)
+
+**Dark**
+
+![Manjaro dark](../../src/screenshots/vm/manjaro/dark-504e99020f75.png)
+
+**After reboot**
+
+![Manjaro after reboot](../../src/screenshots/vm/manjaro/reboot-ee500f3102a9.png)
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/manjaro/report.json).
 
 </details>
 
