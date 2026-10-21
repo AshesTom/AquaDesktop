@@ -9,6 +9,7 @@ for each release. These results describe the recorded VM configuration.
 [Run the checks yourself](README.md). Screenshots below are original 3840×2160
 captures at 2× scale. Open an image to inspect it at full resolution.
 
+<a id="debian"></a>
 <details>
 <summary><b>Debian testing (Forky) — ✅ VM verified · v0.57.3</b></summary>
 
@@ -42,6 +43,7 @@ stock Plasma 6.3 is below this project's minimum; this run does not qualify it.
 
 </details>
 
+<a id="cachyos"></a>
 <details>
 <summary><b>CachyOS — ✅ VM verified · v0.57.4</b></summary>
 

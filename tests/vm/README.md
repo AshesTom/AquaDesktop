@@ -49,19 +49,19 @@ systems. This is only a setup aid; qualification requires an installed desktop.
 The host repository is read-only in every guest. Installer writes and compiled
 components stay on the guest disk. SSH forwards bind to `127.0.0.1` only:
 
-| Target | Port | Source |
-| --- | --- | --- |
-| Arch | 2221 | Arch cloud image |
-| CachyOS | 2222 | Official desktop ISO |
-| Manjaro | 2223 | Official KDE ISO |
-| EndeavourOS | 2224 | Official ISO, KDE selection |
-| Garuda | 2225 | Official Dr460nized ISO |
-| Fedora | 2226 | Fedora cloud image + KDE |
-| Nobara | 2227 | Official KDE ISO |
-| openSUSE | 2228 | Tumbleweed cloud image + KDE |
-| KDE neon | 2231 | Ubuntu cloud image + signed neon repositories |
-| Debian | 2232 | Official Forky cloud image + KDE |
-| Artix | 2233 | Official Plasma OpenRC ISO |
+| Target | Port | Source | Start VM |
+| --- | --- | --- | --- |
+| <a id="arch"></a>Arch | 2221 | Arch cloud image | `./vm arch` |
+| <a id="cachyos"></a>CachyOS | 2222 | Official desktop ISO | `./vm cachyos` |
+| <a id="manjaro"></a>Manjaro | 2223 | Official KDE ISO | `./vm manjaro` |
+| <a id="endeavouros"></a>EndeavourOS | 2224 | Official ISO, KDE selection | `./vm endeavouros` |
+| <a id="garuda"></a>Garuda | 2225 | Official Dr460nized ISO | `./vm garuda` |
+| <a id="fedora"></a>Fedora | 2226 | Fedora cloud image + KDE | `./vm fedora` |
+| <a id="nobara"></a>Nobara | 2227 | Official KDE ISO | `./vm nobara` |
+| <a id="opensuse"></a>openSUSE | 2228 | Tumbleweed cloud image + KDE | `./vm opensuse` |
+| <a id="neon"></a>KDE neon | 2231 | Ubuntu cloud image + signed neon repositories | `./vm neon` |
+| <a id="debian"></a>Debian | 2232 | Official Forky cloud image + KDE | `./vm debian` |
+| <a id="artix"></a>Artix | 2233 | Official Plasma OpenRC ISO | `./vm artix` |
 
 `VM_CACHE_DIR` and `VM_RUN_DIR` relocate images and disks. `VM_CPUS` and
 `VM_MEM_MIB` control resources. Default graphics use accelerated VirtIO/virgl;
