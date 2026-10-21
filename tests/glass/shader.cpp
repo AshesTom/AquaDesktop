@@ -243,8 +243,16 @@ int main(int argc, char **argv)
             shader.setUniformValue(uniform, QVector4D(color.redF(), color.greenF(), color.blueF(),
                                                       golden["Gradient" + end + "Opacity"].toDouble()));
         }
-        for (const QColor backdropColor : {QColor(Qt::black), QColor(Qt::white)}) {
-            backdrop.fill(backdropColor);
+        for (const QString background : {QStringLiteral("black"), QStringLiteral("white"),
+                                         QStringLiteral("images"), QStringLiteral("images_dark")}) {
+            if (background == "black" || background == "white") {
+                backdrop.fill(QColor(background));
+            } else {
+                QImage wallpaper(root + "/../../../../wallpapers/MacGoldenGate/contents/"
+                                 + background + "/4480x3088.jpg");
+                require(!wallpaper.isNull(), QStringLiteral("Golden Gate wallpaper unavailable"));
+                backdrop = wallpaper.scaled(width, height).convertToFormat(QImage::Format_RGBA8888);
+            }
             texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
             shader.setUniformValue("darkGradientOverlay", true);
             const auto tinted = render();
@@ -269,12 +277,16 @@ int main(int argc, char **argv)
                     };
                     const auto actual = composite(tinted);
                     const auto control = composite(untinted);
-                    require(std::abs(qRed(actual.pixel(96, 115)) - backdropColor.red()) <= 3,
-                            mode + " " + name + ": client fill obscures Golden Gate's clear lower half");
-                    if (backdropColor == QColor(Qt::black)) {
+                    const auto lower = actual.pixelColor(96, 115);
+                    const auto clear = untinted.pixelColor(96, 115);
+                    require(std::abs(lower.red() - clear.red()) <= 3
+                                && std::abs(lower.green() - clear.green()) <= 3
+                                && std::abs(lower.blue() - clear.blue()) <= 3,
+                            mode + " " + name + " " + background + ": client fill obscures Golden Gate's clear lower half");
+                    if (background == "black") {
                         require(actual == control,
                                 mode + " " + name + ": black tint must preserve a black backdrop");
-                    } else {
+                    } else if (background == "white") {
                         require(qRed(actual.pixel(96, 12)) + 8 <= qRed(control.pixel(96, 12)),
                                 mode + " " + name + ": upper black tint hidden by client fill");
                         require(qRed(actual.pixel(96, 12)) + 8 <= qRed(actual.pixel(96, 115)),
