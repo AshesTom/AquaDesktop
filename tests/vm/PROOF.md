@@ -13,20 +13,6 @@ captures at 2× scale. Open an image to inspect it at full resolution.
 <details>
 <summary><b>Debian testing (Forky) — ✅ VM verified · v0.57.3</b></summary>
 
-Plasma 6.7.4 · Qt 6.11.2 · Wayland · systemd · VirtIO/virgl.
-Official Debian testing cloud image, with a normal KDE desktop. Debian 13's
-stock Plasma 6.3 is below this project's minimum; this run does not qualify it.
-
-| Check | Result |
-| --- | --- |
-| Full installation and host SDK builds | ✅ Passed |
-| Light and dark desktop, loaded Acrylic Glass, Dock autohide | ✅ Passed |
-| Firefox rendering, text input, button action and appearance | ✅ Passed |
-| Nautilus light/dark pixels and live switching | ✅ Passed |
-| Live switch preserves app, Plasma and KWin processes | ✅ Passed |
-| Reboot and desktop/app checks | ✅ Passed |
-| Full uninstall and removal checks | ✅ Passed |
-
 **Light**
 
 ![Debian light](../../src/screenshots/vm/debian/light-fe7e071861fc.png)
@@ -39,16 +25,13 @@ stock Plasma 6.3 is below this project's minimum; this run does not qualify it.
 
 ![Debian after reboot](../../src/screenshots/vm/debian/reboot-124d50c56945.png)
 
-[Machine-readable results and image hashes](../../src/screenshots/vm/debian/report.json).
+**Tested VM**
 
-</details>
+Plasma 6.7.4 · Qt 6.11.2 · Wayland · systemd · VirtIO/virgl.
+Official Debian testing cloud image, with a normal KDE desktop. Debian 13's
+stock Plasma 6.3 is below this project's minimum; this run does not qualify it.
 
-<a id="cachyos"></a>
-<details>
-<summary><b>CachyOS — ✅ VM verified · v0.57.4</b></summary>
-
-Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
-Installed from the official CachyOS ISO and upgraded with its native repositories.
+**Checks**
 
 | Check | Result |
 | --- | --- |
@@ -59,6 +42,14 @@ Installed from the official CachyOS ISO and upgraded with its native repositorie
 | Live switch preserves app, Plasma and KWin processes | ✅ Passed |
 | Reboot and desktop/app checks | ✅ Passed |
 | Full uninstall and removal checks | ✅ Passed |
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/debian/report.json).
+
+</details>
+
+<a id="cachyos"></a>
+<details>
+<summary><b>CachyOS — ✅ VM verified · v0.57.4</b></summary>
 
 **Light**
 
@@ -72,16 +63,12 @@ Installed from the official CachyOS ISO and upgraded with its native repositorie
 
 ![CachyOS after reboot](../../src/screenshots/vm/cachyos/reboot-bc01b2bc88bb.png)
 
-[Machine-readable results and image hashes](../../src/screenshots/vm/cachyos/report.json).
-
-</details>
-
-<a id="arch"></a>
-<details>
-<summary><b>Arch Linux — ✅ VM verified · v0.57.5</b></summary>
+**Tested VM**
 
 Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
-Official Arch cloud image with KDE Plasma installed from its native repositories.
+Installed from the official CachyOS ISO and upgraded with its native repositories.
+
+**Checks**
 
 | Check | Result |
 | --- | --- |
@@ -92,6 +79,14 @@ Official Arch cloud image with KDE Plasma installed from its native repositories
 | Live switch preserves app, Plasma and KWin processes | ✅ Passed |
 | Reboot and desktop/app checks | ✅ Passed |
 | Full uninstall and removal checks | ✅ Passed |
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/cachyos/report.json).
+
+</details>
+
+<a id="arch"></a>
+<details>
+<summary><b>Arch Linux — ✅ VM verified · v0.57.5</b></summary>
 
 **Light**
 
@@ -105,16 +100,12 @@ Official Arch cloud image with KDE Plasma installed from its native repositories
 
 ![Arch Linux after reboot](../../src/screenshots/vm/arch/reboot-289081492443.png)
 
-[Machine-readable results and image hashes](../../src/screenshots/vm/arch/report.json).
-
-</details>
-
-<a id="endeavouros"></a>
-<details>
-<summary><b>EndeavourOS — ✅ VM verified · v0.57.9</b></summary>
+**Tested VM**
 
 Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
-Official EndeavourOS ISO with native KDE desktop and a full distribution upgrade.
+Official Arch cloud image with KDE Plasma installed from its native repositories.
+
+**Checks**
 
 | Check | Result |
 | --- | --- |
@@ -125,6 +116,14 @@ Official EndeavourOS ISO with native KDE desktop and a full distribution upgrade
 | Live switch preserves app, Plasma and KWin processes | ✅ Passed |
 | Reboot and desktop/app checks | ✅ Passed |
 | Full uninstall and removal checks | ✅ Passed |
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/arch/report.json).
+
+</details>
+
+<a id="endeavouros"></a>
+<details>
+<summary><b>EndeavourOS — ✅ VM verified · v0.57.9</b></summary>
 
 **Light**
 
@@ -138,16 +137,12 @@ Official EndeavourOS ISO with native KDE desktop and a full distribution upgrade
 
 ![EndeavourOS after reboot](../../src/screenshots/vm/endeavouros/reboot-94573a3b415e.png)
 
-[Machine-readable results and image hashes](../../src/screenshots/vm/endeavouros/report.json).
+**Tested VM**
 
-</details>
+Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
+Official EndeavourOS ISO with native KDE desktop and a full distribution upgrade.
 
-<a id="fedora"></a>
-<details>
-<summary><b>Fedora — ✅ VM verified · v0.57.8</b></summary>
-
-Plasma 6.7.5 · Qt 6.11.2 · Wayland · systemd · VirtIO/virgl.
-Official Fedora 44 cloud image with native KDE desktop and packages.
+**Checks**
 
 | Check | Result |
 | --- | --- |
@@ -158,6 +153,14 @@ Official Fedora 44 cloud image with native KDE desktop and packages.
 | Live switch preserves app, Plasma and KWin processes | ✅ Passed |
 | Reboot and desktop/app checks | ✅ Passed |
 | Full uninstall and removal checks | ✅ Passed |
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/endeavouros/report.json).
+
+</details>
+
+<a id="fedora"></a>
+<details>
+<summary><b>Fedora — ✅ VM verified · v0.57.8</b></summary>
 
 **Light**
 
@@ -171,16 +174,12 @@ Official Fedora 44 cloud image with native KDE desktop and packages.
 
 ![Fedora after reboot](../../src/screenshots/vm/fedora/reboot-d9a595e8e001.png)
 
-[Machine-readable results and image hashes](../../src/screenshots/vm/fedora/report.json).
+**Tested VM**
 
-</details>
+Plasma 6.7.5 · Qt 6.11.2 · Wayland · systemd · VirtIO/virgl.
+Official Fedora 44 cloud image with native KDE desktop and packages.
 
-<a id="manjaro"></a>
-<details>
-<summary><b>Manjaro — ✅ VM verified · v0.57.10</b></summary>
-
-Plasma 6.7.4 · Qt 6.11.2 · Wayland · systemd · VirtIO/virgl.
-Official Manjaro KDE ISO with native packages.
+**Checks**
 
 | Check | Result |
 | --- | --- |
@@ -191,6 +190,14 @@ Official Manjaro KDE ISO with native packages.
 | Live switch preserves app, Plasma and KWin processes | ✅ Passed |
 | Reboot and desktop/app checks | ✅ Passed |
 | Full uninstall and removal checks | ✅ Passed |
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/fedora/report.json).
+
+</details>
+
+<a id="manjaro"></a>
+<details>
+<summary><b>Manjaro — ✅ VM verified · v0.57.10</b></summary>
 
 **Light**
 
@@ -204,16 +211,12 @@ Official Manjaro KDE ISO with native packages.
 
 ![Manjaro after reboot](../../src/screenshots/vm/manjaro/reboot-ee500f3102a9.png)
 
-[Machine-readable results and image hashes](../../src/screenshots/vm/manjaro/report.json).
+**Tested VM**
 
-</details>
+Plasma 6.7.4 · Qt 6.11.2 · Wayland · systemd · VirtIO/virgl.
+Official Manjaro KDE ISO with native packages.
 
-<a id="artix"></a>
-<details>
-<summary><b>Artix Linux (OpenRC) — ✅ VM verified · v0.57.11</b></summary>
-
-Plasma 6.8.0 · Qt 6.12.0 · Wayland · openrc · VirtIO/virgl.
-Official Artix Plasma OpenRC ISO with native packages and per-user cron scheduling.
+**Checks**
 
 | Check | Result |
 | --- | --- |
@@ -224,6 +227,14 @@ Official Artix Plasma OpenRC ISO with native packages and per-user cron scheduli
 | Live switch preserves app, Plasma and KWin processes | ✅ Passed |
 | Reboot and desktop/app checks | ✅ Passed |
 | Full uninstall and removal checks | ✅ Passed |
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/manjaro/report.json).
+
+</details>
+
+<a id="artix"></a>
+<details>
+<summary><b>Artix Linux (OpenRC) — ✅ VM verified · v0.57.11</b></summary>
 
 **Light**
 
@@ -237,16 +248,12 @@ Official Artix Plasma OpenRC ISO with native packages and per-user cron scheduli
 
 ![Artix Linux (OpenRC) after reboot](../../src/screenshots/vm/artix/reboot-058ac23fe050.png)
 
-[Machine-readable results and image hashes](../../src/screenshots/vm/artix/report.json).
+**Tested VM**
 
-</details>
+Plasma 6.8.0 · Qt 6.12.0 · Wayland · openrc · VirtIO/virgl.
+Official Artix Plasma OpenRC ISO with native packages and per-user cron scheduling.
 
-<a id="garuda"></a>
-<details>
-<summary><b>Garuda Linux — ✅ VM verified · v0.57.12</b></summary>
-
-Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
-Official Garuda KDE ISO with native packages.
+**Checks**
 
 | Check | Result |
 | --- | --- |
@@ -257,6 +264,14 @@ Official Garuda KDE ISO with native packages.
 | Live switch preserves app, Plasma and KWin processes | ✅ Passed |
 | Reboot and desktop/app checks | ✅ Passed |
 | Full uninstall and removal checks | ✅ Passed |
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/artix/report.json).
+
+</details>
+
+<a id="garuda"></a>
+<details>
+<summary><b>Garuda Linux — ✅ VM verified · v0.57.12</b></summary>
 
 **Light**
 
@@ -270,16 +285,12 @@ Official Garuda KDE ISO with native packages.
 
 ![Garuda Linux after reboot](../../src/screenshots/vm/garuda/reboot-6f493a2a9d9b.png)
 
-[Machine-readable results and image hashes](../../src/screenshots/vm/garuda/report.json).
+**Tested VM**
 
-</details>
+Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
+Official Garuda KDE ISO with native packages.
 
-<a id="nobara"></a>
-<details>
-<summary><b>Nobara — ✅ VM verified · v0.57.13</b></summary>
-
-Plasma 6.7.5 · Qt 6.11.2 · Wayland · systemd · VirtIO/virgl.
-Official Nobara 44 KDE ISO with native packages.
+**Checks**
 
 | Check | Result |
 | --- | --- |
@@ -290,6 +301,14 @@ Official Nobara 44 KDE ISO with native packages.
 | Live switch preserves app, Plasma and KWin processes | ✅ Passed |
 | Reboot and desktop/app checks | ✅ Passed |
 | Full uninstall and removal checks | ✅ Passed |
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/garuda/report.json).
+
+</details>
+
+<a id="nobara"></a>
+<details>
+<summary><b>Nobara — ✅ VM verified · v0.57.13</b></summary>
 
 **Light**
 
@@ -303,16 +322,12 @@ Official Nobara 44 KDE ISO with native packages.
 
 ![Nobara after reboot](../../src/screenshots/vm/nobara/reboot-797c0e9aecda.png)
 
-[Machine-readable results and image hashes](../../src/screenshots/vm/nobara/report.json).
+**Tested VM**
 
-</details>
+Plasma 6.7.5 · Qt 6.11.2 · Wayland · systemd · VirtIO/virgl.
+Official Nobara 44 KDE ISO with native packages.
 
-<a id="opensuse"></a>
-<details>
-<summary><b>openSUSE Tumbleweed — ✅ VM verified · v0.57.7</b></summary>
-
-Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
-Official openSUSE Tumbleweed cloud image with native KDE desktop and packages.
+**Checks**
 
 | Check | Result |
 | --- | --- |
@@ -323,6 +338,14 @@ Official openSUSE Tumbleweed cloud image with native KDE desktop and packages.
 | Live switch preserves app, Plasma and KWin processes | ✅ Passed |
 | Reboot and desktop/app checks | ✅ Passed |
 | Full uninstall and removal checks | ✅ Passed |
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/nobara/report.json).
+
+</details>
+
+<a id="opensuse"></a>
+<details>
+<summary><b>openSUSE Tumbleweed — ✅ VM verified · v0.57.7</b></summary>
 
 **Light**
 
@@ -336,16 +359,12 @@ Official openSUSE Tumbleweed cloud image with native KDE desktop and packages.
 
 ![openSUSE Tumbleweed after reboot](../../src/screenshots/vm/opensuse/reboot-bcb6af863f92.png)
 
-[Machine-readable results and image hashes](../../src/screenshots/vm/opensuse/report.json).
+**Tested VM**
 
-</details>
+Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
+Official openSUSE Tumbleweed cloud image with native KDE desktop and packages.
 
-<a id="neon"></a>
-<details>
-<summary><b>KDE neon — ✅ VM verified · v0.57.6</b></summary>
-
-Plasma 6.8.1 · Qt 6.11.1 · Wayland · systemd · VirtIO/virgl.
-Official KDE neon image with its native KDE desktop and packages.
+**Checks**
 
 | Check | Result |
 | --- | --- |
@@ -356,6 +375,14 @@ Official KDE neon image with its native KDE desktop and packages.
 | Live switch preserves app, Plasma and KWin processes | ✅ Passed |
 | Reboot and desktop/app checks | ✅ Passed |
 | Full uninstall and removal checks | ✅ Passed |
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/opensuse/report.json).
+
+</details>
+
+<a id="neon"></a>
+<details>
+<summary><b>KDE neon — ✅ VM verified · v0.57.6</b></summary>
 
 **Light**
 
@@ -368,6 +395,23 @@ Official KDE neon image with its native KDE desktop and packages.
 **After reboot**
 
 ![KDE neon after reboot](../../src/screenshots/vm/neon/reboot-02f200918339.png)
+
+**Tested VM**
+
+Plasma 6.8.1 · Qt 6.11.1 · Wayland · systemd · VirtIO/virgl.
+Official KDE neon image with its native KDE desktop and packages.
+
+**Checks**
+
+| Check | Result |
+| --- | --- |
+| Full installation and host SDK builds | ✅ Passed |
+| Light and dark desktop, loaded Acrylic Glass, Dock autohide | ✅ Passed |
+| Firefox rendering, text input, button action and appearance | ✅ Passed |
+| Nautilus light/dark pixels and live switching | ✅ Passed |
+| Live switch preserves app, Plasma and KWin processes | ✅ Passed |
+| Reboot and desktop/app checks | ✅ Passed |
+| Full uninstall and removal checks | ✅ Passed |
 
 [Machine-readable results and image hashes](../../src/screenshots/vm/neon/report.json).
 
