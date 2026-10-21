@@ -14,7 +14,7 @@ CASES = ('launcher', 'dock', 'menu', 'context', 'finder', 'showcase', 'about')
 MODES = ('light', 'dark')
 RECIPE_FILES = ('release_capture.py', 'release_capture_guest.py', 'release_capture_profile.json',
                 'release_screenshots.py', 'screenshot_checks.py')
-STATIC_ART = {'banner_v3.png', 'banner.png', 'macos-27.png', 'macos-27-dark.png'}
+STATIC_ART = {'banner_v3.png', 'banner.png', 'macos-26.png', 'macos-27.png', 'macos-27-dark.png'}
 
 
 def digest(path: Path) -> str:

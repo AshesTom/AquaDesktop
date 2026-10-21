@@ -26,7 +26,8 @@ def capture(tmp_path, monkeypatch):
     repo.mkdir()
     subprocess.run(['git', 'init', '-q', str(repo)], check=True)
     (repo / 'VERSION').write_text('1.2.3\n')
-    (repo / 'README.md').write_text('![Files](src/screenshots/finder_v4.png)\n')
+    (repo / 'README.md').write_text('![Files](src/screenshots/finder_v4.png)\n'
+                                  '![Emblem](src/screenshots/macos-26.png)\n')
     source = repo / 'src/offline/kwin-effects/acrylic-glass/src'
     source.mkdir(parents=True)
     (source / 'effect.cpp').write_text('release source\n')
