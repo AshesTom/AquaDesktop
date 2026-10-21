@@ -198,6 +198,15 @@ Official KDE neon image with its native KDE desktop and packages.
 
 </details>
 
+<a id="nixos"></a>
+<details>
+<summary><b>NixOS — evidence pending</b></summary>
+
+The NixOS and Home Manager installation route remains experimental. Live desktop
+validation and reviewed screenshots have not been published yet.
+
+</details>
+
 The remaining distributions are being qualified one at a time. Their existing
 README status stays unchanged until their application checks and screenshots
 have been reviewed.
