@@ -62,6 +62,16 @@ forwards bind to loopback because the disposable guests use known passwords.
 Debian Forky has live VM qualification with Firefox/Nautilus light and dark
 checks, reboot and uninstall. Evidence is in `tests/vm/PROOF.md`.
 
+`./vm kubuntu` adds a pending-qualification regression target using the official
+Kubuntu 26.04.1 LTS ISO, pinned by SHA-256, on loopback SSH port 2234. Preserve
+its native LTS repositories and Plasma stack. Qualification verifies Ubuntu
+26.04 plus the installed Kubuntu desktop and requires all eight native launcher
+cases after install and reboot, without skips. Do not advertise full live
+compatibility until its complete lifecycle and screenshots are reviewed.
+The launcher's search `PopupPlasmaWindow` must not assign
+`hideOnWindowDeactivate`: that property was added in Plasma 6.7 and defaults
+to false. The launcher's shared focus group owns dismissal on 6.6 through 6.8.
+
 **Distribution target:** GitHub releases + AUR.
 **License:** GPL-3.0 for the work as a whole — the bundled Acrylic
 Glass fork and several theme assets are GPL-3, and every other

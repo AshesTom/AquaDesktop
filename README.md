@@ -317,11 +317,15 @@ Try the theme in an isolated Plasma desktop.
 ./vm <os>
 ```
 
-**OS:** `cachyos` · `arch` · `manjaro` · `endeavouros` · `garuda` · `fedora` · `nobara` · `opensuse` · `neon` · `debian` · `artix`
+**OS:** `cachyos` · `arch` · `manjaro` · `endeavouros` · `garuda` · `fedora` · `nobara` · `opensuse` · `neon` · `debian` · `artix` · `kubuntu`
 
 `all` launches every distro. Cloud targets provision automatically; the other
 targets use their checksum-pinned official ISO installers. Follow the
 [VM setup and qualification guide](tests/vm/README.md).
+
+`./vm kubuntu` boots the official Kubuntu 26.04.1 LTS ISO with SHA-256
+verification (SSH port `2234` after guest setup). This new launcher regression
+target is pending full live qualification.
 
 `./vm debian` uses the official Debian testing
 (Forky) cloud image, verifies its SHA-512 checksum, and provisions a Plasma

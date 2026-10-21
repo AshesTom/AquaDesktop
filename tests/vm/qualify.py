@@ -18,10 +18,11 @@ import shlex
 import subprocess
 import sys
 import time
+import xml.etree.ElementTree as ET
 
 PORTS = dict(arch=2221, cachyos=2222, manjaro=2223, endeavouros=2224,
              garuda=2225, fedora=2226, nobara=2227, opensuse=2228,
-             neon=2231, debian=2232, artix=2233)
+             neon=2231, debian=2232, artix=2233, kubuntu=2234)
 WORKTREE = '/home/tester/macos-tahoe-liquid-kde'
 
 
@@ -61,16 +62,33 @@ class Guest:
         return result
 
     def assert_identity(self):
-        wanted = 'opensuse-tumbleweed' if self.distro == 'opensuse' else self.distro
+        wanted = {'opensuse': 'opensuse-tumbleweed', 'kubuntu': 'ubuntu'}.get(self.distro, self.distro)
+        flavor_check = ''
+        if self.distro == 'kubuntu':
+            flavor_check = ('test "$VERSION_ID" = 26.04 && '
+                            'test "$(dpkg-query -W -f=\'${Status}\' kubuntu-desktop)" '
+                            '= "install ok installed" && ')
         # This guard runs before copying files or invoking install/uninstall.
         result = self.run("test \"$(cat /sys/class/dmi/id/sys_vendor)\" = QEMU && "
                           "test \"$(id -un)\" = tester && "
-                          ". /etc/os-release && printf '%s' \"$ID\"")
+                          ". /etc/os-release && " + flavor_check + "printf '%s' \"$ID\"")
         if result.stdout.decode().strip() != wanted:
             raise RuntimeError('Guest identity does not match the selected distribution')
 
     def save(self):
         (self.output / 'result.json').write_text(json.dumps(self.report, indent=2) + '\n')
+
+    def launcher(self, name: str):
+        # Widget IDs in appletsrc do not prove that the QML can be instantiated.
+        self.phase(name, f'cd {WORKTREE} && python3 -m pytest -q '
+                   'tests/test_launcher_presets.py -k test_native_launcher_popup_presets '
+                   '--junitxml=/tmp/mttkde-launcher.xml', timeout=600)
+        data = self.run('cat /tmp/mttkde-launcher.xml').stdout
+        (self.output / f'{name}.xml').write_bytes(data)
+        cases = ET.fromstring(data).findall('.//testcase')
+        if len(cases) != 8 or any(case.find(tag) is not None
+                                 for case in cases for tag in ('skipped', 'failure', 'error')):
+            raise RuntimeError('All eight native launcher cases must pass without skips')
 
     def phase(self, name: str, command: str, timeout: int = 120):
         print(f'{self.distro}: {name}', flush=True)
@@ -158,6 +176,8 @@ class Guest:
         self.phase('install', f'cd {WORKTREE} && sudo env MTTKDE_NO_CONFIRM=1 '
                    'MAC_TAHOE_NO_UPDATE_CHECK=true ./install --dark', timeout=3600)
         dark = self.probe('dark', 'dark')
+        if self.distro == 'kubuntu':
+            self.launcher('launcher-installed')
         dark_apps = self.apps('apps-dark', 'dark')
         self.screenshot('dark', mode='dark', apps=dark_apps)
         self.phase('switch-light', self.desktop_command('~/.local/bin/mac-tahoe-theme-switch light'))
@@ -174,6 +194,8 @@ class Guest:
         self.run('sudo reboot', check=False)
         self.wait_desktop(dark['boot_id'])
         self.probe('reboot', 'dark')
+        if self.distro == 'kubuntu':
+            self.launcher('launcher-reboot')
         reboot_apps = self.apps('apps-reboot', 'dark')
         self.screenshot('reboot', mode='dark', apps=reboot_apps)
         self.phase('uninstall', f'cd {WORKTREE} && sudo env MTTKDE_NO_CONFIRM=1 '
@@ -199,7 +221,7 @@ def main():
         guest.qualify()
         if args.poweroff:
             guest.run('sudo poweroff', check=False)
-    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+    except (OSError, ValueError, RuntimeError, ET.ParseError, subprocess.SubprocessError) as error:
         guest.report.update(status='fail', error=str(error), finished=now())
         guest.save()
         print(f'{args.distro}: FAIL: {error}', flush=True)

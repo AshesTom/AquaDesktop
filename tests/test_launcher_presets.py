@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import select
 import shutil
 import signal
@@ -14,6 +15,12 @@ import pytest
 
 import launcher_defaults
 from steps import plasmoids
+
+
+def test_search_popup_does_not_require_plasma_67_properties(repo):
+    view = (repo / "src/offline/plasmoids" / launcher_defaults.LAUNCHER_ID
+            / "contents/ui/MainView.qml").read_text()
+    assert not re.search(r"^\s*hideOnWindowDeactivate\s*:", view, re.MULTILINE)
 
 
 @pytest.mark.parametrize("preset", [1, 2])
