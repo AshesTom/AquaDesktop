@@ -107,7 +107,8 @@ def setup(repo, profile, edition):
     pins = plasma('var saved=[]; panels().forEach(p=>p.widgets().forEach(w=>{if(w.type.includes("icontasks")) {'
                   'w.currentConfigGroup=["General"];w.writeConfig("launchers",' + json.dumps(profile['pins']) + ');'
                   'saved.push(w.readConfig("launchers"));}})); print(JSON.stringify(saved));')
-    if json.loads(pins) != [profile['pins']]:
+    # Plasma's scripting readConfig serializes its QStringList as CSV.
+    if json.loads(pins) != [','.join(profile['pins'])]:
         raise RuntimeError('Capture Dock did not retain the requested application pins')
     folder = Path.home() / 'Documents'
     folder.mkdir(exist_ok=True)
