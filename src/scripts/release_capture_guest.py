@@ -104,8 +104,11 @@ def setup(repo, profile, edition):
     run('kscreen-doctor', 'output.Virtual-1.mode.3840x2160@60', 'output.Virtual-1.scale.2')
     run('kwriteconfig6', '--file', 'kscreenlockerrc', '--group', 'Daemon', '--key', 'Autolock', 'false')
     run('kwriteconfig6', '--file', 'kdeglobals', '--group', 'KDE', '--key', 'AnimationDurationFactor', '0')
-    plasma('panels().forEach(p=>p.widgets().forEach(w=>{if(w.type.includes("icontasks")) {'
-           'w.currentConfigGroup=["General"];w.writeConfig("launchers",' + json.dumps(','.join(profile['pins'])) + ');}}));')
+    pins = plasma('var saved=[]; panels().forEach(p=>p.widgets().forEach(w=>{if(w.type.includes("icontasks")) {'
+                  'w.currentConfigGroup=["General"];w.writeConfig("launchers",' + json.dumps(profile['pins']) + ');'
+                  'saved.push(w.readConfig("launchers"));}})); print(JSON.stringify(saved));')
+    if json.loads(pins) != [profile['pins']]:
+        raise RuntimeError('Capture Dock did not retain the requested application pins')
     folder = Path.home() / 'Documents'
     folder.mkdir(exist_ok=True)
     # Refuse unexpected fixture data rather than including private guest files.
