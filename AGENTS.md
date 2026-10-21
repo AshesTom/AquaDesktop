@@ -561,7 +561,9 @@ menus retain their full blur. Keep the bevel displacement independent of the
 Dock's length and scale it in device pixels.
 
 Publish Tahoe and Golden Gate with matching release versions and `v<version>`
-tags. Release titles must be exactly `v<version>`, with no subtitles, descriptions
+tags. Deliver completed changes to both `dev` and `main` in both repositories,
+and verify both remote branches include them before reporting completion.
+Release titles must be exactly `v<version>`, with no subtitles, descriptions
 or other extra text. Golden Gate's `VERSION` must match the Tahoe release it
 downloads; pin
 its `upstream.json` to the published Tahoe release commit and verified archive
