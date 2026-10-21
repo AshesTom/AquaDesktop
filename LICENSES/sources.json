@@ -1,0 +1,27 @@
+{
+  "Lucide.txt": {
+    "source": "https://raw.githubusercontent.com/lucide-icons/lucide/c29c276f16590cf017126671535ad8c792be64d8/LICENSE",
+    "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57"
+  },
+  "LGPL-2.0.txt": {
+    "source": "https://raw.githubusercontent.com/spdx/license-list-data/31ba1a50e5397e00a304dbadc76531740e89ee48/text/LGPL-2.0-or-later.txt",
+    "sha256": "86dc99d7e5060915ab1dfc1378b7dd351c62088bfa74067e8aa1868c6fdba7d8"
+  },
+  "LGPL-2.1.txt": {
+    "source": "https://raw.githubusercontent.com/spdx/license-list-data/31ba1a50e5397e00a304dbadc76531740e89ee48/text/LGPL-2.1-or-later.txt",
+    "sha256": "5749785c8bdefafcb5d798270ed0a967036fe2ca63dcedade1627565dfef81d2"
+  },
+  "CC0-Simple-Icons.txt": {
+    "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/c71c69e3a27e4436936b831c72643e6513b9f49b/LICENSE.md",
+    "sha256": "9046848b63a5c92bff14e4accca80bd987e0623b74adf9226ce5198d312b79d5"
+  },
+  "GPL-2.0.txt": {
+    "source": "src/offline/plasmoids/org.kde.mac-tahoe-liquid-kde.launcher/LICENSE-TahoeLauncher",
+    "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+  },
+  "MIT-MacTahoe.txt": {
+    "source": "src/offline/firefox/LICENSE.MacTahoe",
+    "sha256": "47508b7d79f238a7e7225c21d2c9234b860c6d1931d8f9f2d545a2db0e26a25f",
+    "upstream_source": "https://raw.githubusercontent.com/vinceliuice/MacTahoe-gtk-theme/1e45e19f510edb8cde18fa84d6cd5319f60b086b/COPYING"
+  }
+}

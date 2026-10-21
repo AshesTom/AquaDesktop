@@ -36,7 +36,7 @@
 > Experimental. Desktop updates may break compatibility. Avoid production systems; [report issues here](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new).
 
 > [!NOTE]
-> **A note on forks.** Forks and adaptations are welcome. Tahoe and Golden Gate reflect months of development and testing, so please credit the original work and highlight what you’ve changed or added. If your version mainly changes the name or screenshots, please make that clear.
+> **A note on forks.** Forks and adaptations are welcome. Tahoe and Golden Gate reflect months of development and testing, so please credit the original work and highlight what you’ve changed or added. If your version mainly changes the name or screenshots, please make that clear. See our [licensing and attribution guide](LICENSING.md) and [project identity policy](BRANDING.md).
 
 <br>
 
@@ -529,9 +529,9 @@ Keep pull requests focused and validate with `./vm`. See [CONTRIBUTING.md](CONTR
 
 This is an independent reimplementation inspired by the macOS aesthetic. It is not affiliated with or endorsed by Apple or KDE. "macOS" and "Apple" are trademarks of Apple Inc.
 
-The bundled wallpapers, system sounds, and SF Pro / SF Mono fonts remain Apple's property and are not covered by this project's license. All other code and theme assets are original or derived from compatibly licensed open-source work.
+The macOS emblem, bundled wallpapers, system sounds, and SF Pro / SF Mono fonts remain Apple's property and are not covered by this project's license. Other components retain their own licenses and copyright notices; see the third-party notice index below for scope and known provenance gaps.
 
-Licensed [GPL-3.0](LICENSE).
+Licensed [GPL-3.0](LICENSE) as a whole; individual component licenses and third-party rights remain applicable. See [copyright notices](NOTICE), [redistribution obligations](LICENSING.md), [third-party notices](THIRD_PARTY_NOTICES.md), and [official project identity](BRANDING.md).
 
 <br>
 
