@@ -1,5 +1,5 @@
 {
-  "source_release": "v0.56.8",
+  "source_release": "v0.57.0",
   "edition": "Tahoe",
   "environment": "Disposable KDE neon QEMU/KVM VM; Plasma 6.7.4 Wayland, virgl OpenGL, native 3840x2160 at 200% scale",
   "wallpaper": "MacTahoe",
@@ -7,7 +7,7 @@
   "about": "Shared preview_about.qml with canned hardware data; readiness checked before capture.",
   "dock": "Demo pins; temporarily visible during capture, then restored to autohide.",
   "boot": "Repository Plymouth harness in guest Xvfb at 3840x2160; render and pixel checks passed. Temporary Theme setting and plymouth.ignore-serial-consoles required by neon.",
-  "effect_source_identity": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
+  "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
   "images": {
     "finder_v4.png": {
       "source": "tahoe-light-finder.png",
@@ -15,27 +15,72 @@
         3840,
         2160
       ],
+      "mode": "light",
       "crop": [
         412,
         472,
         2468,
         1768
       ],
-      "sha256": "88d3f0dd6e1720a53fb29e8823ba0bde30fd29aba4a38b6bb3e2b0e26137e4c8"
+      "sha256": "88d3f0dd6e1720a53fb29e8823ba0bde30fd29aba4a38b6bb3e2b0e26137e4c8",
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Light",
+        "Qt": "MacTahoeLiquidKdeLight",
+        "Kvantum": "mac-tahoe-liquid-kde",
+        "GTK preference": "'prefer-light'",
+        "GTK theme": "'MacTahoeLiquidKde-Light'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
+      },
+      "files_pixels": {
+        "window": {
+          "caption": "Documents",
+          "resourceClass": "org.gnome.Nautilus",
+          "geometry": {
+            "x": 220,
+            "y": 250,
+            "width": 1000,
+            "height": 620
+          }
+        },
+        "sample": [
+          1640,
+          1306,
+          2140,
+          1554
+        ],
+        "median_luminance": 254.99999999999997,
+        "matching_fraction": 1.0
+      },
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted"
     },
     "about_v4.png": {
-      "source": "light-tahoe-off-wallpaper-about.png",
+      "source": "tahoe-light-about.png",
       "source_resolution": [
         3840,
         2160
       ],
+      "mode": "light",
       "crop": [
         1532,
-        312,
+        332,
         2308,
-        1768
+        1788
       ],
-      "sha256": "8100a0df2afe344c5eda3a98eaaf17d8687386b20d1932990bc17251f601dcb5"
+      "sha256": "f996c21790fb9f79c9f3a5cb32d7aa7dd3ed4562e8139333d2dd4099f439bf2c",
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Light",
+        "Qt": "MacTahoeLiquidKdeLight",
+        "Kvantum": "mac-tahoe-liquid-kde",
+        "GTK preference": "'prefer-light'",
+        "GTK theme": "'MacTahoeLiquidKde-Light'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
+      },
+      "files_pixels": null,
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted"
     },
     "showcase_light_4k.png": {
       "source": "tahoe-light-showcase.png",
@@ -43,8 +88,40 @@
         3840,
         2160
       ],
+      "mode": "light",
       "crop": null,
-      "sha256": "b028ec2dd01b7d12ed9d9d2ba836eefd7368f9b45314acba6febd26c5c3287d0"
+      "sha256": "2d0a9d2522addb8d4e5bb0d1be5605d113bdeedceac359acc1541fc692bb2c47",
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Light",
+        "Qt": "MacTahoeLiquidKdeLight",
+        "Kvantum": "mac-tahoe-liquid-kde",
+        "GTK preference": "'prefer-light'",
+        "GTK theme": "'MacTahoeLiquidKde-Light'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
+      },
+      "files_pixels": {
+        "window": {
+          "caption": "Documents",
+          "resourceClass": "org.gnome.Nautilus",
+          "geometry": {
+            "x": 220,
+            "y": 250,
+            "width": 1000,
+            "height": 620
+          }
+        },
+        "sample": [
+          1640,
+          1306,
+          2140,
+          1554
+        ],
+        "median_luminance": 244.99999999999997,
+        "matching_fraction": 1.0
+      },
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted"
     },
     "finder_dark_v4.png": {
       "source": "tahoe-dark-finder.png",
@@ -52,27 +129,72 @@
         3840,
         2160
       ],
+      "mode": "dark",
       "crop": [
         412,
         472,
         2468,
         1768
       ],
-      "sha256": "35b4fd7fcbd25610ac4f0dd8887c669eb524079a40b63b17c7041c12645188c0"
+      "sha256": "35b4fd7fcbd25610ac4f0dd8887c669eb524079a40b63b17c7041c12645188c0",
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "files_pixels": {
+        "window": {
+          "caption": "Documents",
+          "resourceClass": "org.gnome.Nautilus",
+          "geometry": {
+            "x": 220,
+            "y": 250,
+            "width": 1000,
+            "height": 620
+          }
+        },
+        "sample": [
+          1640,
+          1306,
+          2140,
+          1554
+        ],
+        "median_luminance": 30.0,
+        "matching_fraction": 1.0
+      },
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted"
     },
     "about_dark_v4.png": {
-      "source": "dark-tahoe-off-wallpaper-about.png",
+      "source": "tahoe-dark-about.png",
       "source_resolution": [
         3840,
         2160
       ],
+      "mode": "dark",
       "crop": [
         1532,
-        312,
+        332,
         2308,
-        1768
+        1788
       ],
-      "sha256": "25332090a0896369a81c8538f8658dc2f6ff6103b6dcf58049c1eeef4b019a5d"
+      "sha256": "64d49a9c8f9d0d34b8220614846fefd23dcedb97bf1fe4e61e0b4f36c9f0b4f7",
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "files_pixels": null,
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted"
     },
     "showcase_dark_4k.png": {
       "source": "tahoe-dark-showcase.png",
@@ -80,8 +202,40 @@
         3840,
         2160
       ],
+      "mode": "dark",
       "crop": null,
-      "sha256": "2d25ff8183e124bcfd43a13338a602618064121ec65c4f1a5695d4a0326b81f1"
+      "sha256": "1c960899a9e1875c39d68e488e0dd328369699f53c7f8b81eea3c7ccd6c67018",
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "files_pixels": {
+        "window": {
+          "caption": "Documents",
+          "resourceClass": "org.gnome.Nautilus",
+          "geometry": {
+            "x": 220,
+            "y": 250,
+            "width": 1000,
+            "height": 620
+          }
+        },
+        "sample": [
+          1640,
+          1306,
+          2140,
+          1554
+        ],
+        "median_luminance": 42.0,
+        "matching_fraction": 1.0
+      },
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted"
     },
     "boot_v4.png": {
       "source": "plymouth-boot-splash.png",
@@ -90,7 +244,8 @@
         2160
       ],
       "crop": null,
-      "sha256": "f685ec98f1e4407f2624c352f6b6e18ae8c2a686a64f162f6d0666d8fcbfb4d0"
+      "sha256": "f685ec98f1e4407f2624c352f6b6e18ae8c2a686a64f162f6d0666d8fcbfb4d0",
+      "source_release": "v0.56.8"
     },
     "boot_shutdown_v4.png": {
       "source": "plymouth-shutdown-splash.png",
@@ -99,8 +254,11 @@
         2160
       ],
       "crop": null,
-      "sha256": "abe6faef7c08133f6e6d29004d15f5c85c6d5a03c727451d16181a22eb64c5a3"
+      "sha256": "abe6faef7c08133f6e6d29004d15f5c85c6d5a03c727451d16181a22eb64c5a3",
+      "source_release": "v0.56.8"
     }
   },
-  "launcher_menu_dock_context_metadata": "launcher-presets.json"
+  "launcher_menu_dock_context_metadata": "launcher-presets.json",
+  "review": "Toolkit settings and GTK 4 stylesheet checked before every capture. Files pixels checked in Finder and showcase frames. Each published image visually reviewed.",
+  "pending_captures": []
 }

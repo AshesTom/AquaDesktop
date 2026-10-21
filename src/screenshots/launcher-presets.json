@@ -1,6 +1,6 @@
 {
   "edition": "Tahoe",
-  "source_version": "0.56.9",
+  "source_version": "0.57.0",
   "default_launcher_preset": 1,
   "wallpaper": "MacTahoe",
   "capture_date": "2026-10-20",
@@ -9,6 +9,27 @@
   "capture_tool": "Spectacle fullscreen; original 4K launcher frames and lossless detail crops",
   "captures": {
     "launcher_preset_1_light.png": {
+      "source": "tahoe-light-launcher.png",
+      "source_resolution": [
+        3840,
+        2160
+      ],
+      "mode": "light",
+      "crop": null,
+      "sha256": "df88c81523756f596ef095838cc947451ba7fb8b7e05d7a649401321c56c0f46",
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Light",
+        "Qt": "MacTahoeLiquidKdeLight",
+        "Kvantum": "mac-tahoe-liquid-kde",
+        "GTK preference": "'prefer-light'",
+        "GTK theme": "'MacTahoeLiquidKde-Light'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
+      },
+      "files_pixels": null,
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted",
+      "source_version": "0.57.0",
       "theme_mode": "light",
       "material_preset": "tahoe",
       "material_values": {
@@ -30,54 +51,35 @@
         "GradientBottomOpacity": 0.02,
         "MaterialPreset": 1
       },
-      "source_capture": "fixed-tahoe-light.png",
-      "source_size": [
-        3840,
-        2160
-      ],
-      "crop": null,
-      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
-      "sha256": "9e68012608d7b9a71e9a3c8c32f1b0c69af79fe35d98cc5ce2001d8b9daa734d",
-      "source_version": "0.56.9"
+      "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26"
     },
     "menu_v4.png": {
-      "theme_mode": "light",
-      "material_preset": "tahoe",
-      "material_values": {
-        "BlurStrength": 10.0,
-        "MaterialOpacity": 1.0,
-        "NoiseStrength": 1,
-        "RgbDriftStrength": 6.0,
-        "MagnifyGlassStrength": 0.02,
-        "RefractionWidth": 18.0,
-        "HighlightWidth": 1.5,
-        "HighlightStrength": 0.11,
-        "Brightness": 1.0,
-        "Contrast": 1.0,
-        "Saturation": 1.05,
-        "DarkGradientOverlay": false,
-        "GradientTopColor": "#000000",
-        "GradientBottomColor": "#000000",
-        "GradientTopOpacity": 0.38,
-        "GradientBottomOpacity": 0.02,
-        "MaterialPreset": 1
-      },
-      "source_capture": "light-tahoe-off-wallpaper-menu.png",
-      "source_size": [
+      "source": "tahoe-light-menu.png",
+      "source_resolution": [
         3840,
         2160
       ],
+      "mode": "light",
       "crop": [
         0,
         36,
         546,
         656
       ],
-      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
       "sha256": "0c882490233d290dc6ce44bd64258da455ff49af5e9b98527b8ea79fb7eb044d",
-      "source_version": "0.56.8"
-    },
-    "context_menu_v4.png": {
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Light",
+        "Qt": "MacTahoeLiquidKdeLight",
+        "Kvantum": "mac-tahoe-liquid-kde",
+        "GTK preference": "'prefer-light'",
+        "GTK theme": "'MacTahoeLiquidKde-Light'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
+      },
+      "files_pixels": null,
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted",
+      "source_version": "0.57.0",
       "theme_mode": "light",
       "material_preset": "tahoe",
       "material_values": {
@@ -99,22 +101,35 @@
         "GradientBottomOpacity": 0.02,
         "MaterialPreset": 1
       },
-      "source_capture": "light-tahoe-off-wallpaper-context.png",
-      "source_size": [
+      "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26"
+    },
+    "context_menu_v4.png": {
+      "source": "tahoe-light-context.png",
+      "source_resolution": [
         3840,
         2160
       ],
+      "mode": "light",
       "crop": [
         2066,
         964,
         2794,
         1448
       ],
-      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
       "sha256": "31e024093b79f414a5e8724534f8120093262ad0dc0cee78ec30a83078255687",
-      "source_version": "0.56.8"
-    },
-    "dock_1_v4.png": {
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Light",
+        "Qt": "MacTahoeLiquidKdeLight",
+        "Kvantum": "mac-tahoe-liquid-kde",
+        "GTK preference": "'prefer-light'",
+        "GTK theme": "'MacTahoeLiquidKde-Light'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
+      },
+      "files_pixels": null,
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted",
+      "source_version": "0.57.0",
       "theme_mode": "light",
       "material_preset": "tahoe",
       "material_values": {
@@ -136,22 +151,80 @@
         "GradientBottomOpacity": 0.02,
         "MaterialPreset": 1
       },
-      "source_capture": "light-tahoe-off-wallpaper-dock.png",
-      "source_size": [
+      "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26"
+    },
+    "dock_1_v4.png": {
+      "source": "tahoe-light-dock.png",
+      "source_resolution": [
         3840,
         2160
       ],
+      "mode": "light",
       "crop": [
         1385,
         1964,
         2455,
         2160
       ],
-      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
-      "sha256": "3056db2a3e04f3b84167797e3e515a3756f83f4fa3e600853584b5bb88aab0fe",
-      "source_version": "0.56.8"
+      "sha256": "4785e6fa97769799abe9ddb484ef714e52ae3f6908166c81b76e1e8bfbff872c",
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Light",
+        "Qt": "MacTahoeLiquidKdeLight",
+        "Kvantum": "mac-tahoe-liquid-kde",
+        "GTK preference": "'prefer-light'",
+        "GTK theme": "'MacTahoeLiquidKde-Light'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Light"
+      },
+      "files_pixels": null,
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted",
+      "source_version": "0.57.0",
+      "theme_mode": "light",
+      "material_preset": "tahoe",
+      "material_values": {
+        "BlurStrength": 10.0,
+        "MaterialOpacity": 1.0,
+        "NoiseStrength": 1,
+        "RgbDriftStrength": 6.0,
+        "MagnifyGlassStrength": 0.02,
+        "RefractionWidth": 18.0,
+        "HighlightWidth": 1.5,
+        "HighlightStrength": 0.11,
+        "Brightness": 1.0,
+        "Contrast": 1.0,
+        "Saturation": 1.05,
+        "DarkGradientOverlay": false,
+        "GradientTopColor": "#000000",
+        "GradientBottomColor": "#000000",
+        "GradientTopOpacity": 0.38,
+        "GradientBottomOpacity": 0.02,
+        "MaterialPreset": 1
+      },
+      "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26"
     },
     "launcher_preset_1_dark.png": {
+      "source": "tahoe-dark-launcher.png",
+      "source_resolution": [
+        3840,
+        2160
+      ],
+      "mode": "dark",
+      "crop": null,
+      "sha256": "fcb028ded1d29e720b292d5025fd79a2928c2a40e300c360023b13ae35b9a2a8",
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "files_pixels": null,
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted",
+      "source_version": "0.57.0",
       "theme_mode": "dark",
       "material_preset": "tahoe",
       "material_values": {
@@ -173,54 +246,35 @@
         "GradientBottomOpacity": 0.02,
         "MaterialPreset": 1
       },
-      "source_capture": "fixed-tahoe-dark.png",
-      "source_size": [
-        3840,
-        2160
-      ],
-      "crop": null,
-      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
-      "sha256": "ee43a1f99ace0997233afc94e9d1dd3d7c371cad854374c14e358abff7c1b699",
-      "source_version": "0.56.9"
+      "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26"
     },
     "menu_dark_v4.png": {
-      "theme_mode": "dark",
-      "material_preset": "tahoe",
-      "material_values": {
-        "BlurStrength": 10.0,
-        "MaterialOpacity": 1.0,
-        "NoiseStrength": 1,
-        "RgbDriftStrength": 6.0,
-        "MagnifyGlassStrength": 0.02,
-        "RefractionWidth": 18.0,
-        "HighlightWidth": 1.5,
-        "HighlightStrength": 0.11,
-        "Brightness": 1.0,
-        "Contrast": 1.0,
-        "Saturation": 1.05,
-        "DarkGradientOverlay": false,
-        "GradientTopColor": "#000000",
-        "GradientBottomColor": "#000000",
-        "GradientTopOpacity": 0.38,
-        "GradientBottomOpacity": 0.02,
-        "MaterialPreset": 1
-      },
-      "source_capture": "dark-tahoe-off-wallpaper-menu.png",
-      "source_size": [
+      "source": "tahoe-dark-menu.png",
+      "source_resolution": [
         3840,
         2160
       ],
+      "mode": "dark",
       "crop": [
         0,
         36,
         546,
         656
       ],
-      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
-      "sha256": "dc23eca8a2c12e01ca2cf1cc64e69a48433c0b4428a1ebfeeeca0f7e9e7e2273",
-      "source_version": "0.56.8"
-    },
-    "context_menu_dark_v4.png": {
+      "sha256": "600904638a37f7320ffdc3fa0c31aa2bdd30abe387d149f4aefebbac445d98af",
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "files_pixels": null,
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted",
+      "source_version": "0.57.0",
       "theme_mode": "dark",
       "material_preset": "tahoe",
       "material_values": {
@@ -242,20 +296,58 @@
         "GradientBottomOpacity": 0.02,
         "MaterialPreset": 1
       },
-      "source_capture": "dark-tahoe-off-wallpaper-context.png",
-      "source_size": [
+      "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26"
+    },
+    "context_menu_dark_v4.png": {
+      "source": "tahoe-dark-context.png",
+      "source_resolution": [
         3840,
         2160
       ],
+      "mode": "dark",
       "crop": [
         2066,
         964,
         2794,
         1448
       ],
-      "effect_build": "a0bb571f6bfb1fc51b22bb853cf5a01eadaa05795a26d3e2d2e518c8a7c27ed8",
-      "sha256": "ef62c54622ac65f3f9bd768b559ea8a22e2c9fc69c786a754694ed00a6be6432",
-      "source_version": "0.56.8"
+      "sha256": "0ff3dadc44d452261360c71b04d59376a516aa4363ccc1dab7267a1d9010032a",
+      "appearance": {
+        "Plasma": "MacTahoeLiquidKde-Dark",
+        "Qt": "MacTahoeLiquidKdeDark",
+        "Kvantum": "mac-tahoe-liquid-kdeDark",
+        "GTK preference": "'prefer-dark'",
+        "GTK theme": "'MacTahoeLiquidKde-Dark'",
+        "GTK 4 stylesheet": "MacTahoeLiquidKde-Dark"
+      },
+      "files_pixels": null,
+      "source_release": "v0.57.0",
+      "effect_source_identity": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+      "visual_review": "accepted",
+      "source_version": "0.57.0",
+      "theme_mode": "dark",
+      "material_preset": "tahoe",
+      "material_values": {
+        "BlurStrength": 10.0,
+        "MaterialOpacity": 1.0,
+        "NoiseStrength": 1,
+        "RgbDriftStrength": 6.0,
+        "MagnifyGlassStrength": 0.02,
+        "RefractionWidth": 18.0,
+        "HighlightWidth": 1.5,
+        "HighlightStrength": 0.11,
+        "Brightness": 1.0,
+        "Contrast": 1.0,
+        "Saturation": 1.05,
+        "DarkGradientOverlay": false,
+        "GradientTopColor": "#000000",
+        "GradientBottomColor": "#000000",
+        "GradientTopOpacity": 0.38,
+        "GradientBottomOpacity": 0.02,
+        "MaterialPreset": 1
+      },
+      "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26"
     }
-  }
+  },
+  "pending_captures": []
 }

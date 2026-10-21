@@ -1,0 +1,26 @@
+{
+  "source_release": "v0.57.0",
+  "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26",
+  "approved": [
+    "launcher_preset_1_light.png",
+    "dock_1_v4.png",
+    "menu_v4.png",
+    "context_menu_v4.png",
+    "finder_v4.png",
+    "showcase_light_4k.png",
+    "about_v4.png",
+    "launcher_preset_1_dark.png",
+    "menu_dark_v4.png",
+    "context_menu_dark_v4.png",
+    "finder_dark_v4.png",
+    "showcase_dark_4k.png",
+    "about_dark_v4.png"
+  ],
+  "rejected": {},
+  "negative_control": {
+    "source": "tahoe-light-showcase.png",
+    "expected_mode": "light",
+    "result": "rejected",
+    "reason": "Files pixels contradict light: median=36.0, matching=0.0%"
+  }
+}

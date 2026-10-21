@@ -267,3 +267,20 @@ Triage is best-effort — this project runs on the side. PRs always move faster 
 ## Code of conduct
 
 Be a decent human. I'll close anything abusive, off-topic, or trying to drag this project into a fight that isn't about the code.
+
+## Documentation screenshots
+
+Capture only in a disposable VM. `src/scripts/screenshots` refuses a host
+session and checks Plasma, Qt, Kvantum, GTK preferences and the active GTK 4
+stylesheet before capturing. A successful theme-switch command alone is not
+proof that applications changed appearance. Stale or custom CSS must be
+reviewed in the guest; the checker never overwrites it.
+
+Full-desktop captures must also call `screenshot_checks.check_files_pixels`
+with the captured image, requested mode, native window metadata and output
+scale. The Documents fixture uses folders in its first row and an empty lower
+content area. The check requires the actual Nautilus Documents window and
+rejects a dark Files surface in a light capture, or the reverse. Keep a rejected
+mixed-theme frame as a negative control. Do not apply the brightness check to
+the Dock or translucent popups: their material can show the wallpaper through
+it. Review every image before replacing published screenshots.

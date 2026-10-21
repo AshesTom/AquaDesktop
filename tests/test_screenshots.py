@@ -126,3 +126,11 @@ for mode, foreground in [('white', 255), ('black', 0)]:
     result = subprocess.run([sys.executable, '-c', probe, str(qml), edition], env=env,
                             capture_output=True, text=True, timeout=20)
     assert result.returncode == 0, result.stdout + result.stderr
+
+def test_capture_refuses_host_before_switch(capture_module, monkeypatch):
+    import screenshot_checks as checks
+    monkeypatch.setattr(checks.subprocess, 'run', lambda *a, **kw:
+                        subprocess.CompletedProcess(a, 1, 'none\n', ''))
+    monkeypatch.setattr(capture_module, '_switch_theme', lambda _: pytest.fail('Host theme changed'))
+    with pytest.raises(RuntimeError, match='disposable VM'):
+        capture_module.main(['about'])
