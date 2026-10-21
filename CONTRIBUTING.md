@@ -289,8 +289,11 @@ old images to fill a failed or rejected case.
 4. Stage Tahoe with `./release-screenshots stage --bundle build/captures/vVERSION --edition tahoe --destination .`.
    Stage Golden Gate from the same reviewed bundle using `--edition golden-gate`
    and its checkout as `--destination`. Both versions must already match.
+   Staging gives each image a filename containing its content SHA-256 prefix,
+   updates README URLs, and removes replaced images and obsolete aliases.
 5. Commit the screenshots. This commit may change only `src/screenshots/`
-   relative to the captured candidate; other changes require recapture.
+   and README screenshot filename hashes relative to the captured candidate;
+   other changes require recapture.
    Run `./release-screenshots verify`. Push the version tag to trigger the
    gated release workflow. Its release title is exactly `vVERSION`.
    Pin Golden Gate to that published Tahoe commit and verified archive, commit
@@ -309,8 +312,8 @@ OpenSSH and `sshpass`. Publication additionally requires an authenticated `gh`.
 The profile fixes 3840×2160 output, 2× scale, locale, timezone, clock, Documents
 fixtures, pinned apps, window positions and pointer position. Each frame must
 settle to two identical consecutive captures. The active effect identity must
-match the captured source. Provenance excludes only screenshot outputs to avoid
-a circular commit hash. This makes the capture procedure repeatable; it does
+match the captured source. Provenance excludes screenshot outputs and normalizes
+README screenshot filename hashes to avoid a circular commit hash. This makes the capture procedure repeatable; it does
 not promise identical pixels across different host GPUs/QEMU versions. Keep
 the same capture host for comparisons and retain each bundle with its logs.
 

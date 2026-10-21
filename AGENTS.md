@@ -595,7 +595,7 @@ rejected, mixed-theme or older-release pictures block publication. Commit the
 reviewed images and provenance, run `./release-screenshots verify`, then push
 the release tag through `.github/workflows/release.yml`. Do not bypass the
 gate with a direct `gh release create`. Changes outside `src/screenshots/`
-after capture require a new run. See CONTRIBUTING.md for the full sequence.
+after capture require a new run, except README screenshot filename hash updates. See CONTRIBUTING.md for the full sequence.
 
 The same defaults file selects `launcher_preset` (Tahoe: 1, Golden Gate: 2).
 `launcher_defaults.py` stamps only the staged launcher's `defaultLauncherPreset`
@@ -929,3 +929,9 @@ Highlights:
 - Don't add `Co-Authored-By: Claude` (or any AI) trailers to commits.
 - Don't `--amend` published commits. Don't `--no-verify` to skip
   hooks. Don't force-push to `main`.
+
+Published screenshots must include the first 12 hexadecimal characters of their
+content SHA-256 in the filename (for example, `launcher_preset_1_light-abc123def456.png`).
+Update README links and provenance together, remove replaced image files and
+obsolete aliases, and preserve unrelated artwork. Apply this in both repositories
+every time images are published; never overwrite a changed image at its old URL.

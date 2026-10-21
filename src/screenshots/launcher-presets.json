@@ -8,7 +8,7 @@
   "renderer": "KWin virgl OpenGL compositor",
   "capture_tool": "Spectacle fullscreen; original 4K launcher frames and lossless detail crops",
   "captures": {
-    "launcher_preset_1_light.png": {
+    "launcher_preset_1_light-9b3f01144200.png": {
       "source": "light-2.png",
       "source_resolution": [
         3840,
@@ -277,7 +277,7 @@
       },
       "effect_build": "82f21f4138be23c792274f5b1f239fb09c9d3d7590dd692d961000a54a8cba26"
     },
-    "launcher_preset_1_dark.png": {
+    "launcher_preset_1_dark-92ef386f1681.png": {
       "source": "dark-2.png",
       "source_resolution": [
         3840,

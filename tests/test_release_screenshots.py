@@ -131,7 +131,7 @@ def test_committed_picture_change_blocks_publication(capture, monkeypatch):
     repo, ref, bundle, manifest = capture
     shots.stage(repo, 'tahoe', bundle, manifest)
     commit(repo)
-    (repo / 'src/screenshots/finder_v4.png').write_bytes(b'replaced after review')
+    next((repo / 'src/screenshots').glob('finder_v4-*.png')).write_bytes(b'replaced after review')
     final = commit(repo)
     calls = []
     import release_screenshots_cli
@@ -155,6 +155,38 @@ def test_effect_identity_includes_nested_headers_and_shaders(capture):
     shader.write_text('changed shader')
     final = commit(repo)
     assert shots.effect_identity(repo, final) != shots.effect_identity(repo, ref)
+
+
+def test_staging_changes_urls_and_removes_only_replaced_images(capture):
+    repo, _, bundle, manifest = capture
+    out = repo / 'src/screenshots'
+    out.mkdir()
+    old = 'finder_v4-' + 'a' * 12 + '.png'
+    for name in (old, 'finder_v4.png', 'launcher_v4.png', 'unrelated.png'):
+        (out / name).write_bytes(b'old')
+    (repo / 'README.md').write_text(f'![Files](src/screenshots/{old})\n')
+    shots.stage(repo, 'tahoe', bundle, manifest)
+    records = json.loads((out / 'release-capture.json').read_text())['images']
+    finder = next(name for name in records if name.startswith('finder_v4-'))
+    assert finder in (repo / 'README.md').read_text()
+    assert not (out / old).exists()
+    assert not (out / 'finder_v4.png').exists()
+    assert not (out / 'launcher_v4.png').exists()
+    assert (out / 'unrelated.png').read_bytes() == b'old'
+    assert all(name.endswith('-' + shots.digest(out / name)[:12] + '.png') for name in records)
+    shots.stage(repo, 'tahoe', bundle, manifest)
+    assert finder in (repo / 'README.md').read_text()
+
+
+def test_readme_changes_beyond_image_hashes_invalidate_capture(capture):
+    repo, ref, bundle, manifest = capture
+    shots.stage(repo, 'tahoe', bundle, manifest)
+    staged = commit(repo)
+    assert shots.runtime_tree(repo, ref) == shots.runtime_tree(repo, staged)
+    with (repo / 'README.md').open('a') as stream:
+        stream.write('Changed description\n')
+    changed = commit(repo)
+    assert shots.runtime_tree(repo, ref) != shots.runtime_tree(repo, changed)
 
 
 def test_capture_tool_changes_require_a_committed_recipe(capture, monkeypatch):

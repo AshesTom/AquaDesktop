@@ -45,6 +45,13 @@ def runtime_tree(repo: Path, ref: str) -> str:
     # changes to code, assets, dependencies, VERSION or the recipe invalidate it.
     tree = subprocess.check_output(['git', '-C', str(repo), 'ls-tree', '-rz', ref])
     entries = [e for e in tree.split(b'\0') if e and not e.split(b'\t', 1)[1].startswith(b'src/screenshots/')]
+    for index, entry in enumerate(entries):
+        if entry.split(b'\t', 1)[1] == b'README.md':
+            # Staging changes image URLs, but any other README edit still
+            # invalidates the captured source.
+            readme = re.sub(rb'(src/screenshots/[\w.-]+)-[0-9a-f]{12}(\.png)',
+                            rb'\1\2', blob(repo, ref, 'README.md'))
+            entries[index] = b'README.md\t' + hashlib.sha256(readme).hexdigest().encode()
     return hashlib.sha256(b'\0'.join(entries)).hexdigest()
 
 
@@ -75,6 +82,10 @@ def image_name(edition: str, mode: str, case: str) -> str:
         return f'showcase_{mode}_4k.png'
     name = {'context': 'context_menu', 'dock': 'dock_1'}.get(case, case)
     return f"{name}{'_dark' if mode == 'dark' else ''}_{suffix}.png"
+
+
+def original_image_name(name: str) -> str:
+    return re.sub(r'-[0-9a-f]{12}(?=\.png$)', '', name)
 
 
 def require(condition: bool, message: str) -> None:
@@ -148,6 +159,13 @@ def stage(repo: Path, edition: str, bundle: Path, manifest: dict) -> None:
         out.mkdir(parents=True, exist_ok=True)
         for path in (prepared / 'src/screenshots').iterdir():
             shutil.copyfile(path, out / path.name)
+        shutil.copyfile(prepared / 'README.md', repo / 'README.md')
+        staged = json.loads((out / 'release-capture.json').read_text())['images']
+        replaced = {original_image_name(name) for name in staged}
+        replaced.update(f"launcher{s}_{EDITIONS[edition][2]}.png" for s in ('', '_dark'))
+        for path in out.glob('*.png'):
+            if original_image_name(path.name) in replaced and path.name not in staged:
+                path.unlink()
         for name in ('capture.json', 'launcher-presets.json', 'appearance-review.json'):
             (out / name).unlink(missing_ok=True)
 
@@ -157,6 +175,7 @@ def _stage(repo: Path, edition: str, bundle: Path, manifest: dict) -> None:
     import shutil
     out = repo / 'src/screenshots'
     records = {}
+    replacements = {}
     for name, record in manifest['frames'].items():
         if name in ('boot', 'shutdown'):
             filename = f"boot{'_shutdown' if name == 'shutdown' else ''}_{EDITIONS[edition][2]}.png"
@@ -174,14 +193,18 @@ def _stage(repo: Path, edition: str, bundle: Path, manifest: dict) -> None:
                 image.crop(crop).save(out / filename)
         else:
             shutil.copyfile(source, out / filename)
-        records[filename] = dict(record, source_commit=manifest['source_commit'], source_release='v' + manifest['version'],
-                                 sha256=digest(out / filename))
-        if name.endswith('-launcher'):
-            alias = f"launcher{'_dark' if mode == 'dark' else ''}_{EDITIONS[edition][2]}.png"
-            shutil.copyfile(out / filename, out / alias)
-            records[alias] = records[filename]
-    required = set(re.findall(r'src/screenshots/([\w.-]+\.png)', (repo / 'README.md').read_text())) - STATIC_ART
+        checksum = digest(out / filename)
+        hashed = str(Path(filename).with_suffix('')) + '-' + checksum[:12] + '.png'
+        (out / filename).rename(out / hashed)
+        replacements[filename] = hashed
+        records[hashed] = dict(record, source_commit=manifest['source_commit'], source_release='v' + manifest['version'],
+                               sha256=checksum)
+    readme = re.sub(r'src/screenshots/([\w.-]+\.png)',
+                    lambda match: 'src/screenshots/' + replacements.get(original_image_name(match[1]), match[1]),
+                    (repo / 'README.md').read_text())
+    required = set(re.findall(r'src/screenshots/([\w.-]+\.png)', readme)) - STATIC_ART
     require(required <= records.keys(), f'Uncaptured README images: {sorted(required - records.keys())}')
+    (repo / 'README.md').write_text(readme)
     (out / 'release-capture.json').write_text(json.dumps({
         'schema': 1, 'version': manifest['version'], 'source_commit': manifest['source_commit'],
         'source_tree': manifest['source_tree'], 'profile_sha256': manifest['profile_sha256'],
@@ -233,11 +256,13 @@ def verify_committed(repo: Path, ref: str, *, tahoe: Path | None = None) -> dict
     require(not review.get('rejected') and review['approved'] == {n: r['sha256'] for n, r in manifest['frames'].items()},
             'Every release capture must be reviewed')
     required = set(re.findall(r'src/screenshots/([\w.-]+\.png)', blob(repo, ref, 'README.md').decode())) - STATIC_ART
-    required.update(image_name(edition, m, c) for m in MODES for c in CASES)
-    required.update(f'boot{s}_{EDITIONS[edition][2]}.png' for s in ('', '_shutdown'))
     require(required <= record['images'].keys(), 'Missing release screenshots')
+    expected = {image_name(edition, m, c) for m in MODES for c in CASES}
+    expected.update(f'boot{s}_{EDITIONS[edition][2]}.png' for s in ('', '_shutdown'))
+    require(expected <= {original_image_name(name) for name in record['images']}, 'Missing release screenshots')
     for name, image in record['images'].items():
         require(re.fullmatch(r'[\w.-]+\.png', name) is not None, 'Invalid screenshot filename')
+        require(name.endswith('-' + image['sha256'][:12] + '.png'), 'Screenshot URL is missing its content hash: ' + name)
         require(hashlib.sha256(blob(repo, ref, 'src/screenshots/' + name)).hexdigest() == image['sha256'],
                 'Screenshot changed after review: ' + name)
         require(image['source_commit'] == source and image['source_release'] == 'v' + version,
