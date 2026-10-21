@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for considering a contribution. The project as a whole is GPL-3.0; individual component licenses remain applicable. Preserve copyright and license notices, identify distributed modifications, and meet the applicable source-distribution obligations. See [LICENSING.md](LICENSING.md), [NOTICE](NOTICE), and [BRANDING.md](BRANDING.md). Contributors retain ownership of their work; no copyright assignment is requested. The applicable licenses describe the warranty and liability limits.
+Thanks for considering a contribution. The project as a whole is GPL-3.0; individual component licenses remain applicable. Preserve copyright and license notices, identify distributed modifications, and meet the applicable source-distribution obligations. See [LICENSING.md](LICENSING.md) and [NOTICE](NOTICE). Contributors retain ownership of their work; no copyright assignment is requested. The applicable licenses describe the warranty and liability limits.
 
 ## Before you start
 
