@@ -95,6 +95,11 @@ release is downloaded, checksum-verified, and built best-effort.
 - No external author references in metadata, configs, or QML headers
   — the user maintains attribution separately.
 - Mirror files keep source URLs (functional, not attribution).
+- Preserve existing copyright, license, and attribution notices, including
+  upstream notices; the branding convention never authorizes removing them.
+  Follow `NOTICE`, `LICENSING.md`, `BRANDING.md`, and `THIRD_PARTY_NOTICES.md`.
+  Keep the standard GPL text intact and do not add copying, rebranding, or
+  commercial-use bans. Do not claim third-party marks or artwork as project-owned.
 - README **Credits** section is managed manually by the user.
 - Do NOT add "fork of X" or "based on Y" to README descriptions —
   use "inspired by" wording.
