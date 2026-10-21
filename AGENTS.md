@@ -561,7 +561,9 @@ menus retain their full blur. Keep the bevel displacement independent of the
 Dock's length and scale it in device pixels.
 
 Publish Tahoe and Golden Gate with matching release versions and `v<version>`
-tags. Golden Gate's `VERSION` must match the Tahoe release it downloads; pin
+tags. Release titles must be exactly `v<version>`, with no subtitles, descriptions
+or other extra text. Golden Gate's `VERSION` must match the Tahoe release it
+downloads; pin
 its `upstream.json` to the published Tahoe release commit and verified archive
 SHA-256 before publishing the corresponding Golden Gate release. Each README
 shows its own default launcher preset and wallpaper in light and dark mode.
