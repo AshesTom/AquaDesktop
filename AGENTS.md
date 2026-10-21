@@ -36,13 +36,14 @@ line under OpenRC, chosen by `init_system()` in the distro layer.
 OpenRC scheduling remains available generically; Gentoo support was retired in
 v0.54.7 and its VM/SDK workflows have been removed. The
 Artix package mapping uses the Arch family even when `ID_LIKE` is absent;
-Artix OpenRC remains testing and is not part of the container matrix. The
+Artix OpenRC has live VM qualification and is not part of the container matrix. The
 container matrix covers Arch, CachyOS, Manjaro, EndeavourOS, Garuda,
 Fedora, Nobara, openSUSE Tumbleweed, Debian testing, and KDE neon on their default
-(systemd) profiles. The README marks CachyOS heavily tested, Arch stable,
-Fedora and EndeavourOS relatively stable, and KDE neon container + VM
-qualified. The other listed distros need more testing. Container checks
-alone do not establish live desktop compatibility. Immutable rpm-ostree distros
+(systemd) profiles. All 11 README distributions have live VM qualification,
+including Firefox and Nautilus light/dark checks, live switching, native
+builds, reboot and uninstall. Reviewed 4K screenshots and configuration-specific
+results are in `tests/vm/PROOF.md`; README badges link to each distro section.
+Container checks alone do not establish live desktop compatibility. Immutable rpm-ostree distros
 (Silverblue, Kinoite) are explicitly out of scope: the installer
 writes into `/usr/lib*` and `/usr/share`, which are read-only on those
 systems and need either an rpm/Flatpak-extension wrapper or an

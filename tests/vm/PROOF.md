@@ -276,9 +276,34 @@ Official Garuda KDE ISO with native packages.
 
 <a id="nobara"></a>
 <details>
-<summary><b>Nobara — evidence pending</b></summary>
+<summary><b>Nobara — ✅ VM verified · v0.57.13</b></summary>
 
-The current application checks and reviewed 4K screenshots have not been published yet.
+Plasma 6.7.5 · Qt 6.11.2 · Wayland · systemd · VirtIO/virgl.
+Official Nobara 44 KDE ISO with native packages.
+
+| Check | Result |
+| --- | --- |
+| Full installation and host SDK builds | ✅ Passed |
+| Light and dark desktop, loaded Acrylic Glass, Dock autohide | ✅ Passed |
+| Firefox rendering, text input, button action and appearance | ✅ Passed |
+| Nautilus light/dark pixels and live switching | ✅ Passed |
+| Live switch preserves app, Plasma and KWin processes | ✅ Passed |
+| Reboot and desktop/app checks | ✅ Passed |
+| Full uninstall and removal checks | ✅ Passed |
+
+**Light**
+
+![Nobara light](../../src/screenshots/vm/nobara/light-c21b13ec9011.png)
+
+**Dark**
+
+![Nobara dark](../../src/screenshots/vm/nobara/dark-59dd73b989cc.png)
+
+**After reboot**
+
+![Nobara after reboot](../../src/screenshots/vm/nobara/reboot-797c0e9aecda.png)
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/nobara/report.json).
 
 </details>
 
@@ -357,6 +382,4 @@ validation and reviewed screenshots have not been published yet.
 
 </details>
 
-The remaining distributions are being qualified one at a time. Their existing
-README status stays unchanged until their application checks and screenshots
-have been reviewed.
+All 11 distributions in the supported VM matrix have completed the live desktop checks above. The separate experimental NixOS route remains unqualified.
