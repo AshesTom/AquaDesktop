@@ -78,9 +78,34 @@ Installed from the official CachyOS ISO and upgraded with its native repositorie
 
 <a id="arch"></a>
 <details>
-<summary><b>Arch Linux — evidence pending</b></summary>
+<summary><b>Arch Linux — ✅ VM verified · v0.57.5</b></summary>
 
-The current application checks and reviewed 4K screenshots have not been published yet.
+Plasma 6.8.0 · Qt 6.12.0 · Wayland · systemd · VirtIO/virgl.
+Official Arch cloud image with KDE Plasma installed from its native repositories.
+
+| Check | Result |
+| --- | --- |
+| Full installation and host SDK builds | ✅ Passed |
+| Light and dark desktop, loaded Acrylic Glass, Dock autohide | ✅ Passed |
+| Firefox rendering, text input, button action and appearance | ✅ Passed |
+| Nautilus light/dark pixels and live switching | ✅ Passed |
+| Live switch preserves app, Plasma and KWin processes | ✅ Passed |
+| Reboot and desktop/app checks | ✅ Passed |
+| Full uninstall and removal checks | ✅ Passed |
+
+**Light**
+
+![Arch Linux light](../../src/screenshots/vm/arch/light-dcd9652b57c9.png)
+
+**Dark**
+
+![Arch Linux dark](../../src/screenshots/vm/arch/dark-237f5d92f8d7.png)
+
+**After reboot**
+
+![Arch Linux after reboot](../../src/screenshots/vm/arch/reboot-289081492443.png)
+
+[Machine-readable results and image hashes](../../src/screenshots/vm/arch/report.json).
 
 </details>
 
