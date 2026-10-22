@@ -211,7 +211,8 @@ def _replace_current_helper(*, required: bool) -> bool:
 
 def _helper_is_current() -> bool:
     try:
-        return BIN_DEST.read_bytes() == PY_SRC.read_bytes()
+        expected = standalone_source(PY_SRC.read_text(encoding="utf-8")).encode("utf-8")
+        return BIN_DEST.read_bytes() == expected
     except OSError:
         return False
 

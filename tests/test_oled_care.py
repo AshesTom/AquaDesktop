@@ -898,6 +898,7 @@ def test_step_install_enabled_copies_and_enables(tmp_path, monkeypatch):
 
     assert step.BIN_DEST.is_file()
     assert step.BIN_DEST.read_text() == step.standalone_source(step.PY_SRC.read_text())
+    assert step._helper_is_current()
     assert list(step.BIN_DEST.parent.glob(f".{step.BIN_DEST.name}.*.tmp")) == []
     assert not oled_care._disabled_file().exists()
     assert step.BIN_DEST.stat().st_mode & 0o111
