@@ -16,6 +16,8 @@ with explicit targets. The helpers are idempotent, so the later login-time
 kconf_update pass is a harmless re-run.
 """
 
+from localization import tr
+
 import subprocess
 from pathlib import Path
 
@@ -74,7 +76,7 @@ def rollback_v038_border_sync() -> bool:
                 "--file", "kwinrc", "--group", "Round-Corners",
                 "--key", key, "--delete",
             )
-        ok("v0.38 Rounded Corners border preset removed")
+        ok(tr('v0.38 Rounded Corners border preset removed'))
 
     qdbus_call("org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure")
     return exact_match
@@ -84,7 +86,7 @@ def install() -> None:
     rollback_v038_border_sync()
     if not BUNDLE.is_dir():
         return
-    install_tree(BUNDLE, KCONF_UPDATE_DIR, "kconf_update scripts")
+    install_tree(BUNDLE, KCONF_UPDATE_DIR, tr('kconf_update scripts'))
     for name in set(_SCRIPTS) - set(_enabled_scripts()):
         for f in (KCONF_UPDATE_DIR / name,
                   KCONF_UPDATE_DIR / (name[:-3] + ".upd")):

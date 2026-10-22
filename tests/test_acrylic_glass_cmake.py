@@ -91,7 +91,7 @@ def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path, c
     monkeypatch.setattr(acrylic_glass, "BUILD", build)
     monkeypatch.setattr(acrylic_glass, "_plugin_dir", lambda: tmp_path / "plugins")
     monkeypatch.setattr(acrylic_glass, "LEGACY_USER_PLUGIN_DIR", tmp_path / "legacy")
-    monkeypatch.setattr(acrylic_glass, "sudo_install_file", lambda *args: True)
+    monkeypatch.setattr(acrylic_glass, "sudo_install_file", lambda *args, **kwargs: True)
     monkeypatch.setattr(acrylic_glass, "_activate_effect_binary", lambda *args: True)
     monkeypatch.setattr(acrylic_glass, "_running_build_matches", lambda: identity)
     monkeypatch.setattr(acrylic_glass, "_running_plugin_matches", lambda path: None)

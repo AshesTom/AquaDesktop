@@ -241,7 +241,28 @@ See [CLAUDE.md](CLAUDE.md) for the full convention list.
 
 ## i18n
 
-User-facing strings in QML go through `i18n("…")` from `org.kde.kirigami` / `QtCore`. Don't hardcode English (or any other language) strings in plasmoid UI. The installer's CLI output (`ok()` / `info()` / `warn()` / `fail()`) is English-only by design — keep messages short and actionable.
+User-facing widget strings use KDE's native `i18n()` catalogs. Keep category
+identity and other control flow independent of translated display names.
+Inherited Dock strings retain KDE's taskmanager domain; project-specific
+strings use the project's own domains.
+
+The installer supports English, Spanish, Simplified Chinese, Brazilian Portuguese
+and German. Brazilian Portuguese and German also cover project-owned CLI logs,
+help, recovery diagnostics and Acrylic Glass settings. Maintain their complete
+message catalogs in `src/scripts/locales/pt_BR.json` and `de.json`. Use
+`tr("Complete message: {path}", path=path)` before logging; never interpolate
+before translation. Translate display labels separately, preserving commands,
+paths, configuration values and external tool diagnostics. `step()` translates
+its own message and records a stable source key for progress classification.
+
+After editing widget or Acrylic Glass strings, run
+`python3 src/scripts/build_translations.py` with gettext's `msgfmt` available.
+Commit the generated `.po` and `.mo` files together. Update localized metadata
+alongside its English source. `tests/test_multilanguage.py` checks coverage,
+placeholders, locale aliases, progress classification and installed helpers
+without access to the checkout. Check both languages visually for clipped text.
+Standalone theme-switch and OLED-care executables embed the localization runtime
+at installation; Nix installs the runtime and catalogs beside the scripts.
 
 ## What NOT to do
 

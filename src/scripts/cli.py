@@ -1,3 +1,4 @@
+from localization import feature_label, tr
 import functools
 import json
 import os
@@ -47,7 +48,7 @@ def _cancellable_entrypoint(func):
                 # function's existing KeyboardInterrupt path.  This catches
                 # the earlier help/root/preflight window without a traceback.
                 if not result_ready:
-                    print("\n  Aborted.", file=sys.stderr)
+                    print(tr('\n  Aborted.'), file=sys.stderr)
                     return 130
                 # A cancellation that lands after func() completed must not
                 # replace its real outcome or invite a needless GUI retry.
@@ -385,7 +386,7 @@ def check_for_updates(verbose: bool = False, inline: bool = False) -> bool:
     (standalone --check-update) always announces, without the pause."""
     if inline:
         # confirm() already trails a blank line.
-        print("  \033[2mChecking for updates…\033[0m", end="", flush=True)
+        print(tr('  \x1b[2mChecking for updates…\x1b[0m'), end="", flush=True)
 
     current = read_version()
     latest = fetch_latest_release()
@@ -395,23 +396,21 @@ def check_for_updates(verbose: bool = False, inline: bool = False) -> bool:
 
     if latest is None:
         if verbose or inline:
-            print("  \033[2mCould not reach GitHub — skipping update check\033[0m")
+            print(tr('  \x1b[2mCould not reach GitHub — skipping update check\x1b[0m'))
         if inline:
             time.sleep(_VERSION_CHECK_READ_PAUSE)
         return False
     if parse_semver(latest) > parse_semver(current):
-        print(f"  \033[1;33mUpdate available: {current} → {latest}\033[0m")
-        print(f"  \033[2mUpdates fix style breakage when KDE / Plasma /"
-              f" Kvantum upstream changes\033[0m")
-        print(f"  \033[2mbreak our overrides, plus crash fixes for"
-              f" custom plasmoids.\033[0m")
-        print(f"  \033[2mRun: git pull && ./install\033[0m")
+        print(tr('  \x1b[1;33mUpdate available: {current} → {latest}\x1b[0m', current=current, latest=latest))
+        print(tr('  \x1b[2mUpdates fix style breakage when KDE / Plasma / Kvantum upstream changes\x1b[0m'))
+        print(tr('  \x1b[2mbreak our overrides, plus crash fixes for custom plasmoids.\x1b[0m'))
+        print(tr('  \x1b[2mRun: git pull && ./install\x1b[0m'))
         if inline:
             time.sleep(_VERSION_CHECK_READ_PAUSE)
         return True
     if verbose or inline:
         # Match ok() formatting exactly.
-        print(f"  \033[0;32m✓\033[0m  On the latest version ({current})")
+        print(tr('  \x1b[0;32m✓\x1b[0m  On the latest version ({current})', current=current))
     if inline:
         time.sleep(_VERSION_CHECK_READ_PAUSE)
     return False
@@ -457,20 +456,20 @@ def auto_update_and_reexec(argv: list[str], prog: str = "install") -> None:
         return  # already re-exec'd after a successful pull; just install
 
     if not _repo_is_clean_git_checkout():
-        note("Not a clean git checkout — skipping auto-update")
-        print(f"  \033[2mUpdate manually: git pull && ./{prog}\033[0m")
+        note(tr('Not a clean git checkout — skipping auto-update'))
+        print(tr('  \x1b[2mUpdate manually: git pull && ./{prog}\x1b[0m', prog=prog))
         return
 
-    print("  \033[2mPulling the latest release…\033[0m")
+    print(tr('  \x1b[2mPulling the latest release…\x1b[0m'))
     pull = _git("pull", "--ff-only", capture=True)
     if pull is None or pull.returncode != 0:
-        warn("git pull failed — installing the current version")
+        warn(tr('git pull failed — installing the current version'))
         if pull is not None and pull.stderr:
             print(f"  \033[2m{pull.stderr.strip().splitlines()[-1]}\033[0m")
-        print(f"  \033[2mUpdate manually: git pull && ./{prog}\033[0m")
+        print(tr('  \x1b[2mUpdate manually: git pull && ./{prog}\x1b[0m', prog=prog))
         return
 
-    ok(f"Updated to {read_version()} — restarting installer")
+    ok(tr('Updated to {value1} — restarting installer', value1=read_version()))
 
     # Real UID is still 0, so the re-exec'd wrapper stays root and repeats
     # the same euid-drop hop.
@@ -479,7 +478,7 @@ def auto_update_and_reexec(argv: list[str], prog: str = "install") -> None:
     try:
         os.execv(str(installer), [str(installer), *argv])
     except OSError as exc:
-        warn(f"could not restart installer ({exc}) — installing current version")
+        warn(tr('could not restart installer ({exc}) — installing current version', exc=exc))
         os.environ.pop("MAC_TAHOE_UPDATED", None)
 
 
@@ -487,7 +486,7 @@ def apply_overrides(feat: dict[str, object], parsed: ParsedArgs) -> dict[str, ob
     if parsed.do_reset:
         feat = dict(DEFAULT_FEATURES)
         save_features(feat)
-        ok("features.json reset to defaults")
+        ok(tr('features.json reset to defaults'))
 
     if parsed.only_mode:
         for k in ALL_FEATURES:
@@ -511,7 +510,7 @@ def apply_overrides(feat: dict[str, object], parsed: ParsedArgs) -> dict[str, ob
 
     if parsed.do_save:
         save_features(feat)
-        ok("features.json saved")
+        ok(tr('features.json saved'))
     return feat
 
 
@@ -572,24 +571,24 @@ def verify_plasma() -> bool:
     # VM boot-splash harness bypass (Plymouth needs no Plasma). NEVER set
     # on real installs — it would write KDE configs to a Plasma-less system.
     if os.environ.get("MTTKDE_SKIP_PLASMA_CHECK") == "1":
-        warn("MTTKDE_SKIP_PLASMA_CHECK=1 — bypassing Plasma version check (test mode)")
+        warn(tr('MTTKDE_SKIP_PLASMA_CHECK=1 — bypassing Plasma version check (test mode)'))
         return True
     if not have("plasmashell"):
-        fail("KDE Plasma not found")
-        print("     MacTahoe Liquid KDE requires KDE Plasma 6.6+.", file=sys.stderr)
+        fail(tr('KDE Plasma not found'))
+        print(tr('     MacTahoe Liquid KDE requires KDE Plasma 6.6+.'), file=sys.stderr)
         return False
     ver = _detect_plasma_version()
     if not ver:
-        warn("Could not detect plasmashell version")
+        warn(tr('Could not detect plasmashell version'))
         return True
     major_s, minor_s, _ = ver.split(".", 2)
     major, minor = int(major_s), int(minor_s)
     if (major, minor) < (6, 6):
-        fail(f"KDE Plasma {ver} (6.6+ required)")
+        fail(tr('KDE Plasma {ver} (6.6+ required)', ver=ver))
         return False
-    ok(f"KDE Plasma {ver}")
+    ok(tr('KDE Plasma {ver}', ver=ver))
     if CONFIG_FILE.is_file():
-        ok("features.json loaded")
+        ok(tr('features.json loaded'))
     return True
 
 
@@ -600,21 +599,21 @@ def confirm(msg: str) -> bool:
     # VM harness bypass — non-tty ``input()`` reads the SSH heredoc and
     # can deadlock.
     if os.environ.get("MTTKDE_NO_CONFIRM") == "1":
-        print("  MTTKDE_NO_CONFIRM=1 — auto-accepting (test mode)")
+        print(tr('  MTTKDE_NO_CONFIRM=1 — auto-accepting (test mode)'))
         print()
         return True
     try:
         with open("/dev/tty", "r+") as tty:
-            tty.write("  Continue? [Y/n] ")
+            tty.write(tr('  Continue? [Y/n] '))
             tty.flush()
             answer = tty.readline().strip()
     except OSError:
         try:
-            answer = input("  Continue? [Y/n] ")
+            answer = input(tr('  Continue? [Y/n] '))
         except EOFError:
             answer = ""
     if answer.lower() == "n":
-        print("  Aborted.")
+        print(tr('  Aborted.'))
         return False
     print()
     return True
@@ -695,9 +694,9 @@ def _require_root_and_drop_to_user(op: str = "install") -> bool:
     hop back to root per operation."""
     if os.geteuid() != 0:
         print(file=sys.stderr)
-        print(f"  \033[0;31m{op.capitalize()} must be run as root.\033[0m",
+        print(tr('  \x1b[0;31m{value1} must be run as root.\x1b[0m', value1=tr(op.capitalize())),
               file=sys.stderr)
-        print(f"  \033[2mRe-run as:\033[0m  sudo ./{op}", file=sys.stderr)
+        print(tr('  \x1b[2mRe-run as:\x1b[0m  sudo ./{op}', op=op), file=sys.stderr)
         print(file=sys.stderr)
         return False
 
@@ -706,10 +705,9 @@ def _require_root_and_drop_to_user(op: str = "install") -> bool:
     sudo_gid_str = os.environ.get("SUDO_GID")
     if not sudo_user or not sudo_uid_str or not sudo_gid_str:
         print(file=sys.stderr)
-        print("  \033[0;31mCould not determine the invoking user.\033[0m",
+        print(tr('  \x1b[0;31mCould not determine the invoking user.\x1b[0m'),
               file=sys.stderr)
-        print("  \033[2m`SUDO_USER` is not set — running as the root login "
-              "directly is not supported.\033[0m", file=sys.stderr)
+        print(tr('  \x1b[2m`SUDO_USER` is not set — running as the root login directly is not supported.\x1b[0m'), file=sys.stderr)
         print(file=sys.stderr)
         return False
 
@@ -817,9 +815,9 @@ def verify_config(feat: dict[str, object]) -> None:
         if actual is None:
             actual = kw_read(file, group, prop)
         if expected in actual:
-            ok(label)
+            ok(tr(label))
         else:
-            fail(f"{label} (expected {expected}, got {actual or 'empty'})")
+            fail(tr('{label} (expected {expected}, got {value3})', label=tr(label), expected=expected, value3=actual or tr('empty')))
 
 
 def should_process(feature: str, feat: dict[str, object]) -> bool:
@@ -856,14 +854,14 @@ def _run_optional_downloads(feat: dict[str, object]) -> bool:
     """
     downloads = _download_features(feat)
     if not downloads:
-        ok("no online components selected — skipping download phase")
+        ok(tr('no online components selected — skipping download phase'))
         return True
     for i, feature in enumerate(downloads):
         check_cancelled()
         if i:
             print()
-        label = feature.replace("_", " ")
-        print(f"  \033[1mDownloading {label}\033[0m")
+        label = feature_label(feature)
+        print(tr('  \x1b[1mDownloading {label}\x1b[0m', label=label))
         before = len(errors)
         phase_ok = run_phase(feature, "download")
         mod = step_module(feature)
@@ -876,7 +874,7 @@ def _run_optional_downloads(feat: dict[str, object]) -> bool:
         del errors[before:]
         feat[feature] = False
         os.environ[f"FEAT_{feature.upper()}"] = "false"
-        warn(f"{label} unavailable — skipping it; bundled theme install continues")
+        warn(tr('{label} unavailable — skipping it; bundled theme install continues', label=label))
     return True
 
 
@@ -899,17 +897,17 @@ def _run_builds_or_abort(feat: dict[str, object]) -> bool:
     never ships. Steps may expose build_artifacts() for the post-build check."""
     builds = _build_features(feat)
     if not builds:
-        ok("no compiled components selected — skipping build phase")
+        ok(tr('no compiled components selected — skipping build phase'))
         return True
 
     failed: list[str] = []
     for i, feature in enumerate(builds):
         check_cancelled()
-        label = feature.replace("_", " ")
+        label = feature_label(feature)
         # note() already trails a blank line; skip the first leading blank.
         if i:
             print()
-        print(f"  \033[1mBuilding {label}\033[0m")
+        print(tr('  \x1b[1mBuilding {label}\x1b[0m', label=label))
         if not run_phase(feature, "build"):
             failed.append(feature)
             continue
@@ -921,16 +919,14 @@ def _run_builds_or_abort(feat: dict[str, object]) -> bool:
         missing = [p for p in artifacts() if not p.exists()]
         if missing:
             for p in missing:
-                fail(f"{label}: build artefact missing: {p}")
+                fail(tr('{label}: build artefact missing: {p}', label=label, p=p))
             failed.append(feature)
 
     if failed:
         print()
-        fail(f"build phase failed for: {', '.join(failed)}")
-        print("  \033[2mAll compiled components must build before any "
-              "install step runs.\033[0m")
-        print("  \033[2mFix the build errors above (typically missing KF6/Qt6 "
-              "dev packages) and re-run.\033[0m")
+        fail(tr('build phase failed for: {value1}', value1=', '.join(failed)))
+        print(tr('  \x1b[2mAll compiled components must build before any install step runs.\x1b[0m'))
+        print(tr('  \x1b[2mFix the build errors above (typically missing KF6/Qt6 dev packages) and re-run.\x1b[0m'))
         return False
     return True
 
@@ -994,14 +990,14 @@ def _check_deps(feat: dict[str, object]) -> bool:
         if p not in missing:
             ok(p)
     if missing:
-        warn(f"installing missing: {', '.join(missing)}")
+        warn(tr('installing missing: {value1}', value1=', '.join(missing)))
         transaction_ok = pkg_sync_install(*missing)
         check_cancelled()
         if not transaction_ok:
-            fail("dependency package transaction failed — refusing to continue")
+            fail(tr('dependency package transaction failed — refusing to continue'))
             return False
     else:
-        ok("all dependencies present")
+        ok(tr('all dependencies present'))
     return True
 
 
@@ -1019,19 +1015,19 @@ def _flush_icon_cache_signal() -> None:
 
 def _print_done(verb: str) -> None:
     print()
-    print(f"\033[0;32m\033[1m  ── Done\033[0m")
+    print(tr('\x1b[0;32m\x1b[1m  ── Done\x1b[0m'))
     if not errors:
-        ok(f"MacTahoe Liquid KDE {verb} successfully")
-        print(f"  \033[0;90mReport bugs at: https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new\033[0m")
+        ok(tr('MacTahoe Liquid KDE {verb} successfully', verb=tr(verb)))
+        print(tr('  \x1b[0;90mReport bugs at: https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new\x1b[0m'))
         print()
         return
     # Snapshot: fail() appends to errors, so iterating the live list while
     # calling fail() loops forever.
     issues = list(errors)
-    warn(f"{len(issues)} issue(s):")
+    warn(tr('{value1} issue(s):', value1=len(issues)))
     for e in issues:
         print(f"  \033[0;31m✗\033[0m  {e}", file=sys.stderr)
-    print(f"  \033[0;90mReport bugs at: https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new\033[0m")
+    print(tr('  \x1b[0;90mReport bugs at: https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new\x1b[0m'))
     print()
 
 
@@ -1043,30 +1039,30 @@ def _run_install_body(feat: dict[str, object]) -> int:
     preflight_ok = run_preflight("install")
     check_cancelled()
     if not preflight_ok:
-        fail("preflight failed — refusing to install")
+        fail(tr('preflight failed — refusing to install'))
         return 1
 
-    step("Verification")
-    note("Checks KDE version and required tools")
+    step('Verification')
+    note(tr('Checks KDE version and required tools'))
     plasma_ok = verify_plasma()
     check_cancelled()
     if not plasma_ok:
         return 1
 
-    step("Dependencies")
-    note("Checking and installing required tools")
+    step('Dependencies')
+    note(tr('Checking and installing required tools'))
     deps_ok = _check_deps(feat)
     check_cancelled()
     if not deps_ok:
         return 1
 
-    step("Downloading Online Components")
-    note("Fetches the pinned KDE Rounded Corners source and verifies SHA-256")
+    step('Downloading Online Components')
+    note(tr('Fetches the pinned KDE Rounded Corners source and verifies SHA-256'))
     _run_optional_downloads(feat)
     check_cancelled()
 
-    step("Building Compiled Components")
-    note("Builds C++ plasmoids and KWin effects — must succeed before install")
+    step('Building Compiled Components')
+    note(tr('Builds C++ plasmoids and KWin effects — must succeed before install'))
     builds_ok = _run_builds_or_abort(feat)
     check_cancelled()
     if not builds_ok:
@@ -1080,54 +1076,52 @@ def _run_install_body(feat: dict[str, object]) -> int:
             continue
         if not step_exists(feature):
             continue
-        label = feature.replace("_", " ")
-        step(f"Installing {label}")
-        note(FEATURE_DESC.get(feature, ""))
+        label = feature_label(feature)
+        step('Installing {label}', label=label)
+        note(tr(FEATURE_DESC.get(feature, "")))
 
         if not run_phase(feature, "install") and feature in CRITICAL_INSTALL_FEATURES:
-            fail(f"{label} install failed — aborting "
-                 "(critical compiled component)")
+            fail(tr('{label} install failed — aborting (critical compiled component)', label=label))
             return 1
 
-    step("Installing Theme Switcher")
-    note("Installs the auto light/dark theme switcher")
+    step('Installing Theme Switcher')
+    note(tr('Installs the auto light/dark theme switcher'))
     run_phase("theme_switch", "install")
 
-    step("Installing OLED Care")
-    note("Opt-in pixel shift that guards OLED panels against burn-in")
+    step('Installing OLED Care')
+    note(tr('Opt-in pixel shift that guards OLED panels against burn-in'))
     run_phase("oled_care", "install")
 
     if feat.get("apply_theme", True):
-        step("Applying Changes")
-        note("Applies settings, flushes caches, restarts KWin")
+        step('Applying Changes')
+        note(tr('Applies settings, flushes caches, restarts KWin'))
         run_phase("apply", "install")
 
         # Layout runs after apply — the Plasma JS scripting API can't
         # find the custom plasmoids by ID until their packages are on disk.
         if feat.get("layout", True) and step_exists("layout"):
-            step("Installing Layout")
-            note(FEATURE_DESC["layout"])
+            step('Installing Layout')
+            note(tr(FEATURE_DESC["layout"]))
             run_phase("layout", "install")
 
         _flush_icon_cache_signal()
 
-        step("Verification")
-        note("Checking theme configuration was applied")
+        step('Verification')
+        note(tr('Checking theme configuration was applied'))
         verify_config(feat)
 
-        step("Restarting Plasma")
-        note("Restarts Plasma shell to load all changes")
+        step('Restarting Plasma')
+        note(tr('Restarts Plasma shell to load all changes'))
         run_phase("apply", "restart_plasma")
 
         if feat.get("layout", True) and step_exists("layout") and not _layout_is_installed():
-            step("Retrying Layout")
-            note("Retries the panel layout after Plasma reloads new plasmoids")
+            step('Retrying Layout')
+            note(tr('Retries the panel layout after Plasma reloads new plasmoids'))
             run_phase("layout", "install")
         run_phase("theme_switch", "start_schedule")
     else:
-        step("Skipping Activation")
-        note("--no-apply-theme: files installed but Plasma left untouched. "
-             "Re-run with --apply-theme to switch over.")
+        step('Skipping Activation')
+        note(tr('--no-apply-theme: files installed but Plasma left untouched. Re-run with --apply-theme to switch over.'))
 
     _print_done("installed")
     return 1 if errors else 0
@@ -1139,11 +1133,11 @@ def _run_uninstall_body(feat: dict[str, object]) -> int:
     preflight_ok = run_preflight("uninstall")
     check_cancelled()
     if not preflight_ok:
-        fail("preflight failed — refusing to uninstall")
+        fail(tr('preflight failed — refusing to uninstall'))
         return 1
 
-    step("Verification")
-    note("Checks KDE version")
+    step('Verification')
+    note(tr('Checks KDE version'))
     plasma_ok = verify_plasma()
     check_cancelled()
     if not plasma_ok:
@@ -1151,23 +1145,23 @@ def _run_uninstall_body(feat: dict[str, object]) -> int:
 
     # Two-stage: restore a working Breeze state while our assets still
     # exist on disk, then remove the payload.
-    step("Removing Theme Switcher")
-    note("Stops and removes the auto light/dark theme switcher")
+    step('Removing Theme Switcher')
+    note(tr('Stops and removes the auto light/dark theme switcher'))
     run_phase("theme_switch", "uninstall")
 
-    step("Removing OLED Care")
-    note("Stops the pixel shift and restores panel geometry")
+    step('Removing OLED Care')
+    note(tr('Stops the pixel shift and restores panel geometry'))
     run_phase("oled_care", "uninstall")
 
     # Always remove MacTahoe's top bar/Dock, even when the saved feature
     # selection has since disabled layout.
     if step_exists("layout"):
-        step("Resetting Layout")
-        note("Removes the Mac top bar/Dock and preserves pinned applications")
+        step('Resetting Layout')
+        note(tr('Removes the Mac top bar/Dock and preserves pinned applications'))
         run_phase("layout", "uninstall")
 
-    step("Applying Changes")
-    note("Resets to Breeze defaults before removing theme assets")
+    step('Applying Changes')
+    note(tr('Resets to Breeze defaults before removing theme assets'))
     run_phase("apply", "uninstall")
 
     for feature in INSTALL_ORDER:
@@ -1178,13 +1172,13 @@ def _run_uninstall_body(feat: dict[str, object]) -> int:
             continue
         if not step_exists(feature):
             continue
-        label = feature.replace("_", " ")
-        step(f"Removing {label}")
-        note(FEATURE_DESC.get(feature, ""))
+        label = feature_label(feature)
+        step('Removing {label}', label=label)
+        note(tr(FEATURE_DESC.get(feature, "")))
         run_phase(feature, "uninstall")
 
-    step("Restarting Plasma")
-    note("Restarts Plasma shell to finalize changes")
+    step('Restarting Plasma')
+    note(tr('Restarts Plasma shell to finalize changes'))
     run_phase("apply", "restart_plasma")
 
     _print_done("uninstalled")
@@ -1245,7 +1239,7 @@ def run_install(argv: list[str], tui: bool = False,
                 prog: str = "install") -> int:
     parsed = parse_args(argv)
     if parsed.help:
-        print(INSTALL_HELP)
+        print(tr(INSTALL_HELP))
         return 0
     if parsed.check_update:
         return 1 if check_for_updates(verbose=True) else 0
@@ -1271,8 +1265,8 @@ def run_install(argv: list[str], tui: bool = False,
     if (parsed.restart_only and not parsed.only_mode and not parsed.cli_overrides
             and not parsed.reset_wallpapers):
         banner(read_version())
-        step("Restarting Plasma")
-        note("Restarts Plasma shell — no install, no config changes")
+        step('Restarting Plasma')
+        note(tr('Restarts Plasma shell — no install, no config changes'))
         run_phase("apply", "restart_plasma")
         return 0
 
@@ -1283,7 +1277,7 @@ def run_install(argv: list[str], tui: bool = False,
     try:
         check_cancelled()
         if not SRC_DIR.is_dir():
-            print("  \033[0;31m  Run from repo root.\033[0m", file=sys.stderr)
+            print(tr('  \x1b[0;31m  Run from repo root.\x1b[0m'), file=sys.stderr)
             rc = 1
             return rc
 
@@ -1299,11 +1293,10 @@ def run_install(argv: list[str], tui: bool = False,
 
         if wizard is None:
             tracker.mark_aborted()
-            print("  Aborted.")
+            print(tr('  Aborted.'))
             return 0
         if wizard is _TUI_UNAVAILABLE:
-            if not confirm("In development — Install at your own risk.\n"
-                           "  Do not install on production / work systems."):
+            if not confirm(tr('In development — Install at your own risk.\n  Do not install on production / work systems.')):
                 tracker.mark_aborted()
                 return 0
             if not _tui_active(argv, tui) and check_for_updates(inline=True):
@@ -1314,7 +1307,7 @@ def run_install(argv: list[str], tui: bool = False,
             feat = wizard
             if feat.pop("_save", False):
                 save_features(feat)
-                ok("features.json saved")
+                ok(tr('features.json saved'))
             export_env(feat)
             rc = _run_body_with_progress(
                 _run_install_body, feat, "install",
@@ -1326,7 +1319,7 @@ def run_install(argv: list[str], tui: bool = False,
         return rc
     except KeyboardInterrupt:
         tracker.mark_aborted()
-        print("\n  Aborted.", file=sys.stderr)
+        print(tr('\n  Aborted.'), file=sys.stderr)
         rc = 130
         return rc
     finally:
@@ -1342,7 +1335,7 @@ def run_uninstall(argv: list[str], tui: bool = False,
                   prog: str = "uninstall") -> int:
     parsed = parse_args(argv)
     if parsed.help:
-        print(UNINSTALL_HELP)
+        print(tr(UNINSTALL_HELP))
         return 0
 
     if not _require_root_and_drop_to_user(prog):
@@ -1359,7 +1352,7 @@ def run_uninstall(argv: list[str], tui: bool = False,
     try:
         check_cancelled()
         if not SRC_DIR.is_dir():
-            print("  \033[0;31m  Run from repo root.\033[0m", file=sys.stderr)
+            print(tr('  \x1b[0;31m  Run from repo root.\x1b[0m'), file=sys.stderr)
             rc = 1
             return rc
 
@@ -1368,10 +1361,10 @@ def run_uninstall(argv: list[str], tui: bool = False,
                   if _tui_active(argv, tui) else _TUI_UNAVAILABLE)
         if wizard is None:
             tracker.mark_aborted()
-            print("  Aborted.")
+            print(tr('  Aborted.'))
             return 0
         if wizard is _TUI_UNAVAILABLE:
-            if not confirm("This will reset your desktop to Breeze defaults."):
+            if not confirm(tr('This will reset your desktop to Breeze defaults.')):
                 tracker.mark_aborted()
                 return 0
             check_for_updates(inline=True)
@@ -1392,7 +1385,7 @@ def run_uninstall(argv: list[str], tui: bool = False,
         return rc
     except KeyboardInterrupt:
         tracker.mark_aborted()
-        print("\n  Aborted.", file=sys.stderr)
+        print(tr('\n  Aborted.'), file=sys.stderr)
         rc = 130
         return rc
     finally:

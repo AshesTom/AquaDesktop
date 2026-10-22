@@ -5,6 +5,8 @@ with a distro hint instead of guessing."""
 
 from __future__ import annotations
 
+from localization import tr
+
 import os
 import shutil
 import subprocess
@@ -387,9 +389,7 @@ def qt6_plugins_dir() -> Path:
             _QT_PLUGINS_CACHE = candidate
             return _QT_PLUGINS_CACHE
     raise Qt6PathsMissing(
-        "No Qt6 query tool found (qmake6 / qtpaths6 / pkg-config) and no "
-        "fallback plugin directory exists on disk. Install with: "
-        f"{qt6_install_hint()}"
+        tr('No Qt6 query tool found (qmake6 / qtpaths6 / pkg-config) and no fallback plugin directory exists on disk. Install with: {value1}', value1=qt6_install_hint())
     )
 
 
@@ -410,9 +410,7 @@ def qt6_qml_dir() -> Path:
             _QT_QML_CACHE = candidate
             return _QT_QML_CACHE
     raise Qt6PathsMissing(
-        "No Qt6 query tool found (qmake6 / pkg-config) and no fallback "
-        "QML directory exists on disk. Install with: "
-        f"{qt6_install_hint()}"
+        tr('No Qt6 query tool found (qmake6 / pkg-config) and no fallback QML directory exists on disk. Install with: {value1}', value1=qt6_install_hint())
     )
 
 
@@ -1189,9 +1187,7 @@ def package_for(cmd: str, fallback_pkg: str | None = None) -> str:
     fallback = fallback_pkg or cmd
     family = ", ".join(parents) if parents else "none"
     raise PackageMappingError(
-        f"No package mapping for dependency token {cmd!r} on distro "
-        f"{distro!r} (ID_LIKE: {family}); refusing Arch fallback "
-        f"{fallback!r}. Add a row to distro._PACKAGE_MAP."
+        tr('No package mapping for dependency token {cmd!r} on distro {distro!r} (ID_LIKE: {family}); refusing Arch fallback {fallback!r}. Add a row to distro._PACKAGE_MAP.', cmd=cmd, distro=distro, family=family, fallback=fallback)
     )
 
 
@@ -1224,9 +1220,7 @@ _PACKAGE_MANAGER_SYNC: dict[str, list[str] | None] = {
 def _reject_retired_distro() -> None:
     if "gentoo" in (current_distro(), *_compatibility_parents()):
         raise UnsupportedDistroError(
-            "Gentoo support was retired in v0.54.7. New installations and "
-            "upgrades require a separately maintained Gentoo integration. "
-            "Existing installations can still be uninstalled."
+            tr('Gentoo support was retired in v0.54.7. New installations and upgrades require a separately maintained Gentoo integration. Existing installations can still be uninstalled.')
         )
 
 
@@ -1240,8 +1234,7 @@ def package_manager_sync_cmd() -> list[str] | None:
             cmd = _PACKAGE_MANAGER_SYNC[name]
             return list(cmd) if cmd else None
     raise UnsupportedDistroError(
-        f"No package manager mapping for distro {distro!r}. "
-        f"Add a row to distro._PACKAGE_MANAGER_SYNC."
+        tr('No package manager mapping for distro {distro!r}. Add a row to distro._PACKAGE_MANAGER_SYNC.', distro=distro)
     )
 
 
@@ -1256,8 +1249,7 @@ def package_manager_install_cmd() -> list[str]:
         if parent in _PACKAGE_MANAGER_INSTALL:
             return list(_PACKAGE_MANAGER_INSTALL[parent])
     raise UnsupportedDistroError(
-        f"No package manager mapping for distro {distro!r}. "
-        f"Add a row to distro._PACKAGE_MANAGER_INSTALL."
+        tr('No package manager mapping for distro {distro!r}. Add a row to distro._PACKAGE_MANAGER_INSTALL.', distro=distro)
     )
 
 

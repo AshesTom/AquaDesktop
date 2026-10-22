@@ -8,7 +8,7 @@
 <p align="center">
   <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases"><img src="https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&amp;color=blue" alt="release"></a>
   <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases/tag/v0.57.15"><img src="https://img.shields.io/badge/LTS-v0.57.15-green" alt="LTS v0.57.15"></a>
-  <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml"><img src="https://img.shields.io/badge/tests-1705_passing-brightgreen" alt="tests"></a>
+  <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml"><img src="https://img.shields.io/badge/tests-1734_passing-brightgreen" alt="tests"></a>
   <a href="https://kde.org/plasma-desktop/"><img src="https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde" alt="plasma"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="license"></a>
   <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new"><img src="https://img.shields.io/badge/report-a%20bug-red?logo=github" alt="report a bug"></a>
@@ -141,7 +141,7 @@ Plymouth startup and shutdown theme with LUKS2 unlock support.
 
 Here is what we added or improved in the components we ship.
 
-- **Multilanguage support:** English, Spanish and Simplified Chinese in the graphical and terminal installers, plus translated Plasma widgets.
+- **Multilanguage support:** English, Spanish, Simplified Chinese, Brazilian Portuguese and German in the graphical and terminal installers, plus translated Plasma widgets.
 - **Installation and packaging:** graphical installer, terminal wizard, selectable components, saved preferences, bundled theme assets and release updates.
 - **Multiple distributions:** dependency detection and package mappings for Arch-based, Fedora-based, openSUSE, Debian and KDE neon systems.
 - **systemd and OpenRC:** scheduled theme switching and OLED care through user timers or cron.
@@ -174,7 +174,7 @@ sudo ./install
 sudo ./uninstall
 ```
 
-English, Spanish and Simplified Chinese. All options: `sudo ./install --help`.
+English, Spanish, Simplified Chinese, Brazilian Portuguese and German. All options: `sudo ./install --help`.
 
 <details>
 <summary><b>Requirements</b></summary>

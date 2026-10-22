@@ -18,14 +18,15 @@ def test_nix_inputs_are_locked_and_share_nixpkgs(repo):
 
 
 @pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate"])
-def test_nix_asset_assembly_matches_runtime_theme_names(repo, tmp_path, monkeypatch, edition):
+def test_nix_asset_assembly_matches_runtime_theme_names(repo, tmp_path, monkeypatch, edition, sandbox):
     import glass_surfaces
     from steps import plasma_theme, kvantum
 
     scripts = tmp_path / "scripts"
     scripts.mkdir()
-    for name in ("glass_surfaces.py", "theme_switch.py", "launcher_defaults.py"):
+    for name in ("glass_surfaces.py", "theme_switch.py", "launcher_defaults.py", "localization.py"):
         shutil.copy2(repo / "src/scripts" / name, scripts / name)
+    shutil.copytree(repo / "src/scripts/locales", scripts / "locales")
     (scripts / "defaults.json").write_text(json.dumps({"wallpaper": edition, "launcher_preset": 1}))
     monkeypatch.setenv("PYTHONPATH", str(scripts))
     subprocess.run([sys.executable, str(repo / "nix/install-assets.py"),

@@ -1,3 +1,4 @@
+from localization import tr
 import json
 import re
 import subprocess
@@ -51,14 +52,14 @@ def _ensure_panel_colorizer() -> None:
     # outdated user copy; otherwise preserve an equal/newer installed release.
     bundled_version = _colorizer_version(COLORIZER_SRC)
     if bundled_version is None:
-        warn("Panel Colorizer not installed — bundled metadata is invalid.")
+        warn(tr('Panel Colorizer not installed — bundled metadata is invalid.'))
         return
 
     dirs = _colorizer_dirs()
     dest = dirs[0]
     user_version = _colorizer_version(dest)
     if user_version is not None and user_version >= bundled_version:
-        ok("Panel Colorizer")
+        ok(tr('Panel Colorizer'))
         return
 
     if user_version is None and not dest.exists():
@@ -68,18 +69,17 @@ def _ensure_panel_colorizer() -> None:
                 installed_version is not None
                 and installed_version >= bundled_version
             ):
-                ok("Panel Colorizer")
+                ok(tr('Panel Colorizer'))
                 return
 
-    if install_tree(COLORIZER_SRC, dest, "Panel Colorizer"):
+    if install_tree(COLORIZER_SRC, dest, tr('Panel Colorizer')):
         return
-    warn("Panel Colorizer not installed — top bar won't be transparent. "
-         "Install manually from KDE Store.")
+    warn(tr("Panel Colorizer not installed — top bar won't be transparent. Install manually from KDE Store."))
 
 
 def _evaluate_layout_script(script: str) -> bool:
     if qdbus_cmd() is None:
-        warn("qdbus not found — layout not installed")
+        warn(tr('qdbus not found — layout not installed'))
         return False
     # plasmashell may still be restarting from the apply step — retry a few times.
     for _ in range(5):
@@ -331,7 +331,7 @@ def _patch_plasmashellrc() -> None:
     new_text = _PRC_PANEL_RE.sub(fix, text)
     if new_text != text:
         prc.write_text(new_text)
-        ok("Panel glass forced translucent")
+        ok(tr('Panel glass forced translucent'))
 
 
 def _reset_plasmashellrc() -> bool:
@@ -374,7 +374,7 @@ def install() -> None:
     _clear_layout_marker()
     _ensure_panel_colorizer()
     if not LAYOUT_SCRIPT.is_file():
-        warn("Layout script not found — skipping")
+        warn(tr('Layout script not found — skipping'))
         return
     pins = _capture_pinned_launchers()
     applied = _evaluate_layout_with_launchers(
@@ -382,10 +382,10 @@ def install() -> None:
     )
     if applied and _wait_for_layout_install():
         _mark_layout_installed()
-        ok(f"Layout installed (kept {len(pins)} pinned app(s))" if pins
-           else "Layout installed")
+        ok(tr("Layout installed (kept {count} pinned apps)", count=len(pins)) if pins
+           else tr("Layout installed"))
     else:
-        warn("layout failed — set layout manually")
+        warn(tr('layout failed — set layout manually'))
         return
     time.sleep(3)
     _patch_plasmashellrc()
@@ -399,27 +399,26 @@ def uninstall() -> None:
     has_theme_widgets = _layout_has_any_theme_widget()
     _clear_layout_marker()
     if _reset_plasmashellrc():
-        ok("Panel transparency reset")
+        ok(tr('Panel transparency reset'))
     if not has_theme_widgets:
-        ok("Layout already clean")
+        ok(tr('Layout already clean'))
         return
     # Always remove the Mac top bar and Dock. Preserve only the applications
     # the user pinned; Launcher and Trash are widgets and disappear with Dock.
     pins = _capture_pinned_launchers()
     if _reset_with_pins(pins):
-        ok(f"Layout reset (kept {len(pins)} pinned app(s))" if pins
-           else "Layout reset")
+        ok(tr("Layout reset (kept {count} pinned apps)", count=len(pins)) if pins
+           else tr("Layout reset"))
         return
 
     if _reset_layout_builtin():
         if _restore_pins(pins, DEFAULT_TASKS_ID):
-            ok(f"Layout reset (kept {len(pins)} pinned app(s))" if pins
-               else "Layout reset")
+            ok(tr("Layout reset (kept {count} pinned apps)", count=len(pins)) if pins
+               else tr("Layout reset"))
         else:
-            warn("Layout reset, but pinned applications could not be restored")
+            warn(tr('Layout reset, but pinned applications could not be restored'))
         return
     if _layout_looks_reset():
-        warn("Layout reset fallback was not confirmed; pinned applications "
-             "may need to be restored manually")
+        warn(tr('Layout reset fallback was not confirmed; pinned applications may need to be restored manually'))
         return
-    warn("layout reset failed")
+    warn(tr('layout reset failed'))

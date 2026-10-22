@@ -93,6 +93,14 @@ vec2 tex_to_pixel(vec2 texcoord)"""),
 }
 
 
+class CompatibilityError(ValueError):
+    """Expose the failed path without coupling the Nix helper to a UI locale."""
+
+    def __init__(self, relative: str):
+        self.relative = relative
+        super().__init__(f"Rounded Corners compatibility patch does not match {relative}")
+
+
 def apply(source: Path) -> None:
     """Validate every hunk before writing; reject unexpected or partial sources."""
     updates = {}
@@ -101,12 +109,12 @@ def apply(source: Path) -> None:
         try:
             text = path.read_text()
         except OSError as exc:
-            raise ValueError(f"Rounded Corners compatibility patch does not match {relative}") from exc
+            raise CompatibilityError(relative) from exc
         for old, new in replacements:
             if text.count(new) == 1:
                 continue
             if text.count(old) != 1:
-                raise ValueError(f"Rounded Corners compatibility patch does not match {relative}")
+                raise CompatibilityError(relative)
             text = text.replace(old, new, 1)
         updates[path] = text
     for path, text in updates.items():

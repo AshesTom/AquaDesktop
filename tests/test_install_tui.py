@@ -180,7 +180,7 @@ def test_language_row_cycles_all_supported_languages():
     wiz = _wizard()
     _goto(wiz, ("language", "_language"))
     assert wiz.feat["_language"] == "auto"
-    for expected in ("en", "es", "zh_CN", "auto"):
+    for expected in ("en", "es", "zh_CN", "pt_BR", "de", "auto"):
         wiz.adjust(1)
         assert wiz.feat["_language"] == expected
 

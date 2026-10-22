@@ -8,6 +8,8 @@ allowed to run.
 
 from __future__ import annotations
 
+from localization import tr
+
 import hashlib
 import json
 import os
@@ -34,7 +36,7 @@ from steps._helpers import (
     warn,
 )
 from utils import fetch, qdbus_cmd, run_user
-from rounded_corners_compat import apply as apply_compatibility_patch
+from rounded_corners_compat import CompatibilityError, apply as apply_compatibility_patch
 
 
 # v0.10.0 handles KWin 6.7.80+'s bool drawWindow API while retaining
@@ -121,7 +123,7 @@ def _extract_verified_archive() -> bool:
         with tarfile.open(ARCHIVE, "r:gz") as archive:
             members = archive.getmembers()
             if not members:
-                raise ValueError("archive is empty")
+                raise ValueError(tr('archive is empty'))
             for member in members:
                 relative = PurePosixPath(member.name)
                 if (
@@ -130,21 +132,21 @@ def _extract_verified_archive() -> bool:
                     or not relative.parts
                     or relative.parts[0] != expected_root
                 ):
-                    raise ValueError(f"unsafe archive path: {member.name}")
+                    raise ValueError(tr('unsafe archive path: {value1}', value1=member.name))
                 # Source releases need regular files and directories only.
                 # Reject links and special nodes so extraction cannot escape
                 # the staging tree through a crafted upstream archive.
                 if not (member.isfile() or member.isdir()):
-                    raise ValueError(f"unsafe archive member: {member.name}")
+                    raise ValueError(tr('unsafe archive member: {value1}', value1=member.name))
             archive.extractall(staging, members=members)
         extracted = staging / expected_root
         if not (extracted / "CMakeLists.txt").is_file():
-            raise ValueError("CMakeLists.txt missing from archive")
+            raise ValueError(tr('CMakeLists.txt missing from archive'))
         shutil.rmtree(SOURCE, ignore_errors=True)
         extracted.replace(SOURCE)
         return True
     except (OSError, tarfile.TarError, ValueError) as exc:
-        fail(f"KDE Rounded Corners archive rejected ({exc})")
+        fail(tr('KDE Rounded Corners archive rejected ({exc})', exc=exc))
         return False
     finally:
         shutil.rmtree(staging, ignore_errors=True)
@@ -161,14 +163,13 @@ def download() -> None:
         partial = ARCHIVE.with_suffix(ARCHIVE.suffix + ".part")
         partial.unlink(missing_ok=True)
         if not fetch(UPSTREAM_URL, partial, referer=UPSTREAM_PROJECT_URL):
-            fail(f"KDE Rounded Corners v{UPSTREAM_VERSION} download failed")
+            fail(tr('KDE Rounded Corners v{UPSTREAM_VERSION} download failed', UPSTREAM_VERSION=UPSTREAM_VERSION))
             return
         actual = _sha256(partial)
         if actual != UPSTREAM_SHA256:
             partial.unlink(missing_ok=True)
             fail(
-                "KDE Rounded Corners checksum mismatch "
-                f"(expected {UPSTREAM_SHA256}, got {actual})"
+                tr('KDE Rounded Corners checksum mismatch (expected {UPSTREAM_SHA256}, got {actual})', UPSTREAM_SHA256=UPSTREAM_SHA256, actual=actual)
             )
             return
         partial.replace(ARCHIVE)
@@ -176,8 +177,8 @@ def download() -> None:
     if not _extract_verified_archive():
         return
     _DOWNLOAD_READY = True
-    suffix = " (verified cache)" if cached else ""
-    ok(f"KDE Rounded Corners v{UPSTREAM_VERSION} downloaded and verified{suffix}")
+    suffix = tr(" (verified cache)") if cached else ""
+    ok(tr('KDE Rounded Corners v{UPSTREAM_VERSION} downloaded and verified{suffix}', UPSTREAM_VERSION=UPSTREAM_VERSION, suffix=suffix))
 
 
 def download_ready() -> bool:
@@ -200,12 +201,16 @@ def _plugin_dir() -> Path:
 
 def build() -> None:
     if not (SOURCE / "CMakeLists.txt").is_file():
-        fail("KDE Rounded Corners source missing — online phase did not complete")
+        fail(tr('KDE Rounded Corners source missing — online phase did not complete'))
         return
     try:
         apply_compatibility_patch(SOURCE)
+    except CompatibilityError as exc:
+        reason = tr("Rounded Corners compatibility patch does not match {path}", path=exc.relative)
+        fail(tr('KDE Rounded Corners compatibility patch failed ({exc})', exc=reason))
+        return
     except (OSError, ValueError) as exc:
-        fail(f"KDE Rounded Corners compatibility patch failed ({exc})")
+        fail(tr('KDE Rounded Corners compatibility patch failed ({exc})', exc=exc))
         return
     cmake_build(SOURCE, BUILD, "KDE Rounded Corners")
 
@@ -251,8 +256,7 @@ def _read_round_corners_key(key: str) -> tuple[bool, str | None] | None:
     a stronger contract, so use kreadconfig's per-call default sentinel here.
     """
     if not have("kreadconfig6"):
-        warn("could not snapshot Rounded Corners settings — "
-             "kreadconfig6 is unavailable")
+        warn(tr('could not snapshot Rounded Corners settings — kreadconfig6 is unavailable'))
         return None
 
     sentinel = f"__mttkde_absent_{uuid.uuid4().hex}__"
@@ -269,11 +273,10 @@ def _read_round_corners_key(key: str) -> tuple[bool, str | None] | None:
             timeout=5,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
-        warn(f"could not read Rounded Corners setting {key} ({exc})")
+        warn(tr('could not read Rounded Corners setting {key} ({exc})', key=key, exc=exc))
         return None
     if result.returncode != 0:
-        warn(f"could not read Rounded Corners setting {key} "
-             f"(kreadconfig6 exited {result.returncode})")
+        warn(tr('could not read Rounded Corners setting {key} (kreadconfig6 exited {value2})', key=key, value2=result.returncode))
         return None
 
     value = result.stdout or ""
@@ -319,11 +322,11 @@ def _load_round_corners_snapshot() -> dict | None:
             PREV_ROUND_CORNERS_FILE.read_text(encoding="utf-8")
         )
     except (OSError, json.JSONDecodeError, TypeError) as exc:
-        warn(f"could not read previous Rounded Corners settings ({exc})")
+        warn(tr('could not read previous Rounded Corners settings ({exc})', exc=exc))
         return None
     snapshot = _validate_round_corners_snapshot(payload)
     if snapshot is None:
-        warn("previous Rounded Corners settings have an invalid shape")
+        warn(tr('previous Rounded Corners settings have an invalid shape'))
     return snapshot
 
 
@@ -341,7 +344,7 @@ def _write_round_corners_snapshot(snapshot: dict) -> bool:
         os.replace(tmp, PREV_ROUND_CORNERS_FILE)
         return True
     except OSError as exc:
-        warn(f"could not snapshot previous Rounded Corners settings ({exc})")
+        warn(tr('could not snapshot previous Rounded Corners settings ({exc})', exc=exc))
         try:
             tmp.unlink()
         except OSError:
@@ -416,8 +419,7 @@ def _restore_round_corners_keys(*, legacy_install: bool) -> bool:
         if not kw_write(*args):
             restored = False
     if not restored:
-        warn("previous Rounded Corners settings could not be restored — "
-             "recovery state retained")
+        warn(tr('previous Rounded Corners settings could not be restored — recovery state retained'))
         return False
     return True
 
@@ -425,12 +427,11 @@ def _restore_round_corners_keys(*, legacy_install: bool) -> bool:
 def install() -> None:
     effect, config, *shaders = build_artifacts()
     if not all(path.is_file() for path in (effect, config, *shaders)):
-        fail("KDE Rounded Corners build artefacts missing")
+        fail(tr('KDE Rounded Corners build artefacts missing'))
         return
 
     if not _snapshot_round_corners_keys():
-        fail("KDE Rounded Corners not installed — previous radius settings "
-             "could not be preserved")
+        fail(tr('KDE Rounded Corners not installed — previous radius settings could not be preserved'))
         return
 
     kw_write(
@@ -460,15 +461,15 @@ def install() -> None:
             return
 
     for source, destination in _locale_artifacts():
-        if not sudo_install_file(source, destination, f"Rounded Corners locale: {destination.parts[-3]}"):
-            warn(f"KDE Rounded Corners locale failed: {destination.parts[-3]}")
+        if not sudo_install_file(source, destination, tr('Rounded Corners locale: {value1}', value1=destination.parts[-3])):
+            warn(tr('KDE Rounded Corners locale failed: {value1}', value1=destination.parts[-3]))
 
     license_source = SOURCE / "LICENSE"
     if license_source.is_file():
         sudo_install_file(
             license_source,
             LICENSE_FILE,
-            "KDE Rounded Corners GPL-3.0 license installed",
+            tr('KDE Rounded Corners GPL-3.0 license installed'),
         )
 
     radius_configured = True
@@ -479,25 +480,25 @@ def install() -> None:
         ):
             radius_configured = False
     if radius_configured:
-        ok(f"KDE Rounded Corners radius set to {CORNER_RADIUS}")
+        ok(tr('KDE Rounded Corners radius set to {CORNER_RADIUS}', CORNER_RADIUS=CORNER_RADIUS))
     else:
-        warn("KDE Rounded Corners radius could not be set — kwriteconfig6 failed")
+        warn(tr('KDE Rounded Corners radius could not be set — kwriteconfig6 failed'))
 
     if not kw_write(
         "--file", "kwinrc", "--group", "Plugins",
         "--key", "shapecornersEnabled", "true",
     ):
-        warn("KDE Rounded Corners could not be enabled — kwriteconfig6 failed")
+        warn(tr('KDE Rounded Corners could not be enabled — kwriteconfig6 failed'))
     qdbus_call("org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure")
     qdbus_call(
         "org.kde.KWin", "/Effects",
         "org.kde.kwin.Effects.loadEffect", EFFECT_ID,
     )
     if _effect_active():
-        ok("KDE Rounded Corners loaded")
+        ok(tr('KDE Rounded Corners loaded'))
     else:
-        ok("KDE Rounded Corners installed (log out and back in to activate)")
-    info(f"KDE Rounded Corners v{UPSTREAM_VERSION} installed from verified upstream source")
+        ok(tr('KDE Rounded Corners installed (log out and back in to activate)'))
+    info(tr('KDE Rounded Corners v{UPSTREAM_VERSION} installed from verified upstream source', UPSTREAM_VERSION=UPSTREAM_VERSION))
 
 
 def uninstall() -> None:
@@ -506,8 +507,7 @@ def uninstall() -> None:
     if not _restore_round_corners_keys(
         legacy_install=LICENSE_FILE.is_file(),
     ):
-        fail("KDE Rounded Corners removal stopped — previous radius settings "
-             "could not be restored")
+        fail(tr('KDE Rounded Corners removal stopped — previous radius settings could not be restored'))
         return
 
     qdbus_call(
@@ -536,11 +536,11 @@ def uninstall() -> None:
         existed = destination.exists() or destination.is_symlink()
         if not sudo_remove(
             destination,
-            f"Rounded Corners locale: {destination.parts[-3]}",
+            tr('Rounded Corners locale: {value1}', value1=destination.parts[-3]),
         ) and existed:
             cleanup_ok = False
     if not cleanup_ok:
-        fail("KDE Rounded Corners removal incomplete — recovery state retained")
+        fail(tr('KDE Rounded Corners removal incomplete — recovery state retained'))
         return
 
     # Clear the ownership snapshot last. If the process is interrupted during
@@ -551,7 +551,7 @@ def uninstall() -> None:
         try:
             PREV_ROUND_CORNERS_FILE.unlink()
         except OSError as exc:
-            fail(f"could not clear Rounded Corners recovery state ({exc})")
+            fail(tr('could not clear Rounded Corners recovery state ({exc})', exc=exc))
             return
     shutil.rmtree(WORK, ignore_errors=True)
-    info("KDE Rounded Corners removed")
+    info(tr('KDE Rounded Corners removed'))

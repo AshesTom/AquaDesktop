@@ -1,3 +1,4 @@
+from localization import tr
 from steps._helpers import DATA_HOME, fail, info, ok, offline, reinstall
 
 DEST_DIR = DATA_HOME / "color-schemes"
@@ -7,7 +8,7 @@ LEGACY = ("MacTahoeDark.colors", "MacTahoeLight.colors")
 def install() -> None:
     src = offline("color-schemes")
     if not src.is_dir():
-        fail(f"Color scheme source not found at {src}")
+        fail(tr('Color scheme source not found at {src}', src=src))
         return
     DEST_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -28,8 +29,8 @@ def install() -> None:
         if existed:
             reinstall(cs.stem); n_re += 1
         else:
-            ok(f"{cs.stem} (installed)"); n_inst += 1
-    info(f"{n_inst + n_re} color schemes — {n_inst} installed, {n_re} reinstalled")
+            ok(tr('{value1} (installed)', value1=cs.stem)); n_inst += 1
+    info(tr('{value1} color schemes — {n_inst} installed, {n_re} reinstalled', value1=n_inst + n_re, n_inst=n_inst, n_re=n_re))
 
 
 def uninstall() -> None:
@@ -37,8 +38,8 @@ def uninstall() -> None:
     for cs in DEST_DIR.glob("MacTahoeLiquidKde*.colors"):
         try:
             cs.unlink()
-            ok(f"{cs.stem} removed")
+            ok(tr('{value1} removed', value1=cs.stem))
             n += 1
         except OSError:
             fail(cs.stem)
-    info(f"{n} color schemes removed")
+    info(tr('{n} color schemes removed', n=n))

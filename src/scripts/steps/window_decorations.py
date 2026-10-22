@@ -1,3 +1,4 @@
+from localization import tr
 import shutil
 
 from steps._helpers import (
@@ -12,7 +13,7 @@ VARIANTS = ("Dark", "Light")
 def install() -> None:
     src = offline("aurorae")
     if not src.is_dir():
-        fail(f"Aurorae source not found at {src}")
+        fail(tr('Aurorae source not found at {src}', src=src))
         return
 
     DEST_DIR.mkdir(parents=True, exist_ok=True)
@@ -42,7 +43,7 @@ def install() -> None:
         if existed:
             reinstall(name); n_re += 1
         else:
-            ok(f"{name} (installed)"); n_inst += 1
+            ok(tr('{name} (installed)', name=name)); n_inst += 1
 
     chosen = "MacTahoeLiquidKde-Light" if theme_mode() == "light" else "MacTahoeLiquidKde-Dark"
     write_failures = 0
@@ -58,14 +59,11 @@ def install() -> None:
             write_failures += 1
     qdbus_call("org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure")
     if write_failures == 0:
-        ok(f"Window decoration set to {chosen}")
+        ok(tr('Window decoration set to {chosen}', chosen=chosen))
     else:
-        warn(f"Window decoration files installed but {write_failures} "
-             "kwinrc key(s) could not be written — kwriteconfig6 "
-             "unavailable. Install plasma-workspace or your distro's "
-             "equivalent to apply the decoration on next login.")
+        warn(tr("Window decoration files installed but {write_failures} kwinrc key(s) could not be written — kwriteconfig6 unavailable. Install plasma-workspace or your distro's equivalent to apply the decoration on next login.", write_failures=write_failures))
 
-    info(f"{n_inst + n_re} Aurorae themes — {n_inst} installed, {n_re} reinstalled")
+    info(tr('{value1} Aurorae themes — {n_inst} installed, {n_re} reinstalled', value1=n_inst + n_re, n_inst=n_inst, n_re=n_re))
 
 
 def uninstall() -> None:
@@ -74,7 +72,7 @@ def uninstall() -> None:
         d = DEST_DIR / f"MacTahoeLiquidKde-{mode}"
         if d.is_dir():
             shutil.rmtree(d, ignore_errors=True)
-            ok(f"MacTahoeLiquidKde-{mode} removed")
+            ok(tr('MacTahoeLiquidKde-{mode} removed', mode=mode))
             n += 1
     for key, value in (
         ("library", "org.kde.breeze"),
@@ -86,5 +84,5 @@ def uninstall() -> None:
                  "--group", "org.kde.kdecoration2",
                  "--key", key, value)
     qdbus_call("org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure")
-    ok("Window decoration reset to Breeze")
-    info(f"{n} Aurorae themes removed")
+    ok(tr('Window decoration reset to Breeze'))
+    info(tr('{n} Aurorae themes removed', n=n))

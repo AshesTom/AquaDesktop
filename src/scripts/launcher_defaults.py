@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import re
 
+from localization import tr
+
 DEFAULTS_FILE = Path(__file__).with_name("defaults.json")
 LAUNCHER_ID = "org.kde.mac-tahoe-liquid-kde.launcher"
 
@@ -32,7 +34,7 @@ def apply_launcher_default(package: Path) -> None:
         text,
     )
     if count != 1:
-        raise ValueError("Launcher package lacks edition preset support")
+        raise ValueError(tr("Launcher package lacks edition preset support"))
     config.write_text(updated)
     view = package / "contents/ui/MainView.qml"
     golden_gate = _edition_defaults().get("wallpaper") == "MacGoldenGate"
@@ -42,5 +44,5 @@ def apply_launcher_default(package: Path) -> None:
         view.read_text(),
     )
     if count != 1:
-        raise ValueError("Launcher package lacks edition appearance support")
+        raise ValueError(tr("Launcher package lacks edition appearance support"))
     view.write_text(updated)

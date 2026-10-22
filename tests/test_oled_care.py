@@ -897,7 +897,7 @@ def test_step_install_enabled_copies_and_enables(tmp_path, monkeypatch):
     step.install()
 
     assert step.BIN_DEST.is_file()
-    assert step.BIN_DEST.read_bytes() == step.PY_SRC.read_bytes()
+    assert step.BIN_DEST.read_text() == step.standalone_source(step.PY_SRC.read_text())
     assert list(step.BIN_DEST.parent.glob(f".{step.BIN_DEST.name}.*.tmp")) == []
     assert not oled_care._disabled_file().exists()
     assert step.BIN_DEST.stat().st_mode & 0o111
@@ -1014,7 +1014,7 @@ def test_step_uninstall_retains_recovery_when_panels_cannot_restore(
     # The schedule is gone and the replacement obeys the tombstone, so keep
     # the recovery command available until geometry can actually be restored.
     assert step.BIN_DEST.is_file()
-    assert step.BIN_DEST.read_bytes() == step.PY_SRC.read_bytes()
+    assert step.BIN_DEST.read_text() == step.standalone_source(step.PY_SRC.read_text())
     assert state_file.is_file()
     assert not any((step.SVC_DIR / unit).exists() for unit in step.UNITS)
     assert any("disable" in " ".join(call) for call in calls)

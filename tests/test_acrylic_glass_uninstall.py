@@ -44,7 +44,8 @@ def test_uninstall_disables_before_unload_and_reconfigures_after_removal(
     )
     assert calls[2][1][-1] == "org.kde.KWin.reconfigure"
     assert calls[-1][1][-1] == "org.kde.KWin.reconfigure"
-    assert len(removed) == 2
+    assert len(removed) == 4
+    assert {p.parts[-3] for p in removed if p.suffix == ".mo"} == {"pt_BR", "de"}
     text = kwinrc.read_text()
     assert "[Effect-liquidglass]" not in text
     assert "[Windows]\nPlacement=Smart" in text

@@ -94,7 +94,7 @@ def test_launch_action_prefers_first_available_terminal(
     assert payload["terminal"] == "konsole"
     assert payload["command"] == "sudo ./install"
     assert seen["argv"][:3] == ["konsole", "--noclose", "-e"]
-    assert seen["argv"][-1] == f"cd {repo} && sudo ./install"
+    assert seen["argv"][-1] == f"cd {repo} && sudo MTTKDE_LANGUAGE=en ./install"
     assert seen["cwd"] == str(repo)
     assert seen["start_new_session"] is True
 
@@ -648,7 +648,7 @@ def test_log_step_writes_progress_records(monkeypatch, tmp_path):
         log.progress_done(0)
 
         lines = progress.read_text().splitlines()
-        assert lines == ["1\tVerification", "2\tInstalling fonts", "__DONE__\t0"]
+        assert lines == ["1\tVerification\tVerification", "2\tInstalling fonts\tInstalling fonts", "__DONE__\t0"]
         assert stat.S_IMODE(progress.stat().st_mode) == 0o600
     finally:
         # Restore the module's default path for any later test.

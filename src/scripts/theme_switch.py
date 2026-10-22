@@ -6,6 +6,8 @@ plasma-apply-colorscheme (correct [Colors:*] groups + ColorSchemeHash so
 live Qt apps reload the palette); the manual [Colors:*] rewrite remains
 only as a fallback for systems without the tool."""
 
+from localization import tr
+
 import datetime as _dt
 import fcntl
 import hashlib
@@ -877,8 +879,7 @@ def _apply_wallpaper(
     appletsrc = _xdg_config() / "plasma-org.kde.plasma.desktop-appletsrc"
     if not current and not reset and (was_initialized or
                                      (existing and appletsrc.exists())):
-        print("wallpaper: capture failed after retries — desktop state "
-              "unknown, leaving wallpapers untouched", file=sys.stderr)
+        print(tr('wallpaper: capture failed after retries — desktop state unknown, leaving wallpapers untouched'), file=sys.stderr)
         return True
 
     state["initialized"] = True
@@ -1119,7 +1120,7 @@ def _apply_local_extras(mode: str) -> None:
                 try:
                     shutil.copytree(src, gtk4_dest / sub, dirs_exist_ok=True)
                 except OSError as exc:
-                    print(f"theme apply: gtk4 {sub} copy skipped: {exc}",
+                    print(tr('theme apply: gtk4 {sub} copy skipped: {exc}', sub=sub, exc=exc),
                           file=sys.stderr)
             for fn in ("gtk-Dark.css", "gtk-Light.css"):
                 src = gtk4_src / fn
@@ -1127,7 +1128,7 @@ def _apply_local_extras(mode: str) -> None:
                     try:
                         shutil.copy2(src, gtk4_dest / fn)
                     except OSError as exc:
-                        print(f"theme apply: gtk4 {fn} copy skipped: {exc}",
+                        print(tr('theme apply: gtk4 {fn} copy skipped: {exc}', fn=fn, exc=exc),
                               file=sys.stderr)
 
             gtk4_css = gtk4_dest / "gtk.css"
@@ -1146,10 +1147,9 @@ def _apply_local_extras(mode: str) -> None:
                         gtk4_css.unlink()
                     gtk4_css.symlink_to(target)
                 else:
-                    print("theme apply: custom gtk4 gtk.css preserved; "
-                          "Nautilus theme override skipped", file=sys.stderr)
+                    print(tr('theme apply: custom gtk4 gtk.css preserved; Nautilus theme override skipped'), file=sys.stderr)
             except OSError as exc:
-                print(f"theme apply: gtk4 gtk.css link skipped: {exc}",
+                print(tr('theme apply: gtk4 gtk.css link skipped: {exc}', exc=exc),
                       file=sys.stderr)
 
     flush_icon_caches()
@@ -1352,10 +1352,7 @@ def _restore_or_warn_foreign_effects(enabled_before: list[str]) -> list[str]:
 
     for effect in missing:
         print(
-            f"theme apply: your KWin effect '{effect}' is enabled but KWin "
-            "could not load it after the theme switch. The switcher retried "
-            "it and left your setting enabled; rebuild/reinstall the effect "
-            "for the current KWin if it remains absent.",
+            tr("theme apply: your KWin effect '{effect}' is enabled but KWin could not load it after the theme switch. The switcher retried it and left your setting enabled; rebuild/reinstall the effect for the current KWin if it remains absent.", effect=effect),
             file=sys.stderr,
         )
     return missing
@@ -1416,10 +1413,7 @@ def _restore_own_compiled_effects(*, refresh: bool = False) -> None:
                 break
         else:
             print(
-                f"theme apply: your KWin effect '{effect}' is enabled but "
-                "KWin could not load it after the theme switch. Rebuild/"
-                "reinstall the effect for the current KWin if it remains "
-                "absent.",
+                tr("theme apply: your KWin effect '{effect}' is enabled but KWin could not load it after the theme switch. Rebuild/reinstall the effect for the current KWin if it remains absent.", effect=effect),
                 file=sys.stderr,
             )
 
@@ -1574,30 +1568,29 @@ def _apply_unlocked(mode: str, context: str = "user") -> bool:
     # individual panel containments on the outgoing Plasma theme.
     if context != "install":
         if not _apply_lookandfeel_live(laf):
-            print("theme apply: live look-and-feel apply skipped",
+            print(tr('theme apply: live look-and-feel apply skipped'),
                   file=sys.stderr)
 
     config_ok = write_kde_theme_config(
         mode, force_color_reload=True,
     )
     if not config_ok:
-        print("theme apply: core KDE config writes failed, theme not "
-              "fully applied", file=sys.stderr)
+        print(tr('theme apply: core KDE config writes failed, theme not fully applied'), file=sys.stderr)
     try:
         _apply_local_extras(mode)
     except Exception as exc:
-        print(f"theme apply: extras step failed, continuing: {exc!r}",
+        print(tr('theme apply: extras step failed, continuing: {exc!r}', exc=exc),
               file=sys.stderr)
     try:
         _apply_wallpaper(mode, context=context,
                          current_snapshot=wallpaper_before)
     except Exception as exc:
-        print(f"theme apply: wallpaper step failed, continuing: {exc!r}",
+        print(tr('theme apply: wallpaper step failed, continuing: {exc!r}', exc=exc),
               file=sys.stderr)
     if not apply_cursortheme_live(cursor):
-        print("theme apply: live cursor apply skipped", file=sys.stderr)
+        print(tr('theme apply: live cursor apply skipped'), file=sys.stderr)
     if not cycle_widget_style_live(widget):
-        print("theme apply: widget-style cycle skipped", file=sys.stderr)
+        print(tr('theme apply: widget-style cycle skipped'), file=sys.stderr)
     refresh_icons_live()
     # Keep the dock translucent so the glass shows through (a theme apply can
     # drop panelOpacity, painting an opaque black panel over the effect).
@@ -1638,7 +1631,7 @@ USAGE = ("Usage: mac-tahoe-theme-switch "
 
 def main(argv: list[str]) -> int:
     if not argv:
-        print(USAGE, file=sys.stderr)
+        print(tr(USAGE), file=sys.stderr)
         return 1
 
     _sync_session_env()
@@ -1651,7 +1644,7 @@ def main(argv: list[str]) -> int:
     if mode == "auto":
         mode = detect_mode_by_time()
     if mode not in ("light", "dark"):
-        print(USAGE, file=sys.stderr)
+        print(tr(USAGE), file=sys.stderr)
         return 1
 
     context = argv[1] if len(argv) > 1 else "user"

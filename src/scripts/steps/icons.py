@@ -2,6 +2,8 @@
 MacTahoeLiquidKde-Icons.tar.zst into ~/.local/share/icons. The tarball is
 rebuilt offline via _assemble() (maintainer refresh workflow, see below)."""
 
+from localization import tr
+
 import re
 import shutil
 import subprocess
@@ -39,7 +41,7 @@ def install() -> None:
     DEST_DIR.mkdir(parents=True, exist_ok=True)
     tarball = OFFLINE_DIR / "MacTahoeLiquidKde-Icons.tar.zst"
     if not tarball.is_file():
-        fail(f"offline tarball missing: {tarball}")
+        fail(tr('offline tarball missing: {tarball}', tarball=tarball))
         return
 
     n = 0
@@ -54,13 +56,13 @@ def install() -> None:
             check=False, capture_output=True, text=True,
         )
         if res.returncode != 0:
-            fail(f"tar --zstd failed ({res.returncode}): {res.stderr.strip()}")
+            fail(tr('tar --zstd failed ({value1}): {value2}', value1=res.returncode, value2=res.stderr.strip()))
             return
 
         for name in _THEME_NAMES:
             source = staging / name
             if not (source / "index.theme").is_file():
-                fail(f"{name} (index.theme missing from offline archive)")
+                fail(tr('{name} (index.theme missing from offline archive)', name=name))
                 continue
             if install_tree(source, DEST_DIR / name, name):
                 n += 1
@@ -82,7 +84,7 @@ def install() -> None:
                 )
 
     label = "icon theme" if n == 1 else "icon themes"
-    info(f"{n} {label} installed/reinstalled")
+    info(tr('{n} {label} installed/reinstalled', n=n, label=tr(label)))
 
 
 def uninstall() -> None:
@@ -94,7 +96,7 @@ def uninstall() -> None:
                 ok(theme.name); n += 1
             except OSError:
                 fail(theme.name)
-    info(f"{n} icon themes removed")
+    info(tr('{n} icon themes removed', n=n))
 
 
 # ─────────────────────────────────────────────────────────────────────

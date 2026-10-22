@@ -29,7 +29,7 @@ from cli import (
 )
 from log import DONE_MARKER
 from localization import (
-    feature_label, get_language, language_options, set_language, translate,
+    effective_language, feature_label, get_language, language_options, set_language, translate, tr,
 )
 
 
@@ -51,11 +51,11 @@ def _create_private_run_file(prefix: str) -> str:
         os.fchmod(fd, 0o600)
         info = os.fstat(fd)
         if not stat.S_ISREG(info.st_mode):
-            raise OSError(errno.EPERM, "secure run file is not regular")
+            raise OSError(errno.EPERM, tr('secure run file is not regular'))
         if info.st_uid != os.geteuid():
-            raise OSError(errno.EPERM, "secure run file has the wrong owner")
+            raise OSError(errno.EPERM, tr('secure run file has the wrong owner'))
         if info.st_nlink != 1:
-            raise OSError(errno.EPERM, "secure run file has extra links")
+            raise OSError(errno.EPERM, tr('secure run file has extra links'))
     except BaseException:
         try:
             os.close(fd)
@@ -93,11 +93,11 @@ def _secure_run_file_fd(path: str, *, write: bool) -> int:
     try:
         info = os.fstat(fd)
         if not stat.S_ISREG(info.st_mode):
-            raise OSError(errno.EPERM, "run file is not regular")
+            raise OSError(errno.EPERM, tr('run file is not regular'))
         if (info.st_uid != os.geteuid() or info.st_nlink != 1
                 or stat.S_IMODE(info.st_mode) != 0o600):
             raise OSError(
-                errno.EPERM, "run file owner, mode, or link count changed")
+                errno.EPERM, tr('run file owner, mode, or link count changed'))
         return fd
     except BaseException:
         os.close(fd)
@@ -115,7 +115,7 @@ def _mark_cancel_requested(path: str | None) -> bool:
         while payload:
             written = os.write(fd, payload)
             if written <= 0:
-                raise OSError(errno.EIO, "short cancellation-token write")
+                raise OSError(errno.EIO, tr('short cancellation-token write'))
             payload = payload[written:]
         return True
     except OSError:
@@ -202,12 +202,12 @@ def escalated_command_for_action(
     base = _ACTION_COMMANDS[action]
     target = base[len("sudo "):] if base.startswith("sudo ") else base
 
-    headless_pairs = []
+    headless_pairs = [f"MTTKDE_LANGUAGE={shlex.quote(effective_language(get_language()))}"]
     if headless:
         if progress_file is None or cancel_file is None:
             raise ValueError(
-                "headless installer launch requires progress and cancel files")
-        headless_pairs = [
+                tr('headless installer launch requires progress and cancel files'))
+        headless_pairs += [
             "MTTKDE_NO_CONFIRM=1",
             f"MTTKDE_PROGRESS_FILE={shlex.quote(progress_file)}",
             f"MTTKDE_CANCEL_FILE={shlex.quote(cancel_file)}",
@@ -253,7 +253,7 @@ def _supervise_action(action: str, progress_file: str,
     if action not in _ACTION_COMMANDS:
         return 2
     if not _isolate_supervisor_process_group():
-        print("Could not isolate privileged installer supervisor",
+        print(tr('Could not isolate privileged installer supervisor'),
               file=sys.stderr)
         return 1
     if _cancel_file_requested(cancel_file):
@@ -271,7 +271,7 @@ def _supervise_action(action: str, progress_file: str,
             cwd=str(REPO_ROOT),
         )
     except OSError as exc:
-        print(f"Could not start privileged installer: {exc}", file=sys.stderr)
+        print(tr('Could not start privileged installer: {exc}', exc=exc), file=sys.stderr)
         return 1
 
     signal_cancelled = False
@@ -339,8 +339,7 @@ def drop_root_to_invoking_user() -> int:
     sudo_gid_str = os.environ.get("SUDO_GID")
     if not sudo_user or not sudo_uid_str or not sudo_gid_str:
         print(
-            "installer UI must be launched from a regular desktop user "
-            "(or via sudo from that user session).",
+            tr('installer UI must be launched from a regular desktop user (or via sudo from that user session).'),
             file=sys.stderr,
         )
         return 1
@@ -395,13 +394,13 @@ def launch_action(action: str) -> dict[str, object]:
             "action": action,
             "terminal": terminal,
             "command": display_cmd,
-            "message": f"Launching {display_cmd} in {terminal}.",
+            "message": tr("Launching {command} in {terminal}.", command=display_cmd, terminal=terminal),
         }
 
     if saw_terminal and last_error:
-        message = f"Could not open a terminal window ({last_error})."
+        message = tr("Could not open a terminal window ({error}).", error=last_error)
     else:
-        message = (
+        message = tr(
             "No supported terminal emulator was found. "
             "Install Konsole or run the command manually from the repo root."
         )
@@ -565,7 +564,7 @@ def _make_installer_bridge():
                 self._progress_file = _create_progress_file()
                 self._cancel_file = _create_cancel_file()
             except OSError as exc:
-                message = f"Could not create secure installer channel: {exc}"
+                message = tr("Could not create secure installer channel: {error}", error=exc)
                 self._log_lines.append(message)
                 self._current_step = message
                 self.logAppended.emit(message)
@@ -662,7 +661,7 @@ def _make_installer_bridge():
                     # QProcess really terminates.
                     self._progress_exit_code = code
                 return
-            title = parts[1] if len(parts) > 1 else head
+            title = parts[1].split("\t", 1)[0] if len(parts) > 1 else head
             self._log_lines.append(title)
             if len(self._log_lines) > 2000:
                 del self._log_lines[:1000]
@@ -699,7 +698,7 @@ def _make_installer_bridge():
             if error != QProcess.ProcessError.FailedToStart:
                 return
             detail = self._proc.errorString() if self._proc is not None else ""
-            message = "Could not start installer supervisor"
+            message = tr("Could not start installer supervisor")
             if detail:
                 message += f": {detail}"
             self._log_lines.append(message)
@@ -799,11 +798,7 @@ def launch_preview() -> int:
     # dead window (the ``installer`` context property only exists via the
     # PyQt6 bridge), so report the missing dependency instead.
     print(
-        "PyQt6 is required for the graphical installer but could not be "
-        "imported.\n"
-        "  Install the python-pyqt6 package for your distribution and "
-        "re-run ./installer,\n"
-        "  or run ./install / ./uninstall directly from a terminal.",
+        tr('PyQt6 is required for the graphical installer but could not be imported.\n  Install the python-pyqt6 package for your distribution and re-run ./installer,\n  or run ./install / ./uninstall directly from a terminal.'),
         file=sys.stderr,
     )
     return 1
@@ -853,7 +848,7 @@ def save_features(payload: dict[str, object]) -> dict[str, object]:
         CONFIG_FILE.write_text(json.dumps(state, indent=2) + "\n")
     except OSError as exc:
         return {"ok": False, "message": str(exc)}
-    return {"ok": True, "message": f"Saved to {CONFIG_FILE.name}"}
+    return {"ok": True, "message": tr("Saved to {path}", path=CONFIG_FILE.name)}
 
 
 def update_status() -> dict[str, object]:
@@ -919,7 +914,7 @@ def main(argv: list[str]) -> int:
     if args.supervise:
         if not args.progress_file or not args.cancel_file:
             print(
-                "internal supervisor requires progress and cancel files",
+                tr('internal supervisor requires progress and cancel files'),
                 file=sys.stderr,
             )
             return 2
@@ -943,7 +938,7 @@ def main(argv: list[str]) -> int:
         try:
             data = json.loads(args.save_features)
         except ValueError as exc:
-            print(json.dumps({"ok": False, "message": f"bad JSON: {exc}"}))
+            print(json.dumps({"ok": False, "message": tr("Invalid JSON: {error}", error=exc)}))
             return 1
         result = save_features(data if isinstance(data, dict) else {})
         print(json.dumps(result, ensure_ascii=False))

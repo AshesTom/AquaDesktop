@@ -69,6 +69,8 @@ in rec {
     installPhase = ''
       mkdir -p "$out/bin" "$out/libexec"
       cp ${../src/scripts/theme_switch.py} "$out/libexec/theme_switch.py"
+      cp ${../src/scripts/localization.py} "$out/libexec/localization.py"
+      cp -r ${../src/scripts/locales} "$out/libexec/locales"
       cp ${../src/scripts/defaults.json} "$out/libexec/defaults.json"
       cp ${../src/scripts/oled_care.py} "$out/libexec/oled_care.py"
       for tool in theme-switch oled-care; do

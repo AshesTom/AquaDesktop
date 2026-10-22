@@ -2,6 +2,8 @@
 layout: metadata.json + contents/images[_dark]/) into ~/.local/share/wallpapers.
 Fully offline — no download phase."""
 
+from localization import tr
+
 import shutil
 from pathlib import Path
 
@@ -25,16 +27,16 @@ def install() -> None:
         # metadata.json is what Plasma lists the wallpaper by — skip the
         # bundle rather than ship a half-installed entry.
         if not (wp / "metadata.json").is_file():
-            fail(f"{wp.name} (missing metadata.json in offline bundle)")
+            fail(tr('{value1} (missing metadata.json in offline bundle)', value1=wp.name))
             continue
         if not safe_copy(wp, DEST_DIR / wp.name):
-            fail(f"{wp.name} (copy failed)")
+            fail(tr('{value1} (copy failed)', value1=wp.name))
             continue
         if wp.name in pre:
             reinstall(wp.name); n_re += 1
         else:
-            ok(f"{wp.name} (installed)"); n_inst += 1
-    info(f"{n_inst + n_re} wallpapers — {n_inst} installed, {n_re} reinstalled")
+            ok(tr('{value1} (installed)', value1=wp.name)); n_inst += 1
+    info(tr('{value1} wallpapers — {n_inst} installed, {n_re} reinstalled', value1=n_inst + n_re, n_inst=n_inst, n_re=n_re))
 
 
 _FIXED_NAMES = (
@@ -67,4 +69,4 @@ def uninstall() -> None:
             ok(d.name); n += 1
         except OSError:
             fail(d.name)
-    info(f"{n} wallpapers removed")
+    info(tr('{n} wallpapers removed', n=n))

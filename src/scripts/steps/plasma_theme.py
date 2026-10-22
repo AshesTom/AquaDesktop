@@ -1,3 +1,4 @@
+from localization import tr
 import shutil
 
 from glass_surfaces import apply_plasma_surface_defaults
@@ -13,7 +14,7 @@ VARIANTS = ("MacTahoeLiquidKde-Dark", "MacTahoeLiquidKde-Light")
 def install() -> None:
     src = offline("plasma-theme")
     if not src.is_dir():
-        fail(f"Plasma theme source not found at {src}")
+        fail(tr('Plasma theme source not found at {src}', src=src))
         return
     DEST_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -31,7 +32,7 @@ def install() -> None:
             apply_plasma_surface_defaults(source)
             if install_tree(source, DEST_DIR / v, v):
                 n += 1
-    info(f"{n} Plasma themes installed/reinstalled")
+    info(tr('{n} Plasma themes installed/reinstalled', n=n))
 
 
 def uninstall() -> None:
@@ -42,8 +43,5 @@ def uninstall() -> None:
             n += 1
     if not kw_write("--file", "plasmarc", "--group", "Theme",
                     "--key", "name", "default"):
-        warn("Active Plasma theme not reset to 'default' — "
-             "kwriteconfig6 unavailable. Files are removed but "
-             "Plasma will still try to load MacTahoeLiquidKde "
-             "until you set plasmarc:Theme.name=default manually.")
-    info(f"{n} Plasma themes removed")
+        warn(tr("Active Plasma theme not reset to 'default' — kwriteconfig6 unavailable. Files are removed but Plasma will still try to load MacTahoeLiquidKde until you set plasmarc:Theme.name=default manually."))
+    info(tr('{n} Plasma themes removed', n=n))

@@ -5,6 +5,8 @@ import secrets
 import stat
 import sys
 
+from localization import tr
+
 GREEN = "\033[0;32m"
 YELLOW = "\033[1;33m"
 RED = "\033[0;31m"
@@ -126,14 +128,17 @@ if _CONFIGURED_PROGRESS_FILE is None:
 _last_ended_blank = False
 
 
-def step(title: str) -> None:
+def step(title: str, **values: object) -> None:
     global _step_counter, _last_ended_blank
     _step_counter += 1
     if not _last_ended_blank:
         print()
-    print(f"{GREEN}{BOLD}  Step {_step_counter}: {title}{RESET}")
+    display = tr(title, **values)
+    heading = tr("Step {number}: {title}", number=_step_counter, title=display)
+    print(f"{GREEN}{BOLD}  {heading}{RESET}")
     _last_ended_blank = False
-    _progress_write(f"{_step_counter}\t{title}")
+    # The final field is a stable message key for phase classification.
+    _progress_write(f"{_step_counter}\t{display}\t{title}")
 
 
 def note(msg: str) -> None:
@@ -160,7 +165,8 @@ def ok(msg: str) -> None:
 
 def reinstall(msg: str) -> None:
     global _last_ended_blank
-    print(f"  {GREEN}↺{RESET}  {msg} (reinstalled)")
+    display = tr("{message} (reinstalled)", message=msg)
+    print(f"  {GREEN}↺{RESET}  {display}")
     _last_ended_blank = False
 
 
@@ -199,5 +205,5 @@ def banner(version: str) -> None:
         print(f"  {_APPLE_RAINBOW[-1]}{BOLD}{extra}{RESET}")
     print()
     print(f"  {GREEN}{BOLD}        MacTahoe Liquid KDE {WHITE}v{version}{RESET}")
-    print(f"  {WHITE}            Developed by Lester{RESET}")
+    print(f"  {WHITE}            {tr('Developed by Lester')}{RESET}")
     print()

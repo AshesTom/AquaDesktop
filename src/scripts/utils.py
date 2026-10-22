@@ -1,3 +1,4 @@
+from localization import tr
 import contextlib
 import errno
 import json
@@ -390,8 +391,7 @@ def fetch(url: str, dest: Path | str, referer: str | None = None,
             if expected_n is not None:
                 actual_n = dest.stat().st_size
                 if actual_n != expected_n:
-                    last_err = (f"truncated: got {actual_n} of {expected_n} "
-                                f"bytes")
+                    last_err = tr("Truncated: got {actual} of {expected} bytes", actual=actual_n, expected=expected_n)
                     continue
             return True
         except (urllib.error.URLError, OSError, TimeoutError) as exc:
@@ -403,7 +403,7 @@ def fetch(url: str, dest: Path | str, referer: str | None = None,
         except OSError:
             pass
     if last_err:
-        print(f"     fetch {url}: {last_err}", file=sys.stderr)
+        print(tr('     fetch {url}: {last_err}', url=url, last_err=last_err), file=sys.stderr)
     return False
 
 
@@ -622,7 +622,7 @@ def pkg_install(*pkgs: str) -> bool:
         base = package_manager_install_cmd()
     except UnsupportedDistroError as exc:
         fail(str(exc))
-        fail(f"install manually: {' '.join(pkgs)}")
+        fail(tr('install manually: {value1}', value1=' '.join(pkgs)))
         return False
     return _run_pkg_cmd(base, *pkgs)
 
@@ -639,7 +639,7 @@ def pkg_sync_install(*pkgs: str) -> bool:
         install = package_manager_install_cmd()
     except UnsupportedDistroError as exc:
         fail(str(exc))
-        fail(f"install manually: {' '.join(pkgs)}")
+        fail(tr('install manually: {value1}', value1=' '.join(pkgs)))
         return False
     if sync is not None and not _run_pkg_cmd(sync):
         return False

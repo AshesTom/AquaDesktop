@@ -8,6 +8,8 @@ imports, and reversible preference changes.
 
 from __future__ import annotations
 
+from localization import tr
+
 import configparser
 import hashlib
 import json
@@ -173,7 +175,7 @@ def _profiles_from_ini(root: Path) -> list[Path]:
     try:
         parser.read(ini, encoding="utf-8")
     except (configparser.Error, OSError, UnicodeError):
-        warn(f"Firefox: could not parse {ini}")
+        warn(tr('Firefox: could not parse {ini}', ini=ini))
         return []
     profiles: list[Path] = []
     for section in parser.sections():
@@ -255,7 +257,7 @@ def _snapshot_profile(profile: Path, root: Path | None) -> Path | None:
             str(profile) + "\n", encoding="utf-8"
         )
     except OSError as exc:
-        warn(f"Firefox: backup failed for {profile} ({exc}); profile skipped")
+        warn(tr('Firefox: backup failed for {profile} ({exc}); profile skipped', profile=profile, exc=exc))
         return None
     return destination
 
@@ -353,7 +355,7 @@ def _prepend_css_block(path: Path, block: str) -> None:
     old = _read_text(path) if path.exists() else ""
     clean, valid = _without_block(old, CHROME_START, CHROME_END)
     if not valid:
-        raise ValueError(f"managed marker is incomplete in {path}")
+        raise ValueError(tr('managed marker is incomplete in {path}', path=path))
     # CSS requires @charset to be the first statement.  Preserve it there and
     # place our @import immediately afterward; all imports then precede rules.
     match = re.match(r"^(\ufeff?@charset\s+[^;]+;[ \t]*\r?\n)", clean, re.I)
@@ -369,7 +371,7 @@ def _append_user_block(path: Path) -> None:
     old = _read_text(path) if path.exists() else ""
     clean, valid = _without_block(old, USER_START, USER_END)
     if not valid:
-        raise ValueError(f"managed marker is incomplete in {path}")
+        raise ValueError(tr('managed marker is incomplete in {path}', path=path))
     separator = "" if not clean or clean.endswith("\n") else "\n"
     mode = path.stat().st_mode & 0o777 if path.exists() else 0o600
     _atomic_write(path, clean + separator + USER_BLOCK, mode)
@@ -382,7 +384,7 @@ def _prepare_chrome_dir(profile: Path, migrate_legacy: bool = False) -> Path:
         # to an independent directory so profiles can never affect each other.
         resolved = chrome.resolve(strict=True)
         if not resolved.is_dir():
-            raise OSError(f"chrome symlink target is not a directory: {resolved}")
+            raise OSError(tr('chrome symlink target is not a directory: {resolved}', resolved=resolved))
         staged = profile / ".chrome.mttkde-stage"
         if staged.is_symlink():
             staged.unlink()
@@ -394,7 +396,7 @@ def _prepare_chrome_dir(profile: Path, migrate_legacy: bool = False) -> Path:
             shutil.copytree(resolved, staged, symlinks=True)
         previous = profile / ".chrome.mttkde-previous"
         if previous.exists() or previous.is_symlink():
-            raise OSError(f"stale recovery path exists: {previous}")
+            raise OSError(tr('stale recovery path exists: {previous}', previous=previous))
         os.replace(chrome, previous)
         try:
             os.replace(staged, chrome)
@@ -403,7 +405,7 @@ def _prepare_chrome_dir(profile: Path, migrate_legacy: bool = False) -> Path:
             raise
         previous.unlink()  # the previous entry is the symlink, never its target
     elif chrome.exists() and not chrome.is_dir():
-        raise OSError("chrome exists but is not a directory")
+        raise OSError(tr('chrome exists but is not a directory'))
     else:
         chrome.mkdir(parents=True, exist_ok=True)
     return chrome
@@ -426,7 +428,7 @@ def _install_payload(chrome: Path) -> None:
     source = _theme_source()
     marker = source / OWNERSHIP_MARKER
     if not source.is_dir() or not marker.is_file():
-        raise OSError(f"bundled Firefox theme is incomplete: {source}")
+        raise OSError(tr('bundled Firefox theme is incomplete: {source}', source=source))
     destination = chrome / THEME_DIRNAME
     staged = chrome / f".{THEME_DIRNAME}.mttkde-stage"
     if staged.exists() and not staged.is_symlink():
@@ -438,7 +440,7 @@ def _install_payload(chrome: Path) -> None:
     if previous.exists() or previous.is_symlink():
         if staged.is_dir():
             shutil.rmtree(staged)
-        raise OSError(f"stale recovery path exists: {previous}")
+        raise OSError(tr('stale recovery path exists: {previous}', previous=previous))
     had_destination = destination.exists() or destination.is_symlink()
     if had_destination:
         os.replace(destination, previous)
@@ -469,7 +471,7 @@ def _markers_are_valid(profile: Path) -> bool:
         except OSError:
             return False
         if not valid:
-            warn(f"Firefox: incomplete managed marker in {path}; profile skipped")
+            warn(tr('Firefox: incomplete managed marker in {path}; profile skipped', path=path))
             return False
     return True
 
@@ -498,9 +500,9 @@ def _install_profile(profile: Path, manifest: dict[str, object]) -> bool:
             _remove_legacy_user_prefs(profile / "user.js")
         _append_user_block(profile / "user.js")
     except (OSError, ValueError) as exc:
-        warn(f"Firefox: {profile.name} was not themed ({exc})")
+        warn(tr('Firefox: {value1} was not themed ({exc})', value1=profile.name, exc=exc))
         return False
-    ok(f"Firefox profile themed: {profile.name}")
+    ok(tr('Firefox profile themed: {value1}', value1=profile.name))
     return True
 
 
@@ -510,7 +512,7 @@ def _clean_file(path: Path, start: str, end: str, remove_if_empty: bool) -> bool
     old = _read_text(path)
     clean, valid = _without_block(old, start, end)
     if not valid:
-        warn(f"Firefox: incomplete managed marker in {path}; left untouched")
+        warn(tr('Firefox: incomplete managed marker in {path}; left untouched', path=path))
         return False
     if clean == old:
         return True
@@ -566,20 +568,20 @@ def _uninstall_profile(profile: Path, record: dict[str, object] | None) -> bool:
         ),
     )
     if success:
-        ok(f"Firefox profile restored: {profile.name}")
+        ok(tr('Firefox profile restored: {value1}', value1=profile.name))
     return success
 
 
 def install() -> None:
     profiles = discover_profiles()
     if not profiles:
-        warn("No initialized Firefox-family profiles found — run Firefox once, then reinstall")
-        info("Firefox theme: 0 profiles changed")
+        warn(tr('No initialized Firefox-family profiles found — run Firefox once, then reinstall'))
+        info(tr('Firefox theme: 0 profiles changed'))
         return
     manifest = _load_manifest()
     changed = sum(_install_profile(profile, manifest) for profile in profiles)
     _save_manifest(manifest)
-    info(f"Firefox theme: {changed}/{len(profiles)} profiles installed; restart browsers to apply")
+    info(tr('Firefox theme: {changed}/{value2} profiles installed; restart browsers to apply', changed=changed, value2=len(profiles)))
 
 
 def uninstall() -> None:
@@ -601,4 +603,4 @@ def uninstall() -> None:
             _manifest_path().unlink()
         except FileNotFoundError:
             pass
-    info(f"Firefox theme: {restored}/{len(targets)} profiles restored; backups retained")
+    info(tr('Firefox theme: {restored}/{value2} profiles restored; backups retained', restored=restored, value2=len(targets)))

@@ -20,6 +20,8 @@ LANGUAGES = (
     {"code": "en", "label": "English"},
     {"code": "es", "label": "Español"},
     {"code": "zh_CN", "label": "简体中文"},
+    {"code": "pt_BR", "label": "Português (Brasil)"},
+    {"code": "de", "label": "Deutsch"},
 )
 LANGUAGE_CODES = tuple(item["code"] for item in LANGUAGES)
 
@@ -204,15 +206,31 @@ _ZH_CN.update({
 _TRANSLATIONS = {"es": _ES, "zh_CN": _ZH_CN}
 
 
+def _load_catalog(code: str) -> dict[str, str]:
+    bundled = globals().get("_BUNDLED_CATALOGS")
+    if bundled is not None:
+        return bundled[code]
+    path = Path(__file__).with_name("locales") / f"{code}.json"
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+for _code in ("pt_BR", "de"):
+    _TRANSLATIONS[_code] = _load_catalog(_code)
+
+
 def normalize_language(value: str | None) -> str:
     """Map locale spellings (``zh-CN.UTF-8``, ``es_CR``) to our codes."""
     text = (value or "").strip().replace("-", "_").split(".", 1)[0]
-    low = text.lower()
-    if low.startswith("zh_cn") or low.startswith("zh_hans") or low == "zh":
+    low = text.lower().split("@", 1)[0]
+    if low in ("zh", "zh_cn", "zh_hans") or low.startswith("zh_hans_"):
         return "zh_CN"
-    if low.startswith("es"):
+    if low == "pt" or low == "pt_br":
+        return "pt_BR"
+    if low == "de" or low.startswith("de_"):
+        return "de"
+    if low == "es" or low.startswith("es_"):
         return "es"
-    if low.startswith("en"):
+    if low == "en" or low.startswith("en_"):
         return "en"
     return "en"
 
@@ -246,7 +264,9 @@ def get_language() -> str:
 
 
 def effective_language(preference: str | None = None) -> str:
-    code = preference if preference in LANGUAGE_CODES else get_language()
+    inherited = os.environ.get("MTTKDE_LANGUAGE")
+    code = preference if preference in LANGUAGE_CODES else (
+        inherited if inherited in LANGUAGE_CODES else get_language())
     return system_language() if code == "auto" else code
 
 
@@ -282,6 +302,12 @@ def translate(message: str, language: str | None = None, **values: object) -> st
 def feature_label(key: str, language: str | None = None) -> str:
     source = _FEATURE_LABELS.get(key, key.replace("_", " ").title())
     return translate(source, language)
+
+
+def tr(message: str, /, **values: object) -> str:
+    """Translate a complete message before interpolating runtime values."""
+    result = _TRANSLATIONS.get(effective_language(), {}).get(message, message)
+    return result.format(**values) if values else result
 
 
 def language_options(language: str | None = None) -> list[dict[str, str]]:

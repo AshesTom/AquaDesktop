@@ -1,5 +1,8 @@
 """Installer step: copy the Python theme-switch + schedulers into ~/.local."""
 
+from localization import tr
+from localization_bundle import standalone_source
+
 import os
 import json
 import signal
@@ -187,7 +190,7 @@ def _install_units() -> bool:
 def start_schedule() -> None:
     if theme_mode() == "auto" and is_systemd():
         if not _user_service("start", UNITS[1]):
-            warn("Theme switch: user timer could not be started")
+            warn(tr('Theme switch: user timer could not be started'))
 
 
 def _teardown_units(units=UNITS) -> bool:
@@ -238,7 +241,7 @@ def _neutralize_switcher() -> bool:
     except FileNotFoundError:
         return True
     except OSError as exc:
-        warn(f"Theme switcher could not be neutralized ({exc})")
+        warn(tr('Theme switcher could not be neutralized ({exc})', exc=exc))
         return False
 
 
@@ -265,7 +268,7 @@ def install() -> None:
         # Bake the edition into the standalone executable so login, cron and
         # manual switches keep it without an environment variable or checkout.
         source = BIN_DEST.read_text()
-        BIN_DEST.write_text(source.replace(
+        BIN_DEST.write_text(standalone_source(source).replace(
             'DEFAULT_WALLPAPER = "MacTahoe"',
             f'DEFAULT_WALLPAPER = {json.dumps(default_wallpaper())}', 1))
         BIN_DEST.chmod(0o755)
@@ -278,22 +281,19 @@ def install() -> None:
             # A previous OpenRC boot may have left our marked cron lines.
             cron_status = remove_periodic(CRON_TAG)
             if not _cron_removal_complete(cron_status):
-                warn("Theme switch: previous cron schedule could not be "
-                     "removed; duplicate auto transitions may remain")
+                warn(tr('Theme switch: previous cron schedule could not be removed; duplicate auto transitions may remain'))
             if not _install_units():
-                warn("Theme switch: user timer could not be enabled")
+                warn(tr('Theme switch: user timer could not be enabled'))
         else:
             # Conversely, remove stale user units before scheduling cron.
             if not _teardown_units():
-                warn("Theme switch: stale systemd unit files could not be "
-                     "removed")
+                warn(tr('Theme switch: stale systemd unit files could not be removed'))
             # OpenRC: fixed-time cron lines at 06:00/18:00. There is no
             # login-time oneshot equivalent, but the binary is idempotent
             # and the timed flips are what matter.
             command = cron_command(BIN_DEST, "auto")
             if not install_at_times(CRON_TAG, CRON_TIMES, command):
-                warn("Theme switch: crontab write failed — "
-                     "is a cron daemon installed?")
+                warn(tr('Theme switch: crontab write failed — is a cron daemon installed?'))
     else:
         # Pinned --light/--dark: tear down any schedule a previous --auto
         # install left so it can't fight the pinned mode at next login.
@@ -310,14 +310,13 @@ def install() -> None:
                 detail = " (running switcher still draining)"
             else:
                 detail = ""
-            fail("Theme switch pinned mode not installed — previous schedule "
-                 f"could not be stopped safely{detail}")
+            fail(tr('Theme switch pinned mode not installed — previous schedule could not be stopped safely{detail}', detail=tr(detail)))
             return
 
     if BIN_DEST.is_file() and BIN_DEST.stat().st_mode & 0o111:
-        ok("Theme switcher installed")
+        ok(tr('Theme switcher installed'))
     else:
-        warn("Theme switcher not installed")
+        warn(tr('Theme switcher not installed'))
 
 
 _LEGACY_BIN = HOME / ".local/bin/mactahoe-theme-switch"
@@ -411,8 +410,7 @@ def uninstall() -> None:
             detail = "an already-running switcher could not be drained"
         else:
             detail = "installed command was neutralized"
-        fail("Theme switch removal incomplete — a previous schedule could "
-             f"not be removed safely ({detail})")
+        fail(tr('Theme switch removal incomplete — a previous schedule could not be removed safely ({detail})', detail=tr(detail)))
         # Unlinking a script does not stop a process which already exec'd it.
         # Until both the schedule and command are proven inert, retain the
         # ownership/config state that such a process can still read or rewrite.
@@ -423,7 +421,7 @@ def uninstall() -> None:
         try: p.unlink()
         except FileNotFoundError: pass
         except OSError as exc:
-            warn(f"Theme switch state could not be removed ({p}: {exc})")
+            warn(tr('Theme switch state could not be removed ({p}: {exc})', p=p, exc=exc))
             state_cleanup_ok = False
 
     config_cleanup_ok = all((
@@ -435,7 +433,6 @@ def uninstall() -> None:
                  "--key", "DefaultDarkLookAndFeel", "--delete"),
     ))
     if not state_cleanup_ok or not config_cleanup_ok:
-        fail("Theme switch removal incomplete — local state or KDE settings "
-             "could not be cleared")
+        fail(tr('Theme switch removal incomplete — local state or KDE settings could not be cleared'))
         return
-    ok("Theme switcher removed")
+    ok(tr('Theme switcher removed'))

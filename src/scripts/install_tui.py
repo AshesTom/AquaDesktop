@@ -26,7 +26,7 @@ except ImportError:
 from cli import ALL_FEATURES, DEFAULT_FEATURES, FEATURE_DESC, _coerce_int
 from localization import (
     LANGUAGE_CODES, feature_label, get_language,
-    language_options, set_language, translate,
+    language_options, set_language, translate, tr,
 )
 from log import DONE_MARKER, PROGRESS_FILE
 from paths import read_version
@@ -726,7 +726,8 @@ def _phase_index(mode: str, records: list[str]) -> int:
     'Verification' must not bounce the UI back to phase 0."""
     idx = 0
     for rec in records:
-        _, _, title = rec.partition("\t")
+        parts = rec.split("\t", 2)
+        title = parts[2] if len(parts) > 2 else (parts[1] if len(parts) > 1 else "")
         if mode == "install":
             low = title.lower()
             if low.startswith("building"):
@@ -924,6 +925,5 @@ def run_progress(runner, total: int, mode: str = "install") -> int:
         except OSError:
             pass
     if ui_error is not None:
-        print(f"  progress screen failed ({ui_error}) — "
-              f"full log: {log_path}")
+        print(tr("Progress screen failed ({error}) — full log: {path}", error=ui_error, path=log_path))
     return int(result["rc"] if result["rc"] is not None else 1)

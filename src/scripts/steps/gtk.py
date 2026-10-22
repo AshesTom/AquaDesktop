@@ -1,3 +1,4 @@
+from localization import tr
 import shutil
 import subprocess
 
@@ -24,7 +25,7 @@ def deps() -> list[str]:
 def install() -> None:
     src = offline("gtk")
     if not src.is_dir():
-        fail(f"GTK theme source not found at {src}")
+        fail(tr('GTK theme source not found at {src}', src=src))
         return
 
     DEST_DIR.mkdir(parents=True, exist_ok=True)
@@ -44,14 +45,14 @@ def install() -> None:
             check=False,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
-    info(f"{n} GTK themes installed/reinstalled")
+    info(tr('{n} GTK themes installed/reinstalled', n=n))
 
 
 def uninstall() -> None:
     n = 0
     for v in VARIANTS:
         remove_tree(DEST_DIR / (v + "-ReducedTransparency"))
-        if remove_tree(DEST_DIR / v, f"{v} removed"):
+        if remove_tree(DEST_DIR / v, tr('{v} removed', v=v)):
             n += 1
 
     # Wipe ~/.config/gtk-4.0/* — kde-gtk-config regenerates its own files on
@@ -74,4 +75,4 @@ def uninstall() -> None:
             run_user(["gsettings", "reset", schema, key],
                      check=False,
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    info(f"{n} GTK themes removed")
+    info(tr('{n} GTK themes removed', n=n))

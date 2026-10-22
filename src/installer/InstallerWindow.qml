@@ -304,7 +304,7 @@ Window {
                         anchors.verticalCenter: parent.verticalCenter
                         text: installerWindow.t("Update available:") + " " + installerWindow.updateCurrent
                             + " → " + installerWindow.updateLatest
-                            + "   ·   run git pull && ./install"
+                            + "   ·   " + installerWindow.t("Run: git pull && ./install")
                         color: Kirigami.Theme.textColor
                         font.family: installerWindow.fontFamily
                         font.pointSize: Kirigami.Theme.defaultFont.pointSize * 0.95
