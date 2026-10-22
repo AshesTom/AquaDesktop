@@ -1,9 +1,13 @@
-{ pkgs }:
+{ pkgs, language ? "en" }:
 let
   inherit (pkgs) lib;
   kde = pkgs.kdePackages;
   version = lib.strings.trim (builtins.readFile ../VERSION);
   offline = ../src/offline;
+  locale = if lib.hasPrefix "pt_BR" language then "pt_BR"
+    else if lib.hasPrefix "de" language then "de" else "en";
+  passwordPrompt = if locale == "en" then "Password:"
+    else (builtins.fromJSON (builtins.readFile (../src/scripts/locales + "/${locale}.json")))."Password:";
   meta = {
     description = "Independent macOS Tahoe-inspired theme for KDE Plasma";
     homepage = "https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde";
@@ -104,6 +108,8 @@ in rec {
       dir="$out/share/plymouth/themes/MacTahoeLiquidKde"
       mkdir -p "$dir"
       cp -r . "$dir/"
+      substituteInPlace "$dir/MacTahoeLiquidKde.script" \
+        --replace-fail 'prompt = "Password:";' ${lib.escapeShellArg ("prompt = " + builtins.toJSON passwordPrompt + ";")}
       substituteInPlace "$dir/MacTahoeLiquidKde.plymouth" \
         --replace-fail /usr/share/plymouth/themes/MacTahoeLiquidKde "$dir"
     '';

@@ -997,5 +997,6 @@
   "No supported terminal emulator was found. Install Konsole or run the command manually from the repo root.": "Es wurde kein unterstützter Terminalemulator gefunden. Installieren Sie Konsole oder führen Sie den Befehl manuell im Stammverzeichnis des Repositorys aus.",
   "Launcher package lacks edition preset support": "Das Starterpaket unterstützt die Voreinstellung der Edition nicht",
   "Launcher package lacks edition appearance support": "Das Starterpaket unterstützt das Erscheinungsbild der Edition nicht",
-  "Rounded Corners compatibility patch does not match {path}": "Der Kompatibilitätspatch für Rounded Corners passt nicht zu {path}"
+  "Rounded Corners compatibility patch does not match {path}": "Der Kompatibilitätspatch für Rounded Corners passt nicht zu {path}",
+  "Password:": "Passwort:"
 }

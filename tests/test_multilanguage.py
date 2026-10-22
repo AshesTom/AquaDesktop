@@ -179,3 +179,26 @@ def test_installer_qml_messages_are_complete(repo, language):
     for path in (repo / "src/installer").glob("*.qml"):
         for source in re.findall(r'\bt\("((?:[^"\\]|\\.)*)"\)', path.read_text()):
             assert json.loads('"' + source + '"') in catalog, (path, source)
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_boot_password_fallback_uses_selected_language(repo, sandbox, monkeypatch, language):
+    from steps import plymouth
+
+    monkeypatch.setenv("MTTKDE_LANGUAGE", language)
+    monkeypatch.setattr(plymouth, "have", lambda command: True)
+    monkeypatch.setattr(plymouth, "_current_default_theme", lambda: "")
+    captured = []
+
+    def inspect_staged(source, destination, label):
+        captured.append((source / "MacTahoeLiquidKde.script").read_text())
+        return False  # Stop before any boot configuration or initramfs operation.
+
+    monkeypatch.setattr(plymouth, "sudo_install_tree", inspect_staged)
+    original = repo / "src/offline/plymouth/MacTahoeLiquidKde/MacTahoeLiquidKde.script"
+    source = original.read_text()
+    plymouth.install()
+    prompt = json.dumps(localization.tr("Password:"), ensure_ascii=False)
+    assert captured == [source.replace('prompt = "Password:";', f'prompt = {prompt};')]
+    assert f'prompt = {prompt};' in captured[0]
+    assert original.read_text() == source

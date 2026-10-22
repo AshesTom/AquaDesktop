@@ -16,7 +16,7 @@ from distro import (
     package_for, plymouth_activation_commands, plymouth_use_simpledrm, system_lib_dir,
 )
 from steps._helpers import (
-    HOME, _as_root, fail, info, ok, offline, sudo_install_tree, sudo_remove, warn,
+    HOME, _as_root, fail, info, ok, offline, sudo_install_tree, sudo_remove, temp_dir, warn,
 )
 from utils import have, pkg_install
 
@@ -410,8 +410,15 @@ def install() -> None:
     if previous and previous != THEME_NAME:
         _save_previous(previous)
 
-    if not sudo_install_tree(offline("plymouth", THEME_NAME), DEST, tr('Boot splash files')):
-        return
+    with temp_dir("mttkde-plymouth") as temporary:
+        staged = temporary / THEME_NAME
+        shutil.copytree(offline("plymouth", THEME_NAME), staged)
+        script = staged / f"{THEME_NAME}.script"
+        prompt = json.dumps(tr("Password:"), ensure_ascii=False)
+        script.write_text(script.read_text(encoding="utf-8").replace(
+            'prompt = "Password:";', f'prompt = {prompt};'), encoding="utf-8")
+        if not sudo_install_tree(staged, DEST, tr('Boot splash files')):
+            return
 
     err = _validate_theme(DEST)
     if err:
