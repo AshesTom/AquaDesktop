@@ -688,6 +688,9 @@ Before replacing a launcher package, retain its applied edition in
 `~/.local/state/mac-tahoe-liquid-kde/launcher-edition`; migrate older installs
 from the staged `goldenGateEdition` flag. Update that record only after the
 layout succeeds, so failed or staging-only installs can retry the transition.
+Staging also writes the edition to the package's `contents/edition`. A package
+without that matching marker was replaced by a release that predates edition
+tracking; reset the record to `unknown` so the next layout applies the default.
 Never infer the installed edition from a user-selected launcher preset.
 Custom wallpapers keep their per-screen ownership; managed wallpapers follow
 the new edition. Installer titles and banners identify the source edition.

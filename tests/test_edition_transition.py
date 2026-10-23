@@ -196,3 +196,31 @@ def test_install_without_legacy_edition_evidence_selects_new_defaults(
     layout.install()
     assert [item["preset"] for item in execute_layout(scripts[-1], [3 - target, 3 - target])] == [target, target]
     assert defaults.applied_edition(sandbox) == defaults.edition_name()
+
+
+@pytest.mark.parametrize("marker", ["missing", "stale"])
+@pytest.mark.parametrize("target", [1, 2])
+def test_older_release_replacing_package_invalidates_edition_record(
+        transition, sandbox, monkeypatch, target, marker):
+    select, widget, installed = transition
+    # A record from this edition, then a release that predates edition tracking
+    # installs the other edition's package without updating that record.
+    select(target)
+    defaults.record_applied_edition(sandbox, defaults.edition_name())
+    select(3 - target)
+    shutil.copytree(widget, installed)
+    defaults.apply_launcher_default(installed)
+    if marker == "missing":
+        (installed / defaults.EDITION_MARKER).unlink()
+    else:
+        (installed / defaults.EDITION_MARKER).write_text(
+            ("MacGoldenGate" if target == 2 else "MacTahoe") + "\n")
+    select(target)
+    assert plasmoids._install_launcher_package(widget)
+    assert defaults.applied_edition(sandbox) == "unknown"
+    scripts = []
+    monkeypatch.setattr(layout, "_capture_pinned_launchers", lambda: [])
+    monkeypatch.setattr(layout, "_evaluate_layout_script", lambda script: scripts.append(script) or True)
+    layout.install()
+    assert [item["preset"] for item in execute_layout(scripts[-1], [3 - target, 3 - target])] == [target, target]
+    assert defaults.applied_edition(sandbox) == defaults.edition_name()

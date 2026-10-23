@@ -10,6 +10,8 @@ from localization import tr
 
 DEFAULTS_FILE = Path(__file__).with_name("defaults.json")
 LAUNCHER_ID = "org.kde.mac-tahoe-liquid-kde.launcher"
+# Written only by edition-aware staging; packages from older releases lack it.
+EDITION_MARKER = "contents/edition"
 
 
 def edition_name() -> str:
@@ -45,23 +47,39 @@ def record_applied_edition(home: Path, edition: str) -> None:
             temporary.unlink(missing_ok=True)
 
 
+def _package_edition(package: Path) -> str | None:
+    try:
+        text = (package / "contents/ui/MainView.qml").read_text()
+    except FileNotFoundError:
+        return None
+    match = re.search(r"readonly property bool goldenGateEdition: (true|false)", text)
+    return ("MacGoldenGate" if match[1] == "true" else "MacTahoe") if match else "unknown"
+
+
+def _package_marker(package: Path) -> str | None:
+    try:
+        return (package / EDITION_MARKER).read_text().strip()
+    except FileNotFoundError:
+        return None
+
+
 def remember_installed_edition(home: Path, package: Path) -> None:
     """Keep the outgoing edition until its layout is successfully replaced.
 
     Older installs have no state file. Read their staged appearance flag before
     replacing the package; never infer the edition from a user's chosen preset.
     This also preserves the transition across --no-apply-theme and failed runs.
+    Releases before edition tracking replace the package without updating the
+    record, so a package without a matching marker makes the record unknown.
     """
-    if applied_edition(home) is not None:
+    installed = _package_edition(package)
+    recorded = applied_edition(home)
+    if recorded is not None:
+        if installed is None or _package_marker(package) == installed:
+            return
+        record_applied_edition(home, "unknown")
         return
-    view = package / "contents/ui/MainView.qml"
-    try:
-        text = view.read_text()
-    except FileNotFoundError:
-        text = ""
-    match = re.search(r"readonly property bool goldenGateEdition: (true|false)", text)
-    previous = ("MacGoldenGate" if match[1] == "true" else "MacTahoe") if match else "unknown"
-    record_applied_edition(home, previous)
+    record_applied_edition(home, installed or "unknown")
 
 
 def _edition_defaults() -> dict:
@@ -100,3 +118,4 @@ def apply_launcher_default(package: Path) -> None:
     if count != 1:
         raise ValueError(tr("Launcher package lacks edition appearance support"))
     view.write_text(updated)
+    (package / EDITION_MARKER).write_text(edition_name() + "\n")
