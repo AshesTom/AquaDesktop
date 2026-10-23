@@ -58,10 +58,11 @@ def _source_archive(path: Path, root: str, *, traversal: bool = False) -> None:
 
 def test_upstream_release_pin_is_complete():
     # Keep the reviewed release, commit and archive digest together. v0.9.0
-    # fails to compile against the bool drawWindow API in KWin 6.7.91 (#94).
-    assert rounded.UPSTREAM_VERSION == "0.10.0"
-    assert rounded.UPSTREAM_COMMIT == "08dee25ac0410d977a45dd1e74a7de1823c1f098"
-    assert rounded.UPSTREAM_SHA256 == "f3f03d96e17ae4b7dcee6347a01c75de6f90ed19e070e98ae8bf2dd71ae276db"
+    # fails to compile against the bool drawWindow API in KWin 6.7.91 (#94);
+    # v0.11.0 detects the 6.8 texture orientation at runtime (#103).
+    assert rounded.UPSTREAM_VERSION == "0.11.0"
+    assert rounded.UPSTREAM_COMMIT == "66d7ce91a4f26062bba91bc7274ba85b6211391f"
+    assert rounded.UPSTREAM_SHA256 == "73833c9835262ad212075539edad771af75adc5be62ef027e55e09da2b97f0cb"
     assert f"tags/v{rounded.UPSTREAM_VERSION}.tar.gz" in rounded.UPSTREAM_URL
 
 

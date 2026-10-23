@@ -191,9 +191,9 @@ The probe builds a private desktop-entry cache for Spectacle authorization.
 For Rounded Corners, pass its built plugin with
 `--rounded-shaders /path/to/build/src/shaders`. The probe draws an opaque
 window with an asymmetric decoration shadow and a red outline, then checks
-that the outline meets the window bottom. Run the unpatched v0.10.0 control
+that the outline meets the window bottom. Run a v0.10.0 build as the control
 as well: on the affected 6.8 path it displaces the outline by 24 pixels.
-The patched shader must align the outline on 6.6, 6.7 and 6.8.
+The pinned v0.11.0 shader must align the outline on 6.6, 6.7 and 6.8.
 
 ## Branching and commits
 

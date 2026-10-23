@@ -298,7 +298,7 @@ mode, so existing installs and custom filters cannot fill seamless cutouts with
 glass (issue #90). The VirtualBox manager remains eligible for glass.
 
 `rounded_corners.py` is the only feature allowed to implement
-`download()`. It fetches KDE-Rounded-Corners v0.10.0 from the upstream
+`download()`. It fetches KDE-Rounded-Corners v0.11.0 from the upstream
 GitHub tag, verifies the pinned SHA-256 before extraction, rejects
 links/special nodes/path traversal, then compiles against the host KWin
 SDK. The verified archive is cached under
@@ -325,12 +325,16 @@ only when every value still matches exactly; it never changes whether the
 effect is enabled, so recovery works even if the next online download is
 unavailable and custom settings survive.
 
-Updating the pin requires all three values together: tag, immutable commit,
-and archive SHA-256. Never follow `main`, `master`, or `latest`.
+Take fixes from any source: a release, an unreleased upstream commit, an open
+pull request or a local backport in `rounded_corners_compat.py`. Whatever the
+source, pin the downloaded archive by immutable commit and SHA-256 so the
+installer builds exactly the reviewed bytes; never download a moving branch.
+Prefer the newest upstream that contains a needed fix, and keep local patches
+to the theme's own integration.
 
 Distribution Rounded Corners packages (for example CachyOS's
 `kwin-effect-rounded-corners`) install the same plugin, KCM, shader and locale
-paths without the compatibility patch. Unpatched v0.10.0 draws the mask and
+paths without the theme's integration patch. CachyOS's v0.10.0 build draws the mask and
 outline one title bar below server-decorated windows on Plasma 6.8 (issue #103),
 and a package update silently restores its files over the patched build. Before
 installing, query `distro.package_owner()` for every shared path, remove the
@@ -426,11 +430,10 @@ selection on 6.6/X11. Disable blending during intermediate Kawase passes;
 only the final surface is composited. Offset client blur regions by the
 content origin only for server-decorated windows.
 
-The pinned Rounded Corners v0.10.0 source receives the reviewed orientation
-backport in `rounded_corners_compat.py` before compilation, also in Nix.
-On Wayland 6.8 it derives texture orientation from `position0` derivatives;
-never hardcode a vertical flip by version. Older SDKs retain the original
-shader trait. The pixel probe accepts `--rounded-shaders` to verify the
+Rounded Corners v0.11.0 derives the Wayland 6.8 texture orientation from
+`position0` derivatives upstream; never hardcode a vertical flip by version.
+Older SDKs retain the original shader trait. `rounded_corners_compat.py` applies
+only the theme's desktop exclusion and shared corner shape, also in Nix. The pixel probe accepts `--rounded-shaders` to verify the
 outline against the client bottom and `--renderer hardware` for 6.8's
 render-device requirement. Run a pre-fix control as well as the fixed build.
 
@@ -831,7 +834,7 @@ a genuine missing package and fails CI.
 | `plasma_theme.py`             | Translucent panels and dock SVGs. |
 | `plasmoids.py`                | QML plasmoids: Menu, Launcher, Trashcan, IconTasks. |
 | `plymouth.py`                 | Boot splash. GRUB patch behind `_grub_is_active_bootloader()`; `--no-grub-modify` opt-out exists. |
-| `rounded_corners.py`          | Best-effort verified download of KDE Rounded Corners v0.10.0; compile/install and enable the effect, KCM, shaders, locales, and license without synchronizing other theme geometry. |
+| `rounded_corners.py`          | Best-effort verified download of KDE Rounded Corners v0.11.0; compile/install and enable the effect, KCM, shaders, locales, and license without synchronizing other theme geometry. |
 | `portals.py`                  | Route xdg-portal FileChooser / AppChooser to KDE (fixes stale dialog colors). |
 | `sddm.py`                     | Login screen theme. |
 | `sounds.py`                   | Notification and event sounds. |

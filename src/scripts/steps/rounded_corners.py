@@ -46,15 +46,15 @@ from utils import fetch, pkg_remove, qdbus_cmd, run_user
 from rounded_corners_compat import CompatibilityError, apply as apply_compatibility_patch
 
 
-# v0.10.0 handles KWin 6.7.80+'s bool drawWindow API while retaining
-# the void override for older SDKs (issue #94).
-UPSTREAM_VERSION = "0.10.0"
-UPSTREAM_COMMIT = "08dee25ac0410d977a45dd1e74a7de1823c1f098"
+# v0.11.0 detects the offscreen texture orientation at runtime on KWin 6.8
+# (issue #103) and keeps the bool drawWindow API of KWin 6.7.80+ (#94).
+UPSTREAM_VERSION = "0.11.0"
+UPSTREAM_COMMIT = "66d7ce91a4f26062bba91bc7274ba85b6211391f"
 UPSTREAM_URL = (
     "https://github.com/matinlotfali/KDE-Rounded-Corners/"
     f"archive/refs/tags/v{UPSTREAM_VERSION}.tar.gz"
 )
-UPSTREAM_SHA256 = "f3f03d96e17ae4b7dcee6347a01c75de6f90ed19e070e98ae8bf2dd71ae276db"
+UPSTREAM_SHA256 = "73833c9835262ad212075539edad771af75adc5be62ef027e55e09da2b97f0cb"
 UPSTREAM_PROJECT_URL = "https://github.com/matinlotfali/KDE-Rounded-Corners"
 
 EFFECT_ID = "kwin4_effect_shapecorners"
@@ -67,7 +67,7 @@ _DOWNLOAD_READY = False
 
 SHADER_DIR = Path("/usr/share/kwin/shaders")
 LOCALE_DIR = Path("/usr/share/locale")
-LOCALES = ("de", "es", "hu", "nl", "ru", "zh")
+LOCALES = ("de", "es", "hu", "ja", "nl", "ru", "zh")
 LICENSE_FILE = Path(
     "/usr/share/licenses/mac-tahoe-liquid-kde/KDE-Rounded-Corners.txt"
 )
