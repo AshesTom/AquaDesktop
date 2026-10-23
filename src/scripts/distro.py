@@ -189,33 +189,47 @@ def wallpaper_fallback_ids() -> tuple[str, ...]:
 
 _INIT_CACHE: str | None = None
 _SYSTEMD_MARKER = Path("/run/systemd/system")
+_PROC_ROOT = Path("/proc")
 
 
 def init_system() -> str:
-    """``"systemd"`` when systemd is the running init, else ``"openrc"``.
+    """Identify systemd or dinit; retain the OpenRC fallback otherwise.
     The single sanctioned init probe — scheduled-feature steps branch on
     this to pick a systemd user timer vs. a per-user crontab line. The
     ``/run/systemd/system`` directory exists iff systemd is PID 1 (the
     canonical sd_booted() check), so a systemd package merely installed
-    but not booted still reads as openrc, which is correct.
+    but not booted does not select the systemd backend. Detect dinit from
+    PID 1, never from installed executables or a user's dinit instance.
 
-    ``MTTKDE_INIT=openrc|systemd`` forces the answer — the only supported
-    way to exercise the OpenRC path on a systemd CI host (mirrors the
+    ``MTTKDE_INIT=openrc|dinit|systemd`` forces the answer — the only supported
+    way to exercise non-systemd paths on a systemd CI host (mirrors the
     OFFLINE/STEPS test overrides). It is not cached, so a test can flip it."""
     forced = os.environ.get("MTTKDE_INIT")
-    if forced in ("systemd", "openrc"):
+    if forced in ("systemd", "openrc", "dinit"):
         return forced
     global _INIT_CACHE
     if _INIT_CACHE is None:
         _INIT_CACHE = "systemd" if _SYSTEMD_MARKER.is_dir() else "openrc"
+        if _INIT_CACHE != "systemd":
+            process = _PROC_ROOT / "1"
+            try:
+                executable = (process / "exe").readlink().name
+            except OSError:
+                executable = ""
+            try:
+                name = (process / "comm").read_text().strip()
+            except OSError:
+                name = ""
+            if executable.removesuffix(" (deleted)") == "dinit" or name == "dinit":
+                _INIT_CACHE = "dinit"
     return _INIT_CACHE
 
 
 def user_service_manager_command(*args: str) -> list[str] | None:
     """Build a command for the active per-user service manager.
 
-    OpenRC has no systemd user manager, so callers receive ``None`` and use
-    their init-agnostic fallback (cron, process termination, or ``kstart``).
+    OpenRC and dinit callers get ``None`` and use their init-agnostic
+    fallback (cron, process termination, or ``kstart``).
     Keeping the executable name here makes :func:`init_system` the sole init
     decision point and keeps every step safe on hosts that merely have the
     systemd package installed without booting it.
@@ -223,6 +237,30 @@ def user_service_manager_command(*args: str) -> list[str] | None:
     if init_system() != "systemd":
         return None
     return ["systemctl", "--user", *args]
+
+
+def cron_daemon_running() -> bool:
+    """Confirm a cron daemon without depending on an init's service names.
+
+    Installing a crontab succeeds even with no daemon. A restricted /proc
+    may prevent confirmation, so callers must warn rather than erase jobs
+    or start a shared system service automatically.
+    """
+    try:
+        processes = list(_PROC_ROOT.iterdir())
+    except OSError:
+        return False
+    for process in processes:
+        if not process.name.isdigit():
+            continue
+        try:
+            if process.stat().st_uid != 0:
+                continue
+            if (process / "comm").read_text().strip() in ("cron", "crond", "dcron"):
+                return True
+        except OSError:
+            continue
+    return False
 
 
 # ── Qt6 plugin / QML directories ─────────────────────────────────────
@@ -568,7 +606,7 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "alpine":   "qt6-qttools",
         "void":     "qt6-tools",
     },
-    # Only pulled in on OpenRC hosts, where the scheduled features fall
+    # Only pulled in on OpenRC/dinit hosts, where the scheduled features fall
     # back to a per-user crontab line. On systemd hosts init_system()
     # picks the user timer instead and this token is never resolved.
     # Arch/CachyOS ship the cronie provider of /usr/bin/crontab.

@@ -8,7 +8,7 @@
 <p align="center">
   <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases"><img src="https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&amp;color=blue" alt="release"></a>
   <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases/tag/v0.57.15"><img src="https://img.shields.io/badge/LTS-v0.57.15-green" alt="LTS v0.57.15"></a>
-  <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml"><img src="https://img.shields.io/badge/tests-1757_passing-brightgreen" alt="tests"></a>
+  <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml"><img src="https://img.shields.io/badge/tests-1856_passing-brightgreen" alt="tests"></a>
   <a href="https://kde.org/plasma-desktop/"><img src="https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde" alt="plasma"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="license"></a>
   <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new"><img src="https://img.shields.io/badge/report-a%20bug-red?logo=github" alt="report a bug"></a>
@@ -190,6 +190,19 @@ Required desktop, build tools and system packages.
 - `dbus-send`
 - `systemctl` or `crontab` for scheduled features
 
+**dinit:** the installer detects dinit and uses per-user cron entries for
+automatic light/dark switching and OLED care. A running cron daemon is required;
+installing `crontab` alone does not start it. On Artix/dinit, prepare it with:
+
+```bash
+sudo pacman -S --needed cronie cronie-dinit
+sudo dinitctl --system enable cronie
+```
+
+Automatic switches run at 06:00 and 18:00 while logged in; the cron backend has
+no login-time catch-up. Manual light/dark switching works independently of cron.
+dinit desktop qualification is pending; the existing Artix screenshots cover OpenRC.
+
 Assets are bundled. Missing dependencies and optional KDE Rounded Corners require internet access.
 
 | Distro | Qt 6 tools | KDE Plasma 6 development packages |
@@ -281,7 +294,11 @@ alone does not mean its menus were exported.
 <details>
 <summary><b>Firefox theme</b></summary>
 
-Supports native, Flatpak and Snap profiles. Restart Firefox after installation.
+Supports Firefox profiles from native, Flatpak and Snap installations. Zen and
+other Firefox-derived browsers keep their own interface and are not themed.
+Reinstalling this component removes its earlier theme additions from those
+browsers, with a fresh UI backup and customizations preserved. Restart the
+affected browsers after installation.
 Browser data and customizations are preserved; uninstall removes the theme's additions. UI backups: `~/.local/state/mac-tahoe-liquid-kde/firefox/snapshots/`.
 
 </details>
@@ -426,15 +443,17 @@ All 11 distributions in this table passed live VM qualification. Select a status
 <details>
 <summary><b>Init systems</b></summary>
 
-Scheduled features use systemd timers or OpenRC with cron.
+Scheduled features use systemd user timers or per-user cron on OpenRC and dinit.
 
 | Init system | Support | Testing |
 |-------------|---------|---------|
 | systemd | Supported | Completed |
-| OpenRC | Supported | In progress |
+| OpenRC | Supported | Completed |
+| dinit | Cron backend | Scheduling verified; desktop qualification pending |
 
-OpenRC scheduled features require a running cron daemon. Artix has container
-validation; live installation testing is pending.
+OpenRC and dinit scheduled features require a running cron daemon.
+[Artix/OpenRC desktop evidence](tests/vm/PROOF.md#artix) is separate from the
+[dinit scheduling probe](CONTRIBUTING.md#setup).
 
 </details>
 

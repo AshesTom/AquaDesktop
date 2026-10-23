@@ -5,6 +5,11 @@ import subprocess
 import time
 from pathlib import Path
 
+from launcher_defaults import (
+    LAUNCHER_ID, applied_edition, default_launcher_preset, edition_name,
+    edition_state_file, record_applied_edition, remember_installed_edition,
+)
+
 from steps._helpers import (
     DATA_HOME, HOME, have, install_tree, ok, offline, qdbus_call, warn,
 )
@@ -158,6 +163,9 @@ def _layout_script_with_launchers(
     if not script_path.is_file():
         return None
     script = script_path.read_text()
+    if script_path == LAYOUT_SCRIPT:
+        preset = default_launcher_preset() if applied_edition(HOME) != edition_name() else 0
+        script = f"var mttkdeLauncherPreset = {preset};\n" + script
     if not _discover_is_installed():
         script = script.replace(_DISCOVER_DESKTOP + ",", "")
         script = script.replace("," + _DISCOVER_DESKTOP, "")
@@ -372,6 +380,7 @@ def install() -> None:
     # A failed rebuild must leave is_installed() false so cli.py retries after
     # Plasma restarts instead of trusting a marker from the previous run.
     _clear_layout_marker()
+    remember_installed_edition(HOME, DATA_HOME / "plasma/plasmoids" / LAUNCHER_ID)
     _ensure_panel_colorizer()
     if not LAYOUT_SCRIPT.is_file():
         warn(tr('Layout script not found — skipping'))
@@ -381,6 +390,7 @@ def install() -> None:
         LAYOUT_SCRIPT, pins, MAC_TASKS_ID,
     )
     if applied and _wait_for_layout_install():
+        record_applied_edition(HOME, edition_name())
         _mark_layout_installed()
         ok(tr("Layout installed (kept {count} pinned apps)", count=len(pins)) if pins
            else tr("Layout installed"))
@@ -401,17 +411,20 @@ def uninstall() -> None:
     if _reset_plasmashellrc():
         ok(tr('Panel transparency reset'))
     if not has_theme_widgets:
+        edition_state_file(HOME).unlink(missing_ok=True)
         ok(tr('Layout already clean'))
         return
     # Always remove the Mac top bar and Dock. Preserve only the applications
     # the user pinned; Launcher and Trash are widgets and disappear with Dock.
     pins = _capture_pinned_launchers()
     if _reset_with_pins(pins):
+        edition_state_file(HOME).unlink(missing_ok=True)
         ok(tr("Layout reset (kept {count} pinned apps)", count=len(pins)) if pins
            else tr("Layout reset"))
         return
 
     if _reset_layout_builtin():
+        edition_state_file(HOME).unlink(missing_ok=True)
         if _restore_pins(pins, DEFAULT_TASKS_ID):
             ok(tr("Layout reset (kept {count} pinned apps)", count=len(pins)) if pins
                else tr("Layout reset"))

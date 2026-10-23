@@ -14,6 +14,7 @@ import re
 import sys
 import threading
 import unicodedata
+from launcher_defaults import edition_name
 
 # curses is stdlib on most distros, but openSUSE splits it into a
 # separate package (python3-curses). This module must still import so
@@ -267,7 +268,7 @@ def _draw_header(scr) -> int:
     once, in the CLI banner printed before the TUI starts. Returns the
     first body row."""
     _, w = scr.getmaxyx()
-    name = "MacTahoe Liquid KDE"
+    name = f"{edition_name()} Liquid KDE"
     ver = f" v{read_version()}"
     x = max(0, (w - len(name + ver)) // 2)
     x = _put(scr, 0, x, name, _c(_P_GREEN, curses.A_BOLD))

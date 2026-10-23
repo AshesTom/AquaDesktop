@@ -888,6 +888,39 @@ def _wire_step(tmp_path, monkeypatch):
     return step, home, calls
 
 
+@pytest.mark.parametrize("backend", ["openrc", "dinit"])
+def test_step_cron_install_reinstall_and_uninstall(tmp_path, monkeypatch, backend):
+    from steps import _scheduler
+    from tests.test_openrc_scheduler import FakeCrontab
+
+    step, _home, calls = _wire_step(tmp_path, monkeypatch)
+    monkeypatch.setenv("MTTKDE_INIT", backend)
+    monkeypatch.setenv("FEAT_OLED_CARE", "true")
+    monkeypatch.setenv("OLED_INTERVAL", "7")
+    monkeypatch.setenv("OLED_MAX_SHIFT", "3")
+    cron = FakeCrontab()
+    unrelated = "30 3 * * * /home/tester/backup"
+    cron.lines = [unrelated]
+    monkeypatch.setattr(_scheduler, "run_user", cron)
+    monkeypatch.setattr(_scheduler, "_have_crontab", lambda: True)
+    monkeypatch.setattr(_scheduler, "cron_daemon_running", lambda: True)
+    monkeypatch.setattr(step, "remove_periodic", _scheduler.remove_periodic)
+
+    step.install()
+    step.install()
+    assert step.BIN_DEST.is_file()
+    assert len(cron.lines) == 2
+    assert cron.lines[0] == unrelated
+    assert cron.lines[1].startswith("*/7 * * * * ")
+    assert "shift --max-px 3" in cron.lines[1]
+    assert not any((step.SVC_DIR / unit).exists() for unit in step.UNITS)
+
+    step.uninstall()
+    assert not step.BIN_DEST.exists()
+    assert cron.lines == [unrelated]
+    assert not any(call[0] == "systemctl" for call in calls)
+
+
 def test_step_install_enabled_copies_and_enables(tmp_path, monkeypatch):
     step, home, calls = _wire_step(tmp_path, monkeypatch)
     monkeypatch.setenv("FEAT_OLED_CARE", "true")
@@ -1022,10 +1055,11 @@ def test_step_uninstall_retains_recovery_when_panels_cannot_restore(
     assert any("removal incomplete" in message for message in failures)
 
 
+@pytest.mark.parametrize("backend", ["openrc", "dinit"])
 def test_step_uninstall_retains_helper_and_state_when_cron_removal_fails(
-        tmp_path, monkeypatch):
+        tmp_path, monkeypatch, backend):
     step, _home, _calls = _wire_step(tmp_path, monkeypatch)
-    monkeypatch.setenv("MTTKDE_INIT", "openrc")
+    monkeypatch.setenv("MTTKDE_INIT", backend)
     step.BIN_DEST.parent.mkdir(parents=True)
     step.BIN_DEST.write_text("#!stub")
     restored: list[bool] = []

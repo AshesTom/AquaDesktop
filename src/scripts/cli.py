@@ -21,6 +21,7 @@ from paths import (
 from log import (
     banner, errors, fail, note, ok, progress_done, progress_reset, step, warn,
 )
+from launcher_defaults import edition_name
 from preflight import run_preflight
 from state import RunTracker
 from step_runner import run_phase, step_deps, step_exists, step_has_phase, step_module
@@ -134,7 +135,7 @@ Options:
     --layout           Panel layout (top bar + dock)
     --sounds           Notification and event sounds
     --gtk              GTK 2/3/4 theme
-    --firefox          Matching Firefox-family browser CSS (native, Flatpak,
+    --firefox          Matching Firefox browser CSS (native, Flatpak,
                        and Snap; backs up every profile before changing it)
     --sddm             Login screen theme
     --plymouth         Boot splash screen (Plymouth)
@@ -1017,7 +1018,7 @@ def _print_done(verb: str) -> None:
     print()
     print(tr('\x1b[0;32m\x1b[1m  ── Done\x1b[0m'))
     if not errors:
-        ok(tr('MacTahoe Liquid KDE {verb} successfully', verb=tr(verb)))
+        ok(tr('MacTahoe Liquid KDE {verb} successfully', verb=tr(verb)).replace("MacTahoe", edition_name()))
         print(tr('  \x1b[0;90mReport bugs at: https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new\x1b[0m'))
         print()
         return

@@ -76,6 +76,7 @@ def test_artix_without_arch_id_like_resolves_packages(tmp_path, monkeypatch, id_
     monkeypatch.delenv("MTTKDE_INIT", raising=False)
     monkeypatch.setattr(distro, "_INIT_CACHE", None)
     monkeypatch.setattr(distro, "_SYSTEMD_MARKER", tmp_path / "no-systemd")
+    monkeypatch.setattr(distro, "_PROC_ROOT", tmp_path / "no-proc")
     assert distro.init_system() == "openrc"
     assert distro.user_service_manager_command("daemon-reload") is None
     assert distro.package_for("crontab") == "cronie"

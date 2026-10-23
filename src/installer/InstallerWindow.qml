@@ -48,7 +48,7 @@ Window {
         return (bg.r * 0.299 + bg.g * 0.587 + bg.b * 0.114) < 0.5;
     }
 
-    title: t("MacTahoe Liquid KDE Installer")
+    title: t("MacTahoe Liquid KDE Installer").replace("MacTahoe", installer.editionName)
     width: 1000
     height: 684
     minimumWidth: 1000

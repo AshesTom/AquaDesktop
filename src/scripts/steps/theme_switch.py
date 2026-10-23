@@ -44,7 +44,7 @@ UNITS = (
     "mac-tahoe-liquid-kde-theme.timer",
 )
 
-# crontab tag + fire times for the OpenRC backend, matching the systemd
+# crontab tag + fire times for the OpenRC/dinit backend, matching the systemd
 # timer's OnCalendar (06:00 light, 18:00 dark). The binary derives the
 # mode from the wall clock, so both fires run the same `auto` command.
 CRON_TAG = "theme"
@@ -166,7 +166,7 @@ def _systemd_unit_stopped_and_disabled(unit: str) -> bool:
 
 
 def deps():
-    # OpenRC + auto mode needs crontab for the timed flip; systemd and
+    # OpenRC/dinit + auto mode needs crontab for the timed flip; systemd and
     # pinned modes need nothing extra.
     if is_systemd() or theme_mode() != "auto":
         return []
@@ -229,7 +229,7 @@ def _cron_removal_complete(status: RemovalStatus) -> bool:
     if status in (RemovalStatus.REMOVED, RemovalStatus.ABSENT):
         return True
     # A systemd-only host commonly has no crontab client at all. There is no
-    # runnable OpenRC backend to clean in that case; an actual read/write error
+    # runnable OpenRC/dinit backend to clean in that case; an actual read/write error
     # from a present client remains unsafe.
     return status == RemovalStatus.UNAVAILABLE and is_systemd()
 
@@ -278,7 +278,7 @@ def install() -> None:
 
     if auto:
         if is_systemd():
-            # A previous OpenRC boot may have left our marked cron lines.
+            # A previous OpenRC/dinit boot may have left our marked cron lines.
             cron_status = remove_periodic(CRON_TAG)
             if not _cron_removal_complete(cron_status):
                 warn(tr('Theme switch: previous cron schedule could not be removed; duplicate auto transitions may remain'))
@@ -288,7 +288,7 @@ def install() -> None:
             # Conversely, remove stale user units before scheduling cron.
             if not _teardown_units():
                 warn(tr('Theme switch: stale systemd unit files could not be removed'))
-            # OpenRC: fixed-time cron lines at 06:00/18:00. There is no
+            # OpenRC/dinit: fixed-time cron lines at 06:00/18:00. There is no
             # login-time oneshot equivalent, but the binary is idempotent
             # and the timed flips are what matter.
             command = cron_command(BIN_DEST, "auto")
@@ -386,7 +386,7 @@ def uninstall() -> None:
         "mactahoe-theme-watcher.service",
     )
     units_stopped = _teardown_units(legacy_units)
-    # Strip the OpenRC cron line too, so an uninstall on either init leaves
+    # Strip the OpenRC/dinit cron line too, so an uninstall on either init leaves
     # no orphaned schedule behind.
     cron_status = remove_periodic(CRON_TAG)
     cron_complete = _cron_removal_complete(cron_status)

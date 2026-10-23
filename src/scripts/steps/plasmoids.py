@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 
 from distro import qt6_plugins_dir, qt6_qml_dir
-from launcher_defaults import LAUNCHER_ID, apply_launcher_default
+from launcher_defaults import LAUNCHER_ID, apply_launcher_default, remember_installed_edition
 from steps._helpers import (
     DATA_HOME, HOME, build_dir, cmake_build, fail, info, install_tree, ok, offline,
     remove_tree,
@@ -147,6 +147,7 @@ def _install_taskmanager_qml() -> bool:
 
 
 def _install_launcher_package(widget: Path) -> bool:
+    remember_installed_edition(HOME, DEST_DIR / widget.name)
     with temp_dir("mttkde-launcher-package") as tmp:
         staged = tmp / widget.name
         shutil.copytree(widget, staged, symlinks=True)

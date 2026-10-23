@@ -29,6 +29,22 @@ def test_preview_qml_exists(repo):
     assert (repo / "src/installer/InstallerHello.png").is_file()
 
 
+@pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate"])
+def test_installer_identifies_source_edition_on_open(
+        installer_ui_module, monkeypatch, tmp_path, capsys, edition):
+    import launcher_defaults
+    import log
+    qtcore = pytest.importorskip("PyQt6.QtCore")
+    app = qtcore.QCoreApplication.instance() or qtcore.QCoreApplication([])
+    config = tmp_path / "defaults.json"
+    config.write_text(json.dumps({"wallpaper": edition}))
+    monkeypatch.setattr(launcher_defaults, "DEFAULTS_FILE", config)
+    bridge = installer_ui_module._make_installer_bridge()
+    assert bridge.editionName == edition
+    log.banner("0.0.0")
+    assert f"{edition} Liquid KDE" in capsys.readouterr().out
+
+
 def test_features_window_serializes_saves_and_coalesces_latest_state(repo):
     source = (repo / "src/installer/FeaturesWindow.qml").read_text()
     save_block = source.split("function save(): void {", 1)[1].split(

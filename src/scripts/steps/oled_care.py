@@ -22,7 +22,7 @@ from steps._scheduler import (
 )
 from utils import run_user
 
-# crontab tag identifying our managed line on OpenRC hosts.
+# crontab tag identifying our managed line on OpenRC/dinit hosts.
 CRON_TAG = "oled"
 
 DEFAULT_INTERVAL_MINUTES = 5
@@ -41,7 +41,7 @@ _LEGACY_DRAIN_POLL_SECONDS = 0.05
 
 
 def deps():
-    # crontab is only needed on OpenRC, where the timer falls back to a
+    # crontab is only needed on OpenRC/dinit, where the timer falls back to a
     # per-user cron line. systemd hosts schedule via the user manager and
     # need nothing extra. The flag gates it further — no --oled-care, no dep.
     if is_systemd() or not feat_enabled("oled_care", default=False):
@@ -473,7 +473,7 @@ def _schedule_systemd(interval: int, max_px: int) -> bool:
 
 
 def _schedule_cron(interval: int, max_px: int) -> bool:
-    # OpenRC: no systemd user timer. The shift binary recovers the desktop
+    # OpenRC/dinit: no systemd user timer. The shift binary recovers the desktop
     # session env itself (see oled_care._sync_session_env), so a bare cron
     # environment still reaches plasmashell.
     command = cron_command(BIN_DEST, "shift", "--max-px", max_px)

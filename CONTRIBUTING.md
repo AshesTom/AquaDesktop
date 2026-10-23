@@ -32,6 +32,22 @@ sudo ./uninstall     # removes current and legacy system Qt6 plugins
 ./test --vm          # plymouth render harness (requires root, see tests/vm/)
 ```
 
+For the focused dinit integration probe, build and run the official Artix image
+with dinit as PID 1 and a real cron daemon. The repository mount stays read-only;
+the jobs run as the disposable `tester` user. No privileged container is needed:
+
+```sh
+docker build -f tests/containers/Dockerfile.artix-dinit -t mttkde-test-artix-dinit tests/containers
+docker run -d --name mttkde-dinit-probe --network none -v "$PWD:/repo:ro" mttkde-test-artix-dinit
+docker exec mttkde-dinit-probe dinitctl --system is-started cronie
+docker exec -u tester mttkde-dinit-probe python /repo/tests/containers/dinit_scheduler_probe.py
+docker rm -f mttkde-dinit-probe
+```
+
+The probe takes up to two minutes and checks real scheduled execution, user
+identity, reinstall and cleanup. It does not establish live Plasma compatibility;
+dinit still needs a complete desktop VM qualification.
+
 Live theme switch without restarting the session:
 
 ```sh

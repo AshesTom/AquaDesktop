@@ -2175,15 +2175,16 @@ def test_switch_step_install_uninstall_reinstall(sandbox, tmp_path):
     assert not layout_marker.exists()
 
 
-def test_switch_step_openrc_schedules_via_crontab_not_systemd(sandbox, tmp_path):
-    """On OpenRC (forced) the auto theme flip installs a crontab line at
+@pytest.mark.parametrize("backend", ["openrc", "dinit"])
+def test_switch_step_cron_schedules_without_systemd(sandbox, tmp_path, backend):
+    """On OpenRC/dinit the auto theme flip installs a crontab line at
     06:00/18:00 and never installs a systemd timer. The shimmed crontab
     logs the stdin write so we can confirm both times were scheduled."""
     shim_dir = make_live_shim_dir(tmp_path)
     log_file = shim_dir / "calls.log"
 
     _run_step("theme_switch", "install",
-              {"THEME_MODE": "auto", "MTTKDE_INIT": "openrc"},
+              {"THEME_MODE": "auto", "MTTKDE_INIT": backend},
               shim_dir=shim_dir)
 
     calls = log_file.read_text()
@@ -2198,11 +2199,12 @@ def test_switch_step_openrc_schedules_via_crontab_not_systemd(sandbox, tmp_path)
     assert "systemctl --user start" not in calls
 
 
-def test_switch_step_openrc_uninstall_strips_crontab(sandbox, tmp_path):
+@pytest.mark.parametrize("backend", ["openrc", "dinit"])
+def test_switch_step_cron_uninstall_strips_crontab(sandbox, tmp_path, backend):
     shim_dir = make_live_shim_dir(tmp_path)
     log_file = shim_dir / "calls.log"
     _run_step("theme_switch", "uninstall",
-              {"THEME_MODE": "auto", "MTTKDE_INIT": "openrc"},
+              {"THEME_MODE": "auto", "MTTKDE_INIT": backend},
               shim_dir=shim_dir)
     # uninstall reads the crontab (to filter our tag) on the OpenRC path.
     assert "crontab -l" in log_file.read_text()

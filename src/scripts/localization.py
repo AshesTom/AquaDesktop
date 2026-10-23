@@ -27,6 +27,7 @@ LANGUAGE_CODES = tuple(item["code"] for item in LANGUAGES)
 
 
 _ES = {
+    "Cron entries installed, but no running cron daemon could be confirmed. Enable your cron service for scheduled features.": "Se instalaron las entradas de cron, pero no se pudo confirmar que haya un servicio cron en ejecución. Activa el servicio cron para las funciones programadas.",
 
     "System default": "Predeterminado del sistema",
     "Language": "Idioma",
@@ -82,6 +83,7 @@ _ES = {
 }
 
 _ZH_CN = {
+    "Cron entries installed, but no running cron daemon could be confirmed. Enable your cron service for scheduled features.": "已安装 cron 条目，但无法确认 cron 守护进程正在运行。请启用 cron 服务以运行计划任务。",
 
     "System default": "跟随系统",
     "Language": "语言",

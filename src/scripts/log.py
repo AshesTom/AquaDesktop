@@ -6,6 +6,7 @@ import stat
 import sys
 
 from localization import tr
+from launcher_defaults import edition_name
 
 GREEN = "\033[0;32m"
 YELLOW = "\033[1;33m"
@@ -204,6 +205,6 @@ def banner(version: str) -> None:
     for extra in art[len(_APPLE_RAINBOW):]:
         print(f"  {_APPLE_RAINBOW[-1]}{BOLD}{extra}{RESET}")
     print()
-    print(f"  {GREEN}{BOLD}        MacTahoe Liquid KDE {WHITE}v{version}{RESET}")
+    print(f"  {GREEN}{BOLD}        {edition_name()} Liquid KDE {WHITE}v{version}{RESET}")
     print(f"  {WHITE}            {tr('Developed by Lester')}{RESET}")
     print()

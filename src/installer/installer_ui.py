@@ -23,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
 from paths import CONFIG_FILE, REPO_ROOT, read_version
+from launcher_defaults import edition_name
 from cli import (
     ALL_FEATURES, DEFAULT_FEATURES, FEATURE_DESC,
     fetch_latest_release, parse_semver,
@@ -512,6 +513,10 @@ def _make_installer_bridge():
         @pyqtProperty(bool, notify=runningChanged)
         def running(self) -> bool:
             return self._running
+
+        @pyqtProperty(str, constant=True)
+        def editionName(self) -> str:
+            return edition_name()
 
         @pyqtProperty(str, constant=True)
         def version(self) -> str:
