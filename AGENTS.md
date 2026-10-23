@@ -301,6 +301,9 @@ repo) and re-execs `./install` so the freshly-pulled code performs the
 install. `MAC_TAHOE_UPDATED=1` is the recursion guard. A dirty
 checkout, missing git, or a failed pull falls back to installing the
 current version with a manual `git pull && ./install` hint.
+Golden Gate performs both updates itself: its wrapper fast-forwards its own
+checkout, installs the latest published Tahoe release, and sets
+`MAC_TAHOE_NO_UPDATE_CHECK=true` for that prepared source.
 
 ## Architecture — Optional Online Rounded Corners
 
@@ -661,10 +664,11 @@ Publish Tahoe and Golden Gate with matching release versions and `v<version>`
 tags. Deliver completed changes to both `dev` and `main` in both repositories,
 and verify both remote branches include them before reporting completion.
 Release titles must be exactly `v<version>`, with no subtitles, descriptions
-or other extra text. Golden Gate's `VERSION` must match the Tahoe release it
-downloads; pin
-its `upstream.json` to the published Tahoe release commit and verified archive
-SHA-256 before publishing the corresponding Golden Gate release. Each README
+or other extra text. Golden Gate's `VERSION` must match its pinned Tahoe
+release. Golden Gate installs the latest Tahoe release at runtime; its
+`upstream.json` is the verified fallback and release-check reference. Pin it to
+the published Tahoe release commit and verified archive SHA-256 before
+publishing the corresponding Golden Gate release. Each README
 shows its own default launcher preset and wallpaper in light and dark mode.
 
 Capture screenshots for EVERY release with `./release-screenshots capture`.
