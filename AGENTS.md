@@ -290,6 +290,17 @@ custom Plasma sessions and sudo's empty/stale environment without requiring
 manual DBus variable forwarding (issue #85). Keep OLED retirement fail-closed
 when the recovered session still cannot reach the user service manager.
 
+## Architecture — Icon generation
+
+`./icon-toolset` is an offline maintainer tool shared by both editions. Keep its
+implementation in `src/scripts/icon_{toolset,materials,sources}.py` and use the
+bundled icon archive as its base. Reference projects inform visual design only;
+do not fetch their packs or invoke their installers. Accept arbitrary RGB tints,
+preserve source notices and aliases, record transformations and hashes, and
+write only to explicit fresh output paths. Synthetic artwork contact sheets
+are not desktop documentation screenshots. Generated appearances are opt-in
+build artifacts; the tool must not change live themes or installer defaults.
+
 ## Architecture — Auto-Update on Install
 
 `./install` checks GitHub releases on every launch.

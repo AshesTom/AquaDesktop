@@ -211,6 +211,88 @@ that the outline meets the window bottom. Run a v0.10.0 build as the control
 as well: on the affected 6.8 path it displaces the outline by 24 pixels.
 The pinned v0.11.0 shader must align the outline on 6.6, 6.7 and 6.8.
 
+## Icon generation toolset
+
+`./icon-toolset` builds application-icon appearances from our bundled base for
+both Tahoe and Golden Gate. It is a maintainer tool, separate from installation:
+it never changes the desktop, invokes another project's installer, downloads
+artwork, or changes the installed icon choice. Python 3.10+, Pillow,
+`rsvg-convert` (librsvg), and `zstd` are required. The generator supports every
+24-bit RGB tint through `--tint '#RRGGBB'`, not a fixed palette.
+
+```sh
+# Review a small sample first. Use a new output directory on every build.
+./icon-toolset build --output build/icons/sample --sizes 128 --tint '#ff7a18' \
+  --icons firefox org.kde.dolphin org.kde.konsole visual-studio-code spotify
+./icon-toolset preview build/icons/sample --output build/icons/sample-preview.png
+
+# Generate the complete base, including aliases, in all eight appearances.
+./icon-toolset build --output build/icons/full --tint '#6796d2'
+./icon-toolset verify build/icons/full
+./icon-toolset pack build/icons/full --output build/icons/full.tar.gz
+```
+
+`--variants` accepts `light`, `dark`, `black`, `white`, `clear-light`,
+`clear-dark`, `tinted-light`, and `tinted-dark`. Light/Dark preserve colored
+application artwork and branded color tiles. Black/White use dark/light tiles
+and tonal monochrome symbols. Clear/Tinted use translucent materials with
+separate light/dark foreground treatments. These are static icon appearances;
+they do not refract the live desktop. `--sizes` selects ordinary icon sizes
+(32, 64, 128, 256); default outputs are 64, 128 and 256 pixel PNGs.
+
+The generator identifies large SVG background layers and surrounding rim layers,
+then renders foreground artwork separately at double the largest output size.
+This avoids replacing every white or dark pixel inside a logo. Flattened artwork
+uses conservative edge-connected neutral-background detection. Unrecognized
+backgrounds retain their geometry and alpha; their classification is recorded
+for review rather than being presented as successfully separated glass layers.
+External SVG image references are omitted, counted and reported: the current
+base's `lact.svg` contains an unavailable localhost image. Other external SVG
+resources, scripts, entities and imports are rejected. No external data is fetched.
+
+For a missing application or an icon requiring precise layer separation, supply
+`--overrides path/to/overrides.json`. Each icon name maps to local artwork and its
+notice; paths are relative to that JSON file:
+
+```json
+{
+  "my-app": {
+    "source": "my-app.svg",
+    "kind": "glyph",
+    "notice": "my-app-NOTICE.txt"
+  }
+}
+```
+
+Use `glyph` for an isolated symbol to place on a new material tile, or `icon`
+for complete artwork. Overrides can replace existing names or add new names.
+The bundle carries override sources and notices. It also carries both unchanged
+base themes; generated themes inherit their interface, folder and status icons.
+All implementation and generated assets belong in Tahoe; Golden Gate only
+documents the shared workflow.
+
+`manifest.json` records the input archive hash, generator source hashes, renderer
+versions, tint, classifications, source hashes, output hashes and alias targets.
+Verification detects modified/missing/extra files and unsafe links, and validates
+theme inheritance and image dimensions. Builds never overwrite existing output.
+Pack normalizes timestamps and ownership for reproducible archives; identical
+inputs and renderer versions are needed for identical generated pixels.
+`--icons` marks a sample bundle partial; packaging it requires `--allow-partial`.
+Preview produces synthetic artwork contact sheets, not desktop screenshots.
+
+Our existing icon archive's provenance gaps remain documented in
+`THIRD_PARTY_NOTICES.md`; generation does not resolve or relicense those assets.
+Carry all supplied notices and review artwork before redistributing a generated
+pack. Packaging is not release approval. This tool does not alter installer
+defaults or publish its experimental output as the default icon theme.
+
+Visual references, inspected at immutable revisions, informed the feature design:
+[MacOS-Like](https://github.com/Scrimas/MacOS-Like/tree/efbc63d48d52bbaf52e9a70fb18e0d0c3c0719b2)
+for consistent light/dark tiles and missing-app coverage, and
+[MacTahoe Tinted Glass](https://github.com/Johan-Ardila/MacTahoe-tinted-glass-Icons-for-KDE-plasma/tree/789bfe8ded8d01435145a8f35b73d61f375f61c9)
+for tonal translucent appearances. Their code and icon packs are not included
+or used as build/runtime dependencies. The generator uses our own base artwork.
+
 ## Branching and commits
 
 - `main` is always releasable. Direct commits are fine for small fixes.
