@@ -328,6 +328,23 @@ unavailable and custom settings survive.
 Updating the pin requires all three values together: tag, immutable commit,
 and archive SHA-256. Never follow `main`, `master`, or `latest`.
 
+Distribution Rounded Corners packages (for example CachyOS's
+`kwin-effect-rounded-corners`) install the same plugin, KCM, shader and locale
+paths without the compatibility patch. Unpatched v0.10.0 draws the mask and
+outline one title bar below server-decorated windows on Plasma 6.8 (issue #103),
+and a package update silently restores its files over the patched build. Before
+installing, query `distro.package_owner()` for every shared path, remove the
+owning package with `package_manager_remove_cmd()`, and record it so uninstall
+prints the reinstall command. If removal fails, stop before disabling or
+overwriting anything. Uninstall never deletes package-owned paths. Keep the
+inode of identical files and check KWin's mapped library after reloading: Qt
+keeps a replaced library resident until the next login.
+
+KWin 6.7+ clips windows to a decoration-declared `borderRadius`, and 6.8 adds
+server-side shadows, outlines and corners for client-side-decorated windows
+only when the decoration declares the `shadow` style. Aurorae declares neither,
+so Rounded Corners remains the only rounding and outline on 6.6 through 6.8.
+
 ## Architecture — Distro Detection Layer
 
 `src/scripts/distro.py` is the ONLY file allowed to know per-distro

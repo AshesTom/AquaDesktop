@@ -12,7 +12,9 @@ from typing import Iterator
 
 from paths import BUILD_DIR, LEGACY_STEPS_DIR, OFFLINE_DIR, SRC_DIR, STEPS_DIR
 from log import fail, info, ok, reinstall, warn
-from utils import drop_privs_in_child, have, kw_write, qdbus_call, safe_copy
+from utils import (
+    drop_privs_in_child, have, kw_write, qdbus_call, qdbus_cmd, run_user, safe_copy,
+)
 
 
 HOME = Path.home()
@@ -178,6 +180,47 @@ def sudo_remove(path: Path, label: str | None = None) -> bool:
         return False
     ok(label)
     return True
+
+
+def kwin_plugin_mapping_matches(maps: str, plugin: Path) -> bool | None:
+    """Whether every mapping of ``plugin`` in ``maps`` is the installed file.
+    None when the library is not mapped at all."""
+    installed = plugin.stat()
+    matches = []
+    for line in maps.splitlines():
+        fields = line.split(maxsplit=5)
+        if len(fields) != 6 or fields[5].removesuffix(" (deleted)") != str(plugin):
+            continue
+        # Btrfs subvolume stat devices can differ from /proc/maps devices.
+        # The exact path plus inode identifies the installed file.
+        matches.append(int(fields[4]) == installed.st_ino
+                       and not fields[5].endswith(" (deleted)"))
+    return all(matches) if matches else None
+
+
+def running_kwin_plugin_matches(plugin: Path) -> bool | None:
+    """Check the running KWin's mappings: Qt keeps a replaced plugin library
+    resident after its effect instance is reloaded. None when unknown."""
+    q = qdbus_cmd()
+    if not q:
+        return None
+    try:
+        result = run_user(
+            [q, "org.freedesktop.DBus", "/org/freedesktop/DBus",
+             "org.freedesktop.DBus.GetConnectionUnixProcessID", "org.kde.KWin"],
+            check=False, capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode != 0:
+            return None
+        pid = int(result.stdout.strip())
+        if pid <= 0:
+            return None
+        # KWin's capabilities can deny same-user access to its mappings.
+        with _as_root():
+            maps = Path(f"/proc/{pid}/maps").read_text()
+        return kwin_plugin_mapping_matches(maps, plugin)
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return None
 
 
 @contextmanager

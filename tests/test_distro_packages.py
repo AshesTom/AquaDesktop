@@ -1170,3 +1170,71 @@ def test_globalmenu_installs_available_runtime_exporters(monkeypatch, name, pare
         assert distro.package_for("gtk3-appmenu", dependencies["gtk3-appmenu"]) == exporter
     else:
         assert "gtk3-appmenu" not in dependencies
+
+
+# Issue #103: a distro Rounded Corners package owns the same paths as the
+# project's patched build; ownership decides whether files may be replaced.
+_SHADER = Path("/usr/share/kwin/shaders/shapecorners_core.frag")
+
+
+@pytest.mark.parametrize("distro_id,id_like,command,output,owner", [
+    ("cachyos", ("arch",), ["pacman", "-Qqo", str(_SHADER)],
+     "kwin-effect-rounded-corners", "kwin-effect-rounded-corners"),
+    ("fedora", (), ["rpm", "-qf", "--qf", "%{NAME}\n", str(_SHADER)],
+     "kwin-effect-roundcorners", "kwin-effect-roundcorners"),
+    ("opensuse-tumbleweed", ("opensuse", "suse"),
+     ["rpm", "-qf", "--qf", "%{NAME}\n", str(_SHADER)],
+     "kwin6-effect-roundcorners\nkwin6-effect-roundcorners",
+     "kwin6-effect-roundcorners"),
+    ("neon", ("ubuntu", "debian"), ["dpkg-query", "-S", str(_SHADER)],
+     "diversion by local from: /elsewhere\n"
+     f"kwin-effect-rounded-corners, other: {_SHADER}",
+     "kwin-effect-rounded-corners"),
+])
+def test_package_owner_reads_native_file_ownership(
+    monkeypatch, distro_id, id_like, command, output, owner,
+):
+    _force_distro(monkeypatch, distro_id, id_like)
+    queries: list[list[str]] = []
+    monkeypatch.setattr(distro, "_run_query",
+                        lambda cmd: queries.append(cmd) or output)
+    assert distro.package_owner(_SHADER) == owner
+    assert queries == [command]
+
+
+@pytest.mark.parametrize("distro_id,id_like", [
+    ("arch", ()), ("fedora", ()), ("debian", ()), ("void", ()),
+])
+def test_package_owner_is_none_for_unowned_paths(monkeypatch, distro_id, id_like):
+    _force_distro(monkeypatch, distro_id, id_like)
+    monkeypatch.setattr(distro, "_run_query", lambda cmd: None)
+    assert distro.package_owner(_SHADER) is None
+
+
+def test_dpkg_owner_ignores_other_paths(monkeypatch):
+    _force_distro(monkeypatch, "debian")
+    monkeypatch.setattr(distro, "_run_query",
+                        lambda cmd: f"other-package: {_SHADER}.orig")
+    assert distro.package_owner(_SHADER) is None
+
+
+@pytest.mark.parametrize("distro_id,id_like,expected", [
+    ("cachyos", ("arch",), ["pacman", "-R", "--noconfirm"]),
+    ("artix", (), ["pacman", "-R", "--noconfirm"]),
+    ("fedora", (), ["dnf", "remove", "-y"]),
+    ("nobara", ("fedora",), ["dnf", "remove", "-y"]),
+    ("opensuse-tumbleweed", ("opensuse", "suse"),
+     ["zypper", "--non-interactive", "remove"]),
+    ("neon", ("ubuntu", "debian"), ["apt-get", "remove", "-y"]),
+])
+def test_package_manager_remove_cmd_is_non_interactive(
+    monkeypatch, distro_id, id_like, expected,
+):
+    _force_distro(monkeypatch, distro_id, id_like)
+    assert distro.package_manager_remove_cmd() == expected
+
+
+def test_package_manager_remove_cmd_rejects_unmapped_distro(monkeypatch):
+    _force_distro(monkeypatch, "void")
+    with pytest.raises(distro.UnsupportedDistroError):
+        distro.package_manager_remove_cmd()

@@ -998,5 +998,13 @@
   "Launcher package lacks edition preset support": "Das Starterpaket unterstützt die Voreinstellung der Edition nicht",
   "Launcher package lacks edition appearance support": "Das Starterpaket unterstützt das Erscheinungsbild der Edition nicht",
   "Rounded Corners compatibility patch does not match {path}": "Der Kompatibilitätspatch für Rounded Corners passt nicht zu {path}",
-  "Password:": "Passwort:"
+  "Password:": "Passwort:",
+  "No package manager mapping for distro {distro!r}. Add a row to distro._PACKAGE_MANAGER_REMOVE.": "Keine Paketmanagerzuordnung für Distribution {distro!r}. Eintrag in distro._PACKAGE_MANAGER_REMOVE hinzufügen.",
+  "could not record the replaced Rounded Corners package ({exc})": "Das ersetzte Rounded-Corners-Paket konnte nicht vermerkt werden ({exc})",
+  "Distribution package {names} provides KDE Rounded Corners without this theme's compatibility fixes; replacing it with the verified build": "Das Distributionspaket {names} stellt KDE Rounded Corners ohne die Kompatibilitätskorrekturen dieses Themes bereit; es wird durch den verifizierten Build ersetzt",
+  "KDE Rounded Corners not installed — remove the distribution package {names} and run the installer again": "KDE Rounded Corners nicht installiert — Distributionspaket {names} entfernen und das Installationsprogramm erneut ausführen",
+  "Removed distribution package {names}": "Distributionspaket {names} entfernt",
+  "The installer replaced the distribution package {names}; reinstall it if you still want Rounded Corners: {command}": "Das Installationsprogramm hat das Distributionspaket {names} ersetzt; installieren Sie es erneut, wenn Sie Rounded Corners weiter verwenden möchten: {command}",
+  "{name} belongs to the distribution package {owner}; left in place": "{name} gehört zum Distributionspaket {owner}; wird beibehalten",
+  "KWin still runs the previous KDE Rounded Corners build — log out and back in to activate this one": "KWin verwendet noch den vorherigen KDE-Rounded-Corners-Build — zum Aktivieren des neuen abmelden und erneut anmelden"
 }

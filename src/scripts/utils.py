@@ -627,6 +627,18 @@ def pkg_install(*pkgs: str) -> bool:
     return _run_pkg_cmd(base, *pkgs)
 
 
+def pkg_remove(*pkgs: str) -> bool:
+    """Remove packages via the distro's native package manager.
+    Non-interactive; callers pass names reported by distro.package_owner."""
+    from distro import UnsupportedDistroError, package_manager_remove_cmd
+    try:
+        base = package_manager_remove_cmd()
+    except UnsupportedDistroError as exc:
+        fail(str(exc))
+        return False
+    return _run_pkg_cmd(base, *pkgs)
+
+
 def pkg_sync_install(*pkgs: str) -> bool:
     """Refresh the package db, then install every package in one shot.
     --needed lets the package manager skip what's already current."""

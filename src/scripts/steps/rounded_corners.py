@@ -20,7 +20,13 @@ import time
 import uuid
 from pathlib import Path, PurePosixPath
 
-from distro import qt6_plugins_dir
+from distro import (
+    UnsupportedDistroError,
+    package_manager_install_cmd,
+    package_owner,
+    qt6_plugins_dir,
+)
+from log import note
 from steps._helpers import (
     HOME,
     build_dir,
@@ -31,11 +37,12 @@ from steps._helpers import (
     kw_write,
     ok,
     qdbus_call,
+    running_kwin_plugin_matches,
     sudo_install_file,
     sudo_remove,
     warn,
 )
-from utils import fetch, qdbus_cmd, run_user
+from utils import fetch, pkg_remove, qdbus_cmd, run_user
 from rounded_corners_compat import CompatibilityError, apply as apply_compatibility_patch
 
 
@@ -67,6 +74,7 @@ LICENSE_FILE = Path(
 
 STATE_DIR = HOME / ".local/state/mac-tahoe-liquid-kde"
 PREV_ROUND_CORNERS_FILE = STATE_DIR / "rounded-corners-previous.json"
+REPLACED_PACKAGES_FILE = STATE_DIR / "rounded-corners-replaced-packages.json"
 _ROUND_CORNERS_KEYS = ("Size", "InactiveCornerRadius")
 _ROUND_CORNERS_STATE_VERSION = 1
 
@@ -232,6 +240,14 @@ def _effect_active() -> bool:
     return EFFECT_ID in (result.stdout or "")
 
 
+def _same_contents(source: Path, destination: Path) -> bool:
+    try:
+        return (destination.is_file() and not destination.is_symlink()
+                and source.read_bytes() == destination.read_bytes())
+    except OSError:
+        return False
+
+
 def _locale_artifacts() -> list[tuple[Path, Path]]:
     out: list[tuple[Path, Path]] = []
     locale_root = BUILD / "locale"
@@ -245,6 +261,84 @@ def _locale_artifacts() -> list[tuple[Path, Path]]:
 
 def _locale_destinations() -> list[Path]:
     return [LOCALE_DIR / lang / "LC_MESSAGES/kcmcorners.mo" for lang in LOCALES]
+
+
+def _shared_destinations() -> list[Path]:
+    """Paths a distro Rounded Corners package installs as well."""
+    plugin_dir = _plugin_dir()
+    return [
+        plugin_dir / "kwin/effects/plugins/kwin4_effect_shapecorners.so",
+        plugin_dir / "kwin/effects/configs/kwin_shapecorners_config.so",
+        SHADER_DIR / "shapecorners.frag",
+        SHADER_DIR / "shapecorners_core.frag",
+        *_locale_destinations(),
+    ]
+
+
+def _distro_owners() -> list[str]:
+    owners: list[str] = []
+    for path in _shared_destinations():
+        owner = package_owner(path)
+        if owner and owner not in owners:
+            owners.append(owner)
+    return owners
+
+
+def _record_replaced_packages(packages: list[str]) -> None:
+    """Remember replaced packages so uninstall can say how to restore them."""
+    try:
+        previous = json.loads(REPLACED_PACKAGES_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        previous = []
+    if not isinstance(previous, list):
+        previous = []
+    merged = [name for name in previous if isinstance(name, str)]
+    merged += [name for name in packages if name not in merged]
+    try:
+        STATE_DIR.mkdir(parents=True, exist_ok=True)
+        REPLACED_PACKAGES_FILE.write_text(json.dumps(merged) + "\n", encoding="utf-8")
+    except OSError as exc:
+        warn(tr('could not record the replaced Rounded Corners package ({exc})', exc=exc))
+
+
+def _replace_distro_packages() -> bool:
+    """Remove a distro Rounded Corners package before installing this build.
+
+    Distribution builds lack the reviewed compatibility patch. Unpatched
+    v0.10.0 maps the texture upside down on Plasma 6.8, drawing the corners
+    and outline one title bar too low (issue #103), and it does not share
+    the corner shape with Acrylic Glass. Overwriting the package's files is
+    not enough: its next update silently restores them.
+    """
+    owners = _distro_owners()
+    if not owners:
+        return True
+    names = ", ".join(owners)
+    note(tr('Distribution package {names} provides KDE Rounded Corners without this theme\'s compatibility fixes; replacing it with the verified build', names=names))
+    if not pkg_remove(*owners) or _distro_owners():
+        fail(tr('KDE Rounded Corners not installed — remove the distribution package {names} and run the installer again', names=names))
+        return False
+    _record_replaced_packages(owners)
+    ok(tr('Removed distribution package {names}', names=names))
+    return True
+
+
+def _report_replaced_packages() -> None:
+    try:
+        packages = json.loads(REPLACED_PACKAGES_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    packages = [name for name in packages if isinstance(name, str)] if isinstance(packages, list) else []
+    if packages:
+        try:
+            command = " ".join(["sudo", *package_manager_install_cmd(), *packages])
+        except UnsupportedDistroError:
+            command = " ".join(packages)
+        note(tr('The installer replaced the distribution package {names}; reinstall it if you still want Rounded Corners: {command}', names=", ".join(packages), command=command))
+    try:
+        REPLACED_PACKAGES_FILE.unlink()
+    except OSError:
+        pass
 
 
 def _read_round_corners_key(key: str) -> tuple[bool, str | None] | None:
@@ -434,6 +528,9 @@ def install() -> None:
         fail(tr('KDE Rounded Corners not installed — previous radius settings could not be preserved'))
         return
 
+    if not _replace_distro_packages():
+        return
+
     kw_write(
         "--file", "kwinrc", "--group", "Plugins",
         "--key", "shapecornersEnabled", "false",
@@ -457,7 +554,11 @@ def install() -> None:
          "KDE Rounded Corners core shader installed"),
     )
     for source, destination, label in destinations:
-        if not sudo_install_file(source, destination, label):
+        # Identical bytes keep their inode, so a library KWin already maps
+        # is not reported as a stale build after a plain reinstall.
+        if _same_contents(source, destination):
+            ok(tr(label))
+        elif not sudo_install_file(source, destination, label):
             return
 
     for source, destination in _locale_artifacts():
@@ -494,7 +595,11 @@ def install() -> None:
         "org.kde.KWin", "/Effects",
         "org.kde.kwin.Effects.loadEffect", EFFECT_ID,
     )
-    if _effect_active():
+    # Qt can keep a replaced library resident across the effect reload, so
+    # activeEffects alone does not prove the new build is running.
+    if running_kwin_plugin_matches(destinations[0][1]) is False:
+        warn(tr('KWin still runs the previous KDE Rounded Corners build — log out and back in to activate this one'))
+    elif _effect_active():
         ok(tr('KDE Rounded Corners loaded'))
     else:
         ok(tr('KDE Rounded Corners installed (log out and back in to activate)'))
@@ -520,24 +625,21 @@ def uninstall() -> None:
     )
     qdbus_call("org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure")
 
-    plugin_dir = _plugin_dir()
     cleanup_ok = True
-    for path in (
-        plugin_dir / "kwin/effects/plugins/kwin4_effect_shapecorners.so",
-        plugin_dir / "kwin/effects/configs/kwin_shapecorners_config.so",
-        SHADER_DIR / "shapecorners.frag",
-        SHADER_DIR / "shapecorners_core.frag",
-        LICENSE_FILE,
-    ):
+    locales = set(_locale_destinations())
+    for path in (*_shared_destinations(), LICENSE_FILE):
+        # A distro package installed after this theme owns these paths now;
+        # deleting them would leave that package with missing files.
+        owner = package_owner(path) if path != LICENSE_FILE else None
+        if owner:
+            note(tr('{name} belongs to the distribution package {owner}; left in place', name=path.name, owner=owner))
+            continue
+        label = (
+            tr('Rounded Corners locale: {value1}', value1=path.parts[-3])
+            if path in locales else path.name
+        )
         existed = path.exists() or path.is_symlink()
-        if not sudo_remove(path, path.name) and existed:
-            cleanup_ok = False
-    for destination in _locale_destinations():
-        existed = destination.exists() or destination.is_symlink()
-        if not sudo_remove(
-            destination,
-            tr('Rounded Corners locale: {value1}', value1=destination.parts[-3]),
-        ) and existed:
+        if not sudo_remove(path, label) and existed:
             cleanup_ok = False
     if not cleanup_ok:
         fail(tr('KDE Rounded Corners removal incomplete — recovery state retained'))
@@ -554,4 +656,5 @@ def uninstall() -> None:
             fail(tr('could not clear Rounded Corners recovery state ({exc})', exc=exc))
             return
     shutil.rmtree(WORK, ignore_errors=True)
+    _report_replaced_packages()
     info(tr('KDE Rounded Corners removed'))

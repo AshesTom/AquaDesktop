@@ -1204,6 +1204,19 @@ _PACKAGE_MANAGER_INSTALL: dict[str, list[str]] = {
     "opensuse": ["zypper", "--non-interactive", "install", "--no-recommends"],
 }
 
+# Root, NON-INTERACTIVE removal of named packages. pacman refuses to break a
+# dependency; apt, dnf and zypper also remove dependents. Callers only remove
+# standalone add-on packages that duplicate files the project installs.
+_PACKAGE_MANAGER_REMOVE: dict[str, list[str]] = {
+    "arch":     ["pacman", "-R", "--noconfirm"],
+    "debian":   ["apt-get", "remove", "-y"],
+    "ubuntu":   ["apt-get", "remove", "-y"],
+    "fedora":   ["dnf", "remove", "-y"],
+    "rhel":     ["dnf", "remove", "-y"],
+    "centos":   ["dnf", "remove", "-y"],
+    "opensuse": ["zypper", "--non-interactive", "remove"],
+}
+
 # Sync the db first or a stale db 404s on rotated mirrors. None = the
 # install command refreshes on its own.
 _PACKAGE_MANAGER_SYNC: dict[str, list[str] | None] = {
@@ -1251,6 +1264,47 @@ def package_manager_install_cmd() -> list[str]:
     raise UnsupportedDistroError(
         tr('No package manager mapping for distro {distro!r}. Add a row to distro._PACKAGE_MANAGER_INSTALL.', distro=distro)
     )
+
+
+def package_manager_remove_cmd() -> list[str]:
+    """Non-interactive removal prefix (caller appends packages).
+    Raises :class:`UnsupportedDistroError` for unmapped distros."""
+    distro = current_distro()
+    for name in (distro, *_compatibility_parents()):
+        if name in _PACKAGE_MANAGER_REMOVE:
+            return list(_PACKAGE_MANAGER_REMOVE[name])
+    raise UnsupportedDistroError(
+        tr('No package manager mapping for distro {distro!r}. Add a row to distro._PACKAGE_MANAGER_REMOVE.', distro=distro)
+    )
+
+
+def package_owner(path: Path) -> str | None:
+    """Name of the installed package that owns ``path``, else None.
+
+    None means no owner is known, including on distros without a
+    file-ownership query.
+    """
+    family = (current_distro(), *_compatibility_parents())
+    if is_debian_family():
+        output = _run_query(["dpkg-query", "-S", str(path)])
+        for line in (output or "").splitlines():
+            # "diversion by X from/to: path" lines describe dpkg-divert, not
+            # the owner; ownership lines read "pkg[, pkg2]: path".
+            if line.startswith("diversion "):
+                continue
+            packages, separator, owned = line.partition(": ")
+            if separator and owned == str(path):
+                return packages.split(",")[0].strip() or None
+        return None
+    if any(name in ("fedora", "rhel", "centos", "opensuse") for name in family):
+        output = _run_query(["rpm", "-qf", "--qf", "%{NAME}\n", str(path)])
+    elif "arch" in family:
+        output = _run_query(["pacman", "-Qqo", str(path)])
+    else:
+        return None
+    if not output:
+        return None
+    return output.splitlines()[0].strip() or None
 
 
 _PLASMA_VERSION_PACKAGES: dict[str, tuple[str, ...]] = {

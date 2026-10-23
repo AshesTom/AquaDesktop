@@ -11,6 +11,8 @@ from distro import qt6_plugins_dir
 from steps._helpers import (
     DATA_HOME, build_dir, cmake_build, fail, info, kw_write, ok, offline, qdbus_call,
     sudo_install_file, sudo_remove, warn, _as_root,
+    kwin_plugin_mapping_matches as _plugin_mapping_matches,
+    running_kwin_plugin_matches as _running_plugin_matches,
 )
 from utils import have, qdbus_cmd, run_user
 from theme_switch import default_wallpaper
@@ -164,20 +166,6 @@ def _install_missing_defaults(defaults) -> None:
                 warn(tr('Acrylic Glass {key} default not applied — kwriteconfig6 failed', key=key))
 
 
-def _plugin_mapping_matches(maps: str, plugin: Path) -> bool | None:
-    installed = plugin.stat()
-    matches = []
-    for line in maps.splitlines():
-        fields = line.split(maxsplit=5)
-        if len(fields) != 6 or fields[5].removesuffix(" (deleted)") != str(plugin):
-            continue
-        # Btrfs subvolume stat devices can differ from /proc/maps devices.
-        # The exact path plus inode identifies the installed file.
-        matches.append(int(fields[4]) == installed.st_ino
-                       and not fields[5].endswith(" (deleted)"))
-    return all(matches) if matches else None
-
-
 def _versioned_effect_path(source: Path, directory: Path) -> Path:
     digest = hashlib.sha256(source.read_bytes()).hexdigest()
     return directory / ".mttkde-liquidglass" / digest / "liquidglass.so"
@@ -231,29 +219,6 @@ def _running_build_matches() -> bool | None:
                           check=False, capture_output=True, text=True, timeout=5)
         return result.stdout.strip() == identity[1] if result.returncode == 0 else None
     except (OSError, subprocess.TimeoutExpired):
-        return None
-
-
-def _running_plugin_matches(plugin: Path) -> bool | None:
-    q = qdbus_cmd()
-    if not q:
-        return None
-    try:
-        result = run_user(
-            [q, "org.freedesktop.DBus", "/org/freedesktop/DBus",
-             "org.freedesktop.DBus.GetConnectionUnixProcessID", "org.kde.KWin"],
-            check=False, capture_output=True, text=True, timeout=5,
-        )
-        if result.returncode != 0:
-            return None
-        pid = int(result.stdout.strip())
-        if pid <= 0:
-            return None
-        # KWin's capabilities can deny same-user access to its mappings.
-        with _as_root():
-            maps = Path(f"/proc/{pid}/maps").read_text()
-        return _plugin_mapping_matches(maps, plugin)
-    except (OSError, ValueError, subprocess.TimeoutExpired):
         return None
 
 

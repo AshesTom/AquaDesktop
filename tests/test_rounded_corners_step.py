@@ -17,6 +17,17 @@ import pytest
 from steps import rounded_corners as rounded
 
 
+@pytest.fixture(autouse=True)
+def _no_host_packages(monkeypatch):
+    """Keep lifecycle tests away from the host package database and KWin."""
+    monkeypatch.setattr(rounded, "package_owner", lambda path: None)
+    monkeypatch.setattr(
+        rounded, "pkg_remove",
+        lambda *pkgs: pytest.fail("unexpected package removal"),
+    )
+    monkeypatch.setattr(rounded, "running_kwin_plugin_matches", lambda path: None)
+
+
 def _pin_work(monkeypatch, tmp_path: Path) -> Path:
     work = tmp_path / "online/kde-rounded-corners"
     source = work / f"KDE-Rounded-Corners-{rounded.UPSTREAM_VERSION}"
@@ -731,3 +742,155 @@ def test_dependencies_cover_upstream_kwin_qt_and_graphics_sdk():
         "wayland-cmake:wayland",
         "drm-cmake:libdrm",
     } <= deps
+
+
+def _pin_install_targets(monkeypatch, tmp_path: Path) -> dict[str, Path]:
+    _seed_artifacts(monkeypatch, tmp_path)
+    _pin_round_corners_state(monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        rounded, "REPLACED_PACKAGES_FILE",
+        rounded.STATE_DIR / "rounded-corners-replaced-packages.json",
+    )
+    targets = {
+        "plugins": tmp_path / "qt/plugins",
+        "shaders": tmp_path / "share/kwin/shaders",
+        "license": tmp_path / "share/licenses/rounded.txt",
+    }
+    monkeypatch.setattr(rounded, "_plugin_dir", lambda: targets["plugins"])
+    monkeypatch.setattr(rounded, "SHADER_DIR", targets["shaders"])
+    monkeypatch.setattr(rounded, "LOCALE_DIR", tmp_path / "share/locale")
+    monkeypatch.setattr(rounded, "LICENSE_FILE", targets["license"])
+    monkeypatch.setattr(rounded, "kw_write", lambda *args: True)
+    monkeypatch.setattr(rounded, "qdbus_call", lambda *args: True)
+    monkeypatch.setattr(rounded, "_effect_active", lambda: True)
+    monkeypatch.setattr(rounded.time, "sleep", lambda _: None)
+    monkeypatch.setattr(rounded, "ok", lambda _: None)
+    monkeypatch.setattr(rounded, "info", lambda _: None)
+    monkeypatch.setattr(rounded, "note", lambda _: None)
+    monkeypatch.setattr(
+        rounded, "_read_round_corners_key", lambda _key: (False, None),
+    )
+    return targets
+
+
+def test_install_replaces_distro_package_before_writing_its_paths(monkeypatch, tmp_path):
+    """Issue #103: CachyOS's unpatched v0.10.0 package draws the corners and
+    outline one title bar below the window on Plasma 6.8, and its updates
+    restore its own files over the patched build."""
+    targets = _pin_install_targets(monkeypatch, tmp_path)
+    shader = targets["shaders"] / "shapecorners_core.frag"
+    owners = {shader: "kwin-effect-rounded-corners"}
+    events: list[tuple] = []
+
+    def remove(*packages):
+        events.append(("remove", packages))
+        owners.clear()
+        return True
+
+    monkeypatch.setattr(rounded, "package_owner", owners.get)
+    monkeypatch.setattr(rounded, "pkg_remove", remove)
+    monkeypatch.setattr(
+        rounded, "sudo_install_file",
+        lambda src, dst, label: events.append(("install", dst)) or True,
+    )
+
+    rounded.install()
+
+    assert events[0] == ("remove", ("kwin-effect-rounded-corners",))
+    assert ("install", shader) in events
+    assert json.loads(rounded.REPLACED_PACKAGES_FILE.read_text()) == [
+        "kwin-effect-rounded-corners",
+    ]
+
+
+def test_install_keeps_package_files_when_removal_fails(monkeypatch, tmp_path):
+    targets = _pin_install_targets(monkeypatch, tmp_path)
+    plugin = targets["plugins"] / "kwin/effects/plugins/kwin4_effect_shapecorners.so"
+    monkeypatch.setattr(
+        rounded, "package_owner",
+        lambda path: "kwin-effect-rounded-corners" if path == plugin else None,
+    )
+    monkeypatch.setattr(rounded, "pkg_remove", lambda *packages: False)
+    writes: list[tuple[str, ...]] = []
+    monkeypatch.setattr(rounded, "kw_write", lambda *args: writes.append(args) or True)
+    monkeypatch.setattr(
+        rounded, "sudo_install_file",
+        lambda *a, **k: pytest.fail("package-owned files must not be overwritten"),
+    )
+    failures: list[str] = []
+    monkeypatch.setattr(rounded, "fail", failures.append)
+
+    rounded.install()
+
+    assert any("kwin-effect-rounded-corners" in message for message in failures)
+    # The working package build stays enabled; nothing was half-replaced.
+    assert not any("shapecornersEnabled" in write for write in writes)
+    assert not rounded.REPLACED_PACKAGES_FILE.exists()
+
+
+def test_reinstall_preserves_identical_files(monkeypatch, tmp_path):
+    targets = _pin_install_targets(monkeypatch, tmp_path)
+    plugin = targets["plugins"] / "kwin/effects/plugins/kwin4_effect_shapecorners.so"
+    plugin.parent.mkdir(parents=True)
+    plugin.write_bytes(b"artifact")
+    inode = plugin.stat().st_ino
+    installed: list[Path] = []
+    monkeypatch.setattr(
+        rounded, "sudo_install_file",
+        lambda src, dst, label: installed.append(dst) or True,
+    )
+
+    rounded.install()
+
+    assert plugin not in installed
+    assert plugin.stat().st_ino == inode
+    assert targets["shaders"] / "shapecorners_core.frag" in installed
+
+
+def test_install_reports_previous_build_still_resident(monkeypatch, tmp_path):
+    _pin_install_targets(monkeypatch, tmp_path)
+    monkeypatch.setattr(rounded, "sudo_install_file", lambda *a, **k: True)
+    monkeypatch.setattr(rounded, "running_kwin_plugin_matches", lambda path: False)
+    warnings: list[str] = []
+    loaded: list[str] = []
+    monkeypatch.setattr(rounded, "warn", warnings.append)
+    monkeypatch.setattr(rounded, "ok", loaded.append)
+
+    rounded.install()
+
+    assert any("log out" in message for message in warnings)
+    assert "KDE Rounded Corners loaded" not in loaded
+
+
+def test_uninstall_leaves_distro_package_files_and_reports_replacement(
+    monkeypatch, tmp_path,
+):
+    targets = _pin_install_targets(monkeypatch, tmp_path)
+    rounded.STATE_DIR.mkdir(parents=True, exist_ok=True)
+    rounded.REPLACED_PACKAGES_FILE.write_text('["kwin-effect-rounded-corners"]\n')
+    shader = targets["shaders"] / "shapecorners_core.frag"
+    monkeypatch.setattr(
+        rounded, "package_owner",
+        lambda path: "kwin-effect-rounded-corners" if path == shader else None,
+    )
+    monkeypatch.setattr(
+        rounded, "package_manager_install_cmd",
+        lambda: ["pacman", "-S", "--noconfirm", "--needed"],
+    )
+    removed: list[Path] = []
+    monkeypatch.setattr(
+        rounded, "sudo_remove", lambda path, label=None: removed.append(path) or True,
+    )
+    notes: list[str] = []
+    monkeypatch.setattr(rounded, "note", notes.append)
+
+    rounded.uninstall()
+
+    assert shader not in removed
+    assert targets["plugins"] / "kwin/effects/plugins/kwin4_effect_shapecorners.so" in removed
+    assert targets["license"] in removed
+    assert any(
+        "sudo pacman -S --noconfirm --needed kwin-effect-rounded-corners" in message
+        for message in notes
+    )
+    assert not rounded.REPLACED_PACKAGES_FILE.exists()

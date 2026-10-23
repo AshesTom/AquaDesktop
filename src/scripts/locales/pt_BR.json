@@ -998,5 +998,13 @@
   "Launcher package lacks edition preset support": "O pacote do iniciador não oferece suporte à predefinição da edição",
   "Launcher package lacks edition appearance support": "O pacote do iniciador não oferece suporte à aparência da edição",
   "Rounded Corners compatibility patch does not match {path}": "A correção de compatibilidade do Rounded Corners não corresponde a {path}",
-  "Password:": "Senha:"
+  "Password:": "Senha:",
+  "No package manager mapping for distro {distro!r}. Add a row to distro._PACKAGE_MANAGER_REMOVE.": "Nenhum mapeamento de gerenciador de pacotes para a distribuição {distro!r}. Adicione uma entrada em distro._PACKAGE_MANAGER_REMOVE.",
+  "could not record the replaced Rounded Corners package ({exc})": "Não foi possível registrar o pacote do Rounded Corners substituído ({exc})",
+  "Distribution package {names} provides KDE Rounded Corners without this theme's compatibility fixes; replacing it with the verified build": "O pacote da distribuição {names} fornece o KDE Rounded Corners sem as correções de compatibilidade deste tema; substituindo-o pela compilação verificada",
+  "KDE Rounded Corners not installed — remove the distribution package {names} and run the installer again": "KDE Rounded Corners não instalado — remova o pacote da distribuição {names} e execute o instalador novamente",
+  "Removed distribution package {names}": "Pacote da distribuição {names} removido",
+  "The installer replaced the distribution package {names}; reinstall it if you still want Rounded Corners: {command}": "O instalador substituiu o pacote da distribuição {names}; reinstale-o se ainda quiser o Rounded Corners: {command}",
+  "{name} belongs to the distribution package {owner}; left in place": "{name} pertence ao pacote da distribuição {owner}; mantido no lugar",
+  "KWin still runs the previous KDE Rounded Corners build — log out and back in to activate this one": "O KWin ainda usa a compilação anterior do KDE Rounded Corners — encerre a sessão e entre novamente para ativar a nova"
 }
