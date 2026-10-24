@@ -989,6 +989,12 @@ green   yellow   orange   red   purple   blue
 
 `./test` runs the full pytest suite. Finish implementation changes before
 running relevant tests; follow the release-flow checks for code changes.
+A passing host suite is not sufficient when a change adds test dependencies: update
+and validate every container in the CI matrix. Never skip required tests or use
+`continue-on-error` to make CI green. Before reporting delivery, inspect the
+completed CI runs for the exact commits pushed to `main` and `dev`. Release
+publication requires successful push runs on both branches for that exact SHA;
+missing, pending, cancelled or failed checks must not authorize publication.
 Documentation-only edits do not require pytest or build checks. Honor explicit
 user instructions not to run tests, and never report unrun checks as passing.
 

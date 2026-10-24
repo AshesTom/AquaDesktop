@@ -39,3 +39,23 @@ def test_debian_container_uses_supported_sdk_and_both_runners(repo):
                     "qt6-wayland-dev", "libxcb-composite0-dev", "libxcb-randr0-dev",
                     "libxcb-res0-dev", "libxcb-shm0-dev", "libxcb-sync-dev"):
         assert package in text
+
+
+def test_every_matrix_image_installs_icon_test_dependencies(repo):
+    import re
+
+    workflow = (repo / '.github/workflows/test.yml').read_text()
+    matrix = workflow.split('        distro:', 1)[1].split('    steps:', 1)[0]
+    distros = re.findall(r'^          - ([a-z-]+)$', matrix, re.MULTILINE)
+    assert distros
+    for distro in distros:
+        text = (repo / f'tests/containers/Dockerfile.{distro}').read_text()
+        executable = '\n'.join(line for line in text.splitlines()
+                               if not line.lstrip().startswith('#'))
+        packages = set(executable.split())
+        assert packages.intersection({'python-pillow', 'python3-pil', 'python3-pillow', 'python3-Pillow'}), distro
+        assert packages.intersection({'librsvg', 'librsvg2-bin', 'librsvg2-tools', 'rsvg-convert'}), distro
+    assert 'python-pillow' in workflow
+    assert 'librsvg ' in workflow
+    assert 'from PIL import Image' in workflow
+    assert 'command -v rsvg-convert' in workflow

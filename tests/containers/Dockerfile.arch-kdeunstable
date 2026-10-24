@@ -19,7 +19,7 @@ FROM archlinux:latest
 # from extra) is unsupported and would mismatch the private effect ABI.
 RUN printf '\n[kde-unstable]\nInclude = /etc/pacman.d/mirrorlist\n' >> /etc/pacman.conf \
     && pacman -Syu --noconfirm --needed \
-    python python-pytest \
+    python python-pytest python-pillow librsvg \
     cmake make gcc extra-cmake-modules \
     qt6-base qt6-tools qt6-declarative qt6-svg \
     pkgconf \

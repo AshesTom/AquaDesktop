@@ -7,7 +7,7 @@ FROM archlinux:latest
 RUN printf 'NAME="Garuda Linux"\nID=garuda\nID_LIKE=arch\nPRETTY_NAME="Garuda Linux"\n' > /etc/os-release
 
 RUN pacman -Syu --noconfirm --needed \
-    python python-pytest \
+    python python-pytest python-pillow librsvg \
     cmake make gcc extra-cmake-modules \
     qt6-base qt6-tools qt6-declarative qt6-svg \
     pkgconf \

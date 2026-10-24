@@ -3,7 +3,7 @@
 FROM manjarolinux/base:latest
 
 RUN pacman -Syu --noconfirm --needed \
-    python python-pytest \
+    python python-pytest python-pillow librsvg \
     cmake make gcc extra-cmake-modules \
     qt6-base qt6-tools qt6-declarative qt6-svg \
     pkgconf \
