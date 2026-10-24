@@ -41,7 +41,7 @@ def test_debian_container_uses_supported_sdk_and_both_runners(repo):
         assert package in text
 
 
-def test_every_matrix_image_installs_icon_test_dependencies(repo):
+def test_every_matrix_image_installs_suite_dependencies(repo):
     import re
 
     workflow = (repo / '.github/workflows/test.yml').read_text()
@@ -53,6 +53,7 @@ def test_every_matrix_image_installs_icon_test_dependencies(repo):
         executable = '\n'.join(line for line in text.splitlines()
                                if not line.lstrip().startswith('#'))
         packages = set(executable.split())
+        assert 'git' in packages, distro
         assert packages.intersection({'python-pillow', 'python3-pil', 'python3-pillow', 'python3-Pillow'}), distro
         assert packages.intersection({'librsvg', 'librsvg2-bin', 'librsvg2-tools', 'rsvg-convert'}), distro
     assert 'python-pillow' in workflow

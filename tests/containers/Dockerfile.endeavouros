@@ -11,7 +11,7 @@ FROM archlinux:latest
 RUN printf 'NAME="EndeavourOS"\nID=endeavouros\nID_LIKE=arch\nPRETTY_NAME="EndeavourOS"\n' > /etc/os-release
 
 RUN pacman -Syu --noconfirm --needed \
-    python python-pytest python-pillow librsvg \
+    python python-pytest git python-pillow librsvg \
     cmake make gcc extra-cmake-modules \
     qt6-base qt6-tools qt6-declarative qt6-svg \
     pkgconf \
