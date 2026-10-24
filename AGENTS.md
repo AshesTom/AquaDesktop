@@ -776,6 +776,11 @@ About This Computer and the detached search capsule use 55% white fills in light
 in dark mode. Golden Gate stages light Plasma popups, tooltips, the detached
 search capsule and native Qt menus with 60% white fill so the system dark
 foreground stays readable above the gradient, including over black backdrops.
+About This Computer follows the same Golden Gate fills: 60% white in light
+mode and 1% white in dark mode. Its `hint-clear-surface` SVG marker identifies
+the edition, not a request to use 1% in both modes. Keep regression coverage
+for light/dark/light transitions and secondary-label contrast over black;
+never bless the unreadable 1% light-mode fill as a test expectation.
 Golden Gate dark surfaces retain their 1% white fill. Preserve every Tahoe
 asset, the Dock fill, and all unrelated surfaces. Never disable or change the
 saved compositor gradient to repair light-mode foreground contrast.

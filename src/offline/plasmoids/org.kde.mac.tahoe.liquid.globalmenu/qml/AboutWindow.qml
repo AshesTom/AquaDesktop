@@ -82,7 +82,8 @@ Window {
     }
     readonly property color secondaryTextColor: Qt.rgba(Kirigami.Theme.textColor.r,
                                                         Kirigami.Theme.textColor.g,
-                                                        Kirigami.Theme.textColor.b, 0.85)
+                                                        Kirigami.Theme.textColor.b,
+                                                        popupSurface.clearSurface && !isDarkTheme ? 0.90 : 0.85)
 
     // Reference for two-line cell height. Cells whose content commonly
     // wraps to a second line (Chip, Graphics, Startup disk, OS) bind
@@ -252,13 +253,14 @@ Window {
         Component.onCompleted: clearSurface = hasElement("hint-clear-surface")
     }
 
-    // Follow the installed edition's popup fill without changing its contour.
+    // The SVG hint identifies Golden Gate, not a permanently clear fill.
+    // Its light surface must back dark text even over a black glass backdrop.
     Rectangle {
         id: glass
         objectName: "aboutGlassSurface"
         anchors.fill: parent
         radius: 22
-        color: popupSurface.clearSurface ? Qt.rgba(1, 1, 1, 0.01)
+        color: popupSurface.clearSurface ? Qt.rgba(1, 1, 1, aboutWindow.isDarkTheme ? 0.01 : 0.60)
             : aboutWindow.isDarkTheme ? Qt.rgba(0, 0, 0, 0.48) : Qt.rgba(1, 1, 1, 0.55)
         border.width: 0.75
         border.color: Qt.rgba(0, 0, 0, 0.18)
