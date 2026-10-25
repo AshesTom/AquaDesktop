@@ -1321,7 +1321,7 @@ void BlurEffect::blur(
     vbo->reset();
     vbo->setAttribLayout(std::span(GLVertexBuffer::GLVertex2DLayout), sizeof(GLVertex2D));
 
-    const int vertexCount = effectiveShape.size() * 6;
+    const int vertexCount = (dockSurface ? 1 : effectiveShape.size()) * 6;
     if (auto result = vbo->map<GLVertex2D>(6 + vertexCount)) {
         auto map = *result;
 
@@ -1374,7 +1374,10 @@ void BlurEffect::blur(
         }
 
         // The geometry that will be painted on screen, in device pixels.
-        for (const QRectF& rect : effectiveShape) {
+        const QList<QRectF> paintShape = dockSurface
+            ? QList<QRectF>{QRectF(QPointF(0, 0), QSizeF(scaledBackgroundRect.size()))}
+            : effectiveShape;
+        for (const QRectF& rect : paintShape) {
             const float x0 = rect.left();
             const float y0 = rect.top();
             const float x1 = rect.right();
