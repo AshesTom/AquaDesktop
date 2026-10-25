@@ -172,6 +172,9 @@ void AppMenuApplet::setButtonGrid(QQuickItem* buttonGrid)
 
 QMenu* AppMenuApplet::createMenu(int idx) const
 {
+    if (!m_model || idx < 0 || idx >= m_model->rowCount()) {
+        return nullptr;
+    }
     QMenu* menu = nullptr;
 
     if (view() == CompactView) {
@@ -192,6 +195,9 @@ void AppMenuApplet::onMenuAboutToHide()
 {
     auto menuAction = m_currentMenu->menuAction();
     menuAction->setMenu(m_sourceMenu);
+    if (m_sourceMenu && m_sourceMenu != m_currentMenu) {
+        Q_EMIT m_sourceMenu->aboutToHide();
+    }
     setCurrentIndex(-1);
 }
 
@@ -221,6 +227,13 @@ Qt::Edges edgeFromLocation(Plasma::Types::Location location)
 
 void AppMenuApplet::trigger(QQuickItem* ctx, int idx)
 {
+    if (!m_model || idx < 0 || idx >= m_model->rowCount()) {
+        return;
+    }
+    auto* selectedAction = m_model->index(idx, 0).data(AppMenuModel::ActionRole).value<QAction*>();
+    if (view() == FullView && (!selectedAction || !selectedAction->isEnabled() || !selectedAction->isVisible())) {
+        return;
+    }
     if (m_currentIndex == idx) {
         return;
     }
@@ -249,6 +262,9 @@ void AppMenuApplet::trigger(QQuickItem* ctx, int idx)
                 m_currentMenu = new QMenu(qobject_cast<QWidget*>(actionMenu->parent()));
                 connect(m_currentMenu, &QMenu::aboutToHide, this, &AppMenuApplet::onMenuAboutToHide, Qt::UniqueConnection);
             } else if (m_sourceMenu != actionMenu) {
+                if (m_sourceMenu) {
+                    Q_EMIT m_sourceMenu->aboutToHide();
+                }
                 auto menuAction = m_currentMenu->menuAction();
                 for (QAction* action : m_currentMenu->actions()) {
                     m_currentMenu->removeAction(action);
@@ -263,6 +279,10 @@ void AppMenuApplet::trigger(QQuickItem* ctx, int idx)
                 m_currentMenu->addAction(action);
             }
             menuAction->setMenu(m_currentMenu);
+            // The persistent popup keeps the Wayland grab across File/Edit.
+            // Notify the imported menu on every selection so its D-Bus
+            // AboutToShow handler refreshes dynamic application actions.
+            Q_EMIT m_sourceMenu->aboutToShow();
         } else {
             m_currentMenu = actionMenu;
             m_sourceMenu = actionMenu;
