@@ -192,8 +192,9 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   surrounding menu margins and row spacing.
 - Keep the system menu's `computer`, `preferences-system` and
   `software-store-symbolic` artwork inherited from the base icon theme.
-  Generated app appearances must also omit `software-store`, because Qt
-  resolves that fallback before searching inherited symbolic icons. Use
+  Generated app appearances must also omit `preferences`, `software` and
+  `software-store`: Qt/KDE resolve those generic fallbacks before inherited
+  menu icons. Test both QIcon rendering and KIconLoader resolution. Use
   `systemsettings` and `org.kde.discover` for generated application tiles.
 - Hover tiles: glass effect (semi-transparent fill, 0.5px micro
   border, 22px radius) — not outlined borders.

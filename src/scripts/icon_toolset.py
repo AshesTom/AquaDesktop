@@ -32,10 +32,12 @@ PREFIX = "MacTahoeGenerated-"
 SCHEMA = 1
 
 # QIcon searches the current theme before its parents, including the
-# non-symbolic fallback. Keep these menu names in the base theme; generate
+# non-symbolic fallback. KDE also tries each hyphen-separated prefix.
+# Keep those menu names in the base theme; generate
 # systemsettings and org.kde.discover for application launchers instead.
 SYSTEM_MENU_ICONS = frozenset({
-    "computer", "preferences-system", "software-store", "software-store-symbolic",
+    "computer", "preferences", "preferences-system",
+    "software", "software-store", "software-store-symbolic",
 })
 
 

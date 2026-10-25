@@ -215,7 +215,8 @@ def test_maintainer_build_keeps_reserved_menu_aliases_in_base(source, tmp_path):
     staging = tmp_path / "source"
     unpack(source, staging)
     apps = staging / BASE / "apps/scalable"
-    reserved = ("computer", "preferences-system", "software-store", "software-store-symbolic")
+    reserved = ("computer", "preferences", "preferences-system",
+                "software", "software-store", "software-store-symbolic")
     for name in (*reserved, "systemsettings", "org.kde.discover"):
         (apps / f"{name}.svg").symlink_to("demo.svg")
     archive = tmp_path / "menu-base.tar.gz"
