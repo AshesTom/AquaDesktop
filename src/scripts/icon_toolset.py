@@ -14,13 +14,15 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+from collections.abc import Callable
+from time import monotonic
 from xml.etree.ElementTree import ParseError
 from pathlib import Path
 
 import PIL
 from PIL import Image, ImageDraw
 
-from icon_materials import VARIANTS, prepare_source, render
+from icon_materials import VARIANTS, prepare_source, render, render_installer
 from icon_sources import digest, inventory, unpack, validate_links
 
 
@@ -28,6 +30,88 @@ ROOT = Path(__file__).resolve().parents[2]
 BASE = "MacTahoeLiquidKde-Icons"
 PREFIX = "MacTahoeGenerated-"
 SCHEMA = 1
+
+
+def installer_dark_sources() -> dict[str, Path]:
+    """Match reviewed dark artwork by content hash, including all base aliases."""
+    directory = ROOT / "src/offline/icons/overrides"
+    records = json.loads((directory / "sources.json").read_text())
+    result = {}
+    for name, record in records.items():
+        path = directory / name
+        if path.parent != directory or path.is_symlink() or digest(path) != record["sha256"]:
+            raise ValueError(f"Invalid installer dark artwork: {name}")
+        result[record["source_sha256"]] = path
+    return result
+
+
+def installer_themes(source: Path, output: Path, style: str, tint: str, *,
+                     progress: Callable[[int, int], None] | None = None) -> list[str]:
+    """Build explicitly selected installer overlays in a fresh staging tree.
+
+    The maintainer CLI still never changes installed themes or defaults.
+    Application aliases share artwork; interface icons inherit the base pack.
+    """
+    from utils import check_cancelled
+    if style not in ("regular", "glass"):
+        raise ValueError("Unknown installer icon style")
+    rgb = color(tint)
+    output = new_destination(output)
+    output.mkdir()
+    names = [f"{BASE}-{style.title()}-{mode.title()}" for mode in ("light", "dark")]
+    for name, mode in zip(names, ("light", "dark")):
+        target = output / name
+        (target / "apps/256").mkdir(parents=True)
+        (target / "index.theme").write_text(
+            f"[Icon Theme]\nName={name}\nInherits={BASE}{'-dark' if mode == 'dark' else ''},hicolor,breeze\n"
+            "Directories=apps/256\n\n[apps/256]\nSize=256\nType=Scalable\nMinSize=32\nMaxSize=512\nContext=Applications\n")
+        (target / "GENERATION-NOTICE.txt").write_text(
+            "Generated from the bundled MacTahoe icon archive by icon-toolset.\n"
+            "Original artwork retains its notices. Static material, not live refraction.\n"
+            "Transformations: Copyright (C) 2026 Lester Cordero Murillo; GPL-3.0-or-later.\n")
+        for notice in ("NOTICE", "LICENSING.md", "THIRD_PARTY_NOTICES.md"):
+            shutil.copyfile(ROOT / notice, target / notice)
+    dark_sources = installer_dark_sources() if style == "regular" else {}
+    # Extensions disappear in the PNG output: Grsync.SVG and Grsync.svg
+    # must not write the same file twice. Prefer SVG, then lowercase suffixes.
+    entries = {}
+    for path in sorted((source / BASE / "apps/scalable").iterdir(), key=lambda p: (
+            p.suffix.lower() == ".svg", p.suffix == p.suffix.lower(), p.name)):
+        if path.suffix.lower() in (".svg", ".png") and path.is_file():
+            entries[path.stem] = path
+    seen = {}
+    records = {}
+    total = len(entries)
+    last_report = monotonic()
+    if progress:
+        progress(0, total)
+    for completed, (_, path) in enumerate(sorted(entries.items()), 1):
+        check_cancelled()
+        checksum = digest(path)
+        if checksum in seen:
+            for name in names:
+                (output / name / "apps/256" / (path.stem + ".png")).symlink_to(seen[checksum] + ".png")
+        else:
+            prepared = prepare_source(path, 512, clean_rim=style == "regular")
+            for name, mode in zip(names, ("light", "dark")):
+                if mode == "dark" and checksum in dark_sources:
+                    from icon_materials import raster
+                    result = raster(dark_sources[checksum], 512)
+                else:
+                    result = render_installer(prepared, style, mode, rgb)
+                result.resize((256, 256), Image.Resampling.LANCZOS).save(
+                    output / name / "apps/256" / (path.stem + ".png"))
+            seen[checksum] = path.stem
+        records[path.name] = checksum
+        if progress and (completed == total or monotonic() - last_report >= 5):
+            progress(completed, total)
+            last_report = monotonic()
+    if not records:
+        raise ValueError("No application artwork found")
+    for name in names:
+        write_json(output / name / "generation.json", {"style": style, "tint": tint, "sources": records,
+            "dark_artwork": {path.name: digest(path) for path in dark_sources.values()}})
+    return names
 
 
 def valid_icon_name(name: str) -> bool:

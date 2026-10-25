@@ -508,6 +508,16 @@ def gtk3_appmenu_module() -> Path | None:
 # is portable.
 
 _PACKAGE_MAP: dict[str, dict[str, str]] = {
+    "python-pillow": {
+        "arch": "python-pillow", "debian": "python3-pil", "ubuntu": "python3-pil",
+        "fedora": "python3-pillow", "rhel": "python3-pillow", "centos": "python3-pillow",
+        "opensuse": "python3-Pillow", "alpine": "py3-pillow", "void": "python3-Pillow",
+    },
+    "rsvg-convert": {
+        "arch": "librsvg", "debian": "librsvg2-bin", "ubuntu": "librsvg2-bin",
+        "fedora": "librsvg2-tools", "rhel": "librsvg2-tools", "centos": "librsvg2-tools",
+        "opensuse": "rsvg-convert", "alpine": "librsvg", "void": "librsvg",
+    },
     "dbusmenu-glib": {
         "arch": "libdbusmenu-glib", "debian": "libdbusmenu-glib4",
         "ubuntu": "libdbusmenu-glib4", "fedora": "libdbusmenu",

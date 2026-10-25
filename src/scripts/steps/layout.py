@@ -165,6 +165,12 @@ def _layout_script_with_launchers(
     script = script_path.read_text()
     if script_path == LAYOUT_SCRIPT:
         preset = default_launcher_preset() if applied_edition(HOME) != edition_name() else 0
+        from installer_choices import selected
+        choices = selected()
+        if choices:
+            preset = 2 if choices["launcher"] == "golden" else 1
+            script = (f"var mttkdeTopPanel = {str(choices['panel']).lower()};\n"
+                      f"var mttkdeDock = {str(choices['dock']).lower()};\n" + script)
         script = f"var mttkdeLauncherPreset = {preset};\n" + script
     if not _discover_is_installed():
         script = script.replace(_DISCOVER_DESKTOP + ",", "")
@@ -292,7 +298,13 @@ def _layout_looks_installed() -> bool:
         text = appletsrc.read_text()
     except OSError:
         return False
-    return all(needle in text for needle in _CUSTOM_PANEL_NEEDLES)
+    from installer_choices import selected
+    choices = selected()
+    needles = _CUSTOM_PANEL_NEEDLES
+    if choices:
+        needles = tuple(needle for needle in needles
+                        if (choices["panel"] if "globalmenu" in needle else choices["dock"]))
+    return all(needle in text for needle in needles)
 
 
 def _wait_for_layout_install(timeout_seconds: float = 5.0) -> bool:

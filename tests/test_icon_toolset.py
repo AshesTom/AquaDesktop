@@ -79,6 +79,137 @@ def test_materials_preserve_color_detail_and_glass_alpha(built):
     assert icon("black").getpixel((32, 24))[:3] != icon("black").getpixel((32, 32))[:3]
 
 
+@pytest.mark.parametrize("background", ["#5865f2", "#1db954", "url(#brand)"])
+def test_regular_dark_keeps_colored_brand_plates(tmp_path, background):
+    from icon_materials import render_installer
+    if not shutil.which("rsvg-convert"):
+        pytest.skip("rsvg-convert is required for material rendering")
+    source = tmp_path / "brand.svg"
+    source.write_text(f'''<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+    <defs><linearGradient id="brand" x2="0" y2="1">
+      <stop stop-color="#ffffff"/><stop offset=".15" stop-color="#ffffff"/>
+      <stop offset=".5" stop-color="#5865f2"/><stop offset="1" stop-color="#5865f2"/>
+    </linearGradient></defs>
+    <rect x="4" y="4" width="56" height="56" rx="13" fill="{background}"/>
+    <circle cx="32" cy="32" r="12" fill="white"/></svg>''')
+    prepared = prepare_source(source, 64, clean_rim=True)
+    assert prepared[2] == "vector-colored"
+    dark = render_installer(prepared, "regular", "dark", (0, 122, 255))
+    assert dark.tobytes() == prepared[0].tobytes()
+
+
+def test_regular_dark_keeps_unclassified_raster_artwork(tmp_path):
+    from icon_materials import render_installer
+    source = tmp_path / "brand.png"
+    Image.new("RGBA", (64, 64), "#5865f2").save(source)
+    prepared = prepare_source(source, 64)
+    assert render_installer(prepared, "regular", "dark", (0, 122, 255)).tobytes() == prepared[0].tobytes()
+
+
+def test_regular_dark_preserves_white_negative_space_between_brand_panels(tmp_path):
+    from icon_materials import render_installer
+    if not shutil.which("rsvg-convert"):
+        pytest.skip("rsvg-convert is required for material rendering")
+    source = tmp_path / "split-brand.svg"
+    source.write_text('''<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+    <rect x="4" y="4" width="56" height="56" rx="13" fill="white"/>
+    <path d="M17 4 H26 V60 H17 Q4 60 4 47 V17 Q4 4 17 4" fill="#ff9500"/>
+    <path d="M47 4 H38 V60 H47 Q60 60 60 47 V17 Q60 4 47 4" fill="#293a78"/>
+    </svg>''')
+    prepared = prepare_source(source, 128, clean_rim=True)
+    assert prepared[2] == "vector-colored"
+    assert render_installer(prepared, "regular", "dark", (0, 122, 255)).tobytes() == prepared[0].tobytes()
+
+
+def test_dark_foreground_lifts_black_glyph_but_keeps_brand_and_enclosed_details():
+    from PIL import ImageDraw
+    from icon_materials import dark_foreground
+    artwork = Image.new("RGBA", (128, 128))
+    draw = ImageDraw.Draw(artwork)
+    draw.rectangle((12, 20, 40, 90), fill="#151515")
+    draw.ellipse((65, 20, 115, 70), fill="#f05020")
+    draw.ellipse((80, 35, 100, 55), fill="#151515")
+    result = dark_foreground(artwork)
+    assert result.getpixel((25, 45))[0] > 170
+    assert result.getpixel((70, 45)) == artwork.getpixel((70, 45))
+    assert result.getpixel((90, 45)) == artwork.getpixel((90, 45))
+    assert result.getchannel("A").tobytes() == artwork.getchannel("A").tobytes()
+
+
+def test_dark_foreground_preserves_connected_illustration_and_smooth_glyph_shading():
+    from PIL import ImageDraw
+    from icon_materials import dark_foreground
+    artwork = Image.new("RGBA", (128, 128))
+    draw = ImageDraw.Draw(artwork)
+    draw.ellipse((65, 20, 115, 90), fill="#f05020", outline="#151515", width=5)
+    for y in range(20, 100):
+        value = 40 + y
+        draw.line((12, y, 40, y), fill=(value, value, value, 255))
+    result = dark_foreground(artwork)
+    assert result.crop((60, 0, 128, 128)).tobytes() == artwork.crop((60, 0, 128, 128)).tobytes()
+    values = [result.getpixel((25, y))[0] for y in range(20, 100)]
+    assert min(values) > 170
+    assert max(abs(a-b) for a, b in zip(values, values[1:])) <= 1
+
+
+def test_installer_glass_tint_changes_artwork_and_preserves_aliases(source, tmp_path):
+    from icon_toolset import installer_themes
+    staging = tmp_path / "source"
+    unpack(source, staging)
+    (staging / BASE / "apps/scalable/system-file-manager.svg").symlink_to("demo.svg")
+    blue, green = tmp_path / "blue", tmp_path / "green"
+    names = installer_themes(staging, blue, "glass", "#007aff")
+    installer_themes(staging, green, "glass", "#28cd41")
+    for name in names:
+        first = blue / name / "apps/256/demo.png"
+        second = green / name / "apps/256/demo.png"
+        assert digest(first) != digest(second)
+        assert (blue / name / "apps/256/org.example.Demo.png").resolve() == first
+        assert (blue / name / "THIRD_PARTY_NOTICES.md").is_file()
+        assert json.loads((blue / name / "generation.json").read_text())["tint"] == "#007aff"
+        image = Image.open(first).convert("RGBA")
+        assert image.getpixel((0, 0))[3] < 8
+        assert 0 < image.getpixel((128, 36))[3] < 255
+
+
+@pytest.mark.parametrize("style", ["regular", "glass"])
+def test_installer_duplicate_extensions_produce_one_icon_per_name(source, tmp_path, style, monkeypatch):
+    from icon_toolset import installer_themes
+    from itertools import count
+    ticks = count(0, 6)
+    monkeypatch.setattr("icon_toolset.monotonic", lambda: next(ticks))
+    staging = tmp_path / "source"
+    unpack(source, staging)
+    apps = staging / BASE / "apps/scalable"
+    # These two differently cased aliases coexist in the bundled archive.
+    for name in ("FreeFileSync.svg", "Grsync.SVG", "Grsync.svg", "system-file-manager.svg"):
+        (apps / name).symlink_to("demo.svg")
+    # Prefer vector artwork when a raster source also has the same output name.
+    Image.new("RGBA", (64, 64), "red").save(apps / "Grsync.png")
+    before = {p.name: digest(p) for p in apps.iterdir()}
+    outputs = [tmp_path / "first", tmp_path / "reinstall"]
+    for output in outputs:
+        updates = []
+        names = installer_themes(staging, output, style, "#007aff",
+                                 progress=lambda done, total: updates.append((done, total)))
+        assert updates == [(done, 5) for done in range(6)]
+        for name in names:
+            generated = output / name / "apps/256"
+            canonical = generated / "FreeFileSync.png"
+            assert not canonical.is_symlink()
+            assert (generated / "Grsync.png").resolve(strict=True) == canonical
+            assert {p.name for p in generated.iterdir()} == {
+                "FreeFileSync.png", "Grsync.png", "demo.png",
+                "org.example.Demo.png", "system-file-manager.png",
+            }
+            records = json.loads((output / name / "generation.json").read_text())["sources"]
+            assert records["Grsync.svg"] == before["Grsync.svg"]
+            assert "Grsync.SVG" not in records and "Grsync.png" not in records
+    assert {p.name: digest(p) for p in apps.iterdir()} == before
+    from icon_sources import inventory
+    assert inventory(outputs[0]) == inventory(outputs[1])
+
+
 def test_verify_rejects_changes_extra_files_and_escaping_links(built, tmp_path):
     extra = built / "unexpected"
     extra.write_text("tamper")
@@ -88,6 +219,42 @@ def test_verify_rejects_changes_extra_files_and_escaping_links(built, tmp_path):
     extra.symlink_to(tmp_path)
     with pytest.raises(ValueError, match="escapes"):
         verify(built)
+
+
+def test_reviewed_dark_artwork_is_used_for_every_alias_and_light_is_preserved(tmp_path):
+    from icon_materials import raster
+    from icon_toolset import ROOT, installer_dark_sources, installer_themes
+    manifest = json.loads((ROOT / 'src/offline/icons/overrides/sources.json').read_text())
+    extracted = tmp_path / 'archive'
+    unpack(ROOT / 'src/offline/icons/MacTahoeLiquidKde-Icons.tar.zst', extracted)
+    source = tmp_path / 'selected'
+    apps = source / BASE / 'apps/scalable'
+    apps.mkdir(parents=True)
+    for index, entry in enumerate(manifest.values()):
+        original = extracted / entry['source'].split(':', 1)[1]
+        assert digest(original) == entry['source_sha256']
+        (apps / f'app-{index}.svg').write_bytes(original.read_bytes())
+        (apps / f'alias-{index}.svg').symlink_to(f'app-{index}.svg')
+    overrides = installer_dark_sources()
+    names = installer_themes(source, tmp_path / 'generated', 'regular', '#007aff')
+    for index in range(len(manifest)):
+        original = apps / f'app-{index}.svg'
+        for name, artwork in zip(names, (original, overrides[digest(original)])):
+            generated = tmp_path / 'generated' / name / 'apps/256'
+            assert (generated / f'alias-{index}.png').resolve() == (generated / f'app-{index}.png').resolve()
+            expected = raster(artwork, 512).resize((256, 256), Image.Resampling.LANCZOS)
+            assert Image.open(generated / f'app-{index}.png').convert('RGBA').tobytes() == expected.tobytes()
+
+
+def test_regular_dark_removes_partial_colored_rim_without_losing_foreground(tmp_path):
+    path = tmp_path / 'partial-rim.svg'
+    path.write_bytes(ARTWORK.replace(b'</svg>', b'<path d="M4 32 V17 A13 13 0 0 1 17 4 H47 A13 13 0 0 1 60 17" fill="none" stroke="#00ffff" stroke-width="2"/></svg>'))
+    old = prepare_source(path, 256)
+    cleaned = prepare_source(path, 256, clean_rim=True)
+    assert old[0].tobytes() == cleaned[0].tobytes()
+    assert old[3].getpixel((128, 16))[3] > 0
+    assert cleaned[3].getpixel((128, 16))[3] == 0
+    assert old[3].crop((80, 80, 176, 176)).tobytes() == cleaned[3].crop((80, 80, 176, 176)).tobytes()
 
 
 def test_pack_is_reproducible_and_sample_requires_opt_in(built, tmp_path):

@@ -14,7 +14,6 @@ import pytest
 
 import build_translations
 import cli
-import install_tui
 import localization
 from localization_bundle import standalone_source
 import log
@@ -104,10 +103,8 @@ def test_logs_and_progress_keep_one_language_without_changing_phases(
     assert "reinstalled" not in output
     record = Path(log.PROGRESS_FILE).read_text().strip()
     assert record.split("\t")[1] in output
-    assert install_tui._phase_index("install", [record]) == 2
     log.progress_reset()
     log.step("Removing Theme Switcher")
-    assert install_tui._phase_index("uninstall", Path(log.PROGRESS_FILE).read_text().splitlines()) == 1
 
 
 @pytest.mark.parametrize("language", LANGUAGES)
@@ -153,7 +150,7 @@ def test_gui_selection_survives_privilege_escalation(sandbox, monkeypatch, langu
     command = installer_ui.escalated_command_for_action(
         "install", headless=True, progress_file="/tmp/progress", cancel_file="/tmp/cancel")
     assert f"MTTKDE_LANGUAGE={language}" in command
-    assert command.startswith("pkexec env " if pkexec else "sudo ")
+    assert command.startswith("pkexec env " if pkexec else "SUDO_ASKPASS=")
 
 
 @pytest.mark.parametrize("language", LANGUAGES)

@@ -1,4 +1,5 @@
 {
+  "Generating icons: {completed}/{total}": "Symbole werden erstellt: {completed}/{total}",
   "Cron entries installed, but no running cron daemon could be confirmed. Enable your cron service for scheduled features.": "Cron-Einträge wurden installiert, aber ein laufender Cron-Dienst konnte nicht bestätigt werden. Aktivieren Sie den Cron-Dienst für geplante Funktionen.",
   "\n  Aborted.": "\n  Abgebrochen.",
   "\u001b[0;32m\u001b[1m  ── Done\u001b[0m": "\u001b[0;32m\u001b[1m  ── Fertig\u001b[0m",
@@ -1008,5 +1009,6 @@
   "Removed distribution package {names}": "Distributionspaket {names} entfernt",
   "The installer replaced the distribution package {names}; reinstall it if you still want Rounded Corners: {command}": "Das Installationsprogramm hat das Distributionspaket {names} ersetzt; installieren Sie es erneut, wenn Sie Rounded Corners weiter verwenden möchten: {command}",
   "{name} belongs to the distribution package {owner}; left in place": "{name} gehört zum Distributionspaket {owner}; wird beibehalten",
-  "KWin still runs the previous KDE Rounded Corners build — log out and back in to activate this one": "KWin verwendet noch den vorherigen KDE-Rounded-Corners-Build — zum Aktivieren des neuen abmelden und erneut anmelden"
+  "KWin still runs the previous KDE Rounded Corners build — log out and back in to activate this one": "KWin verwendet noch den vorherigen KDE-Rounded-Corners-Build — zum Aktivieren des neuen abmelden und erneut anmelden",
+  "PyQt6 is required for the graphical installer but could not be imported.\n  Install the python-pyqt6 package for your distribution and re-run ./installer.": "Das grafische Installationsprogramm benötigt PyQt6, das nicht importiert werden konnte.\n  Installiere PyQt6 für deine Distribution und starte ./installer erneut."
 }

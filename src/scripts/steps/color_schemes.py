@@ -23,6 +23,8 @@ def install() -> None:
         existed = dest.is_file()
         try:
             dest.write_bytes(cs.read_bytes())
+            from theme_accent import apply as apply_accent
+            apply_accent(dest)
         except OSError as exc:
             fail(f"{cs.stem}: {exc}")
             continue

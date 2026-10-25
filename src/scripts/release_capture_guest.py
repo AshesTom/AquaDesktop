@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 
 
 def run(*args, timeout=60):
@@ -77,6 +78,20 @@ def close():
             'String(w.resourceClass).toLowerCase().includes("nautilus")).forEach(w=>w.closeWindow());')
 
 
+def clean_desktop():
+    """Keep running test applications out of the documentation Dock."""
+    session()
+    windows('workspace.windowList().filter(w=>w.windowType===0).forEach(w=>w.closeWindow());')
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        # Include minimized windows: their applications still appear in the Dock.
+        open_apps = windows('workspace.windowList().filter(w=>w.windowType===0).forEach(w=>w.minimized=false);')
+        if not any(w['type'] == 0 for w in open_apps):
+            return
+        time.sleep(.3)
+    raise RuntimeError('Applications remain open; refusing a Dock capture with extra icons')
+
+
 def setup(repo, profile, edition):
     from release_screenshots import EDITIONS
     session()
@@ -87,11 +102,11 @@ def setup(repo, profile, edition):
     (repo / 'src/scripts/defaults.json').write_text(json.dumps({'wallpaper': package, 'launcher_preset': preset}) + '\n')
     # Every edition starts from the same read-only VM image, then installs the
     # exact exported release sources. No package upgrade or host install occurs.
-    features = ('wallpapers', 'fonts', 'cursors', 'plasma-theme', 'window-decorations', 'kvantum',
-                'color-schemes', 'icons', 'plasmoids', 'globalmenu', 'acrylic-glass', 'global-theme',
-                'layout', 'gtk', 'apps', 'nautilus', 'nautilus-bookmarks', 'portals', 'rounded-corners', 'apply-theme')
+    from installer_choices import defaults
+    choices = defaults() | {'appearance': 'light'}
     command = ['sudo', 'env', 'MAC_TAHOE_NO_UPDATE_CHECK=true', 'MTTKDE_NO_CONFIRM=1',
-               str(repo / 'install'), '--only', *['--' + name for name in features], '--light', '--reset-wallpapers']
+               str(repo / 'src/scripts/installer_backend.py'), 'install',
+               '--wizard-options', json.dumps(choices)]
     with (repo.parent / 'install.log').open('w') as log:
         subprocess.run(command, cwd=repo, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=1800)
     from steps import rounded_corners
@@ -181,8 +196,51 @@ def arrange(placements):
     script = ''
     for caption, geometry in placements.items():
         script += ('workspace.windowList().filter(w=>w.caption===' + json.dumps(caption) + ').forEach(w=>{'
-                   'w.minimized=false;w.frameGeometry=' + json.dumps(geometry) + ';workspace.activeWindow=w;});')
+                   'w.minimized=false;const geometry=' + json.dumps(geometry) + ';'
+                   'const bounds=workspace.clientArea(KWin.FullArea,w);'
+                   'bounds.x=geometry.x;bounds.y=geometry.y;'
+                   'bounds.width=geometry.width;bounds.height=geometry.height;'
+                   'w.frameGeometry=bounds;workspace.activeWindow=w;});')
     windows(script)
+
+
+def wizard(repo, page):
+    from release_screenshots import INSTALLER_PAGES
+    if page not in INSTALLER_PAGES:
+        raise ValueError(page)
+    folder = repo.parent / 'wizard-capture'
+    folder.mkdir(exist_ok=True)
+    state = folder / 'state.json'
+    current = json.loads(state.read_text()) if state.exists() else {}
+    pid = current.get('pid')
+    live = False
+    if isinstance(pid, int):
+        try:
+            live = str(repo / 'src/scripts/release_capture_wizard.py').encode() in Path(f'/proc/{pid}/cmdline').read_bytes().split(b'\0')
+        except OSError:
+            pass
+    if not live:
+        state.unlink(missing_ok=True)
+        command = ['systemd-run', '--user', '--collect', '--unit=mttkde-wizard-' + uuid.uuid4().hex[:8],
+                   '-p', 'StandardOutput=append:' + str(folder / 'wizard.log'),
+                   '-p', 'StandardError=append:' + str(folder / 'wizard.log')]
+        for key in ('WAYLAND_DISPLAY', 'DISPLAY', 'DBUS_SESSION_BUS_ADDRESS', 'XDG_RUNTIME_DIR',
+                    'XDG_CONFIG_DIRS', 'QT_QPA_PLATFORMTHEME', 'LANG', 'LC_ALL', 'TZ'):
+            if key in os.environ:
+                command.append('--setenv=' + key + '=' + os.environ[key])
+        run(*command, 'python3', str(repo / 'src/scripts/release_capture_wizard.py'), str(repo))
+    request = uuid.uuid4().hex
+    pending = folder / 'page.tmp'
+    pending.write_text(json.dumps({'page': page, 'request': request}))
+    pending.replace(folder / 'page.json')
+    deadline = time.monotonic() + 20
+    while time.monotonic() < deadline:
+        current = json.loads(state.read_text()) if state.exists() else {}
+        if current.get('request') == request:
+            arrange({current['title']: {'x': 550, 'y': 225, 'width': 820, 'height': 600}})
+            return current
+        time.sleep(.2)
+    raise RuntimeError('Installer capture page did not become ready: ' + page)
 
 
 def capture(repo, profile, edition, requested, case):
@@ -221,7 +279,15 @@ def capture(repo, profile, edition, requested, case):
         raise RuntimeError('Capture did not settle to identical consecutive frames')
     observed = windows()
     shell = [w for w in observed if 'plasmashell' in w['resourceClass']]
-    if case == 'launcher':
+    installer_state = None
+    if case.startswith('installer-'):
+        installer_state = json.loads((repo.parent / 'wizard-capture/state.json').read_text())
+        if installer_state['page'] != case.removeprefix('installer-'):
+            raise RuntimeError('Installer page changed before capture')
+        chosen = [w for w in observed if w['type'] == 0 and w['active']
+                  and w['caption'] == installer_state['title']]
+        expected = 1
+    elif case == 'launcher':
         chosen = [w for w in shell if w['appletPopup']]
         expected = EDITIONS[edition][1]
     elif case == 'dock':
@@ -249,7 +315,9 @@ def capture(repo, profile, edition, requested, case):
     identity = run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.debug', 'liquidglass', '')
     return dict(sha256=digest(target), appearance=state, effect_build=identity, crop=crop,
                 wallpaper=EDITIONS[edition][0], wallpaper_uri=wallpaper[0], launcher_preset=presets[0], windows=observed,
-                files_pixels=pixels, stable_frames=True, window_verified=True)
+                files_pixels=pixels, stable_frames=True, window_verified=True,
+                installer_page=installer_state['page'] if installer_state else None,
+                installer_edition=installer_state['edition'] if installer_state else None)
 
 
 def boot(repo):
@@ -278,7 +346,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--repo', type=Path, required=True)
     parser.add_argument('--profile', type=Path, required=True)
-    parser.add_argument('action', choices=('setup', 'mode', 'launch', 'launcher', 'arrange', 'close', 'plasma', 'capture', 'boot'))
+    parser.add_argument('action', choices=('setup', 'mode', 'launch', 'launcher', 'arrange', 'close', 'clean-desktop', 'wizard', 'plasma', 'capture', 'boot'))
     parser.add_argument('args', nargs='*')
     args = parser.parse_args()
     sys.path.insert(0, str(args.repo / 'src/scripts'))
@@ -291,6 +359,8 @@ def main():
     elif args.action == 'launcher': run('qdbus6', 'org.kde.plasmashell', '/PlasmaShell', 'org.kde.PlasmaShell.activateLauncherMenu')
     elif args.action == 'arrange': arrange(json.loads(args.args[0]))
     elif args.action == 'close': close()
+    elif args.action == 'clean-desktop': clean_desktop()
+    elif args.action == 'wizard': result = wizard(args.repo, args.args[0])
     elif args.action == 'plasma': result = plasma(args.args[0])
     elif args.action == 'capture': result = capture(args.repo, profile, *args.args)
     elif args.action == 'boot': boot(args.repo)

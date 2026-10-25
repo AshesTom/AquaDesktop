@@ -174,7 +174,7 @@ class Guest:
         self.phase('apps-profile', self.desktop_command('python3 tests/vm/desktop_apps.py --prepare'))
         self.phase('resolution', self.desktop_command('kscreen-doctor output.1.mode.3840x2160@60 output.1.scale.2'))
         self.phase('install', f'cd {WORKTREE} && sudo env MTTKDE_NO_CONFIRM=1 '
-                   'MAC_TAHOE_NO_UPDATE_CHECK=true ./install --dark', timeout=3600)
+                   'MAC_TAHOE_NO_UPDATE_CHECK=true ./src/scripts/installer_backend.py install --dark', timeout=3600)
         dark = self.probe('dark', 'dark')
         if self.distro == 'kubuntu':
             self.launcher('launcher-installed')
@@ -199,7 +199,7 @@ class Guest:
         reboot_apps = self.apps('apps-reboot', 'dark')
         self.screenshot('reboot', mode='dark', apps=reboot_apps)
         self.phase('uninstall', f'cd {WORKTREE} && sudo env MTTKDE_NO_CONFIRM=1 '
-                   'MAC_TAHOE_NO_UPDATE_CHECK=true ./uninstall', timeout=900)
+                   'MAC_TAHOE_NO_UPDATE_CHECK=true ./src/scripts/installer_backend.py uninstall', timeout=900)
         self.probe('uninstalled', 'uninstalled')
         self.screenshot('uninstalled')
         self.report.update(status='pass', finished=now())

@@ -86,7 +86,7 @@ def raster_svg(data: bytes, size: int) -> Image.Image:
     return canvas
 
 
-def prepare_source(source: Path, size: int, glyph: bool = False) -> tuple:
+def prepare_source(source: Path, size: int, glyph: bool = False, *, clean_rim: bool = False) -> tuple:
     image = raster(source, size)
     if glyph or source.suffix.lower() != ".svg":
         removed = svg_input(source.read_bytes())[1] if source.suffix.lower() == ".svg" else 0
@@ -134,7 +134,16 @@ def prepare_source(source: Path, size: int, glyph: bool = False) -> tuple:
             central = alpha.crop((18, 18, 46, 46)).getextrema()[1]
             bounds = alpha.getbbox()
             wide = bounds and bounds[0] < 9 and bounds[1] < 9 and bounds[2] > 55 and bounds[3] > 55
-            if central < 8 and wide:
+            rim_layer = False
+            if clean_rim and central < 8:
+                plate_alpha = plate_probe.getchannel("A")
+                edge_band = ImageChops.subtract(plate_alpha.filter(ImageFilter.MaxFilter(3)),
+                                               plate_alpha.filter(ImageFilter.MinFilter(7)))
+                edge_alpha = ImageChops.multiply(alpha, edge_band)
+                weight = sum(value * count for value, count in enumerate(alpha.histogram()))
+                edge_weight = sum(value * count for value, count in enumerate(edge_alpha.histogram()))
+                rim_layer = weight > 0 and edge_weight / weight > .9
+            if central < 8 and (wide or rim_layer):
                 removed.append(i)
             else:
                 found_artwork = True
@@ -151,9 +160,20 @@ def prepare_source(source: Path, size: int, glyph: bool = False) -> tuple:
         if i != plate_index:
             node.set("style", node.get("style", "") + ";display:none")
     shape = raster_svg(ET.tostring(root), size).getchannel("A")
-    p = plate_probe.getpixel((32, 8))
-    classification = "vector-colored" if max(p[:3])-min(p[:3]) >= 20 else (
-        "vector-light" if sum(p[:3])/3 > 145 else "vector-dark")
+    plate_pixels = [p for p in plate_probe.getdata() if p[3] > 230]
+    colored = sum(max(p[:3]) - min(p[:3]) >= 20 for p in plate_pixels)
+    brightness = sum(sum(p[:3]) / 3 for p in plate_pixels) / len(plate_pixels)
+    # Split-color tiles can express a white logo through the base layer itself.
+    # Their colored edge panels are part of the background, not removable rims.
+    plate_alpha = plate_probe.getchannel("A")
+    inset_alpha = plate_alpha.filter(ImageFilter.MinFilter(13))
+    edge_pixels = [p for p, outer, inner in zip(
+        image.resize((64, 64), Image.Resampling.LANCZOS).getdata(),
+        plate_alpha.getdata(), inset_alpha.getdata()) if outer > 230 and inner < 128]
+    colored_edge = sum(max(p[:3]) - min(p[:3]) >= 20 and p[3] > 230 for p in edge_pixels)
+    classification = "vector-colored" if (colored / len(plate_pixels) > .01
+        or colored_edge > len(edge_pixels) * .25) else (
+        "vector-light" if brightness > 145 else "vector-dark")
     return image, shape, classification, artwork, removed_images
 
 
@@ -312,3 +332,110 @@ def render(prepared: tuple, variant: str, tint: tuple[int, int, int]) -> Image.I
                                               width=max(1, round(size/192)))
         result = Image.alpha_composite(result, edge)
     return result
+
+
+def dark_foreground(artwork: Image.Image) -> Image.Image:
+    """Lift exposed neutral black glyphs, retaining colored and enclosed details."""
+    probe = artwork.resize((128, 128), Image.Resampling.LANCZOS)
+    pixels = probe.load()
+    transparent = probe.getchannel("A").point(lambda a: 255 if a < 64 else 0)
+    near_clear = transparent.filter(ImageFilter.MaxFilter(5)).load()
+    remaining = {(x, y) for y in range(128) for x in range(128)
+                 if pixels[x, y][3] > 96}
+    mask = Image.new("L", probe.size)
+    selected = mask.load()
+    while remaining:
+        queue = deque([remaining.pop()])
+        component = []
+        exposed = False
+        colored = bright = 0
+        while queue:
+            x, y = queue.popleft()
+            component.append((x, y))
+            r, g, b, _ = pixels[x, y]
+            colored += max(r, g, b) - min(r, g, b) >= 18
+            bright += max(r, g, b) > 160
+            exposed |= bool(near_clear[x, y] and max(r, g, b) < 85)
+            for point in ((x-1, y), (x+1, y), (x, y-1), (x, y+1)):
+                if point in remaining:
+                    remaining.remove(point)
+                    queue.append(point)
+        # Recolor isolated neutral glyphs as a whole. Dark outlines attached
+        # to colored illustrations and shaded objects retain their original ink.
+        if exposed and colored / len(component) < .01 and bright / len(component) < .12:
+            for point in component:
+                selected[point] = 255
+    if mask.getbbox() is None:
+        return artwork
+    mask = mask.resize(artwork.size, Image.Resampling.NEAREST).filter(ImageFilter.MaxFilter(3))
+    r, g, b = artwork.convert("RGB").split()
+    high = ImageChops.lighter(ImageChops.lighter(r, g), b)
+    low = ImageChops.darker(ImageChops.darker(r, g), b)
+    neutral = ImageChops.subtract(high, low).point(lambda v: 255 if v < 18 else 0)
+    mask = ImageChops.multiply(mask, neutral)
+    # A continuous curve avoids seams through gradients and antialiased edges.
+    lifted = artwork.point([round(174 + v * .24) for v in range(256)] * 3 + list(range(256)))
+    return Image.composite(lifted, artwork, mask)
+
+
+def render_installer(prepared: tuple, style: str, mode: str, tint: tuple[int, int, int]) -> Image.Image:
+    """Use the wizard's approved materials for both previews and installed icons.
+
+    Preserve the original foreground in regular icons. Glass uses that same
+    artwork's luminance and alpha, with a tinted relief and translucent plate.
+    """
+    if style not in {"regular", "glass"} or mode not in {"light", "dark"}:
+        raise ValueError("Unknown installer icon material")
+    image, shape, _, artwork, _ = prepared
+    size = image.width
+    if style == "regular":
+        if mode == "light" or prepared[2] != "vector-light":
+            return image.copy()
+        if artwork is None or shape is None:
+            return image.copy()
+        plate = gradient(size, (52, 52, 54, 255), (12, 12, 14, 255))
+        plate.putalpha(shape)
+        # One subdued neutral rim replaces the light icon's partial colored rims.
+        inset = shape.filter(ImageFilter.MinFilter(3))
+        rim = ImageChops.subtract(shape, inset)
+        edge = gradient(size, (255, 255, 255, 65), (255, 255, 255, 12))
+        edge.putalpha(ImageChops.multiply(rim, edge.getchannel("A")))
+        plate = Image.alpha_composite(plate, edge)
+        return Image.alpha_composite(plate, dark_foreground(artwork))
+    if artwork is None or shape is None:
+        # Unclassified artwork keeps its silhouette and interior detail.
+        artwork = image
+        shape = Image.new("L", image.size)
+        ImageDraw.Draw(shape).rounded_rectangle((size*.065, size*.065, size*.935, size*.935),
+                                                radius=size*.205, fill=255)
+    gray = ImageOps.grayscale(artwork)
+    silver = ImageOps.colorize(gray, (60, 82, 101), (247, 252, 255))
+    shadow = tuple(round(c*.22) for c in tint)
+    middle = tuple(round(c*.8+255*.2) for c in tint)
+    relief = ImageOps.colorize(ImageOps.grayscale(silver), black=shadow, white=(248, 252, 255),
+                              mid=middle, midpoint=164).convert("RGBA")
+    relief.putalpha(artwork.getchannel("A"))
+    ramp = Image.linear_gradient("L").resize((size*2, size*2)).rotate(-35)
+    ramp = ramp.crop((size//2, size//2, size//2+size, size//2+size))
+    stops = [(0, (255, 255, 255, 171)), (107, (*tint, 122)),
+             (196, (*tint, 191)), (255, (255, 255, 255, 156))]
+    colors = []
+    for value in range(256):
+        left, right = next((a, b) for a, b in zip(stops, stops[1:]) if a[0] <= value <= b[0])
+        t = (value-left[0])/(right[0]-left[0])
+        colors.append(tuple(round(a+(b-a)*t) for a,b in zip(left[1], right[1])))
+    plate = Image.merge("RGBA", [ramp.point([c[channel] for c in colors]) for channel in range(4)])
+    plate.putalpha(ImageChops.multiply(plate.getchannel("A"), shape))
+    inset = shape.filter(ImageFilter.MinFilter(max(3, (round(size*.012)//2)*2+1)))
+    rim = ImageChops.subtract(shape, inset).filter(ImageFilter.GaussianBlur(size*.002))
+    edge = Image.new("RGBA", image.size, "white"); edge.putalpha(rim.point(lambda v: round(v*.72)))
+    result = Image.alpha_composite(plate, relief)
+    bevel_width = max(3, (round(size*.035)//2)*2+1)
+    bevel = ImageChops.subtract(shape, shape.filter(ImageFilter.MinFilter(bevel_width)))
+    shine = gradient(size, (255, 255, 255, 220), (195, 225, 255, 90))
+    shine.putalpha(ImageChops.multiply(shine.getchannel("A"), bevel))
+    result = Image.alpha_composite(Image.alpha_composite(result, shine), edge)
+    shadow = Image.new("RGBA", image.size, (20, 35, 60))
+    shadow.putalpha(ImageChops.offset(shape, 0, round(size*.025)).filter(
+        ImageFilter.GaussianBlur(size*.025)).point(lambda value: round(value*.24)))
+    return Image.alpha_composite(shadow, result)

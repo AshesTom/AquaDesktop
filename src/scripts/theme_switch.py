@@ -32,6 +32,7 @@ KVANTUM_STYLE = "kvantum"
 _PROC_ROOT = Path("/proc")
 LEGACY_REDUCED_SUFFIX = "-ReducedTransparency"
 DEFAULT_WALLPAPER = "MacTahoe"
+INSTALLER_OPTIONS = {}
 
 
 def default_wallpaper() -> str:
@@ -158,7 +159,7 @@ def _sync_session_env_from_plasmashell() -> None:
         uid = os.getuid()
     wanted = {
         "DBUS_SESSION_BUS_ADDRESS", "DISPLAY", "WAYLAND_DISPLAY",
-        "XAUTHORITY", "XDG_CACHE_HOME", "XDG_CONFIG_HOME",
+        "XAUTHORITY", "XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_CONFIG_DIRS",
         "XDG_CURRENT_DESKTOP", "XDG_DATA_HOME", "XDG_RUNTIME_DIR",
         "XDG_SESSION_TYPE", "XDG_STATE_HOME",
     }
@@ -524,7 +525,15 @@ def _wallpaper_path(mode: str) -> Path | None:
     data_home = Path(os.environ.get("XDG_DATA_HOME") or
                      str(Path.home() / ".local/share"))
     base = data_home / "wallpapers"
-    auto = base / default_wallpaper()
+    choices = INSTALLER_OPTIONS
+    if choices.get("wallpaper") == "custom":
+        custom = base / "MacTahoe-Custom" / "wallpaper"
+        return custom if custom.is_file() else None
+    pairs = {"tahoe": ("MacTahoe", "MacTahoe"), "golden": ("MacGoldenGate", "MacGoldenGate"),
+             "landscape": ("MacTahoe-Landscape-Morning", "MacTahoe-Landscape-Night"),
+             "sonoma": ("MacHeritage-Sonoma", "MacHeritage-Sonoma-Horizon")}
+    pair = pairs.get(choices.get("wallpaper"))
+    auto = base / (pair[mode == "dark"] if pair else default_wallpaper())
     if auto.is_dir():
         return auto
     legacy = base / ("MacTahoe-Dark" if mode == "dark" else "MacTahoe-Light")
@@ -1016,18 +1025,94 @@ def gtk4_legacy_adaptive_css(source: str) -> str:
     return "/* mac-tahoe-liquid-kde: adaptive legacy GTK 4 */\n" + source
 
 
-def _gtk4_supports_media_queries() -> bool:
-    """GTK 4.20 can restyle an already-open app through media queries."""
+def _gtk4_version() -> tuple[int, int]:
     import ctypes
     import ctypes.util
     try:
         library = ctypes.util.find_library("gtk-4")
         if not library:
-            return False
+            return (0, 0)
         gtk = ctypes.CDLL(library)
-        return (gtk.gtk_get_major_version(), gtk.gtk_get_minor_version()) >= (4, 20)
+        return (gtk.gtk_get_major_version(), gtk.gtk_get_minor_version())
     except (OSError, AttributeError):
-        return False
+        return (0, 0)
+
+
+def _gtk4_supports_media_queries() -> bool:
+    """GTK 4.20 can restyle an already-open app through media queries."""
+    return _gtk4_version() >= (4, 20)
+
+
+def gtk4_compatible_css(source: str) -> str:
+    """Translate bundled GTK 4.16 colors for older GTK, retaining named palettes."""
+    if _gtk4_version() >= (4, 16):
+        return source
+    variables = {}
+
+    def root(match):
+        variables.update(re.findall(r"--([\w-]+)\s*:\s*([^;]+);", match[1]))
+        return ""
+
+    source = re.sub(r":root\s*\{([^{}]*)\}", root, source)
+
+    def resolve(value):
+        for _ in range(len(variables) + 1):
+            updated = re.sub(r"var\(--([\w-]+)\)",
+                             lambda m: variables.get(m[1], m[0]), value)
+            if updated == value:
+                return value
+            value = updated
+        raise ValueError("Circular GTK color variable")
+
+    # Older libadwaita has no accent variables. Keep the bundled color swatches
+    # through explicit background and checked-ring rules on their own selectors.
+    swatches = []
+    def rule(match):
+        selectors, body = match[1], match[2]
+        accent = re.search(r"--accent-bg-color:\s*var\((--accent-[\w-]+)\);", body)
+        if accent:
+            color = resolve("var(" + accent[1] + ")")
+            body += "\nbackground-color: " + color + ";\n"
+            checked = ", ".join(s.strip() + ":checked" for s in selectors.split(","))
+            swatches.append(checked + " { box-shadow: 0 0 0 3px " + color + "; }")
+        body = re.sub(r"--[\w-]+\s*:[^;]+;", "", body)
+        return selectors + "{" + resolve(body) + "}"
+
+    source = re.sub(r"([^{}]+)\{([^{}]*)\}", rule, source)
+
+    def mixtures(text):
+        while match := re.search(r"color-mix\(", text):
+            start = match.end()
+            depth, end = 1, start
+            while depth and end < len(text):
+                depth += (text[end] == "(") - (text[end] == ")")
+                end += 1
+            if depth:
+                raise ValueError("Unclosed GTK color mix")
+            arguments = mixtures(text[start:end-1])
+            parts, last, depth = [], 0, 0
+            for index, character in enumerate(arguments):
+                depth += (character == "(") - (character == ")")
+                if character == "," and depth == 0:
+                    parts.append(arguments[last:index].strip())
+                    last = index + 1
+            parts.append(arguments[last:].strip())
+            if len(parts) != 3 or parts[0] != "in srgb":
+                raise ValueError("Unsupported bundled GTK color mix")
+            weighted = re.fullmatch(r"(.+)\s+([\d.]+)%", parts[1])
+            if not weighted:
+                raise ValueError("Missing GTK color weight")
+            color, weight = weighted[1], float(weighted[2]) / 100
+            replacement = (f"alpha({color},{weight:g})" if parts[2] == "transparent"
+                           else f"mix({parts[2]},{color},{weight:g})")
+            text = text[:match.start()] + replacement + text[end:]
+        return text
+
+    source = mixtures(source)
+    source = re.sub(r"\bRGB\(\s*(\d+)\s+(\d+)\s+(\d+)\s*/\s*([\d.]+)%\s*\)",
+                    lambda m: f"rgba({m[1]},{m[2]},{m[3]},{float(m[4])/100:g})",
+                    source, flags=re.I)
+    return source + "\n" + "\n".join(swatches)
 
 
 def _gtk4_css_is_replaceable(path: Path, themes_root: Path) -> bool:
@@ -1059,6 +1144,21 @@ def _gtk4_css_is_replaceable(path: Path, themes_root: Path) -> bool:
         text = text[:-len(import_line)].rstrip()
     if text == GTK4_ADAPTIVE_CSS.strip():
         return True
+    # kde-gtk-config may replace our adaptive symlink with a regular copy.
+    # During an edition/accent upgrade the installed theme is already new,
+    # while this cached source still proves ownership of the outgoing sheet.
+    cached_light = path.parent / "gtk-Light.css"
+    try:
+        cached_adaptive = path.parent / "gtk-AdaptiveLegacy.css"
+        if (text.startswith("/* mac-tahoe-liquid-kde: adaptive legacy GTK 4 */")
+                and cached_adaptive.is_file()
+                and cached_adaptive.read_text(encoding="utf-8").strip() == text):
+            return True
+        if cached_light.is_file() and gtk4_legacy_adaptive_css(
+                cached_light.read_text(encoding="utf-8")).strip() == text:
+            return True
+    except OSError:
+        pass
     for variant in ("MacTahoeLiquidKde-Light", "MacTahoeLiquidKde-Dark",
                     "MacTahoeLiquidKde-Light" + LEGACY_REDUCED_SUFFIX,
                     "MacTahoeLiquidKde-Dark" + LEGACY_REDUCED_SUFFIX):
@@ -1087,6 +1187,11 @@ def _apply_local_extras(mode: str) -> None:
     home = Path.home()
     gtk_dest = home / ".themes"
     gtk_theme = "MacTahoeLiquidKde-Dark" if mode == "dark" else "MacTahoeLiquidKde-Light"
+
+    gtk4_css = home / ".config/gtk-4.0/gtk.css"
+    owned_css = None
+    if _gtk4_css_is_replaceable(gtk4_css, gtk_dest) and gtk4_css.is_file():
+        owned_css = gtk4_css.read_bytes()
 
     if (gtk_dest / gtk_theme).is_dir():
         _qdbus("org.kde.GtkConfig", "/GtkConfig",
@@ -1133,7 +1238,9 @@ def _apply_local_extras(mode: str) -> None:
 
             gtk4_css = gtk4_dest / "gtk.css"
             try:
-                if _gtk4_css_is_replaceable(gtk4_css, gtk_dest):
+                if (_gtk4_css_is_replaceable(gtk4_css, gtk_dest)
+                        or (owned_css is not None and gtk4_css.is_file()
+                            and gtk4_css.read_bytes() == owned_css)):
                     if _gtk4_supports_media_queries():
                         adaptive = gtk4_dest / "gtk-Adaptive.css"
                         adaptive.write_text(GTK4_ADAPTIVE_CSS, encoding="utf-8")
@@ -1194,6 +1301,11 @@ def write_kde_theme_config(
 
     # AutomaticLookAndFeel=false: Plasma's sunrise/sunset scheduler must
     # not fight our 06:00 / 18:00 timer (idempotent).
+    if INSTALLER_OPTIONS.get("icons") == "keep":
+        icon = INSTALLER_OPTIONS.get("preserved_icon", icon)
+    elif INSTALLER_OPTIONS.get("icons") in ("regular", "glass"):
+        style = "Glass" if INSTALLER_OPTIONS["icons"] == "glass" else "Regular"
+        icon = f"MacTahoeLiquidKde-Icons-{style}-{'Dark' if mode == 'dark' else 'Light'}"
     fixed = (
         ("kdeglobals", "KDE", "LookAndFeelPackage", laf),
         ("kdeglobals", "KDE", "AutomaticLookAndFeel", "false"),
@@ -1556,6 +1668,11 @@ def _apply_unlocked(mode: str, context: str = "user") -> bool:
     # reload (an ABI-incompatible third-party .so), we warn by name instead of
     # letting it break silently (#46). We never touch its config key.
     foreign_effects = _snapshot_foreign_effects()
+
+    if INSTALLER_OPTIONS.get("icons") == "keep":
+        current_icon = _kread("kdeglobals", "Icons", "Theme")
+        if current_icon:
+            INSTALLER_OPTIONS["preserved_icon"] = current_icon
 
     # Capture before the live look-and-feel apply.  Even if a third-party LAF
     # carries wallpaper defaults, it must not erase the outgoing custom choice

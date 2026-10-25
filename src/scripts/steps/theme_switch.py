@@ -268,6 +268,12 @@ def install() -> None:
         # Bake the edition into the standalone executable so login, cron and
         # manual switches keep it without an environment variable or checkout.
         source = BIN_DEST.read_text()
+        from installer_choices import selected
+        options = selected()
+        if options.get("icons") == "keep":
+            from utils import kw_read
+            options["preserved_icon"] = kw_read("kdeglobals", "Icons", "Theme") or "breeze"
+        source = source.replace("INSTALLER_OPTIONS = {}", "INSTALLER_OPTIONS = " + repr(options), 1)
         BIN_DEST.write_text(standalone_source(source).replace(
             'DEFAULT_WALLPAPER = "MacTahoe"',
             f'DEFAULT_WALLPAPER = {json.dumps(default_wallpaper())}', 1))

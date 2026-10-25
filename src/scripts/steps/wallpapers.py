@@ -17,6 +17,17 @@ OFFLINE_DIR = offline("wallpapers")
 
 
 def install() -> None:
+    from installer_choices import selected
+    options = selected()
+    if options.get("wallpaper") == "custom":
+        source = Path(options["wallpaper_path"])
+        from PyQt6.QtGui import QImageReader
+        if not source.is_file() or not QImageReader(str(source)).canRead():
+            fail("The selected wallpaper is not a readable image")
+            return
+        custom = DEST_DIR / "MacTahoe-Custom"
+        custom.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, custom / "wallpaper")
     pre = {p.name for p in DEST_DIR.glob("*/") if p.is_dir()}
     DEST_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -40,7 +51,7 @@ def install() -> None:
 
 
 _FIXED_NAMES = (
-    "MacGoldenGate",
+    "MacTahoe-Custom", "MacGoldenGate",
     "MacTahoe", "MacTahoe-Beach-Dawn", "MacTahoe-Beach-Day",
     "MacTahoe-Beach-Dusk", "MacTahoe-Beach-Night",
     "MacTahoe-Iridescence",

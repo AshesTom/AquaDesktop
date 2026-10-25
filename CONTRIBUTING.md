@@ -26,9 +26,9 @@ KDE Plasma 6.6+ is required to actually exercise the desktop pieces. Most static
 git clone https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde
 cd macos-tahoe-liquid-kde
 
-sudo ./install       # installs user assets plus compiled system Qt6 plugins
-sudo ./uninstall     # removes current and legacy system Qt6 plugins
-./test               # full pytest suite (~20s)
+./installer          # graphical install wizard; requests privileges when needed
+./uninstall          # graphical uninstall confirmation
+./test               # full pytest suite
 ./test --vm          # plymouth render harness (requires root, see tests/vm/)
 ```
 
@@ -95,10 +95,11 @@ tests/                  Pytest suite
   conftest.py           Sandbox fixture + live-state safety net
   test_*.py             One file per concern
   vm/                   Plymouth render harness (root-required)
-install / uninstall     Python entry points (chmod +x), dispatch into src/scripts/cli.py
+installer               Graphical installer and uninstaller
+install / uninstall     Aliases for the graphical installer and uninstaller
 ```
 
-Two entry points, one codebase. The shell wrappers `install` / `uninstall` at the repo root invoke `src/scripts/cli.py` with the correct phase.
+The graphical wizard invokes `src/scripts/installer_backend.py` with the selected options. The backend dispatches the shared step modules; there is no separate terminal wizard.
 
 Feature-based, NOT layer-based: a step owns its slice end-to-end. Don't dump every step's logic into a single `steps.py`.
 
@@ -389,6 +390,9 @@ Be a decent human. I'll close anything abusive, off-topic, or trying to drag thi
 
 ## Documentation screenshots
 
+Keep the installer gallery in [TESTING.md](TESTING.md); the README links to it
+without embedding installer screenshots. Desktop and Dock photographs stay in the README.
+
 Every release requires a new complete capture. Use `./release-screenshots`,
 not the older single-window helper, for publication. The release workflow
 verifies committed provenance before creating the GitHub release. Never use
@@ -413,9 +417,9 @@ screenshots are outside this gallery rule.
    Stage Golden Gate from the same reviewed bundle using `--edition golden-gate`
    and its checkout as `--destination`. Both versions must already match.
    Staging gives each image a filename containing its content SHA-256 prefix,
-   updates README URLs, and removes replaced images and obsolete aliases.
+   updates README and TESTING URLs, and removes replaced images and obsolete aliases.
 5. Commit the screenshots. This commit may change only `src/screenshots/`
-   and README screenshot filename hashes relative to the captured candidate;
+   and README/TESTING screenshot filename hashes relative to the captured candidate;
    other changes require recapture.
    Run `./release-screenshots verify`. Push the version tag to trigger the
    gated release workflow. Its release title is exactly `vVERSION`.
@@ -436,7 +440,7 @@ The profile fixes 3840×2160 output, 2× scale, locale, timezone, clock, Documen
 fixtures, pinned apps, window positions and pointer position. Each frame must
 settle to two identical consecutive captures. The active effect identity must
 match the captured source. Provenance excludes screenshot outputs and normalizes
-README screenshot filename hashes to avoid a circular commit hash. This makes the capture procedure repeatable; it does
+README/TESTING screenshot filename hashes to avoid a circular commit hash. This makes the capture procedure repeatable; it does
 not promise identical pixels across different host GPUs/QEMU versions. Keep
 the same capture host for comparisons and retain each bundle with its logs.
 

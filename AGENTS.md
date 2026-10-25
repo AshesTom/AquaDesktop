@@ -107,8 +107,8 @@ component's grant (GPL-2.0-or-later, LGPL-2.0-or-later, KDE
 tri-license) is GPL-3-compatible. Individual files keep their original
 SPDX headers; the Apple wallpaper imagery, SF Pro / SF Mono fonts, and
 Apple system sounds are not covered by the FOSS license.
-**Stack:** Python 3.10+ CLI installer dispatching into per-feature
-steps; a PyQt6 graphical installer (`./installer`) that wraps the CLI;
+**Stack:** Python 3.10+ internal installation engine dispatching into per-feature
+steps; one native PyQt6 graphical wizard (`./installer`);
 QML plasmoids; C++ Qt6 plasmoids (Global Menu, Dock Task Manager) and
 KWin effects compiled at install time against the host's Qt6 / KDE
 Frameworks 6. Theme assets are bundled offline in `src/offline/`, with
@@ -122,11 +122,13 @@ release is downloaded, checksum-verified, and built best-effort.
 - **kebab-case** for IDs: `org.kde.mac-tahoe-liquid-kde.<component>`.
 - Plasmoid suffixes are simple nouns: `.menu`, `.launcher`, `.trashcan`
   — not compound words like `.kpplemenu`.
-- The user-facing CLI binary is `mac-tahoe-theme-switch`. Repo entry
-  points are `./install`, `./uninstall` (TUI wizard on a bare TTY run,
-  classic flow otherwise), `./legacy-install`, `./legacy-uninstall`
-  (always the classic confirm-and-flags flow), and `./installer`
-  (graphical UI) — no `.sh` extension.
+- The user-facing theme switch binary is `mac-tahoe-theme-switch`.
+- `./installer` opens the single native PyQt6 wizard. `./install` and
+  `./uninstall` are aliases for this UI; there is no terminal wizard or legacy
+  installer. Never run the live installer as a test on the host.
+- `src/scripts/installer_backend.py {install|uninstall}` is the internal
+  privileged engine, used by the UI supervisor and disposable qualification
+  tools. Its flags are an automation interface, not another user-facing UI.
 
 ## Branding
 
@@ -207,8 +209,7 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
 
 | Path                          | Contents |
 | ----------------------------- | -------- |
-| `install` / `uninstall`       | Thin wrappers that exec `src/scripts/cli.py` with `tui=True`. Bare runs on a real TTY (no flags, no `MTTKDE_NO_CONFIRM`) open the curses selection wizard from `src/scripts/install_tui.py`; anything else falls through to the classic flow. Both require sudo. |
-| `legacy-install` / `legacy-uninstall` | Same engine with `tui=False` — always the classic confirm-and-flags flow, never the wizard. Both require sudo. |
+| `install` / `uninstall` | Aliases for the graphical installer and uninstaller. |
 | `installer`                   | Graphical installer entry point; execs `src/installer/installer_ui.py`. |
 | `vm`                          | Boots a graphical KDE Plasma VM per distro with the repo mounted (`./vm cachyos`, `./vm all`). |
 | `test`                        | Pytest runner for the full suite. |
@@ -216,8 +217,7 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
 | `features.json`               | Per-feature enable flags, written by `--only` / `--no-*` and read on the next run. |
 | `src/scripts/`                | Installer Python. **Flat layout — no `installer/` subdir.** |
 | `src/scripts/cli.py`          | Entry point. Parses flags, runs preflight, dispatches steps. |
-| `src/scripts/install_tui.py`  | Curses selection wizard + live progress screen for bare `sudo ./install` / `sudo ./uninstall` TTY runs. Stdlib only (guarded import — openSUSE splits python3-curses); any failure falls back to the classic flow in `cli.py`. The progress screen runs the install body on a worker thread, redirects stdout/stderr to `/tmp/mttkde-install.log`, and polls its invocation's private progress file. Graphical runs add a separate private cancellation token and same-user supervisor around privilege escalation. |
-| `src/scripts/localization.py` | Dependency-free English/Spanish/Simplified-Chinese/Brazilian-Portuguese/German strings shared by the GUI and TUI, with system-locale detection and the persisted selector at `~/.config/mac-tahoe-liquid-kde/language.json`. English source text is the fallback. Plasma widgets use their native KDE `i18n()` catalogs under each plasmoid instead. |
+| `src/scripts/localization.py` | Dependency-free English/Spanish/Simplified-Chinese/Brazilian-Portuguese/German strings shared by the GUI and internal backend, with system-locale detection and the persisted selector at `~/.config/mac-tahoe-liquid-kde/language.json`. English source text is the fallback. Plasma widgets use their native KDE `i18n()` catalogs under each plasmoid instead. |
 | `src/scripts/preflight.py`    | 9-check fail-fast probe (sudo, paths, Qt6, Plasma, kwriteconfig6, DBus, kded6, disk, plasmoid IDs). |
 | `src/scripts/distro.py`       | The ONLY module that knows per-distro paths and package manager commands. |
 | `src/scripts/paths.py`        | Repo-relative paths only. Never shells out, never reads /etc/os-release. |
@@ -229,7 +229,7 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
 | `src/scripts/log.py`          | `banner`, `step`, `ok`, `warn`, `info`, `note`, `fail` — single source of UI styling. |
 | `src/scripts/steps/`          | One module per feature. Implements `deps`, `download`, `build`, `install`, `uninstall`, `restart_plasma` as needed. `rounded_corners.py` is the sole online step. |
 | `src/scripts/steps/_helpers.py` | `sudo_install_file`, `sudo_install_tree`, `sudo_remove`, `_as_root` context manager. |
-| `src/installer/`              | Graphical installer UI: `installer_ui.py` (PyQt6) + QML windows + art. Wraps `./install` / `./uninstall`; the CLI stays the source of truth. |
+| `src/installer/` | Native PyQt6 wizard (`wizard_window.py`), translations, previews and the privileged-process supervisor (`installer_ui.py`). |
 | `src/offline/`                | Bundled assets: plasmoids, plasma theme, Acrylic Glass, aurorae, color-schemes, cursors, fonts, Firefox CSS/SVG, gtk, icons, kvantum, look-and-feel, layouts, plymouth, nautilus, wallpapers, plus the systemd unit + timer. KDE Rounded Corners is intentionally not mirrored here. |
 | `src/offline/wallpapers/<id>/`| One folder per wallpaper, JPEG q90 + `metadata.json` (3840×2160 minimum). Fully offline — no `download()` phase. |
 | `tests/`                      | pytest suite. `./test` is the runner. |
@@ -258,7 +258,7 @@ Output convention inside `install()`:
 
 ## Architecture — Sudo Policy
 
-Both `./install` and `./uninstall` require sudo. The compiled C++
+The internal install and uninstall backend requires sudo. The graphical UI runs as the desktop user and requests elevation only after confirmation. The compiled C++
 plasmoids and the Acrylic Glass KWin effect land under the system Qt6
 libdir (the dir `qmake6` reports — never hardcoded), because Qt6
 doesn't walk `~/.local/lib/qt6` in a default Plasma session.
@@ -312,9 +312,11 @@ repo) and re-execs `./install` so the freshly-pulled code performs the
 install. `MAC_TAHOE_UPDATED=1` is the recursion guard. A dirty
 checkout, missing git, or a failed pull falls back to installing the
 current version with a manual `git pull && ./install` hint.
-Golden Gate performs both updates itself: its wrapper fast-forwards its own
-checkout, installs the latest published Tahoe release, and sets
-`MAC_TAHOE_NO_UPDATE_CHECK=true` for that prepared source.
+Golden Gate first uses `GOLDEN_GATE_TAHOE_SOURCE` or a complete sibling
+`../macos-tahoe-liquid-kde` checkout, staging its own defaults in an isolated
+copy without updates or downloads. Without local sources its wrapper
+fast-forwards its own checkout and selects the latest published Tahoe release.
+It sets `MAC_TAHOE_NO_UPDATE_CHECK=true` for the prepared source.
 
 ## Architecture — Optional Online Rounded Corners
 
@@ -691,7 +693,7 @@ rejected, mixed-theme or older-release pictures block publication. Commit the
 reviewed images and provenance, run `./release-screenshots verify`, then push
 the release tag through `.github/workflows/release.yml`. Do not bypass the
 gate with a direct `gh release create`. Changes outside `src/screenshots/`
-after capture require a new run, except README screenshot filename hash updates. See CONTRIBUTING.md for the full sequence.
+after capture require a new run, except README/TESTING screenshot filename hash updates. See CONTRIBUTING.md for the full sequence.
 
 The same defaults file selects `launcher_preset` (Tahoe: 1, Golden Gate: 2).
 `launcher_defaults.py` stamps only the staged launcher's `defaultLauncherPreset`
@@ -754,7 +756,7 @@ surfaces. A KWin reconfigure alone did not clear the stale capsule geometry
 observed at 150% scale. Preserve disabled effects and saved radius settings.
 Refreshing an effect instance does not guarantee Qt unloads its shared library.
 Acrylic Glass has two complete material presets: Tahoe and Golden Gate, both
-with blur strength 10. Keep their persisted `MaterialPreset` IDs at 1 and 2;
+with blur strength 5. Keep their persisted `MaterialPreset` IDs at 1 and 2;
 the retired Clear ID 0 falls back to Tahoe in the KCM without resetting optics.
 `src/offline/kwin-effects/acrylic-glass/src/presets.json` is shared by the
 installer and the native KCM. Keep one blur path: Dual Kawase with a symmetric

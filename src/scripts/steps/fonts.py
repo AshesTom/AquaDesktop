@@ -4,8 +4,12 @@ Fully offline — no download phase."""
 
 from localization import tr
 
+import filecmp
+import os
+from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 from collections import defaultdict
 
 from steps._helpers import (
@@ -29,6 +33,21 @@ def _group(name: str) -> str:
     return "Other"
 
 
+def _copy_font(source: Path, target: Path) -> bool:
+    """Keep mapped fonts valid while desktop applications are using them."""
+    if target.is_file() and filecmp.cmp(source, target, shallow=False):
+        return False
+    with tempfile.NamedTemporaryFile(dir=target.parent, prefix=".mttkde-font-",
+                                     suffix=".tmp", delete=False) as stream:
+        temporary = Path(stream.name)
+    try:
+        shutil.copy2(source, temporary)
+        os.replace(temporary, target)
+    finally:
+        temporary.unlink(missing_ok=True)
+    return True
+
+
 def install() -> None:
     DEST_DIR.mkdir(parents=True, exist_ok=True)
     inst: dict[str, int] = defaultdict(int)
@@ -39,8 +58,7 @@ def install() -> None:
         target = DEST_DIR / f.name
         existed = target.is_file()
         try:
-            shutil.copy2(f, target)
-            any_copied = True
+            any_copied = _copy_font(f, target) or any_copied
         except OSError:
             fail(tr('{value1} (copy failed)', value1=f.name))
             continue

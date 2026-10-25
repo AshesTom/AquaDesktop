@@ -12,7 +12,7 @@
   "guest_user": "tester",
   "pointer": [80, 1000],
   "documents": ["Design", "Projects", "Screenshots", "Wallpapers"],
-  "pins": ["applications:org.gnome.Nautilus.desktop", "applications:org.kde.konsole.desktop", "applications:systemsettings.desktop"],
+  "pins": ["applications:org.gnome.Nautilus.desktop", "applications:org.kde.discover.desktop", "applications:org.kde.kate.desktop", "applications:org.kde.gwenview.desktop", "applications:vlc.desktop", "applications:org.kde.kcalc.desktop", "applications:org.kde.okular.desktop", "applications:org.kde.spectacle.desktop", "applications:org.kde.konsole.desktop", "applications:systemsettings.desktop"],
   "windows": {
     "Documents": {"x": 220, "y": 250, "width": 1000, "height": 620},
     "About This Computer (preview)": {"x": 1330, "y": 180, "width": 360, "height": 700}

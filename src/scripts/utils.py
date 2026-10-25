@@ -264,6 +264,9 @@ _DESKTOP_ENV_KEYS = frozenset({
     "XAUTHORITY",
     "XDG_CURRENT_DESKTOP",
     "XDG_CONFIG_HOME",
+    # Plasma stores global-theme defaults in ~/.config/kdedefaults and
+    # includes it in this search path. SSH/sudo must see the same defaults.
+    "XDG_CONFIG_DIRS",
     "XDG_DATA_HOME",
     "XDG_CACHE_HOME",
     "XDG_STATE_HOME",

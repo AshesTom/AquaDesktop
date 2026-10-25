@@ -34,13 +34,14 @@ PROGRESS_FILE = _CONFIGURED_PROGRESS_FILE or (
     f"/tmp/mttkde-install-progress-{os.getpid()}-{secrets.token_hex(8)}"
 )
 DONE_MARKER = "__DONE__"
+STATUS_MARKER = "__STATUS__"
 
 
 def _open_progress_file(*, truncate: bool) -> int:
     """Open the progress channel without following or damaging hostile paths.
 
     The GUI creates this file with ``mkstemp`` before privilege escalation.
-    Classic/TUI runs lazily create their per-process random path here.  Never
+    Internal backend runs lazily create their per-process random path here.  Never
     use O_TRUNC until fstat has proved that the opened inode is a regular,
     single-link file owned by the effective user.
     """
@@ -48,7 +49,7 @@ def _open_progress_file(*, truncate: bool) -> int:
     # GUI runs create and own this channel before privilege escalation.  If
     # the GUI has already reaped its supervisor and removed the channel, a
     # still-unwinding privileged CLI must not resurrect a stale file that no
-    # process will watch or clean up.  Classic/TUI runs retain lazy creation
+    # process will watch or clean up.  Internal backend runs retain lazy creation
     # for their private, random per-process path.
     if _CONFIGURED_PROGRESS_FILE is None:
         flags |= os.O_CREAT
@@ -116,7 +117,7 @@ def progress_done(exit_code: int) -> None:
 
 if _CONFIGURED_PROGRESS_FILE is None:
     # GUI-owned paths are removed by the GUI after QProcess completion.  The
-    # classic/TUI path only needs to survive until this interpreter exits.
+    # internal backend path only needs to survive until this interpreter exits.
     def _cleanup_default_progress_file(path: str = PROGRESS_FILE) -> None:
         try:
             os.unlink(path)
@@ -140,6 +141,14 @@ def step(title: str, **values: object) -> None:
     _last_ended_blank = False
     # The final field is a stable message key for phase classification.
     _progress_write(f"{_step_counter}\t{display}\t{title}")
+
+
+def status(msg: str) -> None:
+    """Report work within the current step without advancing the step counter."""
+    global _last_ended_blank
+    print(f"  {msg}", flush=True)
+    _last_ended_blank = False
+    _progress_write(f"{STATUS_MARKER}\t{msg}")
 
 
 def note(msg: str) -> None:
@@ -184,7 +193,7 @@ def fail(msg: str) -> None:
     _last_ended_blank = False
 
 
-# Shared with the install TUI (install_tui.py) so both render the same logo.
+# Shared installer log artwork.
 APPLE_ART = (
     "                   .:'",
     "                 __ :'__",

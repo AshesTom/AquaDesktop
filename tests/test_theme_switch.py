@@ -853,6 +853,7 @@ def test_session_env_recovers_custom_xdg_paths_for_openrc_cron(
     (process / "comm").write_text("plasmashell\n", encoding="utf-8")
     values = {
         "XDG_CONFIG_HOME": tmp_path / "xdg/config",
+        "XDG_CONFIG_DIRS": str(tmp_path / "xdg/config/kdedefaults") + ":/etc/xdg",
         "XDG_DATA_HOME": tmp_path / "xdg/data",
         "XDG_CACHE_HOME": tmp_path / "xdg/cache",
         "XDG_STATE_HOME": tmp_path / "xdg/state",
@@ -2354,3 +2355,27 @@ def test_scheduled_job_prefers_plasma_bus_over_runtime_socket(tmp_path, monkeypa
         target._sync_session_env()
     assert os.environ['DBUS_SESSION_BUS_ADDRESS'] == 'unix:path=/tmp/plasma-session'
     assert os.environ['WAYLAND_DISPLAY'] == 'wayland-1'
+
+
+def test_gtk4_compatibility_preserves_dynamic_colors_and_alpha(monkeypatch):
+    import theme_switch
+    monkeypatch.setattr(theme_switch, "_gtk4_version", lambda: (4, 14))
+    css = ":root { --accent-blue: #0088ff; --accent-bg-color: @accent_bg_color; }\n" + (
+        "button { color: color-mix(in srgb, #ffffff 25%, @accent_bg_color); "
+        "background: color-mix(in srgb, @window_bg_color 55%, transparent); "
+        "box-shadow: 0 0 2px RGB(0 0 0/15%); }\n"
+        "button.blue { --accent-bg-color: var(--accent-blue); }")
+    compatible = theme_switch.gtk4_compatible_css(css)
+    assert "mix(@accent_bg_color,#ffffff,0.25)" in compatible
+    assert "alpha(@window_bg_color,0.55)" in compatible
+    assert "rgba(0,0,0,0.15)" in compatible
+    assert "background-color: #0088ff" in compatible
+    assert "button.blue:checked { box-shadow: 0 0 0 3px #0088ff; }" in compatible
+    assert "var(" not in compatible and ":root" not in compatible
+
+
+def test_current_gtk4_keeps_original_stylesheet(monkeypatch):
+    import theme_switch
+    monkeypatch.setattr(theme_switch, "_gtk4_version", lambda: (4, 16))
+    css = ":root { --accent-blue: #0088ff; } button { color: var(--accent-blue); }"
+    assert theme_switch.gtk4_compatible_css(css) == css

@@ -8,7 +8,7 @@
 <p align="center">
   <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases"><img src="https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&amp;color=blue" alt="release"></a>
   <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases/tag/v0.59.5"><img src="https://img.shields.io/badge/LTS-v0.59.5-green" alt="LTS v0.59.5"></a>
-  <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml"><img src="https://img.shields.io/badge/tests-1904_passing-brightgreen" alt="tests"></a>
+  <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml"><img src="https://img.shields.io/badge/tests-1900_passing-brightgreen" alt="tests"></a>
   <a href="https://kde.org/plasma-desktop/"><img src="https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde" alt="plasma"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="license"></a>
   <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new"><img src="https://img.shields.io/badge/report-a%20bug-red?logo=github" alt="report a bug"></a>
@@ -77,7 +77,9 @@ App search, favorites and categories with blurred glass and edge refraction. [Ma
 Glass refraction, hover zoom, notification badges and auto-hide.
 
 <p align="center">
-  <img src="src/screenshots/dock_1_v4-e128d6bd0c58.png" alt="Glass Dock with pinned applications" width="840">
+  <img src="src/screenshots/dock_1_v4-b545c1932400.png" alt="Glass Dock with ten pinned applications and light icons" width="840">
+  <br>
+  <img src="src/screenshots/dock_1_dark_v4-0cbb5cac87a1.png" alt="The same Dock with dark icons" width="840">
 </p>
 
 <br>
@@ -141,8 +143,8 @@ Plymouth startup and shutdown theme with LUKS2 unlock support.
 
 Here is what we added or improved in the components we ship.
 
-- **Multilanguage support:** English, Spanish, Simplified Chinese, Brazilian Portuguese and German in the graphical and terminal installers, plus translated Plasma widgets.
-- **Installation and packaging:** graphical installer, terminal wizard, selectable components, saved preferences, bundled theme assets and release updates.
+- **Multilanguage support:** English, Spanish, Simplified Chinese, Brazilian Portuguese and German in the graphical installer, plus translated Plasma widgets.
+- **Installation and packaging:** graphical install/uninstall wizard, selectable components, bundled theme assets and release updates.
 - **Multiple distributions:** dependency detection and package mappings for Arch-based, Fedora-based, openSUSE, Debian and KDE neon systems.
 - **systemd and OpenRC:** scheduled theme switching and OLED care through user timers or cron.
 - **Glass improvements:** configurable blur, edge refraction, opacity and gradients; Tahoe and Golden Gate materials with consistent light/dark surfaces and paired edge highlights.
@@ -159,22 +161,17 @@ Here is what we added or improved in the components we ship.
 
 ![Getting started](https://img.shields.io/badge/getting-started-3B7B5B?style=for-the-badge&logo=gnubash&logoColor=white)
 
-Install with the graphical interface or terminal wizard.
-
-**Graphical installer**
+Install and uninstall through one graphical wizard:
 
 ```bash
 ./installer
 ```
 
-**Terminal wizard**
+Choose **Install** to configure the theme, or **Uninstall** to remove it.
+The language selector is between these actions. The wizard asks for administrator
+access only when you confirm. `./install` and `./uninstall` open the same UI.
 
-```bash
-sudo ./install
-sudo ./uninstall
-```
-
-English, Spanish, Simplified Chinese, Brazilian Portuguese and German. All options: `sudo ./install --help`.
+English, Spanish, Simplified Chinese, Brazilian Portuguese and German.
 
 <details>
 <summary><b>Requirements</b></summary>
@@ -182,7 +179,7 @@ English, Spanish, Simplified Chinese, Brazilian Portuguese and German. All optio
 Required desktop, build tools and system packages.
 
 - KDE Plasma 6.6+
-- Python 3.10+
+- Python 3.10+ and PyQt6
 - `sudo`
 - Qt 6 development tools
 - KDE and Qt 6 development packages for the compiled plasmoids and KWin effects
@@ -216,27 +213,19 @@ Assets are bundled. Missing dependencies and optional KDE Rounded Corners requir
 <details>
 <summary><b>Choose features and theme mode</b></summary>
 
-Flags skip the wizard. Exclude components with `--no-<name>` or select them with `--only`:
+The wizard offers appearance (automatic, light or dark), regular or tinted glass
+icons, theme color, wallpaper, launcher, top bar and Dock, effects, fonts,
+Firefox, file manager, boot animation and optional OLED care. Review your choices
+before installing; each summary row can be edited.
 
-```bash
-sudo ./install --no-gtk --no-sddm
-sudo ./install --only --fonts --icons
-sudo ./uninstall --only --cursors
-```
+The default option is always first and selected. Opening the other edition starts
+with that repository's defaults, including its wallpaper and launcher. Choosing
+**Keep my icons**, **Keep my wallpaper** or **Keep my fonts** preserves those choices.
 
-**Features**
+The global menu, window theme, cursors, sounds, Qt/GTK styles and file dialogs are
+included. The theme is applied immediately after installation.
 
-`wallpapers`, `fonts`, `cursors`, `plasma-theme`, `window-decorations`, `kvantum`, `color-schemes`, `icons`, `plasmoids`, `globalmenu`, `acrylic-glass`, `rounded-corners`, `global-theme`, `layout`, `sounds`, `gtk`, `firefox`, `sddm`, `apps`, `nautilus`, `nautilus-bookmarks`, `portals`, `oled-care`, `plymouth`.
-
-**Theme mode**
-
-```bash
-sudo ./install          # auto: light at 06:00, dark at 18:00
-sudo ./install --light
-sudo ./install --dark
-```
-
-**Live switching**
+Automatic appearance changes at 06:00 and 18:00. Manual switching remains available:
 
 ```bash
 mac-tahoe-theme-switch light
@@ -244,25 +233,7 @@ mac-tahoe-theme-switch dark
 mac-tahoe-theme-switch auto
 ```
 
-**Saved choices**
-
-```bash
-sudo ./install --no-gtk --dark --save
-sudo ./install --reset
-```
-
-**Maintenance**
-
-- `--preflight` checks the system without installing.
-- `--no-apply-theme` stages files without switching the desktop.
-- `--no-grub-modify` leaves `/etc/default/grub` unchanged.
-- Theme changes keep any wallpaper you've chosen for each monitor.
-- `--reset-wallpapers` returns all monitors to the bundled light/dark wallpapers.
-- Both Tahoe and Golden Gate light/dark wallpapers are bundled. Tahoe is the default;
-  the [Golden Gate edition](https://github.com/lestercorderomurillo/macos-golden-gate-liquid-kde)
-  downloads this implementation and selects Golden Gate through `src/scripts/defaults.json`.
-- Choose **Tahoe (1)** or **Golden Gate (2)** from the Launcher's **…** menu.
-- `./legacy-install` and `./legacy-uninstall` use the classic prompt instead of the terminal wizard.
+Both launcher presets remain available from the Launcher's **…** menu.
 
 </details>
 
@@ -308,12 +279,8 @@ Browser data and customizations are preserved; uninstall removes the theme's add
 
 Optional panel shifts; disabled by default.
 
-```bash
-sudo ./install --oled-care
-sudo ./install --oled-care --save
-sudo ./install --no-oled-care
-sudo ./install --oled-care --oled-interval=3 --oled-max-shift=4
-```
+Enable it on the **OLED protection** page. Choose the shift interval and maximum
+pixel displacement there; it is disabled by default.
 
 **Manual controls**
 
@@ -356,7 +323,7 @@ Use `./vm debian --clean` to rebuild the disposable guest from scratch.
 <details>
 <summary><b>NixOS and Home Manager (testing)</b></summary>
 
-Use the flake modules, **not `sudo ./install`**. Live desktop validation is pending.
+Use the flake modules, **not the graphical installer**. Live desktop validation is pending.
 
 **Flake input** (requires Nixpkgs and Home Manager):
 
@@ -496,7 +463,6 @@ The current status of each component.
 | Auto Theme Switcher | Available |
 | OLED Care | Available |
 | Installer UI | Available |
-| Installer TUI | Available |
 | Localization | Available |
 | Aurorae Decorations | Available |
 | Global Menu | Available |
@@ -599,3 +565,6 @@ Please support their efforts too: star their repos, report bugs upstream, and co
 If a credit is missing, please [open an issue](https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new).
 
 </details>
+
+
+[Installer screenshots and testing](TESTING.md).

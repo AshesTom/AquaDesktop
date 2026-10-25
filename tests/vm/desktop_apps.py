@@ -20,7 +20,7 @@ sys.path.insert(0, str(REPO / 'src/scripts'))
 STATE = Path.home() / '.local/state/mttkde-vm-apps'
 PROFILE = Path.home() / '.mozilla/firefox/mttkde-vm-proof'
 SNAP_COMMON = Path.home() / 'snap/firefox/common'
-if SNAP_COMMON.is_dir():
+if SNAP_COMMON.is_dir() or Path('/snap/firefox/current').is_dir():
     PROFILE = SNAP_COMMON / '.mozilla/firefox/mttkde-vm-proof'
 # Confined Firefox must be able to read the fixture as well as its profile.
 PAGE = PROFILE / 'browser.html'
@@ -167,6 +167,10 @@ def exercise(mode):
     finally:
         browser.close()
     time.sleep(3)
+    windows("""workspace.windowList().filter(w=>w.windowType===0).forEach(w=>{
+      w.setMaximize(false,false); w.minimized=false;
+    });""")
+    time.sleep(1)
     windows("""const positions = [
       ['firefox', {x:45,y:65,width:900,height:475}],
       ['nautilus', {x:975,y:65,width:900,height:475}],
@@ -177,7 +181,13 @@ def exercise(mode):
       }
       for (const [name, geometry] of positions) {
         const w = workspace.windowList().find(w=>String(w.resourceClass).toLowerCase().includes(name));
-        if (w) { w.setMaximize(false,false); w.frameGeometry=geometry; }
+        if (w) {
+          // Keep the native QRectF type: plain JS objects are ignored on KWin 6.8.
+          const bounds=workspace.clientArea(KWin.FullArea,w);
+          bounds.x=geometry.x; bounds.y=geometry.y;
+          bounds.width=geometry.width; bounds.height=geometry.height;
+          w.frameGeometry=bounds;
+        }
       }""")
     # Wayland clients acknowledge resize requests asynchronously. Sampling
     # their old bounds would check wallpaper pixels instead of the Files view.

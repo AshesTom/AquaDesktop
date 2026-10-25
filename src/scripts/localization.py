@@ -27,6 +27,7 @@ LANGUAGE_CODES = tuple(item["code"] for item in LANGUAGES)
 
 
 _ES = {
+    "Generating icons: {completed}/{total}": "Generando iconos: {completed}/{total}",
     "Cron entries installed, but no running cron daemon could be confirmed. Enable your cron service for scheduled features.": "Se instalaron las entradas de cron, pero no se pudo confirmar que haya un servicio cron en ejecución. Activa el servicio cron para las funciones programadas.",
 
     "System default": "Predeterminado del sistema",
@@ -83,6 +84,7 @@ _ES = {
 }
 
 _ZH_CN = {
+    "Generating icons: {completed}/{total}": "正在生成图标：{completed}/{total}",
     "Cron entries installed, but no running cron daemon could be confirmed. Enable your cron service for scheduled features.": "已安装 cron 条目，但无法确认 cron 守护进程正在运行。请启用 cron 服务以运行计划任务。",
 
     "System default": "跟随系统",
@@ -204,6 +206,9 @@ _ZH_CN.update({
     "Panel pixel shift": "面板像素移位", "Activate after install": "安装后激活",
     "Settings migrations": "设置迁移",
 })
+
+_ES.update({'PyQt6 is required for the graphical installer but could not be imported.\n  Install the python-pyqt6 package for your distribution and re-run ./installer.': 'El instalador gráfico necesita PyQt6, pero no se pudo importar.\n  Instala PyQt6 para tu distribución y vuelve a ejecutar ./installer.'})
+_ZH_CN.update({'PyQt6 is required for the graphical installer but could not be imported.\n  Install the python-pyqt6 package for your distribution and re-run ./installer.': '图形安装程序需要 PyQt6，但无法导入。\n  请安装适合你的发行版的 PyQt6，然后重新运行 ./installer。'})
 
 _TRANSLATIONS = {"es": _ES, "zh_CN": _ZH_CN}
 

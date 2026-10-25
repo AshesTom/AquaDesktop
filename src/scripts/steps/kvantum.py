@@ -292,6 +292,8 @@ def _install_one(name: str) -> None:
             shutil.copy2(f, dst / f.name)
             if ext == ".svg":
                 apply_kvantum_surface_defaults(dst / f.name)
+            from theme_accent import apply as apply_accent
+            apply_accent(dst / f.name)
         else:
             warn(tr('Kvantum file {value1} not found', value1=f.name))
 

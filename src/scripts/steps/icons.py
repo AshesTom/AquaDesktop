@@ -3,6 +3,7 @@ MacTahoeLiquidKde-Icons.tar.zst into ~/.local/share/icons. The tarball is
 rebuilt offline via _assemble() (maintainer refresh workflow, see below)."""
 
 from localization import tr
+from log import status
 
 import re
 import shutil
@@ -21,6 +22,10 @@ _THEME_NAMES = (
     "MacTahoeLiquidKde-Icons",
     "MacTahoeLiquidKde-Icons-dark",
 )
+_OVERLAY_NAMES = {
+    f"MacTahoeLiquidKde-Icons-{style}-{mode}"
+    for style in ("Regular", "Glass") for mode in ("Light", "Dark")
+}
 
 # Subdirs _assemble() cherry-picks from upstream into the default theme.
 _DEFAULT_DIRS = (
@@ -32,6 +37,9 @@ _AT2X_DIRS = (*_DEFAULT_DIRS, "status")
 
 
 def deps():
+    from installer_choices import selected
+    if selected():
+        return ["zstd", "python-pillow", "rsvg-convert:librsvg"]
     return ["zstd"]
 
 
@@ -45,6 +53,7 @@ def install() -> None:
         return
 
     n = 0
+    names = list(_THEME_NAMES)
     with temp_dir("mttkde-icons") as staging:
         # Extract away from the live icon path. Removing an active theme before
         # this completes makes every running KDE process report
@@ -59,7 +68,18 @@ def install() -> None:
             fail(tr('tar --zstd failed ({value1}): {value2}', value1=res.returncode, value2=res.stderr.strip()))
             return
 
-        for name in _THEME_NAMES:
+        from installer_choices import selected, COLORS
+        options = selected()
+        if options:
+            from icon_toolset import installer_themes
+            generated = staging / "generated"
+            names += installer_themes(
+                staging, generated, options["icons"], COLORS[options["color"]],
+                progress=lambda completed, total: status(tr(
+                    'Generating icons: {completed}/{total}', completed=completed, total=total)))
+            for name in names[len(_THEME_NAMES):]:
+                shutil.move(str(generated / name), str(staging / name))
+        for name in names:
             source = staging / name
             if not (source / "index.theme").is_file():
                 fail(tr('{name} (index.theme missing from offline archive)', name=name))
@@ -67,11 +87,11 @@ def install() -> None:
             if install_tree(source, DEST_DIR / name, name):
                 n += 1
 
-    # Clean only our own obsolete variants, and only after both current themes
-    # are safely live. A failed extraction must leave the installed theme intact.
-    if n == len(_THEME_NAMES):
+    # A running application may still use the previous material until activation.
+    # Retain supported overlays across transitions; uninstall removes all of them.
+    if n == len(names):
         for old in DEST_DIR.glob("MacTahoeLiquidKde-Icons*"):
-            if old.is_dir() and old.name not in _THEME_NAMES:
+            if old.is_dir() and old.name not in names and old.name not in _OVERLAY_NAMES:
                 shutil.rmtree(old, ignore_errors=True)
 
     if shutil.which("gtk-update-icon-cache"):

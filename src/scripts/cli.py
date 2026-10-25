@@ -257,6 +257,7 @@ def save_features(feat: dict[str, object]) -> None:
 
 class ParsedArgs:
     def __init__(self):
+        self.wizard_options: dict | None = None
         self.theme_mode: str | None = None
         self.do_save = False
         self.do_reset = False
@@ -286,6 +287,15 @@ def parse_args(argv: list[str]) -> ParsedArgs:
         i += 1
         arg = args[i]
         key, _, inline_value = arg.partition("=")
+        if key == "--wizard-options":
+            from installer_choices import validate
+            if not inline_value:
+                i += 1
+                if i >= len(args):
+                    raise ValueError("Missing wizard choices")
+                inline_value = args[i]
+            p.wizard_options = validate(json.loads(inline_value))
+            continue
         if key in _INT_FLAGS:
             attr, default, lo, hi = _INT_FLAGS[key]
             value = inline_value
@@ -619,37 +629,6 @@ def confirm(msg: str) -> bool:
     print()
     return True
 
-
-# ── interactive TUI wizard ─────────────────────────────────────────────
-
-_TUI_UNAVAILABLE = object()
-
-
-def _tui_active(argv: list[str], tui: bool) -> bool:
-    """The wizard runs only for a bare ``sudo ./install`` on a real
-    terminal. Any CLI flag, a headless env (GUI, CI, VM harness), or a
-    missing TTY keeps the classic confirm-and-flags flow — and the
-    ``legacy-install`` / ``legacy-uninstall`` entries never pass tui."""
-    if not tui or argv:
-        return False
-    if os.environ.get("MTTKDE_NO_CONFIRM") == "1":
-        return False
-    try:
-        return sys.stdin.isatty() and sys.stdout.isatty()
-    except ValueError:
-        return False
-
-
-def _tui_wizard(feat: dict[str, object], mode: str):
-    """Run the curses wizard. Returns the updated feature dict, None when
-    the user cancelled, or ``_TUI_UNAVAILABLE`` when curses can't run
-    (missing module, dumb terminal) so the caller falls back to
-    ``confirm()`` — the wizard must never block an install."""
-    try:
-        from install_tui import run_wizard
-        return run_wizard(dict(feat), mode)
-    except Exception:
-        return _TUI_UNAVAILABLE
 
 
 def _theme_is_already_installed() -> bool:
@@ -1034,8 +1013,7 @@ def _print_done(verb: str) -> None:
 
 def _run_install_body(feat: dict[str, object]) -> int:
     """The actual install sequence — no banner, confirm, or progress UI.
-    Runs directly on the classic path and behind the TUI live progress
-    screen on the interactive path."""
+    Runs under the graphical supervisor or isolated qualification tools."""
     check_cancelled()
     preflight_ok = run_preflight("install")
     check_cancelled()
@@ -1081,12 +1059,21 @@ def _run_install_body(feat: dict[str, object]) -> int:
         step('Installing {label}', label=label)
         note(tr(FEATURE_DESC.get(feature, "")))
 
-        if not run_phase(feature, "install") and feature in CRITICAL_INSTALL_FEATURES:
+        installed = run_phase(feature, "install")
+        if not installed and feature in CRITICAL_INSTALL_FEATURES:
             fail(tr('{label} install failed — aborting (critical compiled component)', label=label))
+            return 1
+        if not installed and feature == "icons":
+            # Never activate a generated icon name whose staging failed.
             return 1
 
     step('Installing Theme Switcher')
     note(tr('Installs the auto light/dark theme switcher'))
+    from installer_choices import selected
+    if selected().get("files") == "dolphin":
+        from steps.nautilus import _set_default, DOLPHIN_DESKTOP, MIME_FOLDER, MIME_SEARCH
+        if not all(_set_default(DOLPHIN_DESKTOP, mime) for mime in (MIME_FOLDER, MIME_SEARCH)):
+            fail("Could not select Dolphin as the default file manager")
     run_phase("theme_switch", "install")
 
     step('Installing OLED Care')
@@ -1195,7 +1182,7 @@ def _count_feature_steps(feat: dict[str, object]) -> int:
 
 def _estimate_install_steps(feat: dict[str, object]) -> int:
     """Best-effort count of the step() records _run_install_body will
-    emit, so the TUI progress bar shows a meaningful percentage. The
+    emit, so the graphical progress bar shows a meaningful percentage. The
     layout retry only runs on failure and is deliberately not counted —
     the progress screen clamps the counter and bar at the total."""
     total = 1  # run_preflight emits step("Preflight")
@@ -1223,20 +1210,8 @@ def _estimate_uninstall_steps(feat: dict[str, object]) -> int:
     return total
 
 
-def _run_body_with_progress(body, feat: dict[str, object],
-                            mode: str, total: int) -> int:
-    """Run the install/uninstall body behind the TUI live progress
-    screen. Falls back to the plain body if the progress UI can't even
-    start — run_progress itself guards against dying mid-run."""
-    try:
-        from install_tui import run_progress
-    except Exception:
-        return body(feat)
-    return run_progress(lambda: body(feat), total, mode)
-
-
 @_cancellable_entrypoint
-def run_install(argv: list[str], tui: bool = False,
+def run_install(argv: list[str],
                 prog: str = "install") -> int:
     parsed = parse_args(argv)
     if parsed.help:
@@ -1252,6 +1227,10 @@ def run_install(argv: list[str], tui: bool = False,
     check_cancelled()
 
     feat = apply_overrides(load_features(), parsed)
+    if parsed.wizard_options is not None:
+        from installer_choices import features
+        feat = features(parsed.wizard_options, DEFAULT_FEATURES)
+        os.environ["MTTKDE_WIZARD_OPTIONS"] = json.dumps(parsed.wizard_options)
     feat["_existing_install"] = _theme_is_already_installed()
     export_env(feat)
 
@@ -1283,36 +1262,14 @@ def run_install(argv: list[str], tui: bool = False,
             return rc
 
         banner(read_version())
-        if _tui_active(argv, tui):
-            # Update + re-exec BEFORE the wizard so a pull never throws
-            # away selections the user just made.
-            if check_for_updates(inline=True):
-                auto_update_and_reexec(argv, prog)
-            wizard = _tui_wizard(feat, "install")
-        else:
-            wizard = _TUI_UNAVAILABLE
-
-        if wizard is None:
+        if not confirm(tr('In development — Install at your own risk.\n  Do not install on production / work systems.')):
             tracker.mark_aborted()
-            print(tr('  Aborted.'))
             return 0
-        if wizard is _TUI_UNAVAILABLE:
-            if not confirm(tr('In development — Install at your own risk.\n  Do not install on production / work systems.')):
-                tracker.mark_aborted()
-                return 0
-            if not _tui_active(argv, tui) and check_for_updates(inline=True):
-                auto_update_and_reexec(argv, prog)
-            rc = _run_install_body(feat)
-        else:
-            # The wizard's summary screen already confirmed.
-            feat = wizard
-            if feat.pop("_save", False):
-                save_features(feat)
-                ok(tr('features.json saved'))
-            export_env(feat)
-            rc = _run_body_with_progress(
-                _run_install_body, feat, "install",
-                _estimate_install_steps(feat))
+        # The GUI confirms an exact source and choice snapshot. Do not replace
+        # the running backend underneath that transaction.
+        if parsed.wizard_options is None and check_for_updates(inline=True):
+            auto_update_and_reexec(argv, prog)
+        rc = _run_install_body(feat)
 
         check_cancelled()
         if rc == 0:
@@ -1332,7 +1289,7 @@ def run_install(argv: list[str], tui: bool = False,
 
 
 @_cancellable_entrypoint
-def run_uninstall(argv: list[str], tui: bool = False,
+def run_uninstall(argv: list[str],
                   prog: str = "uninstall") -> int:
     parsed = parse_args(argv)
     if parsed.help:
@@ -1343,7 +1300,8 @@ def run_uninstall(argv: list[str], tui: bool = False,
         return 1
     check_cancelled()
 
-    feat = apply_overrides(load_features(), parsed)
+    feat = (dict(DEFAULT_FEATURES) if parsed.wizard_options is not None
+            else apply_overrides(load_features(), parsed))
     export_env(feat)
 
     tracker = RunTracker("uninstall", argv, str(feat.get("theme_mode", "auto")))
@@ -1358,27 +1316,10 @@ def run_uninstall(argv: list[str], tui: bool = False,
             return rc
 
         banner(read_version())
-        wizard = (_tui_wizard(feat, "uninstall")
-                  if _tui_active(argv, tui) else _TUI_UNAVAILABLE)
-        if wizard is None:
+        if not confirm(tr('This will reset your desktop to Breeze defaults.')):
             tracker.mark_aborted()
-            print(tr('  Aborted.'))
             return 0
-        if wizard is _TUI_UNAVAILABLE:
-            if not confirm(tr('This will reset your desktop to Breeze defaults.')):
-                tracker.mark_aborted()
-                return 0
-            check_for_updates(inline=True)
-            rc = _run_uninstall_body(feat)
-        else:
-            # The wizard's summary screen already confirmed.
-            feat = wizard
-            feat.pop("_save", False)
-            export_env(feat)
-            check_for_updates(inline=True)
-            rc = _run_body_with_progress(
-                _run_uninstall_body, feat, "uninstall",
-                _estimate_uninstall_steps(feat))
+        rc = _run_uninstall_body(feat)
 
         check_cancelled()
         if rc == 0:

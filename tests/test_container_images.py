@@ -12,11 +12,22 @@ def test_arch_family_images_do_not_perform_partial_upgrades(repo):
     Python and Expat ABIs, making pyexpat fail before the suite reaches project
     code. Every Arch-family dependency install must be a full sync upgrade.
     """
+    import re
+    import shlex
+
     containers = repo / "tests/containers"
-    for distro in ("arch", "cachyos", "endeavouros", "garuda", "manjaro"):
+    for distro in ("arch", "cachyos", "endeavouros", "garuda", "manjaro", "arch-kdeunstable"):
         text = (containers / f"Dockerfile.{distro}").read_text()
         assert "pacman -Syu --noconfirm --needed" in text, distro
-        assert "pacman -Sy --noconfirm --needed" not in text, distro
+        commands = "\n".join(line for line in text.splitlines()
+                             if not line.lstrip().startswith("#")).replace("\\\n", " ")
+        for match in re.finditer(r"\bpacman -Sy\s+([^&\n]+)", commands):
+            # Only signing keys may precede the full upgrade, in the same
+            # successful shell chain. Never install runtime libraries here.
+            packages = {arg for arg in shlex.split(match[1]) if not arg.startswith("-")}
+            assert packages and packages <= {
+                "archlinux-keyring", "cachyos-keyring", "manjaro-keyring"}, distro
+            assert re.match(r"\s*&&\s*pacman -Syu\s", commands[match.end():]), distro
 
 
 def test_retired_gentoo_has_no_ci_or_vm_targets(repo):

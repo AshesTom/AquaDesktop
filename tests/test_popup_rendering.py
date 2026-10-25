@@ -60,10 +60,21 @@ def test_menu_contours_remain_visible_above_translucent_fill(repo, mode):
         assert body.red() == (0 if mode else 255)
 
 
-def test_gtk4_stylesheets_parse_without_errors(repo, tmp_path):
+@pytest.mark.parametrize("legacy", [False, True])
+def test_gtk4_stylesheets_parse_without_errors(repo, tmp_path, legacy):
     gi = pytest.importorskip("gi")
     if not callable(getattr(gi, "require_version", None)):
         pytest.skip("PyGObject required; the gi namespace alone is insufficient")
+    from theme_switch import gtk4_compatible_css
+    import theme_switch
+    import shutil
+    from unittest.mock import patch
+    staged = tmp_path / "themes"
+    shutil.copytree(repo / "src/offline/gtk", staged)
+    version = (4, 14) if legacy else theme_switch._gtk4_version()
+    with patch.object(theme_switch, "_gtk4_version", return_value=version):
+        for path in staged.glob("*/gtk-4.0/*.css"):
+            path.write_text(gtk4_compatible_css(path.read_text()))
     script = """
 import gi, pathlib, sys
 try: gi.require_version('Gtk','4.0')
@@ -82,7 +93,7 @@ assert not errors, errors
         "HOME": str(tmp_path),
     }
     result = subprocess.run(
-        [sys.executable, "-c", script, str(repo / "src/offline/gtk")],
+        [sys.executable, "-c", script, str(staged)],
         env=env,
         capture_output=True,
         text=True,

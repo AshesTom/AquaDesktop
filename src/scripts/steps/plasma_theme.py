@@ -30,6 +30,8 @@ def install() -> None:
             source = staging / v
             shutil.copytree(src / v, source)
             apply_plasma_surface_defaults(source)
+            from theme_accent import apply as apply_accent
+            apply_accent(source)
             if install_tree(source, DEST_DIR / v, v):
                 n += 1
     info(tr('{n} Plasma themes installed/reinstalled', n=n))

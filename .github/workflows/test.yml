@@ -39,6 +39,7 @@ jobs:
         #   - KWin + KDecoration (acrylic-glass kwin effect)
         #   - libepoxy + libdrm + libX11 + libxcb (acrylic-glass effect)
         run: |
+          pacman -Sy --noconfirm --needed archlinux-keyring
           pacman -Syu --noconfirm \
             python python-pytest python-pillow python-gobject python-pyqt6 gtk4 \
             qt6-svg librsvg xorg-server-xvfb xorg-xprop nodejs bash git diffutils findutils \
