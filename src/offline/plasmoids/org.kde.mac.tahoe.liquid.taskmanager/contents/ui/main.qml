@@ -44,6 +44,8 @@ PlasmoidItem {
 
     property alias taskList: taskList
 
+    readonly property TaskManagerApplet.IconThemeWatcher iconThemeWatcher: TaskManagerApplet.IconThemeWatcher {}
+
     preferredRepresentation: fullRepresentation
 
     Plasmoid.constraintHints: Plasmoid.CanFillArea
