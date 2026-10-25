@@ -17,6 +17,8 @@ RGB separation 12, magnification 0.1, and saturation 1.33. The refracted
 edge is 18 wide, with highlight width 3.5 and strength 0.1. Brightness,
 contrast and material opacity remain 1. The gradient stays specific to
 each preset.
+Popup brightness is 0.75 so blurred dark menus keep their contrast over bright
+wallpaper.
 
 **Glass opacity** controls how much of the blurred material covers the original
 background. Keep it at 1 for full material coverage; lower it to reveal more
