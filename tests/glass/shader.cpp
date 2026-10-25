@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <QGuiApplication>
+#include <QDir>
 #include <QFile>
 #include <QImage>
 #include <QJsonArray>
@@ -15,6 +16,7 @@
 #include <QOpenGLTexture>
 #include <QOpenGLVertexArrayObject>
 #include <QVector2D>
+#include <QVector3D>
 #include <QVector4D>
 #include <QPainter>
 #include <QSvgRenderer>
@@ -51,6 +53,8 @@ int main(int argc, char **argv)
     surface.create();
     require(context.makeCurrent(&surface), QStringLiteral("makeCurrent failed"));
     auto *gl = context.functions();
+    const auto *renderer = gl->glGetString(GL_RENDERER);
+    fprintf(stderr, "OpenGL renderer: %s\n", renderer ? reinterpret_cast<const char *>(renderer) : "unknown");
     const int width = 192, height = 128;
     QImage backdrop(width, height, QImage::Format_RGBA8888);
     backdrop.fill(QColor(160, 160, 160));
@@ -61,6 +65,7 @@ int main(int argc, char **argv)
     const QString root = QString::fromLocal8Bit(argv[1]);
     QImage reference;
     QImage dockReference;
+    QImage refractionReference;
     for (const QString suffix : {QString(), QStringLiteral("_core")}) {
         QOpenGLShaderProgram shader;
         QByteArray fragment = read(root + "/glass" + suffix + ".glsl");
@@ -169,6 +174,15 @@ int main(int argc, char **argv)
                 }
             }
         }
+        backdrop.fill(Qt::black);
+        backdrop.setPixelColor(width / 2, height / 2 - 1, Qt::white);
+        texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
+        shader.setUniformValue("offset", 0.2f);
+        const int fineBlurPeak = qRed(render().pixel(width / 2, height / 2));
+        shader.setUniformValue("offset", 0.5f);
+        const int regularBlurPeak = qRed(render().pixel(width / 2, height / 2));
+        require(fineBlurPeak > regularBlurPeak + 10,
+                QStringLiteral("Sub-unit blur strengths must produce a finer, less diffuse blur"));
         backdrop.fill(QColor(160, 160, 160));
         texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
         shader.setUniformValue("offset", 2.0f);
@@ -223,7 +237,8 @@ int main(int argc, char **argv)
             const int horizontalShift = qRed(bentDock.pixel(x,4)) - qRed(flatDock.pixel(x,4));
             require(std::abs(horizontalShift) >= 2 && std::abs(horizontalShift) <= 6
                         && horizontalShift * (96 - x) > 0,
-                    QStringLiteral("Dock lens must bend diagonally toward its centre without excessive stretch"));
+                    QStringLiteral("Dock lens must bend diagonally toward its centre without excessive stretch (x=%1, shift=%2)")
+                        .arg(x).arg(horizontalShift));
             const int topShift = qGreen(bentDock.pixel(x,4)) - qGreen(flatDock.pixel(x,4));
             const int bottomShift = qGreen(bentDock.pixel(x,123)) - qGreen(flatDock.pixel(x,123));
             require(std::abs(topShift) > 12 && topShift * bottomShift < 0,
@@ -235,20 +250,47 @@ int main(int argc, char **argv)
         }
         if (dockReference.isNull()) dockReference = bentDock;
         else require(dockReference == bentDock, QStringLiteral("Dock differs between shader profiles"));
+        shader.setUniformValue("magnifyGlassStrength", 0.12f);
+        const auto strongDock = render().convertToFormat(QImage::Format_RGBA8888);
+        require(strongDock.pixel(96,64) == flatDock.pixel(96,64),
+                QStringLiteral("Dock centre must remain undistorted at default lens strength"));
+        const int strongDomeShift = qGreen(strongDock.pixel(96,32)) - qGreen(flatDock.pixel(96,32));
+        require(std::abs(strongDomeShift) >= 4,
+                QStringLiteral("Default Dock lens must refract its interior, not only its rim (shift=%1)").arg(strongDomeShift));
+        shader.setUniformValue("magnifyGlassStrength", 0.02f);
+        const QByteArray dockCaptureDirectory = qgetenv("MTTKDE_GLASS_SHADER_CAPTURE_DIR");
+        if (!dockCaptureDirectory.isEmpty()) {
+            const QString directory = QString::fromLocal8Bit(dockCaptureDirectory);
+            require(QDir().mkpath(directory), QStringLiteral("Could not create dock shader capture directory"));
+            require(flatDock.save(directory + "/dock-flat.png"),
+                    QStringLiteral("Could not save flat Dock glass capture"));
+            require(bentDock.save(directory + "/dock-lens.png"),
+                    QStringLiteral("Could not save refracted Dock capture"));
+            require(strongDock.save(directory + "/dock-lens-default.png"),
+                    QStringLiteral("Could not save default Dock lens capture"));
+        }
 
         // The Dock reflection must catch its silhouette without painting a
         // broad rim or changing the transparent centre, even on black.
         backdrop.fill(Qt::black);
         texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
-        shader.setUniformValue("highlightWidth", 1.5f);
-        shader.setUniformValue("highlightStrength", 0.11f);
+        shader.setUniformValue("highlightWidth", 2.0f);
+        shader.setUniformValue("highlightStrength", 0.14f);
         const auto litDock = render().convertToFormat(QImage::Format_RGBA8888);
         require(qRed(litDock.pixel(96,0)) > 10,
                 QStringLiteral("Dock highlight must reach the silhouette"));
         require(qRed(litDock.pixel(96,0)) > qRed(litDock.pixel(96,127)),
                 QStringLiteral("Dock upper reflection must be brighter than the lower edge"));
+        require(qRed(litDock.pixel(96,0)) > qRed(litDock.pixel(32,0)) + 20
+                    && qRed(litDock.pixel(96,0)) > qRed(litDock.pixel(160,0)) + 20,
+                QStringLiteral("Dock reflection must form a soft glint, not a straight horizontal stripe"));
         require(qRed(litDock.pixel(96,5)) <= 1 && qRed(litDock.pixel(96,64)) == 0,
                 QStringLiteral("Dock reflection must stay narrow and leave the centre clear"));
+        if (!dockCaptureDirectory.isEmpty()) {
+            const QString directory = QString::fromLocal8Bit(dockCaptureDirectory);
+            require(litDock.save(directory + "/dock-glint.png"),
+                    QStringLiteral("Could not save Dock reflection capture"));
+        }
         shader.setUniformValue("highlightStrength", 0.0f);
         require(qRed(render().pixel(96,0)) == 0,
                 QStringLiteral("Dock must respect disabled highlights"));
@@ -260,6 +302,322 @@ int main(int argc, char **argv)
         shader.setUniformValue("centerOpacity", 1.0f);
         shader.setUniformValue("materialOpacity", 1.0f);
         shader.setUniformValue("magnifyGlassStrength", 0.0f);
+        shader.setUniformValue("offset", 2.0f);
+
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                backdrop.setPixelColor(x, y, QColor(x, y * 2, 80));
+            }
+        }
+        texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
+        shader.setUniformValue("offset", 0.0f);
+        shader.setUniformValue("cornerSquircle", 0.55f);
+        const auto flatGlass = render().convertToFormat(QImage::Format_RGBA8888);
+        shader.setUniformValue("magnifyGlassStrength", 0.08f);
+        shader.setUniformValue("refractionWidth", 64.0f);
+        auto refractedGlass = render().convertToFormat(QImage::Format_RGBA8888);
+        require(refractedGlass.pixel(96, 64) == flatGlass.pixel(96, 64),
+                QStringLiteral("Window glass must leave the optical centre undistorted"));
+        const int rimShift = qGreen(refractedGlass.pixel(96, 1)) - qGreen(flatGlass.pixel(96, 1));
+        require(std::abs(rimShift) <= 3,
+                QStringLiteral("Convex lens must meet the silhouette without a refraction jump (shift=%1)").arg(rimShift));
+        const int bezelBendShift = qGreen(refractedGlass.pixel(96, 16)) - qGreen(flatGlass.pixel(96, 16));
+        require(std::abs(bezelBendShift) >= 2,
+                QStringLiteral("Squircle lens must bend the backdrop through the bezel profile (shift=%1)").arg(bezelBendShift));
+        const int interiorDomeShift = qGreen(refractedGlass.pixel(96, 42)) - qGreen(flatGlass.pixel(96, 42));
+        require(std::abs(interiorDomeShift) >= 2,
+                QStringLiteral("Convex dome must refract the broad glass interior (shift=%1)").arg(interiorDomeShift));
+        require(refractedGlass.pixel(96, 64) == flatGlass.pixel(96, 64),
+                QStringLiteral("Convex dome must preserve its optical centre"));
+        const int xDirection = qRed(flatGlass.pixel(width - 24, height / 2))
+                >= qRed(flatGlass.pixel(24, height / 2)) ? 1 : -1;
+        const int yDirection = qGreen(flatGlass.pixel(width / 2, height - 24))
+                >= qGreen(flatGlass.pixel(width / 2, 24)) ? 1 : -1;
+        for (int y = 24; y < height - 24; y += 4) {
+            int previous = qRed(refractedGlass.pixel(24, y));
+            for (int x = 25; x < width - 24; ++x) {
+                const int current = qRed(refractedGlass.pixel(x, y));
+                require((current - previous) * xDirection >= -1,
+                        QStringLiteral("Convex lens folds a horizontal backdrop line at (%1,%2)").arg(x).arg(y));
+                previous = current;
+            }
+        }
+        for (int x = 24; x < width - 24; x += 4) {
+            int previous = qGreen(refractedGlass.pixel(x, 24));
+            for (int y = 25; y < height - 24; ++y) {
+                const int current = qGreen(refractedGlass.pixel(x, y));
+                require((current - previous) * yDirection >= -1,
+                        QStringLiteral("Convex lens folds a vertical backdrop line at (%1,%2)").arg(x).arg(y));
+                previous = current;
+            }
+        }
+        auto requireNoDiagonalFolds = [&](const QImage &candidate, const QImage &flatCandidate,
+                                          const QRect &sampleArea, const QString &caseLabel) {
+            double minimumJacobian = 1e9;
+            int minimumJacobianX = 0;
+            int minimumJacobianY = 0;
+            for (int y = sampleArea.top() + 4; y < sampleArea.bottom() - 4; ++y) {
+                for (int x = sampleArea.left() + 4; x < sampleArea.right() - 4; ++x) {
+                    const double dxRed = (qRed(candidate.pixel(x + 4, y))
+                                          - qRed(candidate.pixel(x - 4, y))) / 8.0;
+                    const double dyRed = (qRed(candidate.pixel(x, y + 4))
+                                          - qRed(candidate.pixel(x, y - 4))) / 8.0;
+                    const double dxGreen = (qGreen(candidate.pixel(x + 4, y))
+                                            - qGreen(candidate.pixel(x - 4, y))) / 16.0;
+                    const double dyGreen = (qGreen(candidate.pixel(x, y + 4))
+                                            - qGreen(candidate.pixel(x, y - 4))) / 16.0;
+                    const double jacobian = dxRed * dyGreen - dyRed * dxGreen;
+                    const double flatDxRed = (qRed(flatCandidate.pixel(x + 4, y))
+                                              - qRed(flatCandidate.pixel(x - 4, y))) / 8.0;
+                    const double flatDyRed = (qRed(flatCandidate.pixel(x, y + 4))
+                                              - qRed(flatCandidate.pixel(x, y - 4))) / 8.0;
+                    const double flatDxGreen = (qGreen(flatCandidate.pixel(x + 4, y))
+                                                - qGreen(flatCandidate.pixel(x - 4, y))) / 16.0;
+                    const double flatDyGreen = (qGreen(flatCandidate.pixel(x, y + 4))
+                                                - qGreen(flatCandidate.pixel(x, y - 4))) / 16.0;
+                    const double flatJacobian = flatDxRed * flatDyGreen - flatDyRed * flatDxGreen;
+                    const double normalizedJacobian = jacobian * (flatJacobian < 0 ? -1 : 1);
+                    if (normalizedJacobian < minimumJacobian) {
+                        minimumJacobian = normalizedJacobian;
+                        minimumJacobianX = x;
+                        minimumJacobianY = y;
+                    }
+                }
+            }
+            require(minimumJacobian >= 0.0,
+                    QStringLiteral("Convex lens folds a diagonal backdrop for %1 at (%2,%3), normalized determinant=%4")
+                        .arg(caseLabel).arg(minimumJacobianX).arg(minimumJacobianY).arg(minimumJacobian));
+        };
+        requireNoDiagonalFolds(refractedGlass, flatGlass, QRect(25, 25, width - 50, height - 50),
+                               QStringLiteral("0.08 strength on reference surface"));
+        shader.setUniformValue("magnifyGlassStrength", 0.22f);
+        const auto defaultStrengthLens = render().convertToFormat(QImage::Format_RGBA8888);
+        requireNoDiagonalFolds(defaultStrengthLens, flatGlass, QRect(25, 25, width - 50, height - 50),
+                               QStringLiteral("0.22 strength on reference surface"));
+        shader.setUniformValue("magnifyGlassStrength", 0.25f);
+        const auto strongCornerLens = render().convertToFormat(QImage::Format_RGBA8888);
+        const int cornerShift = std::abs(qRed(strongCornerLens.pixel(20, 16)) - qRed(flatGlass.pixel(20, 16)))
+            + std::abs(qGreen(strongCornerLens.pixel(20, 16)) - qGreen(flatGlass.pixel(20, 16)));
+        require(cornerShift >= 1,
+                QStringLiteral("Convex liquid lens must continue smoothly through the rounded corner (shift=%1)").arg(cornerShift));
+        requireNoDiagonalFolds(strongCornerLens, flatGlass, QRect(25, 25, width - 50, height - 50),
+                               QStringLiteral("0.25 strength on reference surface"));
+        for (const QSize size : {QSize(160, 112), QSize(128, 96), QSize(96, 72),
+                                 QSize(80, 56), QSize(64, 48)}) {
+            const int left = (width - size.width()) / 2;
+            const int top = (height - size.height()) / 2;
+            const int corner = std::min(size.width(), size.height()) / 6;
+            shader.setUniformValue("blurSize", QVector2D(size.width(), size.height()));
+            shader.setUniformValue("box", QVector4D(width / 2, height / 2, size.width() / 2, size.height() / 2));
+            shader.setUniformValue("cornerRadius", QVector4D(corner, corner, corner, corner));
+            shader.setUniformValue("refractionWidth", std::min(64.0f, std::min(size.width(), size.height()) * 0.5f));
+            shader.setUniformValue("magnifyGlassStrength", 0.0f);
+            const auto flatSize = render().convertToFormat(QImage::Format_RGBA8888);
+            for (const float strength : {0.22f, 0.25f}) {
+                shader.setUniformValue("magnifyGlassStrength", strength);
+                const auto lensSize = render().convertToFormat(QImage::Format_RGBA8888);
+                requireNoDiagonalFolds(lensSize, flatSize,
+                                       QRect(left + 1, top + 1, size.width() - 2, size.height() - 2),
+                                       QStringLiteral("%1 strength on %2x%3 popup")
+                                           .arg(strength).arg(size.width()).arg(size.height()));
+            }
+        }
+        shader.setUniformValue("blurSize", QVector2D(width, height));
+        shader.setUniformValue("box", QVector4D(width / 2, height / 2, width / 2, height / 2));
+        shader.setUniformValue("cornerRadius", QVector4D(20, 20, 20, 20));
+        shader.setUniformValue("refractionWidth", 64.0f);
+        const QColor bands[] = {QColor("#e63946"), QColor("#f1fa8c"), QColor("#2a9d8f"),
+                                QColor("#457b9d"), QColor("#9b5de5"), QColor("#f15bb5"),
+                                QColor("#00bbf9"), QColor("#ff9f1c")};
+        QImage pattern(width, height, QImage::Format_RGBA8888);
+        QPainter painter(&pattern);
+        for (int x = 0; x < width; ++x) {
+            painter.fillRect(x, 0, 1, height, bands[(x / 24) % std::size(bands)]);
+        }
+        painter.setPen(QPen(Qt::white, 1));
+        for (int diagonal = -height; diagonal < width; diagonal += 12) {
+            painter.drawLine(diagonal, 0, diagonal + height, height);
+        }
+        painter.end();
+        texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, pattern.constBits());
+        auto edgeEnergy = [](const QImage &source) {
+            double energy = 0.0;
+            for (int y = 0; y < source.height() - 1; ++y) {
+                for (int x = 0; x < source.width() - 1; ++x) {
+                    const QRgb current = source.pixel(x, y);
+                    const QRgb right = source.pixel(x + 1, y);
+                    const QRgb below = source.pixel(x, y + 1);
+                    energy += std::abs(qRed(current) - qRed(right))
+                        + std::abs(qGreen(current) - qGreen(right))
+                        + std::abs(qBlue(current) - qBlue(right))
+                        + std::abs(qRed(current) - qRed(below))
+                        + std::abs(qGreen(current) - qGreen(below))
+                        + std::abs(qBlue(current) - qBlue(below));
+                }
+            }
+            return energy;
+        };
+        shader.setUniformValue("magnifyGlassStrength", 0.0f);
+        shader.setUniformValue("offset", 0.0f);
+        const auto flatPattern = render().convertToFormat(QImage::Format_RGBA8888);
+        auto normalizedLensDifference = [&](const QImage &candidate, const QImage &flat) {
+            double difference = 0.0;
+            for (int y = 24; y < height - 24; ++y) {
+                for (int x = 24; x < width - 24; ++x) {
+                    const QRgb sample = candidate.pixel(x, y);
+                    const QRgb baseline = flat.pixel(x, y);
+                    const int alpha = qAlpha(sample);
+                    const int baselineAlpha = qAlpha(baseline);
+                    if (alpha == 0 || baselineAlpha == 0) {
+                        continue;
+                    }
+                    difference += std::abs(qRed(sample) * 255.0 / alpha
+                                           - qRed(baseline) * 255.0 / baselineAlpha);
+                    difference += std::abs(qGreen(sample) * 255.0 / alpha
+                                           - qGreen(baseline) * 255.0 / baselineAlpha);
+                    difference += std::abs(qBlue(sample) * 255.0 / alpha
+                                           - qBlue(baseline) * 255.0 / baselineAlpha);
+                }
+            }
+            return difference;
+        };
+        QImage transitionBackdrop(width, height, QImage::Format_RGBA8888);
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                transitionBackdrop.setPixelColor(x, y, QColor(x * 255 / (width - 1),
+                                                               y * 255 / (height - 1), 128));
+            }
+        }
+        texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, transitionBackdrop.constBits());
+        const auto flatTransitionGlass = render().convertToFormat(QImage::Format_RGBA8888);
+        shader.setUniformValue("magnifyGlassStrength", 0.08f);
+        const auto fullyFormedLens = render().convertToFormat(QImage::Format_RGBA8888);
+        shader.setUniformValue("opacity", 0.25f);
+        const auto formingLens = render().convertToFormat(QImage::Format_RGBA8888);
+        shader.setUniformValue("magnifyGlassStrength", 0.0f);
+        const auto flatFormingGlass = render().convertToFormat(QImage::Format_RGBA8888);
+        const double formingDifference = normalizedLensDifference(formingLens, flatFormingGlass);
+        const double fullDifference = normalizedLensDifference(fullyFormedLens, flatTransitionGlass);
+        const double transitionDifference = normalizedLensDifference(formingLens, fullyFormedLens);
+        require(formingDifference > 0.0 && fullDifference > 0.0 && transitionDifference > 1000.0,
+                QStringLiteral("Lens refraction must form progressively with compositor opacity (forming=%1 full=%2 transition=%3)")
+                    .arg(formingDifference).arg(fullDifference).arg(transitionDifference));
+        shader.setUniformValue("opacity", 1.0f);
+        shader.setUniformValue("magnifyGlassStrength", 0.0f);
+        texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, pattern.constBits());
+        shader.setUniformValue("offset", 0.2625f);
+        const auto blur035Pattern = render().convertToFormat(QImage::Format_RGBA8888);
+        shader.setUniformValue("offset", 0.3375f);
+        const auto blur045Pattern = render().convertToFormat(QImage::Format_RGBA8888);
+        shader.setUniformValue("offset", 0.4125f);
+        const auto blur055Pattern = render().convertToFormat(QImage::Format_RGBA8888);
+        shader.setUniformValue("offset", 0.6f);
+        const auto blur080Pattern = render().convertToFormat(QImage::Format_RGBA8888);
+        require(edgeEnergy(blur045Pattern) < edgeEnergy(blur035Pattern),
+                QStringLiteral("A stronger fine blur must soften a stable refraction test pattern"));
+        require(edgeEnergy(blur055Pattern) < edgeEnergy(blur045Pattern),
+                QStringLiteral("Blur strength 0.55 must soften more than 0.45"));
+        require(edgeEnergy(blur080Pattern) < edgeEnergy(blur055Pattern),
+                QStringLiteral("A stronger blur must soften a stable refraction test pattern"));
+        const QByteArray captureDirectory = qgetenv("MTTKDE_GLASS_SHADER_CAPTURE_DIR");
+        if (!captureDirectory.isEmpty()) {
+            const QString directory = QString::fromLocal8Bit(captureDirectory);
+            require(QDir().mkpath(directory), QStringLiteral("Could not create shader capture directory"));
+            require(flatPattern.save(directory + "/lens-flat.png"), QStringLiteral("Could not save flat shader capture"));
+            for (const float strength : {0.08f, 0.12f, 0.22f, 0.25f}) {
+                shader.setUniformValue("magnifyGlassStrength", strength);
+                shader.setUniformValue("offset", 0.0f);
+                const auto lensPattern = render().convertToFormat(QImage::Format_RGBA8888);
+                const QString strengthName = strength == 0.08f ? "008"
+                    : strength == 0.12f ? "012" : strength == 0.22f ? "022" : "025";
+                const QString name = QStringLiteral("lens-%1.png").arg(strengthName);
+                require(lensPattern.save(directory + "/" + name), QStringLiteral("Could not save refracted shader capture"));
+                if (strength == 0.12f) {
+                    shader.setUniformValue("offset", 0.2625f);
+                    const auto lensBlur035 = render().convertToFormat(QImage::Format_RGBA8888);
+                    shader.setUniformValue("offset", 0.3375f);
+                    const auto lensBlur045 = render().convertToFormat(QImage::Format_RGBA8888);
+                    shader.setUniformValue("offset", 0.4125f);
+                    const auto lensBlur055 = render().convertToFormat(QImage::Format_RGBA8888);
+                    shader.setUniformValue("offset", 0.6f);
+                    const auto lensBlur080 = render().convertToFormat(QImage::Format_RGBA8888);
+                    require(lensBlur035.save(directory + "/lens-012-blur-035.png"),
+                            QStringLiteral("Could not save fine liquid glass capture"));
+                    require(lensBlur045.save(directory + "/lens-012-blur-045.png"),
+                            QStringLiteral("Could not save fine liquid glass capture"));
+                    require(lensBlur055.save(directory + "/lens-012-blur-055.png"),
+                            QStringLiteral("Could not save fine liquid glass capture"));
+                    require(lensBlur080.save(directory + "/lens-012-blur-080.png"),
+                            QStringLiteral("Could not save stronger liquid glass capture"));
+                } else if (strength == 0.08f) {
+                    shader.setUniformValue("offset", 0.11f);
+                    const auto lensDefaultBlur = render().convertToFormat(QImage::Format_RGBA8888);
+                    require(lensDefaultBlur.save(directory + "/lens-008-default-blur.png"),
+                            QStringLiteral("Could not save default liquid glass capture"));
+                    shader.setUniformValue("offset", 0.2625f);
+                    const auto lensBlur035 = render().convertToFormat(QImage::Format_RGBA8888);
+                    require(lensBlur035.save(directory + "/lens-008-blur-035.png"),
+                            QStringLiteral("Could not save liquid glass blur capture"));
+                    shader.setUniformValue("offset", 0.3375f);
+                    const auto lensBlur045 = render().convertToFormat(QImage::Format_RGBA8888);
+                    require(lensBlur045.save(directory + "/lens-008-blur-045.png"),
+                            QStringLiteral("Could not save liquid glass blur capture"));
+                } else {
+                    shader.setUniformValue("offset", 0.3375f);
+                    const auto lensBlur045 = render().convertToFormat(QImage::Format_RGBA8888);
+                    require(lensBlur045.save(directory + QStringLiteral("/lens-%1-blur-045.png").arg(strengthName)),
+                            QStringLiteral("Could not save high-strength liquid glass capture"));
+                }
+            }
+        }
+        shader.setUniformValue("offset", 0.0f);
+        shader.setUniformValue("magnifyGlassStrength", 0.08f);
+        refractedGlass = render().convertToFormat(QImage::Format_RGBA8888);
+        if (refractionReference.isNull()) refractionReference = refractedGlass;
+        else require(refractionReference == refractedGlass,
+                     QStringLiteral("Window refraction differs between shader profiles"));
+        shader.setUniformValue("magnifyGlassStrength", 0.0f);
+        shader.setUniformValue("offset", 2.0f);
+        backdrop.fill(Qt::black);
+        texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
+        shader.setUniformValue("offset", 0.0f);
+        shader.setUniformValue("highlightStrength", 1.0f);
+        shader.setUniformValue("magnifyGlassStrength", 0.08f);
+        const auto reflectedLens = render().convertToFormat(QImage::Format_RGBA8888);
+        shader.setUniformValue("magnifyGlassStrength", 0.0f);
+        const auto flatBlackGlass = render().convertToFormat(QImage::Format_RGBA8888);
+        require(qRed(reflectedLens.pixel(width / 2, height / 2))
+                    > qRed(flatBlackGlass.pixel(width / 2, height / 2)) + 10,
+                QStringLiteral("Lens reflection must catch the simulated light on a dark background"));
+        const QByteArray reflectionCaptureDirectory = qgetenv("MTTKDE_GLASS_SHADER_CAPTURE_DIR");
+        if (!reflectionCaptureDirectory.isEmpty()) {
+            const QString directory = QString::fromLocal8Bit(reflectionCaptureDirectory);
+            require(reflectedLens.save(directory + "/lens-reflection-black.png"),
+                    QStringLiteral("Could not save the lens reflection capture"));
+        }
+        shader.setUniformValue("magnifyGlassStrength", 0.08f);
+        auto reflectionTint = [&](const QColor &backdropColor) {
+            backdrop.fill(backdropColor);
+            texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
+            shader.setUniformValue("highlightStrength", 0.0f);
+            const auto base = render().convertToFormat(QImage::Format_RGBA8888);
+            shader.setUniformValue("highlightStrength", 0.8f);
+            const auto reflected = render().convertToFormat(QImage::Format_RGBA8888);
+            const QRgb basePixel = base.pixel(width / 2, height / 2);
+            const QRgb reflectedPixel = reflected.pixel(width / 2, height / 2);
+            return QVector3D(qRed(reflectedPixel) - qRed(basePixel),
+                             qGreen(reflectedPixel) - qGreen(basePixel),
+                             qBlue(reflectedPixel) - qBlue(basePixel));
+        };
+        const QVector3D redEnvironmentReflection = reflectionTint(QColor(100, 20, 20));
+        const QVector3D blueEnvironmentReflection = reflectionTint(QColor(20, 20, 100));
+        require(redEnvironmentReflection.x() > redEnvironmentReflection.z() + 3.0f
+                    && blueEnvironmentReflection.z() > blueEnvironmentReflection.x() + 3.0f,
+                QStringLiteral("Lens reflection must pick up the underlying environment tint (red=%1,%2,%3 blue=%4,%5,%6)")
+                    .arg(redEnvironmentReflection.x()).arg(redEnvironmentReflection.y()).arg(redEnvironmentReflection.z())
+                    .arg(blueEnvironmentReflection.x()).arg(blueEnvironmentReflection.y()).arg(blueEnvironmentReflection.z()));
+        shader.setUniformValue("magnifyGlassStrength", 0.0f);
+        shader.setUniformValue("highlightStrength", 0.0f);
         shader.setUniformValue("offset", 2.0f);
 
         // Exercise the preset underneath actual client fills: the gradient must

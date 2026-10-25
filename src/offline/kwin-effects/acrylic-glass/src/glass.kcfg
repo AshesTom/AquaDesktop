@@ -53,6 +53,8 @@ xembedsniproxy</default>
         </entry>
         <entry name="MagnifyGlassStrength" type="Double">
             <default>0.1</default>
+            <min>0.0</min>
+            <max>0.25</max>
         </entry>
         <entry name="RefractionWidth" type="Double">
             <default>18.0</default>
@@ -65,6 +67,9 @@ xembedsniproxy</default>
         </entry>
         <entry name="Brightness" type="Double">
             <default>1.0</default>
+        </entry>
+        <entry name="PopupBrightness" type="Double">
+            <default>1.35</default>
         </entry>
         <entry name="Contrast" type="Double">
             <default>1.0</default>

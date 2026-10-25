@@ -5,7 +5,7 @@ Choose a preset, adjust its controls if desired, and press **Apply**.
 
 | Preset | Appearance |
 | --- | --- |
-| Tahoe | Strongly blurred glass with a narrow refracted edge. Default in Tahoe. |
+| Tahoe | Smooth, rounded convex lensing over translucent glass with a light frosted blur. Default in Tahoe. |
 | Golden Gate | Tahoe's optical values with an 85% black tint that fades out at 55% of menu height. The lower 45% and Dock stay untinted. Default in Golden Gate. |
 
 Each preset replaces the complete material: blur, opacity, refraction, color
@@ -58,6 +58,43 @@ surfaces in the same way as Plasma popups and Qt menus.
 
 These are independently tuned KDE materials, inspired by Apple's published
 screenshots and design guidance; they do not reproduce Apple's renderer.
+
+The X11 lens models the pane as a GPU height field. A rounded-rectangle signed
+distance field defines the bezel, and a smooth convex profile supplies the
+surface normal. GLSL `refract` bends backdrop samples through an approximate
+slab; Fresnel transmission reduces displacement at grazing angles. A broad
+convex dome extends the magnification across the pane. The edge blend avoids a
+crease where the nearest edge changes, while a displacement limit and
+aperture-scaled strength keep the mapping fold-free on small popups. This is an
+approximation based on general lens optics, not a pixel-matched copy of a
+proprietary renderer.
+
+The shader tests check the mapping Jacobian at default and maximum strength on
+the reference surface and five smaller popup sizes, down to 64×48 px. The
+X11 smoke test separately checks that a private KWin X11 compositor loads the
+built module and keeps the active desktop plugin untouched.
+
+To render a deterministic optical comparison, run
+`MTTKDE_GLASS_SHADER_CAPTURE_DIR=/tmp/liquidglass-optics pytest -q tests/test_glass_presets.py -k native_glass_shader_pixels`.
+It writes a flat control, a black-background lens reflection and
+0.08/0.12/0.22/0.25 refraction PNGs over colored
+bands and diagonal lines, plus 0.12 blur comparisons at the 0.35/0.45/0.55/0.8
+offsets and 0.22/0.25 captures at 0.45. The probe checks that each stronger blur lowers edge energy while
+retaining the smooth lens mapping. It uses software OpenGL under Xvfb; it checks
+shader behavior, not KWin's live GPU/compositor integration.
+
+On an active X11 session with NVIDIA GLX, run the same offscreen shader probe
+on the discrete GPU with
+`MTTKDE_RUN_GPU_SHADER_PROBE=1 MTTKDE_GLASS_SHADER_CAPTURE_DIR=/tmp/liquidglass-nvidia pytest -q tests/test_glass_presets.py -k nvidia_gpu`.
+It checks the OpenGL renderer string before running and records the selected
+renderer. It does not take a desktop screenshot or prove KWin compositor
+integration; use the separate X11 smoke test below to verify module loading.
+
+To smoke-test the freshly built X11 module in a private KWin/Xvfb session, run
+`MTTKDE_X11_PLUGIN=/path/to/liquidglass_x11.so pytest -q tests/test_acrylic_glass_x11_smoke.py`.
+The test checks that KWin's OpenGL compositor is active, the exact module is
+loaded and supported, and the running desktop plugin remains untouched. It
+validates integration state, not the rendered image or GPU quality.
 
 - [macOS Tahoe 26 introduction](https://www.apple.com/newsroom/2025/06/macos-tahoe-26-makes-the-mac-more-capable-productive-and-intelligent-than-ever/): translucent Dock and controls that reflect the surrounding desktop.
 - [macOS Golden Gate](https://www.apple.com/os/macos/): more uniform refraction and improved contrast.
