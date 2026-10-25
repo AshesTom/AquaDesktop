@@ -60,7 +60,7 @@ void main()
     vec3 lensNormal = vec3(0.0, 0.0, 1.0);
     if (lensStrength > 0.0) {
         lensUV = lgLensUV(uv, pos, lensStrength, refrBand, blurSize, backgroundSize,
-                          cornerRadius, cornerSquircle, lensNormal);
+                          cornerRadius, cornerSquircle, dockSurface, lensNormal);
         if (dockSurface) {
             vec2 radial = pos / max(halfSize, vec2(1.0));
             radial /= max(length(radial), 0.001);

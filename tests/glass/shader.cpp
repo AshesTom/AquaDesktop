@@ -257,6 +257,49 @@ int main(int argc, char **argv)
         const int strongDomeShift = qGreen(strongDock.pixel(96,32)) - qGreen(flatDock.pixel(96,32));
         require(std::abs(strongDomeShift) >= 4,
                 QStringLiteral("Default Dock lens must refract its interior, not only its rim (shift=%1)").arg(strongDomeShift));
+
+        // A Mac-style Dock is a wide, shallow lens. A horizontal backdrop
+        // line crossing its optical centre must bend through the body rather
+        // than remain a straight seam between rim-only refraction zones.
+        shader.setUniformValue("offset", 0.0f);
+        shader.setUniformValue("blurSize", QVector2D(width, 28.0f));
+        shader.setUniformValue("box", QVector4D(width / 2, height / 2, width / 2, 14.0f));
+        shader.setUniformValue("cornerRadius", QVector4D(14, 14, 14, 14));
+        shader.setUniformValue("centerOpacity", 1.0f);
+        shader.setUniformValue("magnifyGlassStrength", 0.25f);
+        shader.setUniformValue("refractionWidth", 14.0f);
+        backdrop.fill(Qt::black);
+        for (int x = 0; x < width; ++x) {
+            backdrop.setPixelColor(x, height / 2, Qt::white);
+        }
+        texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
+        shader.setUniformValue("magnifyGlassStrength", 0.0f);
+        const auto straightDockLine = render().convertToFormat(QImage::Format_RGBA8888);
+        shader.setUniformValue("magnifyGlassStrength", 0.25f);
+        const auto bentDockLine = render().convertToFormat(QImage::Format_RGBA8888);
+        int straightDockLinePeak = 0;
+        int straightDockLinePeakY = 0;
+        int dockLinePeak = 0;
+        int dockLinePeakY = 0;
+        for (int y = height / 2 - 10; y <= height / 2 + 10; ++y) {
+            const int straightValue = qRed(straightDockLine.pixel(width / 2, y));
+            if (straightValue > straightDockLinePeak) {
+                straightDockLinePeak = straightValue;
+                straightDockLinePeakY = y;
+            }
+            const int value = qRed(bentDockLine.pixel(width / 2, y));
+            if (value > dockLinePeak) {
+                dockLinePeak = value;
+                dockLinePeakY = y;
+            }
+        }
+        require(straightDockLinePeak > 200 && std::abs(dockLinePeakY - straightDockLinePeakY) >= 5,
+                QStringLiteral("Wide Dock lens must bend a horizontal centre line (straight=%1, bent=%2)")
+                    .arg(straightDockLinePeakY).arg(dockLinePeakY));
+
+        shader.setUniformValue("blurSize", QVector2D(width, height));
+        shader.setUniformValue("box", QVector4D(width / 2, height / 2, width / 2, height / 2));
+        shader.setUniformValue("cornerRadius", QVector4D(20, 20, 20, 20));
         shader.setUniformValue("magnifyGlassStrength", 0.02f);
         const QByteArray dockCaptureDirectory = qgetenv("MTTKDE_GLASS_SHADER_CAPTURE_DIR");
         if (!dockCaptureDirectory.isEmpty()) {
