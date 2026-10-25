@@ -184,7 +184,7 @@ def test_boot_password_fallback_uses_selected_language(repo, sandbox, monkeypatc
 
     monkeypatch.setenv("MTTKDE_LANGUAGE", language)
     monkeypatch.setattr(plymouth, "have", lambda command: True)
-    monkeypatch.setattr(plymouth, "_current_default_theme", lambda: "")
+    monkeypatch.setattr(plymouth, "_current_default_theme", lambda: plymouth.THEME_NAME)
     captured = []
 
     def inspect_staged(source, destination, label):

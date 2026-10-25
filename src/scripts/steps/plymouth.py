@@ -8,12 +8,14 @@ import configparser
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 from pathlib import Path
 
 from distro import (
     package_for, plymouth_activation_commands, plymouth_use_simpledrm, system_lib_dir,
+    plymouth_cleanup_commands, plymouth_query_command, plymouth_tools, plymouth_uses_alternatives,
 )
 from steps._helpers import (
     HOME, _as_root, fail, info, ok, offline, sudo_install_tree, sudo_remove, temp_dir, warn,
@@ -39,7 +41,7 @@ PLYMOUTHD_CONF = Path("/etc/plymouth/plymouthd.conf")
 
 
 def deps():
-    # cmd:pkg — the binary ships in the plain ``plymouth`` package everywhere.
+    # Resolve the Plymouth package; distro.py selects the activation tools.
     return ["plymouth-set-default-theme:plymouth"]
 
 
@@ -173,16 +175,23 @@ def _regenerate_grub_config() -> bool:
 
 
 def _current_default_theme() -> str | None:
-    """Currently-active theme (no-arg plymouth-set-default-theme prints it).
-    None on any failure — callers fall back to bgrt."""
+    """Query the distro selector, preserving an alternative's exact path."""
     try:
         res = subprocess.run(
-            [PLYMOUTH_BIN],
+            plymouth_query_command(),
             check=False, capture_output=True, text=True, timeout=10,
         )
     except (subprocess.TimeoutExpired, OSError):
         return None
+    if res.returncode:
+        return None
     name = (res.stdout or "").strip()
+    if plymouth_uses_alternatives():
+        name = next((line.removeprefix("Value: ") for line in name.splitlines()
+                     if line.startswith("Value: ")), "")
+        # Preserve the exact registered path, including custom locations.
+        if Path(name).stem == THEME_NAME:
+            return THEME_NAME
     return name or None
 
 
@@ -379,12 +388,14 @@ def _restore_previous_simpledrm() -> bool:
     return _set_plymouthd_simpledrm(None)
 
 
-def _save_previous(name: str) -> None:
+def _save_previous(name: str) -> bool:
     try:
         STATE_DIR.mkdir(parents=True, exist_ok=True)
         PREV_THEME_FILE.write_text(name + "\n", encoding="utf-8")
+        return True
     except OSError as exc:
-        warn(tr('could not snapshot previous Plymouth theme ({exc})', exc=exc))
+        fail(tr('could not snapshot previous Plymouth theme ({exc})', exc=exc))
+        return False
 
 
 def _read_previous() -> str:
@@ -400,15 +411,20 @@ def _read_previous() -> str:
 
 
 def install() -> None:
-    if not have(PLYMOUTH_BIN):
-        warn(tr('{PLYMOUTH_BIN} not found — skipping boot splash', PLYMOUTH_BIN=PLYMOUTH_BIN))
+    missing = [tool for tool in plymouth_tools() if not have(tool)]
+    if missing:
+        warn(tr('{PLYMOUTH_BIN} not found — skipping boot splash', PLYMOUTH_BIN=", ".join(missing)))
         return
 
     previous = _current_default_theme()
+    if plymouth_uses_alternatives() and not previous:
+        fail(tr('could not snapshot previous Plymouth theme ({exc})', exc="default.plymouth has no selected value"))
+        return
     # Don't snapshot ourselves — a re-run shouldn't overwrite the user's
     # original theme with our own name.
     if previous and previous != THEME_NAME:
-        _save_previous(previous)
+        if not _save_previous(previous):
+            return
 
     with temp_dir("mttkde-plymouth") as temporary:
         staged = temporary / THEME_NAME
@@ -485,7 +501,9 @@ def install() -> None:
             warn(tr("/etc/mkinitcpio.conf HOOKS line is missing 'plymouth' — add it after 'udev' (or 'systemd' on systemd-init) and BEFORE 'encrypt'/'filesystems', then run: sudo mkinitcpio -P"))
     else:
         info(tr('Next reboot will show the {THEME_NAME} splash.', THEME_NAME=THEME_NAME))
-    info(tr('Rollback: sudo {PLYMOUTH_BIN} -R $(cat {PREV_THEME_FILE})', PLYMOUTH_BIN=PLYMOUTH_BIN, PREV_THEME_FILE=PREV_THEME_FILE))
+    rollback = " && ".join("sudo " + shlex.join(command)
+                           for command in plymouth_activation_commands(_read_previous()))
+    info(tr('Rollback: {command}', command=rollback))
 
 
 def uninstall() -> None:
@@ -497,13 +515,29 @@ def uninstall() -> None:
     if simpledrm_restored:
         ok(tr('Previous UseSimpledrm setting restored'))
 
-    if have(PLYMOUTH_BIN):
+    if all(have(tool) for tool in plymouth_tools()):
         if _activate(previous):
             ok(tr('Boot splash restored to {previous}', previous=previous))
         else:
+            if plymouth_uses_alternatives():
+                return
             warn(tr('could not restore boot splash to {previous} — continuing cleanup', previous=previous))
     else:
-        warn(tr('{PLYMOUTH_BIN} not available — skipping splash restore', PLYMOUTH_BIN=PLYMOUTH_BIN))
+        message = tr('{PLYMOUTH_BIN} not available — skipping splash restore', PLYMOUTH_BIN=", ".join(plymouth_tools()))
+        if plymouth_uses_alternatives():
+            fail(message)
+            return
+        warn(message)
+
+    for command in plymouth_cleanup_commands(THEME_NAME):
+        try:
+            result = _run_as_root(command, ACTIVATE_TIMEOUT_SEC)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            fail(f"{' '.join(command)}: {exc}")
+            return
+        if result.returncode:
+            fail(f"{' '.join(command)}: {result.stderr.strip()}")
+            return
 
     sudo_remove(DEST, tr('Boot splash files'))
 

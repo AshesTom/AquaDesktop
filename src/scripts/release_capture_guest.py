@@ -100,6 +100,13 @@ def setup(repo, profile, edition):
     run('sudo', 'timedatectl', 'set-timezone', profile['timezone'])
     package, preset, _ = EDITIONS[edition]
     (repo / 'src/scripts/defaults.json').write_text(json.dumps({'wallpaper': package, 'launcher_preset': preset}) + '\n')
+    from steps import rounded_corners
+    cached_archive = Path('/opt/mttkde-capture') / rounded_corners.ARCHIVE.name
+    if cached_archive.is_file():
+        if not rounded_corners._archive_is_valid(cached_archive):
+            raise RuntimeError('The reference VM contains an invalid Rounded Corners archive')
+        rounded_corners.ARCHIVE.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(cached_archive, rounded_corners.ARCHIVE)
     # Every edition starts from the same read-only VM image, then installs the
     # exact exported release sources. No package upgrade or host install occurs.
     from installer_choices import defaults
@@ -109,7 +116,6 @@ def setup(repo, profile, edition):
                '--wizard-options', json.dumps(choices)]
     with (repo.parent / 'install.log').open('w') as log:
         subprocess.run(command, cwd=repo, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=1800)
-    from steps import rounded_corners
     if not all(path.is_file() for path in rounded_corners.build_artifacts()):
         raise RuntimeError('Rounded Corners was not built from this release; capture cannot use the old VM plugin')
     session()

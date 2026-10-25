@@ -564,6 +564,7 @@
   "Retries the panel layout after Plasma reloads new plasmoids": "Tenta aplicar a disposição dos painéis novamente após o Plasma carregar os novos plasmoides",
   "Retry": "Tentar novamente",
   "Retrying Layout": "Tentando aplicar a disposição novamente",
+  "Rollback: {command}": "Reverter: {command}",
   "Rollback: sudo {PLYMOUTH_BIN} -R $(cat {PREV_THEME_FILE})": "Reverter: sudo {PLYMOUTH_BIN} -R $(cat {PREV_THEME_FILE})",
   "Round maximized windows": "Arredondar janelas maximizadas",
   "Rounded Corners": "Cantos arredondados",

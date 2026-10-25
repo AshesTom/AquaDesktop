@@ -2,7 +2,8 @@
 
 Native installer screens for Tahoe 0.61.0, captured in a disposable KDE Plasma VM.
 Dark appearance was selected for this installation test.
-These images document the current implementation; release qualification is still in progress.
+The gallery is captured from the release source and reviewed before publication.
+Release checks cover both editions, theme switching, installation, reboot and removal.
 
 For test commands and the capture workflow, see [CONTRIBUTING.md](CONTRIBUTING.md).
 

@@ -295,6 +295,7 @@ class ChoiceCard(QPushButton):
         self.independent = independent
         self.compact = compact
         self.photo = None
+        self.row_cards = [self]
         self.setCheckable(True)
         self.setChecked(checked)
         self.setAccessibleName(title)
@@ -328,17 +329,24 @@ class ChoiceCard(QPushButton):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        copy_height = max(40 if self.compact else 66,
-                          self.copy.layout().heightForWidth(self.width()-2))
-        self.copy.setFixedHeight(copy_height)
-        height = 0
-        if self.photo:
-            height = round((self.width() - 2) * self.photo.pixmap.height() / self.photo.pixmap.width())
-            self.photo.setFixedHeight(height)
-            path = QPainterPath()
-            path.addRoundedRect(QRectF(0, 0, self.width()-2, height+8), 7, 7)
-            self.photo.setMask(QRegion(path.toFillPolygon().toPolygon()))
-        self.setFixedHeight(height + copy_height + 2)
+        if event.size().width() == event.oldSize().width():
+            return
+        # Translated descriptions can wrap to different line counts. Reserve
+        # the tallest caption and preview for every card in the same row.
+        copy_height = max(max(40 if card.compact else 66,
+                              card.copy.layout().heightForWidth(card.width()-2))
+                          for card in self.row_cards)
+        height = max((round((card.width()-2) * card.photo.pixmap.height()
+                            / card.photo.pixmap.width()) if card.photo else 0)
+                     for card in self.row_cards)
+        for card in self.row_cards:
+            card.copy.setFixedHeight(copy_height)
+            if card.photo:
+                card.photo.setFixedHeight(height)
+                path = QPainterPath()
+                path.addRoundedRect(QRectF(0, 0, card.width()-2, height+8), 7, 7)
+                card.photo.setMask(QRegion(path.toFillPolygon().toPolygon()))
+            card.setFixedHeight(height + copy_height + 2)
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -625,6 +633,7 @@ class InstallerWindow(OpaqueSurface):
             group.setExclusive(True)
             self.groups.append(group)
             items = sorted(items, key=lambda item: item[0] != self.defaults[key])
+        row_cards = []
         for i, (value, title, detail, pixmap) in enumerate(items):
             choice_key = value if independent else key
             checked = self.choices[choice_key] if independent else self.choices[key] == value
@@ -637,6 +646,10 @@ class InstallerWindow(OpaqueSurface):
             card.clicked.connect(lambda checked, k=choice_key, v=value:
                                  self.select(k, checked if independent else v))
             grid.addWidget(card, i // columns, i % columns, Qt.AlignmentFlag.AlignTop)
+            if i % columns == 0:
+                row_cards = []
+            row_cards.append(card)
+            card.row_cards = row_cards
         self.body.addLayout(grid)
         return group
 

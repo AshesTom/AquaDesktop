@@ -41,7 +41,7 @@ jobs:
         run: |
           pacman -Sy --noconfirm --needed archlinux-keyring
           pacman -Syu --noconfirm \
-            python python-pytest python-pillow python-gobject python-pyqt6 gtk4 \
+            python python-pytest zstd python-pillow python-gobject python-pyqt6 gtk4 \
             qt6-svg librsvg xorg-server-xvfb xorg-xprop nodejs bash git diffutils findutils \
             base-devel cmake extra-cmake-modules pkgconf \
             qt6-base qt6-declarative qt6-wayland qt6-tools \

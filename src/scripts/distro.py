@@ -106,6 +106,29 @@ def plymouth_use_simpledrm() -> bool:
     return "fedora" not in family
 
 
+def plymouth_uses_alternatives() -> bool:
+    return "ubuntu" in (current_distro(), *_compatibility_parents())
+
+
+def plymouth_tools() -> tuple[str, ...]:
+    if plymouth_uses_alternatives():
+        return ("update-alternatives", "update-initramfs")
+    return ("plymouth-set-default-theme",)
+
+
+def plymouth_query_command() -> list[str]:
+    if plymouth_uses_alternatives():
+        return ["update-alternatives", "--query", "default.plymouth"]
+    return ["plymouth-set-default-theme"]
+
+
+def plymouth_cleanup_commands(theme: str) -> list[list[str]]:
+    if plymouth_uses_alternatives():
+        return [["update-alternatives", "--remove", "default.plymouth",
+                 f"/usr/share/plymouth/themes/{theme}/{theme}.plymouth"]]
+    return []
+
+
 def plymouth_activation_commands(theme: str) -> list[list[str]]:
     """Select the theme and rebuild the images used by the installed OS.
 
@@ -113,6 +136,15 @@ def plymouth_activation_commands(theme: str) -> list[list[str]]:
     provide wrappers that also know their kernel-install/bootloader layout.
     Keep those wrappers instead of installing a second initramfs generator.
     """
+    if plymouth_uses_alternatives():
+        path = theme if Path(theme).is_absolute() else f"/usr/share/plymouth/themes/{theme}/{theme}.plymouth"
+        commands = []
+        if theme == "MacTahoeLiquidKde":
+            commands.append(["update-alternatives", "--install",
+                             "/usr/share/plymouth/themes/default.plymouth",
+                             "default.plymouth", path, "100"])
+        return commands + [["update-alternatives", "--set", "default.plymouth", path],
+                           ["update-initramfs", "-u", "-k", "all"]]
     family = (current_distro(), *_compatibility_parents())
     if "arch" in family and not shutil.which("mkinitcpio") and shutil.which("dracut"):
         for helper in ("reinstall-kernels", "dracut-rebuild"):

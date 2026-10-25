@@ -210,6 +210,9 @@ _ZH_CN.update({
 _ES.update({'PyQt6 is required for the graphical installer but could not be imported.\n  Install the python-pyqt6 package for your distribution and re-run ./installer.': 'El instalador gráfico necesita PyQt6, pero no se pudo importar.\n  Instala PyQt6 para tu distribución y vuelve a ejecutar ./installer.'})
 _ZH_CN.update({'PyQt6 is required for the graphical installer but could not be imported.\n  Install the python-pyqt6 package for your distribution and re-run ./installer.': '图形安装程序需要 PyQt6，但无法导入。\n  请安装适合你的发行版的 PyQt6，然后重新运行 ./installer。'})
 
+_ES["Rollback: {command}"] = "Revertir: {command}"
+_ZH_CN["Rollback: {command}"] = "回退：{command}"
+
 _TRANSLATIONS = {"es": _ES, "zh_CN": _ZH_CN}
 
 

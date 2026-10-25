@@ -564,6 +564,7 @@
   "Retries the panel layout after Plasma reloads new plasmoids": "Wendet die Panelanordnung erneut an, nachdem Plasma neue Plasmoids geladen hat",
   "Retry": "Erneut versuchen",
   "Retrying Layout": "Anordnung wird erneut angewendet",
+  "Rollback: {command}": "Rückgängig machen: {command}",
   "Rollback: sudo {PLYMOUTH_BIN} -R $(cat {PREV_THEME_FILE})": "Rückgängig machen: sudo {PLYMOUTH_BIN} -R $(cat {PREV_THEME_FILE})",
   "Round maximized windows": "Maximierte Fenster abrunden",
   "Rounded Corners": "Abgerundete Ecken",
