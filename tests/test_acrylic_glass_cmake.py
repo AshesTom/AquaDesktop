@@ -278,6 +278,12 @@ def test_golden_gate_shares_tahoe_optics_with_its_own_gradient(monkeypatch):
     assert float(tahoe["PopupBrightness"]) == float(golden["PopupBrightness"]) == 0.75
 
 
+def test_popup_brightness_only_tints_native_menus():
+    effect = (ROOT / "src/effect.cpp").read_text(encoding="utf-8")
+    assert "const bool menuSurface = w->isMenu() || w->isDropdownMenu() || w->isPopupMenu()" in effect
+    assert "menuSurface ? m_popupColorMatrix : m_colorMatrix" in effect
+
+
 @pytest.mark.parametrize("saved", [None, "true", "false", ""])
 def test_gradient_default_preserves_saved_toggle(monkeypatch, saved):
     from subprocess import CompletedProcess

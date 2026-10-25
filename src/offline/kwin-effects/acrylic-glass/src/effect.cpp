@@ -1497,9 +1497,8 @@ void BlurEffect::blur(
     // it with kcfg values keyed by window type (dock / popup / normal).
     // Maximized full-screen apps keep sharp corners unless the user
     // opts in via RoundCornersOfMaximizedWindows.
-    const bool popupSurface = w->isTooltip() || w->isPopupWindow() || w->isMenu()
-        || w->isDropdownMenu() || w->isPopupMenu() || w->isAppletPopup();
-    const QMatrix4x4& colorMatrix = popupSurface ? m_popupColorMatrix : m_colorMatrix;
+    const bool menuSurface = w->isMenu() || w->isDropdownMenu() || w->isPopupMenu();
+    const QMatrix4x4& colorMatrix = menuSurface ? m_popupColorMatrix : m_colorMatrix;
     const float modulation = opacity * opacity;
 
     BorderRadius cornerRadius = w->window()->borderRadius();

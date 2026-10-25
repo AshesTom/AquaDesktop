@@ -14,6 +14,7 @@ PLASMA_SURFACES = (
 _TILES = ("center", "top", "bottom", "left", "right",
           "topleft", "topright", "bottomleft", "bottomright")
 _TAHOE_DARK_FILL = "0.82"
+_TAHOE_LAUNCHER_DARK_FILL = "0.48"
 _TAHOE_LAUNCHER_EDGE_OPACITY = {("#000000", .18): "0.08", ("#ffffff", .22): "0.10"}
 _SVG = "http://www.w3.org/2000/svg"
 _XLINK = "http://www.w3.org/1999/xlink"
@@ -54,7 +55,7 @@ def set_surface_fill(root: ET.Element, ids: tuple[str, ...], opacity: str,
         # 0.18/0.22 edge reflections intact; changing those creates visible
         # tile seams and bright horizontal lines around the launcher.
         target_fills = ("#000000",) if color is None else ("#000000", "#ffffff")
-        prior_opacities = (.01, .1, .48, .55, .60, .68, .82)
+        prior_opacities = (.01, .1, .48, .55, .60, .62, .68, .82)
         if fill not in target_fills or not any(
                 abs(effective_alpha - value) < 0.001 for value in prior_opacities):
             continue
@@ -120,7 +121,10 @@ def apply_plasma_surface_defaults(theme: Path) -> None:
     for name in PLASMA_SURFACES:
         path = theme / name
         root = ET.fromstring(gzip.decompress(path.read_bytes()))
-        set_surface_fill(root, _TILES, opacity, color)
+        surface_opacity = opacity
+        if not golden_gate and not light and name == "dialogs/launcher-search.svgz":
+            surface_opacity = _TAHOE_LAUNCHER_DARK_FILL
+        set_surface_fill(root, _TILES, surface_opacity, color)
         if not golden_gate and not light and name == "dialogs/launcher-search.svgz":
             soften_launcher_tile_edges(root)
         if name == "dialogs/background.svgz" and not any(

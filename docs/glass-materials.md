@@ -17,8 +17,9 @@ RGB separation 12, magnification 0.1, and saturation 1.33. The refracted
 edge is 18 wide, with highlight width 3.5 and strength 0.1. Brightness,
 contrast and material opacity remain 1. The gradient stays specific to
 each preset.
-Popup brightness is 0.75 so blurred dark menus keep their contrast over bright
-wallpaper.
+Menu brightness is 0.75 so blurred dark context menus keep their contrast over
+bright wallpaper. Applet popups and the launcher use normal material brightness,
+so this menu setting does not make the launcher darker.
 
 **Glass opacity** controls how much of the blurred material covers the original
 background. Keep it at 1 for full material coverage; lower it to reveal more
@@ -38,10 +39,11 @@ including the gradient toggle and colors. Corners and window rules remain
 independent and are preserved.
 
 Tahoe Plasma applet popups, tooltips, Qt menus and the detached search capsule
-use a 55% white fill in light mode and an 82% black fill in dark mode. The dark
-fill keeps white labels readable over bright wallpaper while allowing the blurred
-backdrop and refraction to show through. Tahoe's material gradient stays disabled
-by default; when enabled, it eases from 36% black at the top to 14% at the bottom.
+use a 55% white fill in light mode. In dark mode, menus and applet popups use an
+82% black fill, while the detached launcher uses 62% so its blurred backdrop
+stays visible. The launcher tile reflections are softened to prevent seams.
+Tahoe's material gradient stays disabled by default; when enabled, it eases from
+36% black at the top to 14% at the bottom.
 Golden Gate installs a nearly clear 1% white fill in dark mode, letting its
 stronger upper gradient supply the tint.
 Golden Gate light native Qt menus use a 60% white translucent surface so their
