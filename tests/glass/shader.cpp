@@ -281,7 +281,7 @@ int main(int argc, char **argv)
         int straightDockLinePeakY = 0;
         int dockLinePeak = 0;
         int dockLinePeakY = 0;
-        for (int y = height / 2 - 10; y <= height / 2 + 10; ++y) {
+        for (int y = height / 2 - 24; y <= height / 2 + 24; ++y) {
             const int straightValue = qRed(straightDockLine.pixel(width / 2, y));
             if (straightValue > straightDockLinePeak) {
                 straightDockLinePeak = straightValue;
@@ -293,8 +293,8 @@ int main(int argc, char **argv)
                 dockLinePeakY = y;
             }
         }
-        require(straightDockLinePeak > 200 && std::abs(dockLinePeakY - straightDockLinePeakY) >= 5,
-                QStringLiteral("Wide Dock lens must bend a horizontal centre line (straight=%1, bent=%2)")
+        require(straightDockLinePeak > 200 && straightDockLinePeakY - dockLinePeakY >= 16,
+                QStringLiteral("Wide Dock lens must lift a horizontal centre line clear of the seam (straight=%1, bent=%2)")
                     .arg(straightDockLinePeakY).arg(dockLinePeakY));
 
         shader.setUniformValue("blurSize", QVector2D(width, height));

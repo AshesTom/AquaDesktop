@@ -94,8 +94,9 @@ vec2 lgLensUV(vec2 uv, vec2 surfacePosition,
     float rimFade = smoothstep(0.0, max(rimFadeWidth, 1.0), inset);
     vec2 bezelOffsetPx = refractedRay.xy / rayDepth * slabThickness * fresnelTransmission * rimFade;
     vec2 offsetPx = bezelOffsetPx * mix(1.0, 1.8, wideSurface);
-    float maxDisplacementPx = min(max(refractionWidth * 0.8, minSurfaceSize * 0.06),
-                                  minSurfaceSize * (dockSurface ? 0.30 : 0.08));
+    float maxDisplacementPx = min(max(refractionWidth * (dockSurface ? 1.6 : 0.8),
+                                      minSurfaceSize * 0.06),
+                                  minSurfaceSize * (dockSurface ? 0.65 : 0.08));
     float displacementPx = length(offsetPx);
     float limitStartPx = maxDisplacementPx * 0.6;
     float limitBlend = smoothstep(limitStartPx, maxDisplacementPx, displacementPx);
