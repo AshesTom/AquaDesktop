@@ -31,6 +31,13 @@ BASE = "MacTahoeLiquidKde-Icons"
 PREFIX = "MacTahoeGenerated-"
 SCHEMA = 1
 
+# QIcon searches the current theme before its parents, including the
+# non-symbolic fallback. Keep these menu names in the base theme; generate
+# systemsettings and org.kde.discover for application launchers instead.
+SYSTEM_MENU_ICONS = frozenset({
+    "computer", "preferences-system", "software-store", "software-store-symbolic",
+})
+
 
 def installer_dark_sources() -> dict[str, Path]:
     """Match reviewed dark artwork by content hash, including all base aliases."""
@@ -77,7 +84,8 @@ def installer_themes(source: Path, output: Path, style: str, tint: str, *,
     entries = {}
     for path in sorted((source / BASE / "apps/scalable").iterdir(), key=lambda p: (
             p.suffix.lower() == ".svg", p.suffix == p.suffix.lower(), p.name)):
-        if path.suffix.lower() in (".svg", ".png") and path.is_file():
+        if (path.suffix.lower() in (".svg", ".png") and path.is_file()
+                and path.stem not in SYSTEM_MENU_ICONS):
             entries[path.stem] = path
     seen = {}
     records = {}
@@ -195,6 +203,7 @@ def build(args) -> Path:
         if not entries:
             raise ValueError("Source has no scalable application icons")
         entries.update({name: entry["source"] for name, entry in overrides.items()})
+        entries = {name: path for name, path in entries.items() if name not in SYSTEM_MENU_ICONS}
         if any(not valid_icon_name(name) for name in entries):
             raise ValueError("Source contains an unsafe icon filename")
         if args.icons:

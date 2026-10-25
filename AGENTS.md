@@ -190,6 +190,11 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
   and App Store, matching the Golden Gate reference. Keep the remaining
   actions icon-free and omit their reserved icon column; preserve the
   surrounding menu margins and row spacing.
+- Keep the system menu's `computer`, `preferences-system` and
+  `software-store-symbolic` artwork inherited from the base icon theme.
+  Generated app appearances must also omit `software-store`, because Qt
+  resolves that fallback before searching inherited symbolic icons. Use
+  `systemsettings` and `org.kde.discover` for generated application tiles.
 - Hover tiles: glass effect (semi-transparent fill, 0.5px micro
   border, 22px radius) — not outlined borders.
 - Native menu selection rounding uses Kvantum `expand-menuitem-normal` tiles

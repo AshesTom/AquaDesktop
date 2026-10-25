@@ -210,6 +210,27 @@ def test_installer_duplicate_extensions_produce_one_icon_per_name(source, tmp_pa
     assert inventory(outputs[0]) == inventory(outputs[1])
 
 
+
+def test_maintainer_build_keeps_reserved_menu_aliases_in_base(source, tmp_path):
+    staging = tmp_path / "source"
+    unpack(source, staging)
+    apps = staging / BASE / "apps/scalable"
+    reserved = ("computer", "preferences-system", "software-store", "software-store-symbolic")
+    for name in (*reserved, "systemsettings", "org.kde.discover"):
+        (apps / f"{name}.svg").symlink_to("demo.svg")
+    archive = tmp_path / "menu-base.tar.gz"
+    with tarfile.open(archive, "w:gz") as tar:
+        for name in (BASE, BASE + "-dark"):
+            tar.add(staging / name, arcname=name)
+    output = tmp_path / "bundle"
+    assert main(["build", "--source", str(archive), "--output", str(output),
+                 "--sizes", "32", "--variants", "dark"]) == 0
+    manifest = verify(output)
+    assert {"systemsettings", "org.kde.discover"} <= manifest["icons"].keys()
+    for name in reserved:
+        assert name not in manifest["icons"]
+        assert (output / "themes" / BASE / "apps/scalable" / f"{name}.svg").read_bytes() == ARTWORK
+
 def test_verify_rejects_changes_extra_files_and_escaping_links(built, tmp_path):
     extra = built / "unexpected"
     extra.write_text("tamper")
