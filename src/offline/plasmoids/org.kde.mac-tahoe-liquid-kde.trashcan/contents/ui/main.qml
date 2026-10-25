@@ -15,7 +15,7 @@ import org.kde.plasma.extras as PlasmaExtras
 import org.kde.draganddrop as DragDrop
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as P5Support
-import plasma.applet.org.kde.mac.tahoe.liquid.taskmanager as TaskManagerApplet
+import org.kde.mac.tahoe.launcher as NativeLauncher
 
 PlasmoidItem {
     id: root
@@ -183,7 +183,7 @@ PlasmoidItem {
 
         Kirigami.Icon {
             id: trashIcon
-            TaskManagerApplet.IconThemeWatcher {
+            NativeLauncher.IconThemeWatcher {
                 onChanged: {
                     trashIcon.source = "";
                     trashIcon.source = Qt.binding(() => Plasmoid.icon);

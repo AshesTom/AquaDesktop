@@ -38,10 +38,11 @@ def test_dock_themed_icons_follow_both_modes_and_preserve_custom_pixmaps(tmp_pat
     task = (UI / 'Task.qml').read_text()
     assert 'source: backend.iconSource(task.model.decoration)' in task
     assert 'target: tasksRoot.iconThemeWatcher' in task
-    assert 'QTimer::singleShot(0, this, &IconThemeWatcher::changed)' in backend
+    watcher = (UI.parent.parent / 'launcher/iconthemewatcher.h').read_text()
+    assert 'QTimer::singleShot(0, this, &IconThemeWatcher::changed)' in watcher
     for component in ('org.kde.mac-tahoe-liquid-kde.launcher/contents/ui/CompactRepresentation.qml',
                       'org.kde.mac-tahoe-liquid-kde.trashcan/contents/ui/main.qml'):
-        assert 'TaskManagerApplet.IconThemeWatcher {' in (UI.parents[2] / component).read_text()
+        assert 'NativeLauncher.IconThemeWatcher {' in (UI.parents[2] / component).read_text()
     source = tmp_path / 'icons.cpp'
     source.write_text(r'''
 #include <QGuiApplication>

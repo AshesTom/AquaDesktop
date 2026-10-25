@@ -25,7 +25,6 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
-#include <QDBusConnection>
 #include <QIcon>
 #include <QJsonArray>
 #include <QMenu>
@@ -74,18 +73,6 @@ Backend::Backend(QObject* parent)
 }
 
 Backend::~Backend() { }
-
-IconThemeWatcher::IconThemeWatcher(QObject *parent) : QObject(parent)
-{
-    QDBusConnection::sessionBus().connect(QString(), QStringLiteral("/KIconLoader"),
-        QStringLiteral("org.kde.KIconLoader"), QStringLiteral("iconChanged"), this, SLOT(refresh(int)));
-}
-
-void IconThemeWatcher::refresh(int)
-{
-    // Let the platform icon loader finish invalidating the outgoing theme.
-    QTimer::singleShot(0, this, &IconThemeWatcher::changed);
-}
 
 QVariant Backend::iconSource(const QVariant& decoration)
 {

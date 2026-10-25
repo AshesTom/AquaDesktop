@@ -147,15 +147,3 @@ private:
     KActivityManagerdPluginsSettings m_activityManagerPluginsSettings;
     KConfigWatcher::Ptr m_activityManagerPluginsSettingsWatcher;
 };
-
-class IconThemeWatcher : public QObject
-{
-    Q_OBJECT
-    QML_ELEMENT
-public:
-    explicit IconThemeWatcher(QObject *parent = nullptr);
-Q_SIGNALS:
-    void changed();
-private Q_SLOTS:
-    void refresh(int group);
-};

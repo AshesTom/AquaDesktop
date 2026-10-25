@@ -19,6 +19,7 @@ import org.kde.plasma.workspace.trianglemousefilter
 
 import org.kde.taskmanager as TaskManager
 import plasma.applet.org.kde.mac.tahoe.liquid.taskmanager as TaskManagerApplet
+import org.kde.mac.tahoe.launcher as NativeLauncher
 import org.kde.plasma.workspace.dbus as DBus
 import "LayoutMetrics.js" as LayoutMetrics
 import "TaskTools.js" as TaskTools
@@ -44,7 +45,7 @@ PlasmoidItem {
 
     property alias taskList: taskList
 
-    readonly property TaskManagerApplet.IconThemeWatcher iconThemeWatcher: TaskManagerApplet.IconThemeWatcher {}
+    readonly property NativeLauncher.IconThemeWatcher iconThemeWatcher: NativeLauncher.IconThemeWatcher {}
 
     preferredRepresentation: fullRepresentation
 

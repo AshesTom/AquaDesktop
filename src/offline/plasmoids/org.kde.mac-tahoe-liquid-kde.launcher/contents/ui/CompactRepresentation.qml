@@ -5,7 +5,7 @@ import org.kde.plasma.plasmoid 2.0
 import org.kde.plasma.core as PlasmaCore
 
 import org.kde.kirigami as Kirigami
-import plasma.applet.org.kde.mac.tahoe.liquid.taskmanager as TaskManagerApplet
+import org.kde.mac.tahoe.launcher as NativeLauncher
 
 Item {
     id: root
@@ -13,7 +13,7 @@ Item {
     property QtObject dashWindow: null
     readonly property bool useCustomButtonImage: (Plasmoid.configuration.useCustomButtonImage && Plasmoid.configuration.customButtonImage.length != 0)
 
-    TaskManagerApplet.IconThemeWatcher {
+    NativeLauncher.IconThemeWatcher {
         onChanged: {
             buttonIcon.source = "";
             buttonIcon.source = Qt.binding(() => root.useCustomButtonImage
