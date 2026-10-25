@@ -120,6 +120,7 @@ def test_gtk_bridge_is_loaded_after_theme_files_are_installed(tmp_path, monkeypa
         (tmp_path / 'source' / name).mkdir(parents=True)
     monkeypatch.setattr(gtk, 'offline', lambda *a: tmp_path / 'source')
     monkeypatch.setattr(gtk, 'DEST_DIR', tmp_path / 'themes')
+    monkeypatch.setattr(gtk, 'GTK4_DEST', tmp_path / 'gtk-4.0')
     monkeypatch.setattr(gtk, 'have', lambda *a: False)
     events = []
     monkeypatch.setattr(gtk, 'install_tree', lambda *a: events.append('copy') or True)

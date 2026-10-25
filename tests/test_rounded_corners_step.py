@@ -147,6 +147,35 @@ def test_download_reuses_verified_cache(monkeypatch, tmp_path):
     assert any("verified cache" in message for message in messages)
 
 
+@pytest.mark.parametrize("valid", [True, False])
+def test_download_prunes_old_versions_only_after_verification(monkeypatch, tmp_path, valid):
+    work = _pin_work(monkeypatch, tmp_path)
+    _source_archive(rounded.ARCHIVE, rounded.SOURCE.name)
+    checksum = hashlib.sha256(rounded.ARCHIVE.read_bytes()).hexdigest()
+    monkeypatch.setattr(rounded, "UPSTREAM_SHA256", checksum if valid else "0" * 64)
+    monkeypatch.setattr(rounded, "fetch", lambda *args, **kwargs: False)
+    old = work / "KDE-Rounded-Corners-0.9.0"
+    old.mkdir()
+    (old / "CMakeLists.txt").write_text("old")
+    archive = work / "KDE-Rounded-Corners-0.9.0.tar.gz"
+    archive.write_bytes(b"old")
+    partial = work / "KDE-Rounded-Corners-0.10.0.tar.gz.part"
+    partial.write_bytes(b"partial")
+    unrelated = work / "notes"
+    unrelated.write_text("keep")
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = work / "KDE-Rounded-Corners-0.8.0"
+    link.symlink_to(outside)
+    rounded.download()
+    assert rounded.download_ready() == valid
+    assert old.exists() != valid
+    assert archive.exists() != valid
+    assert partial.exists() != valid
+    assert unrelated.read_text() == "keep"
+    assert link.is_symlink() and outside.exists()
+
+
 def test_download_rejects_checksum_mismatch(monkeypatch, tmp_path):
     _pin_work(monkeypatch, tmp_path)
     payload = tmp_path / "bad.tar.gz"

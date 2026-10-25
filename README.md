@@ -8,7 +8,7 @@
 <p align="center">
   <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases"><img src="https://img.shields.io/github/v/release/lestercorderomurillo/macos-tahoe-liquid-kde?label=release&amp;color=blue" alt="release"></a>
   <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases/tag/v0.61.0"><img src="https://img.shields.io/badge/LTS-v0.61.0-green" alt="LTS v0.61.0"></a>
-  <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml"><img src="https://img.shields.io/badge/tests-1907_passing-brightgreen" alt="tests"></a>
+  <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/actions/workflows/test.yml"><img src="https://img.shields.io/badge/tests-1915_passing-brightgreen" alt="tests"></a>
   <a href="https://kde.org/plasma-desktop/"><img src="https://img.shields.io/badge/Plasma-6.6%2B-1d99f3?logo=kde" alt="plasma"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="license"></a>
   <a href="https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new"><img src="https://img.shields.io/badge/report-a%20bug-red?logo=github" alt="report a bug"></a>
@@ -161,6 +161,19 @@ Here is what we added or improved in the components we ship.
 
 ![Getting started](https://img.shields.io/badge/getting-started-3B7B5B?style=for-the-badge&logo=gnubash&logoColor=white)
 
+To avoid downloading historical screenshots, start with a shallow checkout:
+
+```bash
+git clone --depth 1 --single-branch https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde.git
+cd macos-tahoe-liquid-kde
+./installer
+```
+
+Reuse this directory for updates. Source ZIP/tar downloads omit the documentation
+gallery; browse the screenshots on GitHub, or use a Git checkout for the complete
+offline documentation. Installer previews, theme assets, tests and license notices
+remain bundled. Git checkouts retain their history as they are updated.
+
 Install and uninstall through one graphical wizard:
 
 ```bash
@@ -201,6 +214,12 @@ no login-time catch-up. Manual light/dark switching works independently of cron.
 dinit desktop qualification is pending; the existing Artix screenshots cover OpenRC.
 
 Assets are bundled. Missing dependencies and optional KDE Rounded Corners require internet access.
+Verified Rounded Corners updates remove older downloaded sources and archives.
+Reinstalling replaces the managed asset trees in place; successful copies remove
+their temporary data, and later copies clean interrupted disposable staging.
+Recovery backups, browser-profile backups and user preferences are retained.
+Developer VM images and capture bundles are not installer caches and are never
+removed automatically.
 
 | Distro | Qt 6 tools | KDE Plasma 6 development packages |
 |--------|------------|-----------------------------------|

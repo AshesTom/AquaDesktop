@@ -27,6 +27,7 @@ LANGUAGE_CODES = tuple(item["code"] for item in LANGUAGES)
 
 
 _ES = {
+    'Could not remove old Rounded Corners cache: {exc}': 'No se pudo eliminar la caché antigua de Rounded Corners: {exc}',
     "Generating icons: {completed}/{total}": "Generando iconos: {completed}/{total}",
     "Cron entries installed, but no running cron daemon could be confirmed. Enable your cron service for scheduled features.": "Se instalaron las entradas de cron, pero no se pudo confirmar que haya un servicio cron en ejecución. Activa el servicio cron para las funciones programadas.",
 
@@ -84,6 +85,7 @@ _ES = {
 }
 
 _ZH_CN = {
+    'Could not remove old Rounded Corners cache: {exc}': '无法删除旧的 Rounded Corners 缓存：{exc}',
     "Generating icons: {completed}/{total}": "正在生成图标：{completed}/{total}",
     "Cron entries installed, but no running cron daemon could be confirmed. Enable your cron service for scheduled features.": "已安装 cron 条目，但无法确认 cron 守护进程正在运行。请启用 cron 服务以运行计划任务。",
 

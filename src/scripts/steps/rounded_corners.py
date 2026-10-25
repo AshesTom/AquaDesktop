@@ -13,6 +13,7 @@ from localization import tr
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import tarfile
@@ -122,6 +123,22 @@ def _archive_is_valid(path: Path) -> bool:
     return path.is_file() and _sha256(path) == UPSTREAM_SHA256
 
 
+def _prune_downloads() -> None:
+    """Only retire recognized old releases after the replacement is verified."""
+    for previous in WORK.iterdir():
+        if previous in (SOURCE, ARCHIVE) or previous.is_symlink():
+            continue
+        if not re.fullmatch(r"KDE-Rounded-Corners-\d+\.\d+\.\d+(?:\.tar\.gz(?:\.part)?)?", previous.name):
+            continue
+        try:
+            if previous.is_dir():
+                shutil.rmtree(previous)
+            else:
+                previous.unlink()
+        except OSError as exc:
+            warn(tr('Could not remove old Rounded Corners cache: {exc}', exc=exc))
+
+
 def _extract_verified_archive() -> bool:
     staging = WORK / ".extracting"
     shutil.rmtree(staging, ignore_errors=True)
@@ -171,6 +188,7 @@ def download() -> None:
         partial = ARCHIVE.with_suffix(ARCHIVE.suffix + ".part")
         partial.unlink(missing_ok=True)
         if not fetch(UPSTREAM_URL, partial, referer=UPSTREAM_PROJECT_URL):
+            partial.unlink(missing_ok=True)
             fail(tr('KDE Rounded Corners v{UPSTREAM_VERSION} download failed', UPSTREAM_VERSION=UPSTREAM_VERSION))
             return
         actual = _sha256(partial)
@@ -184,6 +202,7 @@ def download() -> None:
 
     if not _extract_verified_archive():
         return
+    _prune_downloads()
     _DOWNLOAD_READY = True
     suffix = tr(" (verified cache)") if cached else ""
     ok(tr('KDE Rounded Corners v{UPSTREAM_VERSION} downloaded and verified{suffix}', UPSTREAM_VERSION=UPSTREAM_VERSION, suffix=suffix))
