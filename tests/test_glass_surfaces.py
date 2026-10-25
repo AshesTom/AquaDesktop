@@ -113,14 +113,20 @@ def test_tahoe_plasma_fills_follow_appearance_and_keep_white_text_readable(mode,
             fill = image.pixelColor(32, 32)
             fills.append(fill)
         for fill in fills:
-            expected_fill = .48 if name == "dialogs/launcher-search.svgz" else .82
+            expected_fill = .48 if name == "dialogs/launcher-search.svgz" else (
+                .45 if name in ("dialogs/background.svgz", "widgets/tooltip.svgz") else .82
+            )
             assert fill.alphaF() == pytest.approx(expected_fill, abs=.005), name
             assert fill.red() == fill.green() == fill.blue() == 0, name
         # The menu keeps 4.5:1 contrast; the more transparent launcher stays
         # readable while retaining more of its blurred backdrop.
         background = 1.0 - fill.alphaF()
-        contrast = 1.05 / (background + .05)
-        assert contrast >= (1.8 if name == "dialogs/launcher-search.svgz" else 4.5), name
+        luminance = (background / 12.92 if background <= .04045
+                     else ((background + .055) / 1.055) ** 2.4)
+        contrast = 1.05 / (luminance + .05)
+        assert contrast >= (3.2 if name in (
+            "dialogs/launcher-search.svgz", "dialogs/background.svgz", "widgets/tooltip.svgz"
+        ) else 4.5), name
 
     staged = {path: path.read_bytes() for path in theme.rglob("*.svgz")}
     glass_surfaces.apply_plasma_surface_defaults(theme)
@@ -149,6 +155,39 @@ def test_tahoe_dark_launcher_softens_repeated_tile_reflections(tmp_path, monkeyp
     staged = path.read_bytes()
     glass_surfaces.apply_plasma_surface_defaults(theme)
     assert path.read_bytes() == staged
+
+
+def test_tahoe_launcher_and_task_previews_use_lighter_dark_glass(tmp_path, monkeypatch):
+    import glass_surfaces
+    monkeypatch.setattr(glass_surfaces, "default_wallpaper", lambda: "MacTahoe")
+    theme = tmp_path / "MacTahoeLiquidKde-Dark"
+    shutil.copytree(ROOT / theme.name, theme)
+    glass_surfaces.apply_plasma_surface_defaults(theme)
+
+    for name, expected in (
+        ("dialogs/background.svgz", .45),
+        ("widgets/tooltip.svgz", .45),
+        ("dialogs/launcher-search.svgz", .48),
+    ):
+        root = _xml(theme / name)
+        fills = []
+        for node in glass_surfaces.surface_nodes(root, ("center",)):
+            style = dict(part.split(":", 1) for part in node.get("style", "").split(";") if ":" in part)
+            fill = style.get("fill", node.get("fill"))
+            if fill == "#000000":
+                opacity = float(style.get("opacity", node.get("opacity", "1")))
+                fill_opacity = float(style.get("fill-opacity", node.get("fill-opacity", "1")))
+                fills.append(opacity * fill_opacity)
+        assert fills and all(value == pytest.approx(expected, abs=.005) for value in fills), name
+
+    # Keep the separate standard popup material dark and preserve repeatability.
+    root = _xml(theme / "widgets/background.svgz")
+    normal = next(node for node in root.iter() if node.get("id") == "rect108")
+    style = dict(part.split(":", 1) for part in normal.get("style", "").split(";") if ":" in part)
+    assert float(style.get("opacity")) == pytest.approx(.82, abs=.005)
+    staged = {path: path.read_bytes() for path in theme.rglob("*.svgz")}
+    glass_surfaces.apply_plasma_surface_defaults(theme)
+    assert all(path.read_bytes() == data for path, data in staged.items())
 
 
 @pytest.mark.parametrize("mode", ["", "Dark"])

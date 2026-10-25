@@ -39,9 +39,10 @@ including the gradient toggle and colors. Corners and window rules remain
 independent and are preserved.
 
 Tahoe Plasma applet popups, tooltips, Qt menus and the detached search capsule
-use a 55% white fill in light mode. In dark mode, menus and applet popups use an
-82% black fill, while the detached launcher uses 62% so its blurred backdrop
-stays visible. The launcher tile reflections are softened to prevent seams.
+use a 55% white fill in light mode. In dark mode, general applet popups retain
+an 82% black fill. The application launcher and task-manager preview tooltips
+use 45%, while the detached search capsule uses 48%, so their blurred backdrops
+remain visible. The launcher tile reflections are softened to prevent seams.
 Tahoe's material gradient stays disabled by default; when enabled, it eases from
 36% black at the top to 14% at the bottom.
 Golden Gate installs a nearly clear 1% white fill in dark mode, letting its

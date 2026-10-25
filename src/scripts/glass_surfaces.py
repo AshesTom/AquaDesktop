@@ -15,6 +15,7 @@ _TILES = ("center", "top", "bottom", "left", "right",
           "topleft", "topright", "bottomleft", "bottomright")
 _TAHOE_DARK_FILL = "0.82"
 _TAHOE_LAUNCHER_DARK_FILL = "0.48"
+_TAHOE_PANEL_DIALOG_DARK_FILL = "0.45"
 _TAHOE_LAUNCHER_EDGE_OPACITY = {("#000000", .18): "0.08", ("#ffffff", .22): "0.10"}
 _SVG = "http://www.w3.org/2000/svg"
 _XLINK = "http://www.w3.org/1999/xlink"
@@ -122,7 +123,10 @@ def apply_plasma_surface_defaults(theme: Path) -> None:
         path = theme / name
         root = ET.fromstring(gzip.decompress(path.read_bytes()))
         surface_opacity = opacity
-        if not golden_gate and not light and name == "dialogs/launcher-search.svgz":
+        if not golden_gate and not light and name in (
+                "dialogs/background.svgz", "widgets/tooltip.svgz"):
+            surface_opacity = _TAHOE_PANEL_DIALOG_DARK_FILL
+        elif not golden_gate and not light and name == "dialogs/launcher-search.svgz":
             surface_opacity = _TAHOE_LAUNCHER_DARK_FILL
         set_surface_fill(root, _TILES, surface_opacity, color)
         if not golden_gate and not light and name == "dialogs/launcher-search.svgz":
