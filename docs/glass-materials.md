@@ -69,6 +69,14 @@ aperture-scaled strength keep the mapping fold-free on small popups. This is an
 approximation based on general lens optics, not a pixel-matched copy of a
 proprietary renderer.
 
+The Tahoe Dock layout also uses Panel Colorizer for its custom panel
+background. Its QML C++ module is separate from the plasmoid package and must
+be rebuilt after Plasma updates. If Plasma reports that
+`org.kde.plasma.panelcolorizer` cannot be imported, Panel Colorizer falls back
+without the custom blur background even though KWin's Acrylic Glass effect is
+active. On Debian, install the module to the user prefix and expose its QML
+directory through `QML_IMPORT_PATH` before restarting Plasma.
+
 The shader tests check the mapping Jacobian at default and maximum strength on
 the reference surface and five smaller popup sizes, down to 64×48 px. The
 X11 smoke test separately checks that a private KWin X11 compositor loads the
