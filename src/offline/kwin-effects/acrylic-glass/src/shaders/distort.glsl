@@ -66,16 +66,17 @@ vec2 lgLensUV(vec2 uv, vec2 surfacePosition,
     float convexBlend = 0.25 * smoothstep(112.0, 128.0, minSurfaceSize);
     float profileHeight = mix(smoothProfile, convexSquircle, convexBlend);
     float profileDerivative = mix(smoothDerivative, convexSquircleDerivative, convexBlend);
+    // The Dock's QML glass is vertically centred on the panel. Centre its
+    // convex profile in the real 2D pane instead of lifting the dome toward
+    // the top edge; the asymmetric lift was producing the visible seam.
     vec2 normalizedPosition = surfacePosition / halfSize;
     float wideSurface = dockSurface
         ? smoothstep(2.0, 5.0, surfaceSize.x / max(surfaceSize.y, 1.0))
         : 0.0;
-    normalizedPosition.y += 0.55 * wideSurface;
     float domeBase = max(1.0 - 0.72 * dot(normalizedPosition, normalizedPosition), 0.0);
     float domeProfile = domeBase * domeBase;
     vec2 domeGradient = -2.88 * domeBase * normalizedPosition / halfSize;
-    domeGradient.y *= mix(1.0, 36.0, wideSurface);
-    float domeDepth = minSurfaceSize * lensStrength * mix(1.5, 3.0, wideSurface);
+    float domeDepth = minSurfaceSize * lensStrength * 1.5;
     float height = depth * profileHeight + domeDepth * domeProfile;
     vec2 heightGradient = -depth * profileDerivative
         * outwardNormal / max(bezelWidth, 1.0) + domeDepth * domeGradient;
@@ -93,10 +94,10 @@ vec2 lgLensUV(vec2 uv, vec2 surfacePosition,
     float rimFadeWidth = min(bezelWidth * 0.25, 12.0);
     float rimFade = smoothstep(0.0, max(rimFadeWidth, 1.0), inset);
     vec2 bezelOffsetPx = refractedRay.xy / rayDepth * slabThickness * fresnelTransmission * rimFade;
-    vec2 offsetPx = bezelOffsetPx * mix(1.0, 1.8, wideSurface);
-    float maxDisplacementPx = min(max(refractionWidth * (dockSurface ? 1.6 : 0.8),
+    vec2 offsetPx = bezelOffsetPx;
+    float maxDisplacementPx = min(max(refractionWidth * (dockSurface ? 1.1 : 0.8),
                                       minSurfaceSize * 0.06),
-                                  minSurfaceSize * (dockSurface ? 0.65 : 0.08));
+                                  minSurfaceSize * (dockSurface ? 0.24 : 0.08));
     float displacementPx = length(offsetPx);
     float limitStartPx = maxDisplacementPx * 0.6;
     float limitBlend = smoothstep(limitStartPx, maxDisplacementPx, displacementPx);

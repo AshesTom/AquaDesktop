@@ -13,6 +13,7 @@ PLASMA_SURFACES = (
 )
 _TILES = ("center", "top", "bottom", "left", "right",
           "topleft", "topright", "bottomleft", "bottomright")
+_TAHOE_DARK_FILL = "0.68"
 _SVG = "http://www.w3.org/2000/svg"
 _XLINK = "http://www.w3.org/1999/xlink"
 
@@ -42,10 +43,18 @@ def set_surface_fill(root: ET.Element, ids: tuple[str, ...], opacity: str,
                      color: str | None = None) -> None:
     for node in surface_nodes(root, ids):
         style = dict(part.split(":", 1) for part in node.get("style", "").split(";") if ":" in part)
+        if node.tag.rsplit("}", 1)[-1] not in ("rect", "path", "polygon", "ellipse"):
+            continue
         fill = style.get("fill", node.get("fill"))
         alpha = style.get("opacity", node.get("opacity", "1"))
-        if fill not in ("#000000", "#ffffff") or float(alpha) not in (.48, .55):
+        fill_opacity = style.get("fill-opacity", node.get("fill-opacity", "1"))
+        effective_alpha = float(alpha) * float(fill_opacity)
+        expected = (0.0, .1, .18, .22, .48, .55, .60, .68)
+        if fill not in ("#000000", "#ffffff") or not any(
+                abs(effective_alpha - value) < 0.001 for value in expected):
             continue
+        # Theme assets encode the reusable fill as rects inside each tile
+        # group; update those leaves while leaving borders and highlights intact.
         if "opacity" in style:
             style["opacity"] = opacity
         else:
@@ -67,16 +76,23 @@ def _write_svg(path: Path, root: ET.Element) -> None:
 
 
 def apply_plasma_surface_defaults(theme: Path) -> None:
-    """Apply to a staged copy of the bundled theme, never user configuration."""
-    if default_wallpaper() != "MacGoldenGate":
+    """Apply edition-specific fills to a staged copy of the bundled theme."""
+    golden_gate = default_wallpaper() == "MacGoldenGate"
+    light = theme.name.endswith("-Light")
+    if not golden_gate and light:
         return
-    # Plasma popups and tooltips keep the system foreground, just like QMenus.
-    # Dark text needs a light client fill even over a black glass backdrop.
-    opacity = "0.60" if theme.name.endswith("-Light") else "0.01"
+    if golden_gate:
+        # Golden Gate uses an almost clear dark fill and a light surface so its
+        # stronger compositor gradient can supply the material tint.
+        opacity, color = (("0.60", "#ffffff") if light else ("0.01", "#ffffff"))
+    else:
+        # Tahoe keeps enough dark glass behind white menu labels on bright
+        # wallpaper while preserving a visible blurred backdrop.
+        opacity, color = (("0.55", None) if light else (_TAHOE_DARK_FILL, None))
     for name in PLASMA_SURFACES:
         path = theme / name
         root = ET.fromstring(gzip.decompress(path.read_bytes()))
-        set_surface_fill(root, _TILES, opacity, "#ffffff")
+        set_surface_fill(root, _TILES, opacity, color)
         if name == "dialogs/background.svgz" and not any(
                 node.get("id") == "hint-clear-surface" for node in root):
             ET.SubElement(root, f"{{{_SVG}}}rect", {
@@ -86,14 +102,21 @@ def apply_plasma_surface_defaults(theme: Path) -> None:
 
 
 def apply_kvantum_surface_defaults(path: Path) -> None:
-    if default_wallpaper() != "MacGoldenGate":
+    golden_gate = default_wallpaper() == "MacGoldenGate"
+    if not golden_gate and path.stem == "mac-tahoe-liquid-kde":
         return
     root = ET.parse(path).getroot()
     # The shadow frame also references the menu's surface tiles.
     ids = tuple(node.get("id") for node in root.iter()
                 if node.get("id", "").startswith(("menu-normal", "menu-shadow")))
-    # Native Qt menus retain dark text in light mode. A translucent white
-    # client surface keeps it readable above the compositor's dark gradient.
-    opacity = "0.60" if path.stem == "mac-tahoe-liquid-kde" else "0.01"
-    set_surface_fill(root, ids, opacity, "#ffffff")
+    if golden_gate:
+        # Native Qt menus retain dark text in light mode. A translucent white
+        # client surface keeps it readable above the compositor's dark gradient.
+        opacity, color = (("0.60", "#ffffff") if path.stem == "mac-tahoe-liquid-kde"
+                          else ("0.01", "#ffffff"))
+    else:
+        # Keep Tahoe's dark menu fill opaque enough for white labels.
+        opacity, color = (("0.55", None) if path.stem == "mac-tahoe-liquid-kde"
+                          else ("0.68", None))
+    set_surface_fill(root, ids, opacity, color)
     _write_svg(path, root)

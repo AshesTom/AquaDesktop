@@ -153,11 +153,12 @@ def test_glass_refraction_uses_continuous_sdf_lens_normals_in_both_shader_profil
     assert "float domeProfile = domeBase * domeBase" in distort
     assert "float domeBase = max(1.0 - 0.72 * dot(normalizedPosition, normalizedPosition), 0.0)" in distort
     assert "vec2 domeGradient = -2.88 * domeBase * normalizedPosition / halfSize" in distort
-    assert "float domeDepth = minSurfaceSize * lensStrength * mix(1.5, 3.0, wideSurface)" in distort
+    assert "vec2 normalizedPosition = surfacePosition / halfSize" in distort
+    assert "float domeDepth = minSurfaceSize * lensStrength * 1.5" in distort
     assert "domeDepth * domeGradient" in distort
     assert "domeOffsetPx" not in distort
-    assert "float maxDisplacementPx = min(max(refractionWidth * (dockSurface ? 1.6 : 0.8)," in distort
-    assert "minSurfaceSize * (dockSurface ? 0.65 : 0.08)" in distort
+    assert "float maxDisplacementPx = min(max(refractionWidth * (dockSurface ? 1.1 : 0.8)," in distort
+    assert "minSurfaceSize * (dockSurface ? 0.24 : 0.08)" in distort
     assert "float limitBlend = smoothstep(limitStartPx, maxDisplacementPx, displacementPx)" in distort
     assert "if (displacementPx > maxDisplacementPx)" not in distort
     assert "float axisBlend = smoothstep(-axisBlendWidth, axisBlendWidth, q.x - q.y)" in sdf
@@ -167,6 +168,7 @@ def test_glass_refraction_uses_continuous_sdf_lens_normals_in_both_shader_profil
     for shader_name in ("glass.glsl", "glass_core.glsl"):
         shader = (ROOT / "src/shaders" / shader_name).read_text(encoding="utf-8")
         assert "lgLensUV(uv, pos, lensStrength, refrBand, blurSize, backgroundSize," in shader
+        assert "dockNormal" not in shader and "textureNormal" not in shader
 
 
 def test_finest_blur_keeps_its_first_kawase_pass_at_native_resolution():

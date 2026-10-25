@@ -261,7 +261,7 @@ Window {
         anchors.fill: parent
         radius: 22
         color: popupSurface.clearSurface ? Qt.rgba(1, 1, 1, aboutWindow.isDarkTheme ? 0.01 : 0.60)
-            : aboutWindow.isDarkTheme ? Qt.rgba(0, 0, 0, 0.48) : Qt.rgba(1, 1, 1, 0.55)
+            : aboutWindow.isDarkTheme ? Qt.rgba(0, 0, 0, 0.68) : Qt.rgba(1, 1, 1, 0.55)
         border.width: 0.75
         border.color: Qt.rgba(0, 0, 0, 0.18)
 

@@ -36,12 +36,12 @@ including the gradient toggle and colors. Corners and window rules remain
 independent and are preserved.
 
 Tahoe Plasma applet popups, tooltips, Qt menus and the detached search capsule
-use a 55% white fill in light mode and a slightly clearer 48% black fill in dark
-mode. Tahoe's dark gradient eases from 36% black at the top to 14% at the bottom.
-It keeps white labels readable over bright wallpaper while leaving the blurred
-backdrop and refraction visible. Golden Gate installs a nearly clear 1% white fill
-in both modes, letting the stronger upper gradient supply its dark tint while
-the lower part stays clear.
+use a 55% white fill in light mode and a 68% black fill in dark mode. The dark
+fill keeps white labels readable over bright wallpaper while allowing the blurred
+backdrop and refraction to show through. Tahoe's material gradient stays disabled
+by default; when enabled, it eases from 36% black at the top to 14% at the bottom.
+Golden Gate installs a nearly clear 1% white fill in dark mode, letting its
+stronger upper gradient supply the tint.
 Golden Gate light native Qt menus use a 60% white translucent surface so their
 dark system text remains readable above that gradient. This exception affects
 only the light Golden Gate Kvantum menu assets; dark menus, Tahoe, dialogs,

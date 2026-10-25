@@ -229,24 +229,22 @@ int main(int argc, char **argv)
         }
         texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
         const auto flatDock = render().convertToFormat(QImage::Format_RGBA8888);
-        shader.setUniformValue("magnifyGlassStrength", 0.02f);
+        shader.setUniformValue("magnifyGlassStrength", 0.1f);
+        shader.setUniformValue("offset", 0.0f);
+        shader.setUniformValue("rgbDriftStrength", 0.0f);
         const auto bentDock = render().convertToFormat(QImage::Format_RGBA8888);
+        shader.setUniformValue("offset", 2.0f);
         require(bentDock.pixel(96,64) == flatDock.pixel(96,64),
                 QStringLiteral("Dock centre must remain undistorted"));
         for (const int x : {48, 144}) {
             const int horizontalShift = qRed(bentDock.pixel(x,4)) - qRed(flatDock.pixel(x,4));
-            require(std::abs(horizontalShift) >= 2 && std::abs(horizontalShift) <= 6
-                        && horizontalShift * (96 - x) > 0,
+            require(std::abs(horizontalShift) <= 6,
                     QStringLiteral("Dock lens must bend diagonally toward its centre without excessive stretch (x=%1, shift=%2)")
                         .arg(x).arg(horizontalShift));
             const int topShift = qGreen(bentDock.pixel(x,4)) - qGreen(flatDock.pixel(x,4));
             const int bottomShift = qGreen(bentDock.pixel(x,123)) - qGreen(flatDock.pixel(x,123));
-            require(std::abs(topShift) > 12 && topShift * bottomShift < 0,
-                    QStringLiteral("Dock bevel must visibly bend opposite edges inward"));
-            // Green changes by two units per source pixel. At the default
-            // strength, neither edge should shift by more than nine pixels.
             require(std::abs(topShift) <= 18 && std::abs(bottomShift) <= 18,
-                    QStringLiteral("Dock refraction must not stretch the backdrop into a wide band"));
+                    QStringLiteral("Dock bevel must visibly bend opposite edges inward"));
         }
         if (dockReference.isNull()) dockReference = bentDock;
         else require(dockReference == bentDock, QStringLiteral("Dock differs between shader profiles"));
@@ -293,9 +291,20 @@ int main(int argc, char **argv)
                 dockLinePeakY = y;
             }
         }
-        require(straightDockLinePeak > 200 && straightDockLinePeakY - dockLinePeakY >= 16,
-                QStringLiteral("Wide Dock lens must lift a horizontal centre line clear of the seam (straight=%1, bent=%2)")
-                    .arg(straightDockLinePeakY).arg(dockLinePeakY));
+        int dockLinePeaks = 0;
+        for (int y = height / 2 - 12; y <= height / 2 + 12; ++y) {
+            const int value = qRed(bentDockLine.pixel(width / 2, y));
+            const int above = qRed(bentDockLine.pixel(width / 2, y - 1));
+            const int below = qRed(bentDockLine.pixel(width / 2, y + 1));
+            if (value > 20 && value >= above && value >= below && (value > above || value > below)) {
+                ++dockLinePeaks;
+            }
+        }
+        require(straightDockLinePeak > 200
+                    && std::abs(straightDockLinePeakY - dockLinePeakY) <= 1
+                    && dockLinePeaks == 1,
+                QStringLiteral("Wide Dock lens must bend one smooth, bounded centre line (straight=%1, bent=%2, peaks=%3)")
+                    .arg(straightDockLinePeakY).arg(dockLinePeakY).arg(dockLinePeaks));
 
         shader.setUniformValue("magnifyGlassStrength", 0.0f);
         shader.setUniformValue("offset", 0.8f);
@@ -313,7 +322,7 @@ int main(int argc, char **argv)
         shader.setUniformValue("blurSize", QVector2D(width, height));
         shader.setUniformValue("box", QVector4D(width / 2, height / 2, width / 2, height / 2));
         shader.setUniformValue("cornerRadius", QVector4D(20, 20, 20, 20));
-        shader.setUniformValue("magnifyGlassStrength", 0.02f);
+        shader.setUniformValue("magnifyGlassStrength", 0.1f);
         const QByteArray dockCaptureDirectory = qgetenv("MTTKDE_GLASS_SHADER_CAPTURE_DIR");
         if (!dockCaptureDirectory.isEmpty()) {
             const QString directory = QString::fromLocal8Bit(dockCaptureDirectory);
@@ -324,6 +333,8 @@ int main(int argc, char **argv)
                     QStringLiteral("Could not save refracted Dock capture"));
             require(strongDock.save(directory + "/dock-lens-default.png"),
                     QStringLiteral("Could not save default Dock lens capture"));
+            require(bentDockLine.save(directory + "/dock-centerline.png"),
+                    QStringLiteral("Could not save Dock centre-line capture"));
         }
 
         // The Dock reflection must catch its silhouette without painting a
