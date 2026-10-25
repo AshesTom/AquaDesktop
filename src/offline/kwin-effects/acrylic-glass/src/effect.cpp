@@ -451,7 +451,7 @@ void BlurEffect::reconfigure(ReconfigureFlags flags)
     // Strength 0 = no blur (passthrough).
     double blurStrengthD = qBound(0.0, BlurConfig::blurStrength(), (double) blurStrengthValues.size());
     // Keep Dock samples close together; pyramid levels provide the radius.
-    m_dockOffset = blurStrengthD * 0.14f;
+    m_dockOffset = blurStrengthD * 0.18f;
     m_nativeResolutionBlur = blurStrengthD > 0.0 && blurStrengthD <= 2.0;
 
     if (blurStrengthD <= 0.0) {
@@ -1160,7 +1160,9 @@ void BlurEffect::blur(
     // leaking a sharp image through the centre of the blurred material.
     const bool dockSurface = w->isDock();
     const float centerOpacity = dockSurface ? 0.98f : 1.0f;
-    const size_t iterationCount = dockSurface ? std::min(size_t(3), m_iterationCount) : m_iterationCount;
+    const size_t iterationCount = dockSurface && m_dockOffset > 0.0f
+        ? std::min(m_iterationCount + 1, static_cast<size_t>(blurOffsets.size()))
+        : m_iterationCount;
     const bool nativeResolutionBlur = !dockSurface && m_nativeResolutionBlur;
     const float blurOffset = dockSurface ? m_dockOffset : m_offset;
 

@@ -297,6 +297,19 @@ int main(int argc, char **argv)
                 QStringLiteral("Wide Dock lens must lift a horizontal centre line clear of the seam (straight=%1, bent=%2)")
                     .arg(straightDockLinePeakY).arg(dockLinePeakY));
 
+        shader.setUniformValue("magnifyGlassStrength", 0.0f);
+        shader.setUniformValue("offset", 0.8f);
+        const auto softenedDockLine = render().convertToFormat(QImage::Format_RGBA8888);
+        int softenedDockLinePeak = 0;
+        for (int y = height / 2 - 10; y <= height / 2 + 10; ++y) {
+            softenedDockLinePeak = std::max(softenedDockLinePeak,
+                                            qRed(softenedDockLine.pixel(width / 2, y)));
+        }
+        require(softenedDockLinePeak < straightDockLinePeak * 0.6,
+                QStringLiteral("Dock blur must soften a sharp backdrop line (sharp=%1, softened=%2)")
+                    .arg(straightDockLinePeak).arg(softenedDockLinePeak));
+
+        shader.setUniformValue("offset", 0.0f);
         shader.setUniformValue("blurSize", QVector2D(width, height));
         shader.setUniformValue("box", QVector4D(width / 2, height / 2, width / 2, height / 2));
         shader.setUniformValue("cornerRadius", QVector4D(20, 20, 20, 20));
