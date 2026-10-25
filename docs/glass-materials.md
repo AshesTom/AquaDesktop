@@ -56,6 +56,16 @@ surfaces in the same way as Plasma popups and Qt menus.
 
 ## Visual references
 
+Acrylic Glass builds separate Wayland and X11 modules against each backend's
+KWin SDK. The installer requests the SDK for the current desktop session and
+also builds the other backend when its SDK is already installed. Their plugin
+and settings paths stay separate. X11 support preserves the existing material
+presets, shaders and light/dark surface fills.
+
+The X11 regression probe starts its own Xvfb display and D-Bus session, checks
+the compositor PID, and verifies the exact built module is loaded and active.
+It does not install the module or interact with the running desktop.
+
 These are independently tuned KDE materials, inspired by Apple's published
 screenshots and design guidance; they do not reproduce Apple's renderer.
 

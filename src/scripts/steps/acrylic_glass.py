@@ -1,6 +1,7 @@
 from localization import tr
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -30,7 +31,7 @@ def _translation_files():
 
 
 def deps():
-    return [
+    dependencies = [
         "qmake6:qt6-base",
         "qt6-gui-cmake:qt6-base",
         "qt6-uitools-cmake:qt6-tools",
@@ -53,9 +54,6 @@ def deps():
         "kf6-windowsystem-cmake:kwindowsystem",
         "kf6-guiaddons-cmake:kguiaddons",
         "kf6-kcmutils-cmake:kcmutils",
-        # KWin (Wayland) is mandatory: the effect refuses to configure
-        # if neither GLASS_WAYLAND nor GLASS_X11 ends up enabled.
-        "kwin-cmake:kwin",
         "kdecoration-cmake:kdecoration",
         # XCB is REQUIRED even with the X11 path off — the Wayland code uses it.
         "epoxy-cmake:libepoxy",
@@ -72,13 +70,39 @@ def deps():
         "vulkan-loader-cmake:vulkan-icd-loader",
         "vulkan-headers-cmake:vulkan-headers",
     ]
+    wayland_available = have("kwin_wayland")
+    x11_available = have("kwin_x11")
+    session_type = os.environ.get("XDG_SESSION_TYPE", "").lower()
+    if session_type in ("wayland", "x11"):
+        # Require the running session's SDK; CMake also builds any other
+        # backend whose SDK is already present, without adding packages.
+        wayland_available = session_type == "wayland"
+        x11_available = session_type == "x11"
+    elif not wayland_available and not x11_available:
+        wayland_available = True
+        x11_available = True
+    if wayland_available:
+        dependencies.append("kwin-cmake:kwin")
+    if x11_available:
+        dependencies.append("kwin-x11-cmake:kwin-x11")
+    return dependencies
 
 
 def build_artifacts() -> list[Path]:
-    return [
-        BUILD / "src/liquidglass.so",
-        BUILD / "src/kcm/kwin_liquidglass_config.so",
+    artifacts = [BUILD / "src/kcm/kwin_liquidglass_config.so"]
+    backends = [
+        artifact for artifact in (
+            BUILD / "src/liquidglass.so",
+            BUILD / "src/liquidglass_x11.so",
+        ) if artifact.is_file()
     ]
+    required = {"wayland": "liquidglass.so", "x11": "liquidglass_x11.so"}.get(
+        os.environ.get("XDG_SESSION_TYPE", "").lower())
+    if required and BUILD / "src" / required not in backends:
+        backends.append(BUILD / "src" / required)
+    # An empty backend list must fail the installer's missing-artifact gate.
+    artifacts.extend(backends or [BUILD / "src/liquidglass.so"])
+    return artifacts
 
 
 def _plugin_dir() -> Path:
@@ -178,16 +202,33 @@ def _owned_effect_paths(directory: Path) -> list[Path]:
     )]
 
 
+def _make_effect_path_readable(destination: Path) -> bool:
+    try:
+        with _as_root():
+            for directory in (destination.parent.parent, destination.parent):
+                directory.mkdir(parents=True, exist_ok=True, mode=0o755)
+                directory.chmod(0o755)
+            if destination.is_file():
+                destination.chmod(0o644)
+    except OSError as exc:
+        fail(tr('Acrylic Glass plugin directory is not accessible: {exc}', exc=exc))
+        return False
+    return True
+
+
 def _install_effect_binary(source: Path, destination: Path) -> bool:
     # Immutable filenames bypass Qt's resident-library cache. Reusing an
     # identical build must preserve its inode, not replace a mapped file.
     if destination.is_file() and not destination.is_symlink():
         if source.read_bytes() == destination.read_bytes():
+            if not _make_effect_path_readable(destination):
+                return False
             ok(tr('Acrylic Glass already installed'))
             return True
         fail(tr('Acrylic Glass versioned file has unexpected contents'))
         return False
-    return sudo_install_file(source, destination, tr('Acrylic Glass installed'))
+    return (sudo_install_file(source, destination, tr('Acrylic Glass installed'))
+            and _make_effect_path_readable(destination))
 
 
 def _activate_effect_binary(destination: Path, link: Path) -> bool:
@@ -224,14 +265,18 @@ def _running_build_matches() -> bool | None:
 
 def install() -> None:
     system_dir = _plugin_dir()
-    effect_so = BUILD / "src/liquidglass.so"
+    backends = [
+        (BUILD / "src/liquidglass.so", system_dir / "kwin/effects/plugins",
+         system_dir / "kwin/effects/configs/kwin_liquidglass_config.so"),
+        (BUILD / "src/liquidglass_x11.so", system_dir / "kwin-x11/effects/plugins",
+         system_dir / "kwin-x11/effects/configs/kwin_liquidglass_config.so"),
+    ]
+    backends = [backend for backend in backends if backend[0].is_file()]
     config_so = BUILD / "src/kcm/kwin_liquidglass_config.so"
-    effect_dir = system_dir / "kwin/effects/plugins"
-    dest_config = system_dir / "kwin/effects/configs/kwin_liquidglass_config.so"
-
-    if not effect_so.is_file():
+    if not backends:
         return
-    dest_effect = _versioned_effect_path(effect_so, effect_dir)
+    dest_effects = [(source, directory, _versioned_effect_path(source, directory), config)
+                    for source, directory, config in backends]
 
     for source, destination in _translation_files():
         if not sudo_install_file(source, destination, tr("Acrylic Glass translation installed: {language}",
@@ -258,24 +303,24 @@ def install() -> None:
             except OSError:
                 pass
 
-    if not _install_effect_binary(effect_so, dest_effect):
-        return
-    if not sudo_install_file(config_so, dest_config, tr('Acrylic Glass KCM installed')):
-        warn(tr('Acrylic Glass KCM install failed'))
-
-    if not _activate_effect_binary(dest_effect, effect_dir / "liquidglass.so"):
-        return
-    # Retire only our versioned files. The discovery link stays in place.
-    for previous in _owned_effect_paths(effect_dir):
-        if previous.parent != effect_dir and previous != dest_effect:
-            if not sudo_remove(previous, tr('Previous Acrylic Glass binary removed')):
-                fail(tr('Could not retire the previous Acrylic Glass plugin'))
-                return
-            with _as_root():
-                try:
-                    previous.parent.rmdir()
-                except OSError:
-                    pass
+    for source, effect_dir, dest_effect, dest_config in dest_effects:
+        if not _install_effect_binary(source, dest_effect):
+            return
+        if not sudo_install_file(config_so, dest_config, tr('Acrylic Glass KCM installed')):
+            warn(tr('Acrylic Glass KCM install failed'))
+        if not _activate_effect_binary(dest_effect, effect_dir / "liquidglass.so"):
+            return
+        # Retire only our versioned files. The discovery link stays in place.
+        for previous in _owned_effect_paths(effect_dir):
+            if previous.parent != effect_dir and previous != dest_effect:
+                if not sudo_remove(previous, tr('Previous Acrylic Glass binary removed')):
+                    fail(tr('Could not retire the previous Acrylic Glass plugin'))
+                    return
+                with _as_root():
+                    try:
+                        previous.parent.rmdir()
+                    except OSError:
+                        pass
 
     material_applied = _install_material_preset()
     _install_corner_defaults()
@@ -309,7 +354,11 @@ def install() -> None:
     if "liquidglass" in active.splitlines():
         identity_matches = _running_build_matches()
         if identity_matches is None:
-            identity_matches = _running_plugin_matches(dest_effect)
+            matches = [_running_plugin_matches(destination)
+                       for _, _, destination, _ in dest_effects]
+            identity_matches = (True if True in matches else
+                                False if matches and all(value is False for value in matches)
+                                else None)
         if identity_matches is False:
             warn(tr('Acrylic Glass installed, but KWin still has the previous plugin loaded. Log out and back in to use this update; reloading the effect or restarting Plasma is not enough.'))
         elif identity_matches is True:
@@ -366,7 +415,9 @@ def uninstall() -> None:
         sudo_remove(destination, tr("Acrylic Glass translation removed: {language}",
                                     language=destination.parts[-3]))
     for so in (*_owned_effect_paths(system_dir / "kwin/effects/plugins"),
-               system_dir / "kwin/effects/configs/kwin_liquidglass_config.so"):
+               system_dir / "kwin/effects/configs/kwin_liquidglass_config.so",
+               *_owned_effect_paths(system_dir / "kwin-x11/effects/plugins"),
+               system_dir / "kwin-x11/effects/configs/kwin_liquidglass_config.so"):
         sudo_remove(so, so.name)
     # Drop user-path leftovers from old sudoless installs.
     for so in (LEGACY_USER_PLUGIN_DIR / "kwin/effects/plugins/liquidglass.so",

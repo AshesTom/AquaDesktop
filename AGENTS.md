@@ -463,8 +463,8 @@ is the guard against that regression returning.
 
 Preserve support for 6.6 and 6.7 when changing the 6.8 path. Acrylic Glass
 selects KWin ABI flags independently for Wayland and X11 from each backend's
-SDK version. `GLASS_KWIN_67` covers the blur protocol and paint signature
-changes; `GLASS_KWIN_68` selects the boolean `Effect::drawWindow()` return
+SDK version. X11 retains its legacy paint and blur ABI on 6.7;
+`GLASS_KWIN_67` covers Wayland blur protocol and paint signature changes; `GLASS_KWIN_68` selects the boolean `Effect::drawWindow()` return
 starting at 6.7.90 (the 6.8 beta). Keep these gates independent and use
 `kwin_version_compat.h` for the shared signatures.
 
