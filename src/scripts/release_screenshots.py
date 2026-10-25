@@ -111,6 +111,14 @@ def verify_desktop_window(case: str, windows: list[dict]) -> dict:
     return window
 
 
+def verify_icon_appearance(name: str, record: dict) -> None:
+    if name in ('boot', 'shutdown'):
+        return
+    mode = next(m for e in EDITIONS for m in MODES if name.startswith(f'{e}-{m}-'))
+    expected = 'MacTahoeLiquidKde-Icons-Regular-' + mode.capitalize()
+    require(record.get('appearance', {}).get('Icons') == expected, f'Wrong icon appearance: {name}')
+
+
 def validate(repo: Path, ref: str, bundle: Path, *, reviewed: bool = True) -> dict:
     from PIL import Image
     manifest = json.loads((bundle / 'manifest.json').read_text())
@@ -146,6 +154,7 @@ def validate(repo: Path, ref: str, bundle: Path, *, reviewed: bool = True) -> di
                                    if name == f'{e}-{m}-{c}')
         require(record['effect_build'] == manifest['effect_build'], f'Stale effect: {name}')
         require(record['appearance']['Plasma'] == 'MacTahoeLiquidKde-' + mode.capitalize(), f'Wrong appearance: {name}')
+        verify_icon_appearance(name, record)
         require(record['wallpaper'] == EDITIONS[edition][0], f'Wrong wallpaper: {name}')
         require(record['launcher_preset'] == EDITIONS[edition][1], f'Wrong launcher preset: {name}')
         require(record.get('stable_frames') is True, f'Unsettled capture: {name}')
@@ -296,6 +305,7 @@ def verify_committed(repo: Path, ref: str, *, tahoe: Path | None = None) -> dict
     require(not review.get('rejected') and review['approved'] == {n: r['sha256'] for n, r in manifest['frames'].items()},
             'Every release capture must be reviewed')
     for name, frame in manifest['frames'].items():
+        verify_icon_appearance(name, frame)
         if name.endswith(('-finder', '-showcase', '-about')):
             verify_desktop_window(name.rsplit('-', 1)[1], frame['windows'])
     committed_docs = set(git(repo, 'ls-tree', '--name-only', ref, '--', *SCREENSHOT_DOCS).splitlines())

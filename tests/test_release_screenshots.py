@@ -52,7 +52,9 @@ def capture(tmp_path, monkeypatch):
         else:
             edition, mode, case = next((e, m, c) for e in shots.EDITIONS for m in shots.MODES for c in shots.CASES
                                        if name == f'{e}-{m}-{c}')
-            record.update(effect_build=manifest['effect_build'], appearance={'Plasma': 'MacTahoeLiquidKde-' + mode.capitalize()},
+            record.update(effect_build=manifest['effect_build'], appearance={
+                              'Plasma': 'MacTahoeLiquidKde-' + mode.capitalize(),
+                              'Icons': 'MacTahoeLiquidKde-Icons-Regular-' + mode.capitalize()},
                           wallpaper=shots.EDITIONS[edition][0], launcher_preset=shots.EDITIONS[edition][1],
                           stable_frames=True, window_verified=True, windows=[{
                               'caption': 'About This Computer (preview)' if case == 'about' else 'Documents',
@@ -78,6 +80,23 @@ def test_capture_can_be_committed_without_invalidating_source(capture):
     assert shots.runtime_tree(repo, ref) == shots.runtime_tree(repo, final)
     assert shots.verify_committed(repo, final)['version'] == '1.2.3'
     assert 'installer-welcome_v4-' in (repo / 'TESTING.md').read_text()
+
+
+@pytest.mark.parametrize('mode', shots.MODES)
+def test_base_icons_cannot_replace_the_installed_regular_appearance(capture, mode):
+    repo, ref, bundle, manifest = capture
+    manifest['frames'][f'tahoe-{mode}-dock']['appearance']['Icons'] = 'MacTahoeLiquidKde-Icons'
+    write_json(bundle / 'manifest.json', manifest)
+    with pytest.raises(ValueError, match='Wrong icon appearance'):
+        shots.validate(repo, ref, bundle, reviewed=False)
+    # A matching review hash must not make the same bad provenance publishable.
+    review = json.loads((bundle / 'review.json').read_text())
+    review['manifest_sha256'] = shots.digest(bundle / 'manifest.json')
+    write_json(bundle / 'review.json', review)
+    shots.stage(repo, 'tahoe', bundle, manifest)
+    final = commit(repo)
+    with pytest.raises(ValueError, match='Wrong icon appearance'):
+        shots.verify_committed(repo, final)
 
 
 @pytest.mark.parametrize('path,content', [('VERSION', '1.2.4\n'), ('src/new-code.py', 'changed code\n')])

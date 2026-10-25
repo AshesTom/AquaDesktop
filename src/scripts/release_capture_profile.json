@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "vm_image_sha256": "0508f4b9ade6970a273d3917ed167323945bda5eb78ef10805264452f8eeaa2e",
-  "vm_description": "Sealed KDE neon reference guest, Plasma 6.8.1 / Qt 6.11.1, coherent offline SDK, verified Rounded Corners cache and desktop applications",
+  "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
+  "vm_description": "Sealed KDE neon reference guest, Plasma 6.8.1 / Qt 6.11.1, matching desktop applets and offline SDK, verified Rounded Corners cache and desktop applications",
   "resolution": [3840, 2160],
   "scale": 2,
   "locale": "en_US.UTF-8",

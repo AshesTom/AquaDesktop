@@ -146,15 +146,11 @@ def setup(repo, profile, edition):
 
 
 def mode(repo, requested):
-    import theme_switch
     from screenshot_checks import wait_for_session
     close()
-    if not theme_switch.apply(requested):
-        raise RuntimeError('Theme switch failed')
-    # The fixture owns this disposable home. Enforce the selected release GTK
-    # sheet before launching fresh clients, then verify all toolkit states.
-    source = Path.home() / '.themes' / ('MacTahoeLiquidKde-' + requested.capitalize()) / 'gtk-4.0/gtk.css'
-    shutil.copyfile(source, Path.home() / '.config/gtk-4.0/gtk.css')
+    # The installed command carries the edition and the user's icon choices;
+    # importing the source module would silently fall back to the base icons.
+    run(str(Path.home() / '.local/bin/mac-tahoe-theme-switch'), requested, timeout=180)
     return wait_for_session(requested)
 
 
@@ -251,9 +247,11 @@ def wizard(repo, page):
 
 def capture(repo, profile, edition, requested, case):
     from PIL import Image
-    from release_screenshots import EDITIONS, digest, verify_desktop_window
+    from release_screenshots import EDITIONS, digest, verify_desktop_window, verify_icon_appearance
     from screenshot_checks import wait_for_session, check_files_pixels
     state = wait_for_session(requested)
+    state['Icons'] = run('kreadconfig6', '--file', 'kdeglobals', '--group', 'Icons', '--key', 'Theme')
+    verify_icon_appearance(f'{edition}-{requested}-{case}', {'appearance': state})
     wallpaper = json.loads(plasma('print(JSON.stringify(desktops().map(d=>{'
         'd.currentConfigGroup=["Wallpaper","org.kde.image","General"];return d.readConfig("Image");})));'))
     expected_wallpaper = (Path.home() / '.local/share/wallpapers' / EDITIONS[edition][0]).as_uri()
