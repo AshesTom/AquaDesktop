@@ -46,8 +46,8 @@ def test_acrylic_glass_requests_only_present_backend_sdks(monkeypatch):
         ({"kwin_wayland"}, {"kwin-cmake:kwin"}),
         ({"kwin_x11"}, {"kwin-x11-cmake:kwin-x11"}),
         ({"kwin_wayland", "kwin_x11"},
-         {"kwin-cmake:kwin", "kwin-x11-cmake:kwin-x11"}),
-        (set(), {"kwin-cmake:kwin", "kwin-x11-cmake:kwin-x11"}),
+         {"kwin-cmake:kwin"}),
+        (set(), {"kwin-cmake:kwin"}),
     ):
         monkeypatch.setattr(acrylic_glass, "have", lambda binary: binary in binaries)
         kwin_dependencies = {dependency for dependency in acrylic_glass.deps()

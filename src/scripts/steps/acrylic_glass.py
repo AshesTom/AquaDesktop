@@ -78,9 +78,12 @@ def deps():
         # backend whose SDK is already present, without adding packages.
         wayland_available = session_type == "wayland"
         x11_available = session_type == "x11"
-    elif not wayland_available and not x11_available:
+    elif wayland_available or not x11_available:
+        # Without a live session, prefer Wayland when both commands exist.
+        # Some distros retain an X11 compatibility launcher after retiring
+        # the X11 SDK; its presence must not require an unavailable package.
         wayland_available = True
-        x11_available = True
+        x11_available = False
     if wayland_available:
         dependencies.append("kwin-cmake:kwin")
     if x11_available:
