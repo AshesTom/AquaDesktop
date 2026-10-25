@@ -43,6 +43,9 @@ def test_debian_container_uses_supported_sdk_and_both_runners(repo):
     assert "ARG DEBIAN_SUITE=testing-slim" in text
     assert "FROM debian:${DEBIAN_SUITE}" in text
     assert 'CMD ["python3", "tests/containers/run_in_container.py"]' in text
+    assert "ENV MTTKDE_X11_PLUGIN=/repo/build/container-cmake/acrylic-glass/src/liquidglass_x11.so" in text
+    for package in ("kwin-x11", "kwin-x11-dev", "xvfb", "x11-utils", "dbus-daemon"):
+        assert package in text
     assert "          - debian\n" in (repo / ".github/workflows/test.yml").read_text()
     assert "    debian\n" in (repo / "tests/containers/run_matrix.sh").read_text()
     # Neon uses different names for these SDKs; Debian must use its own.
