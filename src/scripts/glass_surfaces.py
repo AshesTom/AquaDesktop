@@ -14,6 +14,7 @@ PLASMA_SURFACES = (
 _TILES = ("center", "top", "bottom", "left", "right",
           "topleft", "topright", "bottomleft", "bottomright")
 _TAHOE_DARK_FILL = "0.82"
+_TAHOE_LAUNCHER_EDGE_OPACITY = {("#000000", .18): "0.08", ("#ffffff", .22): "0.10"}
 _SVG = "http://www.w3.org/2000/svg"
 _XLINK = "http://www.w3.org/1999/xlink"
 
@@ -72,6 +73,29 @@ def set_surface_fill(root: ET.Element, ids: tuple[str, ...], opacity: str,
             node.set("style", ";".join(f"{key}:{value}" for key, value in style.items()))
 
 
+def soften_launcher_tile_edges(root: ET.Element) -> None:
+    """Reduce repeated tile reflections that read as seams on the launcher."""
+    for node in surface_nodes(root, _TILES):
+        if node.tag.rsplit("}", 1)[-1] not in ("rect", "path", "polygon", "ellipse"):
+            continue
+        style = dict(part.split(":", 1) for part in node.get("style", "").split(";") if ":" in part)
+        fill = style.get("fill", node.get("fill"))
+        opacity = float(style.get("opacity", node.get("opacity", "1")))
+        fill_opacity = float(style.get("fill-opacity", node.get("fill-opacity", "1")))
+        effective = opacity * fill_opacity
+        target = next((value for (edge_fill, source_alpha), value
+                       in _TAHOE_LAUNCHER_EDGE_OPACITY.items()
+                       if fill == edge_fill and abs(effective - source_alpha) < .001), None)
+        if target is None:
+            continue
+        if "opacity" in style:
+            style["opacity"] = target
+        else:
+            node.set("opacity", target)
+        if style:
+            node.set("style", ";".join(f"{key}:{value}" for key, value in style.items()))
+
+
 def _write_svg(path: Path, root: ET.Element) -> None:
     ET.register_namespace("", _SVG)
     ET.register_namespace("xlink", _XLINK)
@@ -97,6 +121,8 @@ def apply_plasma_surface_defaults(theme: Path) -> None:
         path = theme / name
         root = ET.fromstring(gzip.decompress(path.read_bytes()))
         set_surface_fill(root, _TILES, opacity, color)
+        if not golden_gate and not light and name == "dialogs/launcher-search.svgz":
+            soften_launcher_tile_edges(root)
         if name == "dialogs/background.svgz" and not any(
                 node.get("id") == "hint-clear-surface" for node in root):
             ET.SubElement(root, f"{{{_SVG}}}rect", {

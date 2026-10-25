@@ -126,6 +126,29 @@ def test_tahoe_plasma_fills_follow_appearance_and_keep_white_text_readable(mode,
     assert staged[theme / "widgets/panel-background.svgz"] == before[theme / "widgets/panel-background.svgz"]
 
 
+def test_tahoe_dark_launcher_softens_repeated_tile_reflections(tmp_path, monkeypatch):
+    import glass_surfaces
+    monkeypatch.setattr(glass_surfaces, "default_wallpaper", lambda: "MacTahoe")
+    theme = tmp_path / "MacTahoeLiquidKde-Dark"
+    shutil.copytree(ROOT / theme.name, theme)
+    glass_surfaces.apply_plasma_surface_defaults(theme)
+    path = theme / "dialogs/launcher-search.svgz"
+    root = _xml(path)
+    edge_opacity = {}
+    for node in glass_surfaces.surface_nodes(root, glass_surfaces._TILES):
+        style = dict(part.split(":", 1) for part in node.get("style", "").split(";") if ":" in part)
+        fill = style.get("fill", node.get("fill"))
+        opacity = float(style.get("opacity", node.get("opacity", "1")))
+        fill_opacity = float(style.get("fill-opacity", node.get("fill-opacity", "1")))
+        edge_opacity.setdefault(fill, set()).add(round(opacity * fill_opacity, 2))
+    assert .82 in edge_opacity["#000000"]
+    assert .08 in edge_opacity["#000000"]
+    assert .10 in edge_opacity["#ffffff"]
+    staged = path.read_bytes()
+    glass_surfaces.apply_plasma_surface_defaults(theme)
+    assert path.read_bytes() == staged
+
+
 @pytest.mark.parametrize("mode", ["", "Dark"])
 def test_golden_gate_qt_menu_center_and_frame_follow_appearance(mode, tmp_path, monkeypatch):
     import glass_surfaces
