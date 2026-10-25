@@ -13,7 +13,7 @@ separation, highlights, grain, brightness, contrast, saturation and gradient.
 There is one smooth blur implementation. **Fine tuning** exposes the detailed
 controls without requiring a choice of blur algorithm.
 Both presets use a blur strength of 5 on the 0–20 scale, grain 1,
-RGB separation 12, magnification 0.1, and saturation 1.33. The refracted
+RGB separation 12, magnification 0.18, and saturation 1.33. The refracted
 edge is 18 wide, with highlight width 3.5 and strength 0.1. Brightness,
 contrast and material opacity remain 1. The gradient stays specific to
 each preset.

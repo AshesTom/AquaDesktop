@@ -52,7 +52,7 @@ xembedsniproxy</default>
             <default>12.0</default>
         </entry>
         <entry name="MagnifyGlassStrength" type="Double">
-            <default>0.1</default>
+            <default>0.18</default>
             <min>0.0</min>
             <max>0.25</max>
         </entry>

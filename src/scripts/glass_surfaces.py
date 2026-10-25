@@ -56,7 +56,7 @@ def set_surface_fill(root: ET.Element, ids: tuple[str, ...], opacity: str,
         # 0.18/0.22 edge reflections intact; changing those creates visible
         # tile seams and bright horizontal lines around the launcher.
         target_fills = ("#000000",) if color is None else ("#000000", "#ffffff")
-        prior_opacities = (.01, .1, .48, .55, .60, .62, .68, .82)
+        prior_opacities = (.01, .1, .45, .48, .55, .60, .62, .68, .82)
         if fill not in target_fills or not any(
                 abs(effective_alpha - value) < 0.001 for value in prior_opacities):
             continue

@@ -273,7 +273,7 @@ def test_golden_gate_shares_tahoe_optics_with_its_own_gradient(monkeypatch):
     assert float(golden["RgbDriftStrength"]) == float(rgb_default)
     assert float(tahoe["MagnifyGlassStrength"]) == float(golden["MagnifyGlassStrength"])
     assert float(tahoe["BlurStrength"]) == 5.0
-    assert float(tahoe["MagnifyGlassStrength"]) == float(lens_default) == 0.1
+    assert float(tahoe["MagnifyGlassStrength"]) == float(lens_default) == 0.18
     assert float(tahoe["RefractionWidth"]) == 18.0
     assert float(tahoe["PopupBrightness"]) == float(golden["PopupBrightness"]) == 0.75
 
