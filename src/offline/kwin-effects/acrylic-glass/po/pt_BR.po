@@ -92,6 +92,9 @@ msgstr "Somente janelas correspondentes"
 msgid "Optics"
 msgstr "Óptica"
 
+msgid "Popup brightness"
+msgstr "Brilho das janelas sobrepostas"
+
 msgid "Popups"
 msgstr "Janelas sobrepostas"
 

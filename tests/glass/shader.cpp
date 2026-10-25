@@ -258,7 +258,7 @@ int main(int argc, char **argv)
         require(std::abs(strongDomeShift) >= 4,
                 QStringLiteral("Default Dock lens must refract its interior, not only its rim (shift=%1)").arg(strongDomeShift));
 
-        // A Mac-style Dock is a wide, shallow lens. A horizontal backdrop
+        // The Dock is a wide, shallow lens. A horizontal backdrop
         // line crossing its optical centre must bend through the body rather
         // than remain a straight seam between rim-only refraction zones.
         shader.setUniformValue("offset", 0.0f);

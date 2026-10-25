@@ -92,6 +92,9 @@ msgstr "Nur passende Fenster"
 msgid "Optics"
 msgstr "Optik"
 
+msgid "Popup brightness"
+msgstr "Helligkeit von Einblendfenstern"
+
 msgid "Popups"
 msgstr "Einblendfenster"
 

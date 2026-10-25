@@ -153,11 +153,11 @@ def test_glass_refraction_uses_continuous_sdf_lens_normals_in_both_shader_profil
     assert "float domeProfile = domeBase * domeBase" in distort
     assert "float domeBase = max(1.0 - 0.72 * dot(normalizedPosition, normalizedPosition), 0.0)" in distort
     assert "vec2 domeGradient = -2.88 * domeBase * normalizedPosition / halfSize" in distort
-    assert "float domeDepth = minSurfaceSize * lensStrength * 1.5" in distort
+    assert "float domeDepth = minSurfaceSize * lensStrength * mix(1.5, 3.0, wideSurface)" in distort
     assert "domeDepth * domeGradient" in distort
     assert "domeOffsetPx" not in distort
-    assert "float maxDisplacementPx = min(max(refractionWidth * 0.8, minSurfaceSize * 0.06)" in distort
-    assert "minSurfaceSize * 0.08" in distort
+    assert "float maxDisplacementPx = min(max(refractionWidth * (dockSurface ? 1.6 : 0.8)," in distort
+    assert "minSurfaceSize * (dockSurface ? 0.65 : 0.08)" in distort
     assert "float limitBlend = smoothstep(limitStartPx, maxDisplacementPx, displacementPx)" in distort
     assert "if (displacementPx > maxDisplacementPx)" not in distort
     assert "float axisBlend = smoothstep(-axisBlendWidth, axisBlendWidth, q.x - q.y)" in sdf
