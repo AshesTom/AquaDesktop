@@ -113,7 +113,7 @@ def test_tahoe_plasma_fills_follow_appearance_and_keep_white_text_readable(mode,
             fill = image.pixelColor(32, 32)
             fills.append(fill)
         for fill in fills:
-            assert fill.alphaF() == pytest.approx(.68, abs=.005), name
+            assert fill.alphaF() == pytest.approx(.82, abs=.005), name
             assert fill.red() == fill.green() == fill.blue() == 0, name
         # White text remains above 7:1 contrast over a bright white backdrop.
         background = 1.0 - fill.alphaF()
@@ -175,7 +175,7 @@ def test_tahoe_qt_menu_fill_keeps_dark_textures_and_readable_labels(mode, tmp_pa
         renderer.render(painter, element, core.QRectF(0, 0, 64, 64))
         painter.end()
         fill = image.pixelColor(48, 48)
-        assert fill.alphaF() == pytest.approx(.68, abs=.005), element
+        assert fill.alphaF() == pytest.approx(.82, abs=.005), element
         assert fill.red() == 0, element
     staged = target.read_bytes()
     glass_surfaces.apply_kvantum_surface_defaults(target)
@@ -258,7 +258,7 @@ def test_shared_dialog_fills_keep_top_bar_clear(mode):
             if node.tag.endswith("}rect"):
                 style = dict(part.split(":", 1) for part in node.get("style", "").split(";") if ":" in part)
                 alpha = float(style.get("opacity", node.get("opacity", "1")))
-                assert alpha == pytest.approx(.68 if mode == "Dark" else .55)
+                assert alpha == pytest.approx(.82 if mode == "Dark" else .55)
         # The preset owns the colored gradient. The capsule may retain only
         # a faint edge reflection; a baked dark cap would also affect Tahoe.
         for node in root.iter():

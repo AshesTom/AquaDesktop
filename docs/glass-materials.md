@@ -36,7 +36,7 @@ including the gradient toggle and colors. Corners and window rules remain
 independent and are preserved.
 
 Tahoe Plasma applet popups, tooltips, Qt menus and the detached search capsule
-use a 55% white fill in light mode and a 68% black fill in dark mode. The dark
+use a 55% white fill in light mode and an 82% black fill in dark mode. The dark
 fill keeps white labels readable over bright wallpaper while allowing the blurred
 backdrop and refraction to show through. Tahoe's material gradient stays disabled
 by default; when enabled, it eases from 36% black at the top to 14% at the bottom.

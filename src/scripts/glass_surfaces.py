@@ -13,7 +13,7 @@ PLASMA_SURFACES = (
 )
 _TILES = ("center", "top", "bottom", "left", "right",
           "topleft", "topright", "bottomleft", "bottomright")
-_TAHOE_DARK_FILL = "0.68"
+_TAHOE_DARK_FILL = "0.82"
 _SVG = "http://www.w3.org/2000/svg"
 _XLINK = "http://www.w3.org/1999/xlink"
 
@@ -49,9 +49,13 @@ def set_surface_fill(root: ET.Element, ids: tuple[str, ...], opacity: str,
         alpha = style.get("opacity", node.get("opacity", "1"))
         fill_opacity = style.get("fill-opacity", node.get("fill-opacity", "1"))
         effective_alpha = float(alpha) * float(fill_opacity)
-        expected = (0.0, .1, .18, .22, .48, .55, .60, .68)
-        if fill not in ("#000000", "#ffffff") or not any(
-                abs(effective_alpha - value) < 0.001 for value in expected):
+        # Only update the broad surface fill. Keep the black and white
+        # 0.18/0.22 edge reflections intact; changing those creates visible
+        # tile seams and bright horizontal lines around the launcher.
+        target_fills = ("#000000",) if color is None else ("#000000", "#ffffff")
+        prior_opacities = (.01, .1, .48, .55, .60, .68, .82)
+        if fill not in target_fills or not any(
+                abs(effective_alpha - value) < 0.001 for value in prior_opacities):
             continue
         # Theme assets encode the reusable fill as rects inside each tile
         # group; update those leaves while leaving borders and highlights intact.
@@ -117,6 +121,6 @@ def apply_kvantum_surface_defaults(path: Path) -> None:
     else:
         # Keep Tahoe's dark menu fill opaque enough for white labels.
         opacity, color = (("0.55", None) if path.stem == "mac-tahoe-liquid-kde"
-                          else ("0.68", None))
+                          else (_TAHOE_DARK_FILL, None))
     set_surface_fill(root, ids, opacity, color)
     _write_svg(path, root)
