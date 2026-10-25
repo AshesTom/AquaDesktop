@@ -1000,16 +1000,66 @@ green   yellow   orange   red   purple   blue
 
 ## Testing
 
-`./test` runs the full pytest suite. Finish implementation changes before
-running relevant tests; follow the release-flow checks for code changes.
-A passing host suite is not sufficient when a change adds test dependencies: update
-and validate every container in the CI matrix. Never skip required tests or use
-`continue-on-error` to make CI green. Before reporting delivery, inspect the
-completed CI runs for the exact commits pushed to `main` and `dev`. Release
-publication requires successful push runs on both branches for that exact SHA;
-missing, pending, cancelled or failed checks must not authorize publication.
-Documentation-only edits do not require pytest or build checks. Honor explicit
-user instructions not to run tests, and never report unrun checks as passing.
+`./test` runs the full pytest suite. Apply the following scope policy before
+choosing that command or a focused subset.
+
+Cover all affected behavior and preserve complete CI coverage. Separate focused
+development checks, final integration checks, distro compatibility, and release
+evidence; they answer different questions and are not interchangeable.
+
+Before testing, briefly identify the changed behavior, its callers and shared
+dependencies, affected editions/backends/SDKs, and the checks that prove each
+claim. Use the actual diff, not just the issue title, to choose scope. Expand
+that scope when a failure or shared dependency reveals another affected path.
+
+| Change | Required focused validation |
+| --- | --- |
+| Wrapper, downloader or source selection | Wrapper suite, including local-source staging, release fallback and checksum/version handling where affected. |
+| Tahoe implementation | Component regressions and affected installer lifecycle paths in Tahoe; exercise the prepared Golden Gate source when edition staging can change the result. |
+| Defaults, materials or appearance | Affected editions, light/dark transitions, saved choices and relevant visual checks in a disposable VM. |
+| Native backend, ABI or distro packages | Build against the affected SDKs and test the changed backend on representative distros with distinct relevant SDK/package layouts. Record build, load and behavior results separately. |
+| Documentation or agent instructions only | Review consistency, references and `git diff --check`; no manual pytest, native builds or VM runs. |
+
+For an X11-only fix, test the affected component on at least two supported
+distros with X11 available, covering the relevant KWin ABI differences. Verify
+the intended module loads and the reported behavior is fixed in an isolated
+session. Include install/reinstall/uninstall regressions when those paths
+changed, and a Wayland regression check when shared code changed. A successful
+compile or plugin load alone does not prove rendering is correct. Missing X11
+support is a coverage gap, not a pass. Do not repeat unrelated desktop lifecycle
+qualification on every distro for this fix.
+
+Run focused checks while implementing; reserve broad integration runs for a
+stable candidate. Required CI supplies the complete suite and configured distro
+matrix on the final implementation commit. Do not also run the entire matrix
+locally unless CI cannot exercise the needed case or a failure needs local
+reproduction. Run the shared suite against the prepared source when staging
+changes executable behavior; a pin-only update to an already validated Tahoe
+commit needs wrapper/pin checks and affected staged regressions, not another
+identical full Tahoe run.
+
+Record commands or CI links, source commit/content, environment, results and
+coverage limits. Reuse passing development evidence while its code, inputs and
+environment remain unchanged. After a further edit, rerun the affected checks;
+broaden only for a concrete dependency, failure or coverage gap. New test
+dependencies must work in every affected CI image. Never duplicate a running
+matrix just to obtain the same evidence sooner. Once the planned checks pass
+and coverage gaps are resolved, stop testing unless new changes invalidate
+that evidence.
+
+For implementation delivery, inspect required CI results for the exact commits
+on both branches. Earlier-commit evidence never substitutes for the exact-SHA
+release gate: publication requires successful `test.yml` push runs on `main`
+and `dev` for each repository's exact release commit. Never weaken workflows,
+skip required checks or treat missing,
+cancelled or failed checks as success to shorten a task. Release screenshot
+capture and verification remain mandatory for every release.
+
+Documentation-only delivery does not require a version bump, pin update,
+release or new screenshots. Automatic push CI may still run; report its status
+accurately without launching duplicate checks or waiting for unrelated runtime
+jobs as proof of a prose edit. Honor explicit user testing constraints and
+report any resulting coverage gaps; never describe unrun checks as passed.
 
 Highlights:
 
