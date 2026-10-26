@@ -79,13 +79,13 @@ The desktop and its apps in light and dark mode.
 The Tahoe desktop in light and dark mode.
 
 <p align="center">
-  <a href="src/screenshots/showcase_light_4k-d5b89fdba166.png"><img src="src/screenshots/showcase_light_4k-d5b89fdba166.png" alt="Tahoe light desktop with Files focused" width="415"></a>
-  <a href="src/screenshots/desktop_about_light_4k-0b879f3f8f61.png"><img src="src/screenshots/desktop_about_light_4k-0b879f3f8f61.png" alt="Tahoe light desktop with About This Computer focused" width="415"></a>
+  <a href="src/screenshots/showcase_light_4k-d35bbe8834a1.png"><img src="src/screenshots/showcase_light_4k-d35bbe8834a1.png" alt="Tahoe light desktop with Files focused" width="415"></a>
+  <a href="src/screenshots/desktop_about_light_4k-e341bca5dd37.png"><img src="src/screenshots/desktop_about_light_4k-e341bca5dd37.png" alt="Tahoe light desktop with About This Computer focused" width="415"></a>
 </p>
 
 <p align="center">
-  <a href="src/screenshots/showcase_dark_4k-4f4e86f4f896.png"><img src="src/screenshots/showcase_dark_4k-4f4e86f4f896.png" alt="Tahoe dark desktop with Files focused" width="415"></a>
-  <a href="src/screenshots/desktop_about_dark_4k-d602e093e448.png"><img src="src/screenshots/desktop_about_dark_4k-d602e093e448.png" alt="Tahoe dark desktop with About This Computer focused" width="415"></a>
+  <a href="src/screenshots/showcase_dark_4k-0e3e5134bb50.png"><img src="src/screenshots/showcase_dark_4k-0e3e5134bb50.png" alt="Tahoe dark desktop with Files focused" width="415"></a>
+  <a href="src/screenshots/desktop_about_dark_4k-473b3477a7de.png"><img src="src/screenshots/desktop_about_dark_4k-473b3477a7de.png" alt="Tahoe dark desktop with About This Computer focused" width="415"></a>
 </p>
 
 <br>
@@ -95,8 +95,8 @@ The Tahoe desktop in light and dark mode.
 App search, favorites and categories with blurred glass and edge refraction. [Material settings](docs/glass-materials.md).
 
 <p align="center">
-  <img src="src/screenshots/launcher_preset_1_light-91a746e1ecc1.png" alt="Default Tahoe preset 1 in light mode, with integrated search and Tahoe wallpaper" width="415">
-  <img src="src/screenshots/launcher_preset_1_dark-270890093138.png" alt="Default Tahoe preset 1 in dark mode, with integrated search and Tahoe wallpaper" width="415">
+  <img src="src/screenshots/launcher_preset_1_light-4b1dda00f484.png" alt="Default Tahoe preset 1 in light mode, with integrated search and Tahoe wallpaper" width="415">
+  <img src="src/screenshots/launcher_preset_1_dark-be06ab6ac61f.png" alt="Default Tahoe preset 1 in dark mode, with integrated search and Tahoe wallpaper" width="415">
 </p>
 
 <br>
@@ -140,8 +140,8 @@ System controls and global menus for compatible apps.
 Hardware, software and theme details in About This Computer.
 
 <p align="center">
-  <img src="src/screenshots/about_v4-457cc36db029.png" alt="About This Computer in light mode" width="415">
-  <img src="src/screenshots/about_dark_v4-1994f933ba0b.png" alt="About This Computer in dark mode" width="415">
+  <img src="src/screenshots/about_v4-7ed6abf89ff5.png" alt="About This Computer in light mode" width="415">
+  <img src="src/screenshots/about_dark_v4-b77da716d67b.png" alt="About This Computer in dark mode" width="415">
 </p>
 
 <br>
