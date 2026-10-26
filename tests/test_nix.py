@@ -24,7 +24,7 @@ def test_nix_asset_assembly_matches_runtime_theme_names(repo, tmp_path, monkeypa
 
     scripts = tmp_path / "scripts"
     scripts.mkdir()
-    for name in ("glass_surfaces.py", "theme_switch.py", "launcher_defaults.py", "localization.py"):
+    for name in ("glass_surfaces.py", "theme_switch.py", "launcher_defaults.py", "localization.py", "window_controls.py"):
         shutil.copy2(repo / "src/scripts" / name, scripts / name)
     shutil.copytree(repo / "src/scripts/locales", scripts / "locales")
     (scripts / "defaults.json").write_text(json.dumps({"wallpaper": edition, "launcher_preset": 1}))
@@ -34,9 +34,16 @@ def test_nix_asset_assembly_matches_runtime_theme_names(repo, tmp_path, monkeypa
     share = tmp_path / "share"
     for mode in ("Light", "Dark"):
         name = f"MacTahoeLiquidKde-{mode}"
-        assert (share / "aurorae/themes" / name / f"{name}rc").is_file()
+        for prefix in ("MacTahoe", "MacGoldenGate"):
+            decoration = f"{prefix}LiquidKde-{mode}"
+            assert (share / "aurorae/themes" / decoration / f"{decoration}rc").is_file()
         assert (share / "plasma/look-and-feel" /
                 f"org.kde.mac-tahoe-liquid-kde.{mode.lower()}" / "metadata.json").is_file()
+        defaults = (share / "plasma/look-and-feel" /
+                    f"org.kde.mac-tahoe-liquid-kde.{mode.lower()}" / "contents/defaults").read_text()
+        assert f"theme=__aurorae__svg__{edition}LiquidKde-{mode}" in defaults
+        gtk_css = (share / "themes" / name / "gtk-3.0/gtk.css").read_text()
+        assert ('windows-assets/golden-gate-close-' in gtk_css) == (edition == "MacGoldenGate")
         assert (share / "themes" / name / "gtk-3.0/gtk.css").is_file()
         assert not list(share.rglob("*-ReducedTransparency"))
     assert not (share / "fonts").exists()

@@ -64,6 +64,8 @@ def install() -> None:
         if not (src / v).is_dir():
             continue
         if install_tree(src / v, DEST_DIR / v, v):
+            from window_controls import apply_gtk_controls
+            apply_gtk_controls(DEST_DIR / v)
             from theme_accent import apply as apply_accent
             apply_accent(DEST_DIR / v)
             from window_shadows import apply_gtk
