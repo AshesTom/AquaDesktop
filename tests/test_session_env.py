@@ -129,10 +129,12 @@ def test_explicit_session_values_are_preserved(session, monkeypatch, tmp_path):
 
 
 def test_recovery_uses_only_same_user_plasma_and_allowed_keys(session, monkeypatch):
-    process = session.plasmashell(DISPLAY=":8", LD_PRELOAD="/untrusted.so")
+    process = session.plasmashell(DISPLAY=":8", LD_PRELOAD="/untrusted.so",
+                                 GTK3_MODULES="appmenu-gtk-module")
     monkeypatch.delenv("LD_PRELOAD", raising=False)
     utils.restore_desktop_session_env()
     assert os.environ["DISPLAY"] == ":8"
+    assert os.environ["GTK3_MODULES"] == "appmenu-gtk-module"
     assert "LD_PRELOAD" not in os.environ
 
     monkeypatch.delenv("DISPLAY")

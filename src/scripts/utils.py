@@ -278,6 +278,9 @@ _DESKTOP_ENV_KEYS = frozenset({
     "XDG_MENU_PREFIX",
     "XDG_RUNTIME_DIR",
     "XDG_SESSION_TYPE",
+    # GTK's appmenu lifetime reference is part of the logged-in session.
+    # SSH-launched desktop apps need it too, across live theme changes.
+    "GTK3_MODULES",
 })
 _PROC_ROOT = Path("/proc")
 

@@ -201,6 +201,8 @@ class Guest:
         self.phase('uninstall', f'cd {WORKTREE} && sudo env MTTKDE_NO_CONFIRM=1 '
                    'MAC_TAHOE_NO_UPDATE_CHECK=true ./src/scripts/installer_backend.py uninstall', timeout=900)
         self.probe('uninstalled', 'uninstalled')
+        self.phase('firefox-after-uninstall', self.desktop_command(
+            'python3 tests/vm/desktop_apps.py --check-browser'), timeout=90)
         self.screenshot('uninstalled')
         self.report.update(status='pass', finished=now())
         self.save()
