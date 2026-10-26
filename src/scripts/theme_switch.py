@@ -49,6 +49,12 @@ def default_wallpaper() -> str:
     return DEFAULT_WALLPAPER
 
 
+def decoration_theme(mode: str) -> str:
+    """Use the installed edition for manual, login and scheduled switches."""
+    variant = "Light" if mode == "light" else "Dark"
+    return f"{default_wallpaper()}LiquidKde-{variant}"
+
+
 def _have(cmd: str) -> bool:
     return shutil.which(cmd) is not None
 
@@ -1005,7 +1011,7 @@ GTK4_ADAPTIVE_CSS = """/* mac-tahoe-liquid-kde: adaptive GTK 4 */
 """
 
 
-def gtk4_legacy_adaptive_css(source: str) -> str:
+def gtk4_legacy_adaptive_css(source: str, mode: str = "light") -> str:
     """Keep libadwaita's live palette on GTK versions without media queries.
 
     The installed GTK theme still supplies concrete colors for plain GTK apps.
@@ -1022,6 +1028,12 @@ def gtk4_legacy_adaptive_css(source: str) -> str:
         source = re.sub(rf"(?m)^@define-color sidebar_{suffix}_color [^;]+;",
                         f"@define-color sidebar_{suffix}_color @window_{suffix}_color;",
                         source)
+    # GTK < 4.20 cannot select asset URLs with prefers-color-scheme. Keep the
+    # live libadwaita palette, but select our literal button artwork explicitly.
+    if mode not in ("light", "dark"):
+        raise ValueError("Unknown GTK appearance")
+    source = re.sub(r'(windows-assets/golden-gate-[\w-]+)-(?:light|dark)(\.svg)',
+                    lambda match: match[1] + "-" + mode + match[2], source)
     return "/* mac-tahoe-liquid-kde: adaptive legacy GTK 4 */\n" + source
 
 
@@ -1154,8 +1166,9 @@ def _gtk4_css_is_replaceable(path: Path, themes_root: Path) -> bool:
                 and cached_adaptive.is_file()
                 and cached_adaptive.read_text(encoding="utf-8").strip() == text):
             return True
-        if cached_light.is_file() and gtk4_legacy_adaptive_css(
-                cached_light.read_text(encoding="utf-8")).strip() == text:
+        if cached_light.is_file() and any(gtk4_legacy_adaptive_css(
+                cached_light.read_text(encoding="utf-8"), mode).strip() == text
+                for mode in ("light", "dark")):
             return True
     except OSError:
         pass
@@ -1171,7 +1184,8 @@ def _gtk4_css_is_replaceable(path: Path, themes_root: Path) -> bool:
                     source = candidate.read_text(encoding="utf-8")
                     if source.strip() == text:
                         return True
-                    if name == "gtk-Light.css" and gtk4_legacy_adaptive_css(source).strip() == text:
+                    if name == "gtk-Light.css" and any(gtk4_legacy_adaptive_css(source, mode).strip() == text
+                                                      for mode in ("light", "dark")):
                         return True
             except OSError:
                 continue
@@ -1247,7 +1261,7 @@ def _apply_local_extras(mode: str) -> None:
                     else:
                         adaptive = gtk4_dest / "gtk-AdaptiveLegacy.css"
                         adaptive.write_text(gtk4_legacy_adaptive_css(
-                            (gtk4_dest / "gtk-Light.css").read_text(encoding="utf-8")),
+                            (gtk4_dest / "gtk-Light.css").read_text(encoding="utf-8"), mode),
                             encoding="utf-8")
                     target = adaptive.name
                     if gtk4_css.is_symlink() or gtk4_css.exists():
@@ -1277,11 +1291,13 @@ def write_kde_theme_config(
     if mode == "dark":
         laf, icon, cursor = LAF_DARK, "MacTahoeLiquidKde-Icons-dark", "MacTahoeLiquidKde-Dark"
         scheme, plasma = "MacTahoeLiquidKdeDark", "MacTahoeLiquidKde-Dark"
-        widget, aurorae = KVANTUM_STYLE, "__aurorae__svg__MacTahoeLiquidKde-Dark"
+        widget = KVANTUM_STYLE
     else:
         laf, icon, cursor = LAF_LIGHT, "MacTahoeLiquidKde-Icons", "MacTahoeLiquidKde"
         scheme, plasma = "MacTahoeLiquidKdeLight", "MacTahoeLiquidKde-Light"
-        widget, aurorae = KVANTUM_STYLE, "__aurorae__svg__MacTahoeLiquidKde-Light"
+        widget = KVANTUM_STYLE
+
+    aurorae = "__aurorae__svg__" + decoration_theme(mode)
 
     # Ask KDE to apply the palette while kdeglobals still names the outgoing
     # scheme.  If we stamp General/ColorScheme first, KDE can conclude the

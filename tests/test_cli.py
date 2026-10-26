@@ -228,6 +228,25 @@ def test_verify_config_reads_other_layers_when_key_is_absent(
     assert reads == [("kdeglobals", "Icons", "Theme")]
 
 
+@pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate"])
+def test_verifier_checks_decoration_edition(cli_module, monkeypatch, sandbox, edition):
+    import theme_switch
+    monkeypatch.setattr(theme_switch, "default_wallpaper", lambda: edition)
+    failures = []
+    monkeypatch.setattr(cli_module, "fail", failures.append)
+    monkeypatch.setattr(cli_module, "ok", lambda message: None)
+    features = {key: key == "window_decorations" for key, *_ in cli_module._VERIFY_CHECKS}
+    config = sandbox / ".config/kwinrc"
+    for mode in ("Light", "Dark"):
+        config.write_text(f"[org.kde.kdecoration2]\ntheme=__aurorae__svg__{edition}LiquidKde-{mode}\n")
+        cli_module.verify_config(features)
+        assert not failures
+    other = "MacTahoe" if edition == "MacGoldenGate" else "MacGoldenGate"
+    config.write_text(f"[org.kde.kdecoration2]\ntheme=__aurorae__svg__{other}LiquidKde-Light\n")
+    cli_module.verify_config(features)
+    assert len(failures) == 1
+
+
 # ── install order — the inter-step dependency graph ───────────────────
 
 

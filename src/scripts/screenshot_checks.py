@@ -63,7 +63,7 @@ def check_session(mode: str, *, home: Path | None = None) -> dict[str, str]:
             raise AppearanceMismatch(f'GTK 4 adaptive sheet imports stale {mode} CSS')
     elif actual.startswith('/* mac-tahoe-liquid-kde: adaptive legacy GTK 4 */'):
         source = home / '.themes' / theme / 'gtk-4.0/gtk-Light.css'
-        if actual != gtk4_legacy_adaptive_css(source.read_text()).strip():
+        if actual != gtk4_legacy_adaptive_css(source.read_text(), mode).strip():
             raise AppearanceMismatch('GTK 4 legacy adaptive sheet is stale or customized')
     elif actual != wanted:
         raise AppearanceMismatch(f'GTK 4 stylesheet differs from {theme}; stale or custom CSS must be reviewed')
