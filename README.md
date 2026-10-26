@@ -203,6 +203,14 @@ gallery; browse the screenshots on GitHub, or use a Git checkout for the complet
 offline documentation. Installer previews, theme assets, tests and license notices
 remain bundled. Git checkouts retain their history as they are updated.
 
+On launch, a clean Git checkout updates to the latest published release before
+opening the wizard. The updater verifies the release tag and its `VERSION`, and
+fast-forwards only; local edits or divergent history are preserved. Updating
+the installer does not apply the theme: review the wizard choices and confirm
+the installation. Reinstalls preserve Dock and panel customization unless you
+select **Reset Dock and panel customization**.
+`MAC_TAHOE_NO_UPDATE_CHECK=true` disables the update check.
+
 Install and uninstall through one graphical wizard:
 
 ```bash

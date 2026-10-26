@@ -459,25 +459,39 @@ def _repo_is_clean_git_checkout() -> bool:
 
 
 def auto_update_and_reexec(argv: list[str], prog: str = "install") -> None:
-    """Pull the newer release and re-exec ``./install`` — a git pull can't
-    upgrade the already-loaded installer. ``MAC_TAHOE_UPDATED`` guards against
-    a pull/re-exec loop; every bail falls through to installing the current
-    version with a one-line reason and the manual command."""
-    if os.environ.get("MAC_TAHOE_UPDATED") == "1":
-        return  # already re-exec'd after a successful pull; just install
+    """Fast-forward to a verified published version before opening the wizard.
+
+    Never follow an unpublished branch tip or update during a GUI transaction.
+    Offline, dirty and divergent checkouts retain their current source.
+    """
+    if (os.environ.get("MAC_TAHOE_UPDATED") == "1"
+            or os.environ.get("MAC_TAHOE_NO_UPDATE_CHECK", "").lower() == "true"):
+        return
+    latest = fetch_latest_release()
+    if (not latest or not re.fullmatch(r"\d+\.\d+\.\d+", latest)
+            or parse_semver(latest) <= parse_semver(read_version())):
+        return
 
     if not _repo_is_clean_git_checkout():
         note(tr('Not a clean git checkout — skipping auto-update'))
         print(tr('  \x1b[2mUpdate manually: git pull && ./{prog}\x1b[0m', prog=prog))
         return
 
-    print(tr('  \x1b[2mPulling the latest release…\x1b[0m'))
-    pull = _git("pull", "--ff-only", capture=True)
-    if pull is None or pull.returncode != 0:
-        warn(tr('git pull failed — installing the current version'))
-        if pull is not None and pull.stderr:
-            print(f"  \033[2m{pull.stderr.strip().splitlines()[-1]}\033[0m")
-        print(tr('  \x1b[2mUpdate manually: git pull && ./{prog}\x1b[0m', prog=prog))
+    def git_ok(*args):
+        result = _git(*args, capture=True)
+        return result if result is not None and result.returncode == 0 else None
+
+    repository = "https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde.git"
+    fetched = git_ok("fetch", "--no-tags", repository, "refs/tags/v" + latest)
+    target = git_ok("rev-parse", "FETCH_HEAD^{commit}") if fetched is not None else None
+    commit = target.stdout.strip() if target is not None else ""
+    version = git_ok("show", commit + ":VERSION") if re.fullmatch(r"[0-9a-f]{40}", commit) else None
+    if (version is None or version.stdout.strip() != latest
+            or git_ok("merge-base", "--is-ancestor", "HEAD", commit) is None
+            or not _repo_is_clean_git_checkout()
+            or git_ok("merge", "--ff-only", commit) is None):
+        warn(tr('Could not apply the published update — keeping the current checkout'))
+        print("  https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases/tag/v" + latest)
         return
 
     ok(tr('Updated to {value1} — restarting installer', value1=read_version()))

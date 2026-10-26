@@ -817,6 +817,10 @@ def main(argv: list[str]) -> int:
         print(json.dumps(update_status(), ensure_ascii=False))
         return 0
 
+    if not args.uninstall:
+        from cli import auto_update_and_reexec
+        auto_update_and_reexec([], prog="installer")
+
     return launch_preview(True) if args.uninstall else launch_preview()
 
 

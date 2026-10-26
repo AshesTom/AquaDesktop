@@ -459,6 +459,8 @@ def test_auto_update_bails_when_not_a_clean_git_checkout(cli_module, monkeypatch
     """A tarball install / dirty tree must fall back to installing the
     current version, never pull."""
     monkeypatch.delenv("MAC_TAHOE_UPDATED", raising=False)
+    monkeypatch.delenv("MAC_TAHOE_NO_UPDATE_CHECK", raising=False)
+    monkeypatch.setattr(cli_module, "fetch_latest_release", lambda: "99.0.0")
     monkeypatch.setattr(cli_module, "_repo_is_clean_git_checkout", lambda: False)
     pull_calls: list = []
     monkeypatch.setattr(cli_module, "_git",
@@ -476,6 +478,8 @@ def test_auto_update_bails_when_pull_fails(cli_module, monkeypatch):
     """If git pull fails (conflict, offline, detached), install the
     current version instead of re-exec'ing into a half-updated tree."""
     monkeypatch.delenv("MAC_TAHOE_UPDATED", raising=False)
+    monkeypatch.delenv("MAC_TAHOE_NO_UPDATE_CHECK", raising=False)
+    monkeypatch.setattr(cli_module, "fetch_latest_release", lambda: "99.0.0")
     monkeypatch.setattr(cli_module, "_repo_is_clean_git_checkout", lambda: True)
 
     class _Fail:
@@ -496,6 +500,8 @@ def test_auto_update_pulls_and_reexecs_install(cli_module, monkeypatch):
     """Happy path: clean checkout + successful pull → set the recursion
     guard and re-exec ./install with the same argv."""
     monkeypatch.delenv("MAC_TAHOE_UPDATED", raising=False)
+    monkeypatch.delenv("MAC_TAHOE_NO_UPDATE_CHECK", raising=False)
+    monkeypatch.setattr(cli_module, "fetch_latest_release", lambda: "99.0.0")
     monkeypatch.setattr(cli_module, "_repo_is_clean_git_checkout", lambda: True)
 
     class _Ok:
@@ -503,7 +509,15 @@ def test_auto_update_pulls_and_reexecs_install(cli_module, monkeypatch):
         stdout = ""
         stderr = ""
 
-    monkeypatch.setattr(cli_module, "_git", lambda *a, **k: _Ok())
+    def fake_git(*args, **kwargs):
+        result = _Ok()
+        if args[0] == "rev-parse":
+            result.stdout = "a" * 40
+        elif args[0] == "show":
+            result.stdout = "99.0.0"
+        assert args[0] != "pull"
+        return result
+    monkeypatch.setattr(cli_module, "_git", fake_git)
 
     execv_args: list = []
     monkeypatch.setattr(cli_module.os, "execv",
