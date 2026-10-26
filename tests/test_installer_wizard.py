@@ -53,6 +53,23 @@ def test_preserve_options_and_mandatory_components():
     assert not actual["sddm"]
 
 
+@pytest.mark.parametrize("existing", [False, True])
+@pytest.mark.parametrize("reset", [False, True])
+def test_layout_reset_is_explicit_on_reinstall(existing, reset):
+    import cli
+    selected = choices.defaults() | {"reset_layout": reset}
+    actual = choices.features(selected, cli.DEFAULT_FEATURES, existing_install=existing)
+    assert actual["layout"] == (not existing or reset)
+    assert actual["plasmoids"] and actual["apply_theme"]
+    assert not choices.defaults()["reset_layout"]
+
+
+def test_keep_file_manager_excludes_nautilus_and_bookmarks():
+    import cli
+    actual = choices.features(choices.defaults() | {"files": "keep"}, cli.DEFAULT_FEATURES)
+    assert not actual["nautilus"] and not actual["nautilus_bookmarks"]
+
+
 def test_choices_survive_privilege_boundary_as_one_quoted_argument(monkeypatch):
     import installer_ui
     monkeypatch.setattr(installer_ui.shutil, "which", lambda _: "/usr/bin/pkexec")
@@ -148,6 +165,8 @@ from PyQt6.QtTest import QTest
 from installer_ui import _make_installer_bridge
 from wizard_window import InstallerWindow, ChoiceCard, STEPS, ASSETS
 import installer_choices
+import cli
+cli._theme_is_already_installed = lambda: False
 installer_choices.edition_name = lambda: sys.argv[1]
 app = QApplication([])
 from PyQt6.QtGui import QPalette, QColor
@@ -354,6 +373,21 @@ bookmarks = window.bookmarks
 bookmarks.setChecked(False)
 window.select('files', 'dolphin'); assert not bookmarks.isVisible()
 window.select('files', 'nautilus'); assert bookmarks.isVisible() and not bookmarks.isChecked()
+window.content.findChild(RadioOption, 'choice-files-keep').click(); app.processEvents()
+assert window.choices['files'] == 'keep' and not bookmarks.isVisible()
+assert not any(card.isChecked() for card in window.content.findChildren(ChoiceCard))
+window.page = 'summary'; window.render(); app.processEvents()
+assert window.choices['files'] == 'keep'
+window.existing_install = True
+window.page = 'layout'; window.render(); app.processEvents()
+cards = window.content.findChildren(ChoiceCard)
+assert all(not card.isEnabled() for card in cards)
+reset = window.content.findChild(CheckOption, 'choice-reset_layout')
+reset.click(); app.processEvents()
+assert window.choices['reset_layout'] and all(card.isEnabled() for card in cards)
+reset.click(); app.processEvents()
+assert not window.choices['reset_layout'] and all(not card.isEnabled() for card in cards)
+assert window.scroll.verticalScrollBar().maximum() == 0
 window.page = 'oled'; window.render(); app.processEvents()
 spins = window.content.findChildren(QSpinBox)
 window.select('oled_care', True); assert all(spin.isEnabled() for spin in spins)

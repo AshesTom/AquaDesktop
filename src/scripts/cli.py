@@ -637,7 +637,7 @@ def _theme_is_already_installed() -> bool:
     The explicit state markers cover current releases. The binary, look-and-
     feel packages and applet IDs recognize older installs that predate those
     markers, so an upgrade defaults to preserving the user's wallpaper
-    choices. Layout is rebuilt separately while carrying taskbar pins across.
+    choices. The wizard also uses this to preserve existing panel layouts.
     """
     home = Path.home()
     candidates = (
@@ -1226,12 +1226,14 @@ def run_install(argv: list[str],
         return 1
     check_cancelled()
 
+    existing_install = _theme_is_already_installed()
     feat = apply_overrides(load_features(), parsed)
     if parsed.wizard_options is not None:
         from installer_choices import features
-        feat = features(parsed.wizard_options, DEFAULT_FEATURES)
+        feat = features(parsed.wizard_options, DEFAULT_FEATURES,
+                        existing_install=existing_install)
         os.environ["MTTKDE_WIZARD_OPTIONS"] = json.dumps(parsed.wizard_options)
-    feat["_existing_install"] = _theme_is_already_installed()
+    feat["_existing_install"] = existing_install
     export_env(feat)
 
     if parsed.preflight_only:

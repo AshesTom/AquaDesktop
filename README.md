@@ -270,6 +270,16 @@ The default option is always first and selected. Opening the other edition start
 with that repository's defaults, including its wallpaper and launcher. Choosing
 **Keep my icons**, **Keep my wallpaper** or **Keep my fonts** preserves those choices.
 
+Reinstalling preserves the current Dock and panel layout, including sizes,
+autohide and widgets. Select **Reset Dock and panel customization** to rebuild
+the selected top bar and Dock while carrying pinned apps across. A first
+installation creates the selected layout automatically.
+
+The file-manager step explicitly offers **Install Nautilus**, **Use Dolphin**,
+or **Skip Nautilus and keep my file manager**. The latter preserves the current
+file associations and skips the Nautilus package and setup. These choices apply
+to the current installation; already-installed applications are not removed.
+
 The global menu, window theme, cursors, sounds, Qt/GTK styles and file dialogs are
 included. The theme is applied immediately after installation.
 

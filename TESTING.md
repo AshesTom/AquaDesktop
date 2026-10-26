@@ -1,6 +1,6 @@
 # Installer testing
 
-Native installer screens for Tahoe 0.61.3, captured in a disposable KDE Plasma VM.
+Native installer screens for Tahoe 0.61.4, captured in a disposable KDE Plasma VM.
 Dark appearance was selected for this installation test.
 The gallery is captured from the release source and reviewed before publication.
 Release checks cover both editions, theme switching, installation, reboot and removal.

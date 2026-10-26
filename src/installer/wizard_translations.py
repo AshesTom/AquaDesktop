@@ -3,7 +3,19 @@
 from localization import effective_language, translate
 
 # English | Spanish | Simplified Chinese | Brazilian Portuguese | German
-_ROWS = '''Minimize|Minimizar|最小化|Minimizar|Minimieren
+_ROWS = '''Install Nautilus as your file manager?|¿Instalar Nautilus como administrador de archivos?|将 Nautilus 安装为文件管理器？|Instalar o Nautilus como gerenciador de arquivos?|Nautilus als Dateimanager installieren?
+Install Nautilus|Instalar Nautilus|安装 Nautilus|Instalar Nautilus|Nautilus installieren
+Install and use as the default file manager.|Instalar y usar como administrador de archivos predeterminado.|安装并设为默认文件管理器。|Instalar e usar como gerenciador de arquivos padrão.|Installieren und als Standard-Dateimanager verwenden.
+Use Dolphin|Usar Dolphin|使用 Dolphin|Usar Dolphin|Dolphin verwenden
+Skip Nautilus and use KDE's file manager.|Omitir Nautilus y usar el administrador de KDE.|跳过 Nautilus，使用 KDE 文件管理器。|Ignorar o Nautilus e usar o gerenciador do KDE.|Nautilus überspringen und den KDE-Dateimanager verwenden.
+Skip Nautilus and keep my file manager|Omitir Nautilus y conservar mi administrador de archivos|跳过 Nautilus 并保留当前文件管理器|Ignorar o Nautilus e manter meu gerenciador de arquivos|Nautilus überspringen und meinen Dateimanager beibehalten
+Keep my file manager|Conservar mi administrador de archivos|保留当前文件管理器|Manter meu gerenciador de arquivos|Meinen Dateimanager beibehalten
+Reset Dock and panel customization|Restablecer la personalización del Dock y los paneles|重置程序坞和面板自定义设置|Redefinir personalizações do Dock e dos painéis|Anpassungen von Dock und Leisten zurücksetzen
+Reinstall keeps your layout, sizes, hiding behavior and widgets unless reset is selected.|La reinstalación conserva la distribución, los tamaños, la ocultación y los widgets salvo que elijas restablecerlos.|重新安装会保留布局、大小、隐藏方式和组件，除非选择重置。|A reinstalação mantém o layout, tamanhos, ocultação e widgets, salvo se você escolher redefini-los.|Bei der Neuinstallation bleiben Anordnung, Größen, Ausblendverhalten und Miniprogramme erhalten, sofern du sie nicht zurücksetzt.
+The current launcher setup is kept unless you reset the layout.|Se conserva la configuración del launcher salvo que restablezcas la distribución.|除非重置布局，否则保留当前启动器设置。|A configuração atual do lançador é mantida, salvo se você redefinir o layout.|Die aktuelle Starter-Konfiguration bleibt erhalten, sofern du die Anordnung nicht zurücksetzt.
+Keep current layout|Conservar distribución actual|保留当前布局|Manter layout atual|Aktuelle Anordnung beibehalten
+Reset layout|Restablecer distribución|重置布局|Redefinir layout|Anordnung zurücksetzen
+Minimize|Minimizar|最小化|Minimizar|Minimieren
 Maximize|Maximizar|最大化|Maximizar|Maximieren
 Restore|Restaurar|还原|Restaurar|Wiederherstellen
 Express install|Instalación rápida|快速安装|Instalação rápida|Schnellinstallation

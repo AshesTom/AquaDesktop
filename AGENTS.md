@@ -207,7 +207,7 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
 - Top panel is applets-only floating (not full-floating). Keep the menu bar
   backgroundless, including behind its individual applets.
 - The bottom Dock uses `autohide` in all three bundled layouts (issue #87).
-  Reinstall rebuilds the Dock with this mode while preserving pinned apps;
+  An explicitly requested layout reset rebuilds the Dock with this mode while preserving pinned apps;
   the scripting API persists visibility, so no extra config patch is needed.
 - Category switcher must support both mouse drag and wheel scroll.
 
@@ -308,6 +308,15 @@ are not desktop documentation screenshots. Generated appearances are opt-in
 build artifacts; the tool must not change live themes or installer defaults.
 
 ## Architecture — Auto-Update on Install
+
+The wizard preserves existing Dock/panel geometry, hiding behavior, widgets and
+launcher configuration unless **Reset Dock and panel customization** is selected.
+Determine whether this is an existing installation before copying any assets;
+skip both layout creation and its post-restart retry when preserving. Fresh
+installs still create the selected layout. File-manager choices explicitly offer
+Nautilus, Dolphin, or keeping the current manager; keeping it skips Nautilus
+dependencies/setup and leaves MIME associations untouched. Choices remain scoped
+to one transaction.
 
 `./install` checks GitHub releases on every launch.
 `MAC_TAHOE_NO_UPDATE_CHECK=true` skips the check; `--check-update`
@@ -896,7 +905,7 @@ a genuine missing package and fails CI.
 | `gtk.py`                      | GTK 2/3/4 theme. |
 | `icons.py`                    | macOS-style icon set. |
 | `kvantum.py`                  | Kvantum Qt widget style. |
-| `layout.py`                   | Top panel + dock layout. Rebuilt on every install from the user's existing pinned apps, adding only the Mac Launcher/Trash widgets; uninstall always removes the Mac top bar/Dock and restores those pins on the Breeze panel. May be retried once after `restart_plasma` if the first pass raced plasmashell's plugin discovery. |
+| `layout.py`                   | Top panel + dock layout. First installs and explicit wizard layout resets rebuild it from the user's pinned apps; wizard reinstalls preserve the current layout by default. Uninstall removes the Mac top bar/Dock and restores pins on the Breeze panel. Only requested rebuilds may be retried after `restart_plasma`. |
 | `nautilus.py`                 | Nautilus integration (file manager set as default on KDE for users who prefer it). |
 | `oled_care.py` (step)         | Installs the opt-in OLED-care binary + systemd user timer or OpenRC cron entry; flag off tears them down; uninstall restores panel geometry. |
 | `plasma_theme.py`             | Translucent panels and dock SVGs. |
@@ -995,7 +1004,7 @@ green   yellow   orange   red   purple   blue
 | `plasma-apply-lookandfeel` `--keep-auto`       | Required so the LaF apply doesn't blow away the user's color-scheme follow-the-system preference. |
 | `pacman-key` on stale CachyOS images           | Container Dockerfile must run `pacman-key --init && pacman-key --populate archlinux cachyos` before `pacman -Sy archlinux-keyring cachyos-keyring`. |
 | Apps vanish from launcher after theme switch   | `kbuildsycoca6` reads the app list from `mimeinfo.cache`; rebuilding sycoca against a stale cache drops apps. `_flush_caches()` runs `update-desktop-database` on both the user and system `applications/` dirs BEFORE `kbuildsycoca6` (`desktop-file-utils` is a base dep). |
-| Pinned taskbar apps wiped during layout rebuild | Both install and uninstall rebuild panels from scratch. `layout.py` captures every `launchers=` list from appletsrc first (deduped, minus our own plasmoids), writes it onto the new Mac Dock during install, and restores it onto the default Breeze icontasks during uninstall. The Mac layout itself adds no application launchers. |
+| Pinned taskbar apps wiped during layout rebuild | First installs, explicit layout resets and uninstall rebuild panels from scratch. `layout.py` captures every `launchers=` list from appletsrc first (deduped, minus our own plasmoids), writes it onto the new Mac Dock during install, and restores it onto the default Breeze icontasks during uninstall. Wizard updates otherwise preserve the existing layout. |
 | GTK popups never get compositor blur           | Client-side popups (Firefox menus, popovers) receive no KWin blur, so GTK CSS popup surfaces must keep mirrored light/dark rgba alpha — literal `transparent` renders see-through (issue #11). The gtk-4.0 sheets must also define every libadwaita named color they reference; only libadwaita apps define those at runtime. `test_static.py` guards both. |
 
 ## Testing

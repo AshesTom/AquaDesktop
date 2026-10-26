@@ -110,7 +110,9 @@ def setup(repo, profile, edition):
     # Every edition starts from the same read-only VM image, then installs the
     # exact exported release sources. No package upgrade or host install occurs.
     from installer_choices import defaults
-    choices = defaults() | {'appearance': 'light'}
+    # The fixed profile explicitly recreates its layout even if the sealed VM
+    # contains an earlier installation. Normal reinstalls preserve it by default.
+    choices = defaults() | {'appearance': 'light', 'reset_layout': True}
     command = ['sudo', 'env', 'MAC_TAHOE_NO_UPDATE_CHECK=true', 'MTTKDE_NO_CONFIRM=1',
                str(repo / 'src/scripts/installer_backend.py'), 'install',
                '--wizard-options', json.dumps(choices)]

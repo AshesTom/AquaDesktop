@@ -18,7 +18,7 @@ ENUMS = {
     "color": tuple(COLORS),
     "wallpaper": ("tahoe", "golden", "landscape", "sonoma", "keep", "custom"),
     "launcher": ("tahoe", "golden"),
-    "files": ("nautilus", "dolphin"),
+    "files": ("nautilus", "dolphin", "keep"),
 }
 WALLPAPERS = {
     "tahoe": ("MacTahoe", "MacTahoe"),
@@ -32,7 +32,7 @@ def defaults() -> dict:
     edition = "golden" if edition_name() == "MacGoldenGate" else "tahoe"
     return dict(
         appearance="auto", icons="regular", color="blue", wallpaper=edition,
-        wallpaper_path="", launcher=edition, panel=True, dock=True,
+        wallpaper_path="", launcher=edition, panel=True, dock=True, reset_layout=False,
         acrylic_glass=True, rounded_corners=True, fonts=True, firefox=True,
         files="nautilus", nautilus_bookmarks=True, plymouth=True,
         oled_care=False, oled_interval=5, oled_max_shift=8,
@@ -65,7 +65,7 @@ def selected() -> dict:
     return validate(json.loads(raw)) if raw else {}
 
 
-def features(choices: dict, baseline: dict) -> dict:
+def features(choices: dict, baseline: dict, *, existing_install: bool = False) -> dict:
     """Start from source defaults, never another edition's saved selections."""
     choices = validate(choices)
     result = dict(baseline)
@@ -75,7 +75,8 @@ def features(choices: dict, baseline: dict) -> dict:
     result.update(
         theme_mode=choices["appearance"], icons=choices["icons"] != "keep",
         wallpapers=choices["wallpaper"] != "keep",
-        layout=choices["panel"] or choices["dock"],
+        layout=(choices["panel"] or choices["dock"]) and
+               (not existing_install or choices["reset_layout"]),
         nautilus=choices["files"] == "nautilus",
         nautilus_bookmarks=choices["files"] == "nautilus" and choices["nautilus_bookmarks"],
         apply_theme=True, sddm=False,

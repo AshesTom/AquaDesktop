@@ -27,7 +27,7 @@ STEPS = (
     ("effects", "Which effects would you like to enable?"),
     ("fonts", "Which fonts would you like to use?"),
     ("firefox", "Apply the theme to Firefox?"),
-    ("files", "Which file manager would you like to use?"),
+    ("files", "Install Nautilus as your file manager?"),
     ("boot", "Change the boot animation?"),
     ("oled", "Enable OLED protection?"),
     ("summary", "Review your installation"),
@@ -420,6 +420,8 @@ class InstallerWindow(OpaqueSurface):
         self.bridge = bridge
         self.defaults = defaults()
         self.choices = dict(self.defaults)
+        from cli import _theme_is_already_installed
+        self.existing_install = _theme_is_already_installed()
         self.edition = "Golden Gate" if bridge.editionName == "MacGoldenGate" else "Tahoe"
         self.asset_edition = "golden-gate" if self.edition == "Golden Gate" else "tahoe"
         self.page = "uninstall" if uninstall else "welcome"
@@ -894,13 +896,22 @@ class InstallerWindow(OpaqueSurface):
             ("tahoe", "Tahoe", "Categories and apps in one window.", picture("launcher-tahoe.jpg", 362, 204)),
             ("golden", "Golden Gate", "Separate search and application grid.", picture("launcher-golden.jpg", 362, 204)),
         ])
+        if self.existing_install and not self.choices["reset_layout"]:
+            self.body.addWidget(self.label("The current launcher setup is kept unless you reset the layout."))
 
     def page_layout(self):
         self.body.addSpacing(4)
+        reset = self.checkbox("reset_layout", "Reset Dock and panel customization")
+        self.body.addWidget(self.label("Reinstall keeps your layout, sizes, hiding behavior and widgets unless reset is selected."))
         self.cards("", [
-            ("panel", "Top bar", "Global menu, clock and system controls.", picture("panel-detail.jpg", 362, 210)),
-            ("dock", "Dock", "Pinned apps and open windows.", picture("dock.jpg", 362, 210)),
+            ("panel", "Top bar", "Global menu, clock and system controls.", picture("panel-detail.jpg", 362, 160)),
+            ("dock", "Dock", "Pinned apps and open windows.", picture("dock.jpg", 362, 160)),
         ], independent=True)
+        def enable_layout_options():
+            for card in self.content.findChildren(ChoiceCard):
+                card.setEnabled(not self.existing_install or self.choices["reset_layout"])
+        reset.toggled.connect(enable_layout_options)
+        enable_layout_options()
 
     def corner_sample(self):
         source = QPixmap(str(ASSETS / ASSET_FILES["corners.jpg"]["file"]))
@@ -951,10 +962,18 @@ class InstallerWindow(OpaqueSurface):
 
     def page_files(self):
         self.body.addSpacing(5)
-        self.cards("files", [
-            ("nautilus", "Nautilus", "Recommended · Files theme", picture("nautilus-"+self.mode+".jpg", 362, 221)),
-            ("dolphin", "Dolphin", "KDE file manager", picture("dolphin-"+self.mode+".jpg", 362, 221)),
+        group = self.cards("files", [
+            ("nautilus", "Install Nautilus", "Install and use as the default file manager.", picture("nautilus-"+self.mode+".jpg", 362, 180)),
+            ("dolphin", "Use Dolphin", "Skip Nautilus and use KDE's file manager.", picture("dolphin-"+self.mode+".jpg", 362, 180)),
         ])
+        keep = RadioOption(self.t("Skip Nautilus and keep my file manager"))
+        keep.setObjectName("choice-files-keep")
+        keep.setFont(relative_font(self, .93))
+        keep.setChecked(self.choices["files"] == "keep")
+        group.addButton(keep)
+        self.bind_choice("files", "keep", keep)
+        keep.clicked.connect(lambda: self.select("files", "keep"))
+        self.body.addWidget(keep)
         self.bookmarks = self.checkbox("nautilus_bookmarks", "Add folder shortcuts to the sidebar")
         self.bookmarks.setVisible(self.choices["files"] == "nautilus")
 
@@ -985,18 +1004,23 @@ class InstallerWindow(OpaqueSurface):
         value = lambda key: self.t(names.get(str(c[key]), str(c[key]).capitalize()))
         enabled = lambda key: self.t("Enabled" if c[key] else "Disabled")
         desktop = " + ".join(self.t(label) for key, label in (("panel", "Top bar"), ("dock", "Dock")) if c[key])
+        keep_layout = self.existing_install and not c["reset_layout"]
+        if keep_layout:
+            desktop = self.t("Keep current layout")
+        elif self.existing_install and desktop:
+            desktop = self.t("Reset layout") + ": " + desktop
         effects = " + ".join(self.t(label) for key, label in (("acrylic_glass", "Glass"), ("rounded_corners", "Rounded corners")) if c[key])
         rows = (
             ("appearance", "Appearance", value("appearance"), "appearance"),
             ("icons", "Icons", value("icons"), "icons"),
             ("color", "Color", value("color"), "icons"),
             ("wallpaper", "Background", value("wallpaper"), "wallpaper"),
-            ("launcher", "Launcher", value("launcher"), "launcher"),
+            ("launcher", "Launcher", self.t("Keep") if keep_layout else value("launcher"), "launcher"),
             ("panel", "Desktop", desktop or self.t("Keep"), "layout"),
             ("acrylic_glass", "Effects", effects or self.t("Disabled"), "effects"),
             ("fonts", "Fonts", self.t("Theme fonts" if c["fonts"] else "Keep"), "fonts"),
             ("firefox", "Firefox", enabled("firefox"), "firefox"),
-            ("files", "Files", value("files"), "files"),
+            ("files", "Files", self.t("Keep my file manager") if c["files"] == "keep" else value("files"), "files"),
             ("plymouth", "Boot", enabled("plymouth"), "boot"),
             ("oled_care", "OLED", enabled("oled_care"), "oled"),
         )

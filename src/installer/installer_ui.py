@@ -475,9 +475,10 @@ def _make_installer_bridge():
         def start(self, action: str) -> None:
             if self._running or action not in _ACTION_COMMANDS:
                 return
-            from cli import _estimate_install_steps, _estimate_uninstall_steps
+            from cli import _estimate_install_steps, _estimate_uninstall_steps, _theme_is_already_installed
             from installer_choices import features
-            selected_features = features(self._choices, DEFAULT_FEATURES) if self._choices else DEFAULT_FEATURES
+            selected_features = features(self._choices, DEFAULT_FEATURES,
+                                         existing_install=_theme_is_already_installed()) if self._choices else DEFAULT_FEATURES
             self._estimated_total = (_estimate_uninstall_steps(DEFAULT_FEATURES) if action == "uninstall"
                                      else _estimate_install_steps(selected_features))
             self._log_lines.clear()
