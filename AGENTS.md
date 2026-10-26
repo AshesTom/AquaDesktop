@@ -321,12 +321,12 @@ to one transaction.
 `./install` checks GitHub releases on every launch.
 `MAC_TAHOE_NO_UPDATE_CHECK=true` skips the check; `--check-update`
 checks and exits. When a newer release exists and the repo is a clean
-git checkout, `auto_update_and_reexec` pulls `--ff-only` as the
-invoking user (never root — root-owned objects would wreck the user's
-repo) and re-execs `./install` so the freshly-pulled code performs the
-install. `MAC_TAHOE_UPDATED=1` is the recursion guard. A dirty
-checkout, missing git, or a failed pull falls back to installing the
-current version with a manual `git pull && ./install` hint.
+git checkout, `auto_update_and_reexec` fetches the published version tag as the
+invoking user, verifies its commit and `VERSION`, and fast-forwards to that exact
+commit before opening the wizard. It then re-execs `./install`;
+`MAC_TAHOE_UPDATED=1` prevents recursion. Dirty or diverged checkouts, missing
+git, network failures and mismatched release versions leave the checkout
+unchanged and show the manual update hint. Uninstall does not update itself.
 Golden Gate first uses `GOLDEN_GATE_TAHOE_SOURCE` or a complete sibling
 `../macos-tahoe-liquid-kde` checkout, staging its own defaults in an isolated
 copy without updates or downloads. Without local sources its wrapper

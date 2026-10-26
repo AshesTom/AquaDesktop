@@ -38,10 +38,70 @@ configuration transitions passed. Shadow visual checks use the same pinned
 VM image as the release capture profile; the release gallery has its own
 complete capture and review gate.
 
-These checks do not reproduce the reporter's Firefox freezes or establish the
-cause of their mixed application colors. The full distro matrix and exact
-release commit checks remain the responsibility of the required push CI on
-both `main` and `dev`.
+The final candidate also exercises release selection before opening the wizard:
+`tests/test_release_update.py tests/test_cli.py tests/test_installer_ui.py`
+passed 115 checks. Temporary Git repositories verify the published tag and its
+`VERSION`, reject dirty/diverged checkouts and mismatched versions, and ensure
+an unpublished branch tip is not installed. Golden Gate's updated wrapper
+suite passed 45 checks.
+
+### Arch reproduction of issue #112
+
+A disposable Arch VM used KWin 6.8.1-2, Plasma Workspace 6.8.1-1, Qt 6.12.0,
+Mesa 26.2.5-1, Firefox 158.0.1-1 and Linux 7.2.11.arch1-1 on Wayland. These
+match the reported software versions; the VM uses VirGL, not the reporter's
+physical RX 9060 XT. Its official cloud image was checked against the published
+SHA-256 before use. No host desktop settings were changed.
+
+The install/switch/reboot sequence exposed a real appearance regression: a
+legacy KConfig update erased the active inherited Plasma defaults at login,
+leaving part of the desktop on Breeze. Commit `6f23ac7` retires that update and
+makes its old no-argument invocation harmless. Explicit install/uninstall
+cleanup remains available. The corrected VM passed native build and
+`liquidglass` load verification, dark/light/dark application checks, a real
+reboot and post-login theme checks. The KConfig/theme-switch/apply-safety group
+passed 129 checks across the initial run and a separately permitted Unix-socket
+case; the final expanded KConfig component passed all 10 checks.
+
+Full installs and reinstalls separately verified preserving customized panel
+IDs, widgets, Dock height and hiding behavior, and restoring defaults only with
+an explicit reset. With Nautilus removed before installation, choosing to keep
+the current file manager left Nautilus absent and preserved Dolphin MIME
+associations. Light/dark/light checks passed. All four shadow levels were
+captured and visually reviewed on Dolphin and Nautilus in both modes, with
+unchanged frame geometry and increasing shadow intensity. Wizard, shadow and
+release-update regressions passed 42 checks in Arch across two runs; the second
+installed a missing Git test dependency and reran the five affected cases.
+
+The first uninstall screenshot exposed a Firefox crash that the old validator
+had missed. The SSH test launcher had omitted Plasma's `GTK3_MODULES` setting,
+so Firefox lacked the existing appmenu lifetime protection. Commit `e173997`
+recovers that setting and requires a responsive browser after uninstall. The
+corrected run retained the same Firefox process and passed interactive
+Marionette navigation, typing and click checks after full removal; its final
+screenshot was reviewed. Session-environment, GTK appmenu and VM-validation
+regressions passed 58 checks. This does not establish the cause of every freeze
+on the reporter's physical GPU.
+
+Development evidence is retained in `/tmp/issue112-arch/qualification-fixed`,
+`/tmp/issue112-arch/options` and `/tmp/issue112-arch/firefox-retention`. The first
+uninstall image is rejected and superseded by the final browser-retention run.
+The drivers use `tests/vm/qualify.py` and `tests/vm/desktop_apps.py`; the layout
+and shadow driver additionally records the chosen options and resource values.
+Golden Gate's prepared source containing `e173997` passed 112 affected checks:
+
+```sh
+GOLDEN_GATE_TAHOE_SOURCE=/path/to/macos-tahoe-liquid-kde ./installer --prepare
+# From the returned prepared source:
+QT_QPA_PLATFORM=offscreen python -m pytest -q \
+  tests/test_release_update.py tests/test_installer_wizard.py \
+  tests/test_installer_ui.py tests/test_kconf_update.py \
+  tests/test_session_env.py tests/test_window_shadows.py
+```
+
+These focused results supplement the required full distro matrix and exact
+release-commit push CI on both `main` and `dev`; they do not replace those gates.
+The release gallery requires a fresh complete capture after these changes.
 
 ## Installation steps
 
