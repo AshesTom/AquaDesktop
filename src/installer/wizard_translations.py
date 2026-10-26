@@ -3,7 +3,17 @@
 from localization import effective_language, translate
 
 # English | Spanish | Simplified Chinese | Brazilian Portuguese | German
-_ROWS = '''Install Nautilus as your file manager?|¿Instalar Nautilus como administrador de archivos?|将 Nautilus 安装为文件管理器？|Instalar o Nautilus como gerenciador de arquivos?|Nautilus als Dateimanager installieren?
+_ROWS = '''Window shadows|Sombras de las ventanas|窗口阴影|Sombras das janelas|Fensterschatten
+None|Ninguna|无|Nenhuma|Keine
+Soft|Suaves|柔和|Suaves|Weich
+Medium|Medias|中等|Médias|Mittel
+Hard|Fuertes|强烈|Fortes|Stark
+No shadows|Sin sombras|无阴影|Sem sombras|Keine Schatten
+Soft shadows|Sombras suaves|柔和阴影|Sombras suaves|Weiche Schatten
+Medium shadows|Sombras medias|中等阴影|Sombras médias|Mittlere Schatten
+Hard shadows|Sombras fuertes|强烈阴影|Sombras fortes|Starke Schatten
+Applies to the theme's window decorations and GTK windows.|Se aplica a las decoraciones del tema y a las ventanas GTK.|应用于主题的窗口装饰和 GTK 窗口。|Aplica-se às decorações do tema e às janelas GTK.|Gilt für die Fensterdekorationen des Themes und GTK-Fenster.
+Install Nautilus as your file manager?|¿Instalar Nautilus como administrador de archivos?|将 Nautilus 安装为文件管理器？|Instalar o Nautilus como gerenciador de arquivos?|Nautilus als Dateimanager installieren?
 Install Nautilus|Instalar Nautilus|安装 Nautilus|Instalar Nautilus|Nautilus installieren
 Install and use as the default file manager.|Instalar y usar como administrador de archivos predeterminado.|安装并设为默认文件管理器。|Instalar e usar como gerenciador de arquivos padrão.|Installieren und als Standard-Dateimanager verwenden.
 Use Dolphin|Usar Dolphin|使用 Dolphin|Usar Dolphin|Dolphin verwenden

@@ -915,7 +915,7 @@ class InstallerWindow(OpaqueSurface):
 
     def corner_sample(self):
         source = QPixmap(str(ASSETS / ASSET_FILES["corners.jpg"]["file"]))
-        canvas = QPixmap(724, 474); canvas.fill(QColor("#dbe3e8"))
+        canvas = QPixmap(724, 330); canvas.fill(QColor("#dbe3e8"))
         painter = QPainter(canvas)
         fitted = source.scaledToWidth(round(724*2.2), Qt.TransformationMode.SmoothTransformation)
         painter.drawPixmap(0, 0, fitted); painter.end(); canvas.setDevicePixelRatio(2)
@@ -923,9 +923,14 @@ class InstallerWindow(OpaqueSurface):
 
     def page_effects(self):
         self.cards("", [
-            ("acrylic_glass", "Transparency and blur", "Panels, menus and windows.", picture("glass.jpg", 362, 237, cover=True)),
+            ("acrylic_glass", "Transparency and blur", "Panels, menus and windows.", picture("glass.jpg", 362, 165, cover=True)),
             ("rounded_corners", "Rounded corners", "Preserves your radius settings.", self.corner_sample()),
         ], independent=True)
+
+        self.body.addWidget(self.label("Window shadows"))
+        self.radio("shadows", [("none", "None"), ("soft", "Soft"),
+                               ("medium", "Medium"), ("hard", "Hard")], inline=True)
+        self.body.addWidget(self.label("Applies to the theme's window decorations and GTK windows."))
 
     def page_fonts(self):
         self.cards("fonts", [
@@ -1010,6 +1015,9 @@ class InstallerWindow(OpaqueSurface):
         elif self.existing_install and desktop:
             desktop = self.t("Reset layout") + ": " + desktop
         effects = " + ".join(self.t(label) for key, label in (("acrylic_glass", "Glass"), ("rounded_corners", "Rounded corners")) if c[key])
+        effects = (effects or self.t("Disabled")) + " · " + self.t({
+            "none": "No shadows", "soft": "Soft shadows",
+            "medium": "Medium shadows", "hard": "Hard shadows"}[c["shadows"]])
         rows = (
             ("appearance", "Appearance", value("appearance"), "appearance"),
             ("icons", "Icons", value("icons"), "icons"),

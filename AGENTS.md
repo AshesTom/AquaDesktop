@@ -1140,3 +1140,8 @@ separate images in each appearance mode. Each frame must contain only its
 featured application with that window focused; reject combined or unfocused
 frames. Enforce this in capture and release validation. This requirement is
 for the main README gallery, not distro qualification/OS screenshots.
+
+The native wizard offers none, soft, medium (default) and hard window shadows.
+Apply the chosen level to both Aurorae SVG variants and GTK 3/4 theme sheets
+from fresh bundled sources on each installation. Preserve frame geometry,
+borders, rounded-corner settings and tiled/fullscreen shadow suppression.

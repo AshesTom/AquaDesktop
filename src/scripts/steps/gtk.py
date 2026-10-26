@@ -66,6 +66,8 @@ def install() -> None:
         if install_tree(src / v, DEST_DIR / v, v):
             from theme_accent import apply as apply_accent
             apply_accent(DEST_DIR / v)
+            from window_shadows import apply_gtk
+            apply_gtk(DEST_DIR / v)
             from theme_switch import gtk4_compatible_css
             for css in (DEST_DIR / v / "gtk-4.0").glob("*.css"):
                 source = css.read_text(encoding="utf-8")

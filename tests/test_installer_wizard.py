@@ -33,7 +33,7 @@ def test_new_wizard_uses_source_defaults_after_other_edition(monkeypatch, tmp_pa
     assert json.loads(config.read_text()) == stale  # Opening is read-only.
 
 
-@pytest.mark.parametrize("payload", [[], {"shell": "echo bad"}, {"icons": "unknown"},
+@pytest.mark.parametrize("payload", [[], {"shell": "echo bad"}, {"icons": "unknown"}, {"shadows": "unknown"},
                                     {"fonts": "false"}, {"oled_interval": True},
                                     {"oled_max_shift": 17}, {"wallpaper": "custom"}])
 def test_reject_invalid_selections_before_install(payload):
@@ -388,6 +388,16 @@ assert window.choices['reset_layout'] and all(card.isEnabled() for card in cards
 reset.click(); app.processEvents()
 assert not window.choices['reset_layout'] and all(not card.isEnabled() for card in cards)
 assert window.scroll.verticalScrollBar().maximum() == 0
+window.page = 'effects'; window.render(); app.processEvents()
+assert window.choices['shadows'] == 'medium'
+options = window.content.findChildren(RadioOption)
+assert len(options) == 4 and options[0].objectName() == 'choice-shadows-medium'
+for level in ['none', 'soft', 'medium', 'hard']:
+    window.content.findChild(RadioOption, 'choice-shadows-' + level).click()
+    assert window.choices['shadows'] == level
+assert window.scroll.verticalScrollBar().maximum() == 0
+window.page = 'summary'; window.render(); app.processEvents()
+assert window.choices['shadows'] == 'hard'
 window.page = 'oled'; window.render(); app.processEvents()
 spins = window.content.findChildren(QSpinBox)
 window.select('oled_care', True); assert all(spin.isEnabled() for spin in spins)

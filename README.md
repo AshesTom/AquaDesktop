@@ -275,6 +275,11 @@ autohide and widgets. Select **Reset Dock and panel customization** to rebuild
 the selected top bar and Dock while carrying pinned apps across. A first
 installation creates the selected layout automatically.
 
+The Effects page offers **no, soft, medium or hard window shadows** for the
+theme's Aurorae decorations and GTK windows. Medium is the default. The chosen
+level applies in light and dark mode; applications that draw their own
+decorations may use their own shadows.
+
 The file-manager step explicitly offers **Install Nautilus**, **Use Dolphin**,
 or **Skip Nautilus and keep my file manager**. The latter preserves the current
 file associations and skips the Nautilus package and setup. These choices apply

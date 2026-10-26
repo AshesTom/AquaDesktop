@@ -27,6 +27,8 @@ def install() -> None:
         deco = src / name / "decoration.svg"
         if deco.is_file():
             shutil.copy2(deco, dest)
+            from window_shadows import apply_aurorae
+            apply_aurorae(dest / "decoration.svg")
         rc = src / f"{name}rc"
         if rc.is_file():
             shutil.copy2(rc, dest / f"{name}rc")
