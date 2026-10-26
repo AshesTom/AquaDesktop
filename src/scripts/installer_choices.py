@@ -33,7 +33,7 @@ def defaults() -> dict:
     edition = "golden" if edition_name() == "MacGoldenGate" else "tahoe"
     return dict(
         appearance="auto", icons="regular", color="blue", wallpaper=edition,
-        wallpaper_path="", launcher=edition, panel=True, dock=True, reset_layout=False,
+        wallpaper_path="", launcher=edition, panel=True, dock=True, reset_layout=True,
         acrylic_glass=True, rounded_corners=True, shadows="medium", fonts=True, firefox=True,
         files="nautilus", nautilus_bookmarks=True, plymouth=True,
         oled_care=False, oled_interval=5, oled_max_shift=8,

@@ -790,7 +790,11 @@ def test_wizard_backend_detects_reinstall_before_selecting_layout(monkeypatch, c
     monkeypatch.setenv("MTTKDE_WIZARD_OPTIONS", "{}")
     assert cli_module.run_install(["--wizard-options", json.dumps(installer_choices.defaults()),
                                    "--preflight"]) == 0
-    assert exported[0]["_existing_install"] and not exported[0]["layout"]
+    assert exported[0]["_existing_install"] and exported[0]["layout"]
+    selected = installer_choices.defaults() | {"reset_layout": False}
+    assert cli_module.run_install(["--wizard-options", json.dumps(selected),
+                                   "--preflight"]) == 0
+    assert exported[1]["_existing_install"] and not exported[1]["layout"]
 
 
 # ── globalmenu as a first-class feature ──────────────────────────────

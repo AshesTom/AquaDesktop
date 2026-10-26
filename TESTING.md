@@ -1,11 +1,35 @@
 # Installer testing
 
-Native installer screens for Tahoe 0.61.4, captured in a disposable KDE Plasma VM.
+Native installer screens for Tahoe 0.61.5, captured in a disposable KDE Plasma VM.
 Dark appearance was selected for this installation test.
 The gallery is captured from the release source and reviewed before publication.
 Release checks cover both editions, theme switching, installation, reboot and removal.
 
 For test commands and the capture workflow, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## v0.61.5 reset default validation
+
+The shared wizard now starts with **Reset Dock and panel customization** checked
+in both editions. Unchecking it survives page navigation and keeps the existing
+layout; checking it enables the layout cards and schedules the rebuild.
+
+Focused development checks on the maintainer's Linux environment, with offscreen
+Qt, cover source defaults, native wizard navigation, privileged option routing,
+layout retry gating and the existing install/reinstall/uninstall component paths:
+
+```sh
+QT_QPA_PLATFORM=offscreen PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider \
+  tests/test_installer_wizard.py tests/test_cli.py tests/test_installer_ui.py \
+  tests/test_layout_step.py tests/test_static.py::test_readme_tests_count_badge_matches_collected_count
+```
+
+All 161 focused checks passed across the initial run and the affected CLI rerun
+after updating its old default expectation. The same four component files passed
+160 checks in Golden Gate prepared content `f4438e729918882ada4b`. No native
+backend or layout implementation changed; the v0.61.4 explicit reset/preserve
+VM evidence below remains applicable. The new release capture separately checks
+both editions in light and dark mode in the pinned disposable KDE neon VM.
+Exact-commit CI and reviewed fresh captures remain publication requirements.
 
 ## v0.61.4 focused validation
 

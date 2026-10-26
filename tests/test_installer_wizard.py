@@ -27,6 +27,8 @@ def test_new_wizard_uses_source_defaults_after_other_edition(monkeypatch, tmp_pa
     selected = choices.defaults()
     assert selected["wallpaper"] == selected["launcher"] == expected
     assert selected["appearance"] == "auto"
+    assert selected["reset_layout"]
+    assert choices.features(selected, cli.DEFAULT_FEATURES, existing_install=True)["layout"]
     actual = choices.features(selected, cli.DEFAULT_FEATURES)
     assert actual["apply_theme"] and actual["icons"]
     assert actual["theme_mode"] == "auto"
@@ -55,13 +57,13 @@ def test_preserve_options_and_mandatory_components():
 
 @pytest.mark.parametrize("existing", [False, True])
 @pytest.mark.parametrize("reset", [False, True])
-def test_layout_reset_is_explicit_on_reinstall(existing, reset):
+def test_layout_reset_respects_the_selected_option(existing, reset):
     import cli
     selected = choices.defaults() | {"reset_layout": reset}
     actual = choices.features(selected, cli.DEFAULT_FEATURES, existing_install=existing)
     assert actual["layout"] == (not existing or reset)
     assert actual["plasmoids"] and actual["apply_theme"]
-    assert not choices.defaults()["reset_layout"]
+    assert choices.defaults()["reset_layout"]
 
 
 def test_keep_file_manager_excludes_nautilus_and_bookmarks():
@@ -381,12 +383,17 @@ assert window.choices['files'] == 'keep'
 window.existing_install = True
 window.page = 'layout'; window.render(); app.processEvents()
 cards = window.content.findChildren(ChoiceCard)
-assert all(not card.isEnabled() for card in cards)
 reset = window.content.findChild(CheckOption, 'choice-reset_layout')
-reset.click(); app.processEvents()
-assert window.choices['reset_layout'] and all(card.isEnabled() for card in cards)
+assert reset.isChecked() and all(card.isEnabled() for card in cards)
 reset.click(); app.processEvents()
 assert not window.choices['reset_layout'] and all(not card.isEnabled() for card in cards)
+window.page = 'summary'; window.render(); app.processEvents()
+window.page = 'layout'; window.render(); app.processEvents()
+cards = window.content.findChildren(ChoiceCard)
+reset = window.content.findChild(CheckOption, 'choice-reset_layout')
+assert not reset.isChecked() and all(not card.isEnabled() for card in cards)
+reset.click(); app.processEvents()
+assert window.choices['reset_layout'] and all(card.isEnabled() for card in cards)
 assert window.scroll.verticalScrollBar().maximum() == 0
 window.page = 'effects'; window.render(); app.processEvents()
 assert window.choices['shadows'] == 'medium'
