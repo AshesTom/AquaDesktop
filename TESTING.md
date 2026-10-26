@@ -7,6 +7,42 @@ Release checks cover both editions, theme switching, installation, reboot and re
 
 For test commands and the capture workflow, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## v0.61.4 focused validation
+
+Installer changes were checked from Tahoe commits `217277a`, `78a5907` and
+`3fdcba1` on the maintainer's Linux development environment, using offscreen
+Qt for wizard navigation. The final shadow renderer passed all nine component
+regressions, including rendered active/inactive SVG pixels, both appearance
+modes, reinstall regeneration and uninstall cleanup.
+
+```sh
+QT_QPA_PLATFORM=offscreen python -m pytest -q \
+  tests/test_window_shadows.py tests/test_installer_wizard.py tests/test_cli.py \
+  tests/test_installer_ui.py tests/test_step_guards.py tests/test_release_screenshots.py
+QT_QPA_PLATFORM=offscreen python -m pytest -q \
+  tests/test_gtk_upgrade.py tests/test_gtk_window_geometry.py \
+  tests/test_theme_switch.py tests/test_apply_safety.py
+```
+
+The first group passed 187 checks before the two rendered-shadow regressions
+were added; the final shadow component then passed nine checks. The second
+group passed 125 checks. Golden Gate's prepared source passed the affected
+wizard/GTK checks (38), followed by all nine final shadow regressions. Its
+wrapper suite passed 40 checks.
+
+A disposable KDE neon VM (Plasma 6.8.1, Qt 6.11.1, Wayland) verified that a full
+reinstall preserves customized panel IDs, widgets, Dock height and hiding
+behavior, while an explicit reset restores the default layout. Skipping
+Nautilus preserved the existing Dolphin MIME associations. Light/dark/light
+configuration transitions passed. Shadow visual checks use the same pinned
+VM image as the release capture profile; the release gallery has its own
+complete capture and review gate.
+
+These checks do not reproduce the reporter's Firefox freezes or establish the
+cause of their mixed application colors. The full distro matrix and exact
+release commit checks remain the responsibility of the required push CI on
+both `main` and `dev`.
+
 ## Installation steps
 
 Scroll horizontally through the installation steps.
