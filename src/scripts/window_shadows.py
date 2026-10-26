@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import re
+from xml.etree import ElementTree as ET
 
 from installer_choices import selected
 
@@ -24,8 +25,25 @@ def aurorae_svg(source: str, level: str) -> str:
 
     # Aurorae extracts its shadow from the SVG's padded perimeter. Its rc
     # Shadow key is not a switch for this image; leave frame geometry intact.
-    return re.sub(r'<linearGradient\b[^>]*\bid="shadow_(?:active|inactive)"[^>]*>.*?</linearGradient>',
-                  gradient, source, flags=re.DOTALL)
+    source = re.sub(r'<linearGradient\b[^>]*\bid="shadow_(?:active|inactive)"[^>]*>.*?</linearGradient>',
+                    gradient, source, flags=re.DOTALL)
+    gradients = {"shadow_active", "shadow_inactive"}
+    nodes = list(ET.fromstring(source).iter())
+    while True:
+        aliases = {node.get("id") for node in nodes
+                   if node.get("{http://www.w3.org/1999/xlink}href", "").removeprefix("#") in gradients}
+        if aliases <= gradients:
+            break
+        gradients.update(aliases)
+
+    def paint(match):
+        fill = re.search(r"fill:url\(#([^)]*)\)", match[0])
+        if not fill or fill[1] not in gradients:
+            return match[0]
+        # Bundled shadow paths are hidden independently of their gradients.
+        return re.sub(r"(?<![-\w])opacity:[\d.]+", "opacity:" + ("1" if strength else "0"), match[0])
+
+    return re.sub(r"<path\b[^>]*>", paint, source)
 
 
 def gtk_css(source: str, level: str, version: int) -> str:

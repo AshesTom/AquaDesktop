@@ -26,11 +26,36 @@ def test_aurorae_levels_preserve_frames_and_disable_all_shadow_stops(repo, mode)
             if id(new) in shadow_stops:
                 total += float(re.search(r"stop-opacity:([\d.]+)", new.get("style"))[1])
                 new.set("style", old.get("style"))
+            elif old.get("style") != new.get("style"):
+                assert "fill:url(#" in old.get("style", "")
+                assert re.sub(r"(?<![-\w])opacity:[\d.]+", "", old.get("style")) == re.sub(
+                    r"(?<![-\w])opacity:[\d.]+", "", new.get("style"))
+                new.set("style", old.get("style"))
             assert old.attrib == new.attrib  # Borders, padding and all geometry survive.
         assert total > previous
         if level == "none":
             assert total == 0
         previous = total
+
+
+@pytest.mark.parametrize("mode", ["Light", "Dark"])
+def test_aurorae_shadow_pixels_are_visible_and_increase_with_level(repo, mode):
+    from PyQt6.QtCore import QByteArray, QRectF, QSize
+    from PyQt6.QtGui import QImage, QPainter
+    from PyQt6.QtSvg import QSvgRenderer
+    source = (repo / f"src/offline/aurorae/MacTahoeLiquidKde-{mode}/decoration.svg").read_text()
+    for element in ("decoration-bottom", "decoration-inactive-bottom", "decoration-left", "decoration-inactive-left"):
+        totals = []
+        for level in LEVELS:
+            renderer = QSvgRenderer(QByteArray(aurorae_svg(source, level).encode()))
+            assert renderer.isValid() and renderer.elementExists(element)
+            image = QImage(QSize(200, 120), QImage.Format.Format_ARGB32)
+            image.fill(0)
+            painter = QPainter(image)
+            renderer.render(painter, element, QRectF(0, 0, 200, 120))
+            painter.end()
+            totals.append(sum(image.pixelColor(x, y).alpha() for x in range(200) for y in range(120)))
+        assert totals == sorted(set(totals)), (mode, element, totals)
 
 
 @pytest.mark.parametrize("mode", ["Light", "Dark"])
