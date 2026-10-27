@@ -1523,8 +1523,8 @@
     "scale": 4,
     "background": "#b8bec6",
     "gtk_glassy": true,
-    "file": "window-controls-glassy-light-9ba9a2b37556.png",
-    "source_sha256": "04f395462aefcb32c00a3921dbc8f3505bdcc239bdc7d3466fcc8a07d340f86f",
+    "file": "window-controls-glassy-light-6dea409c681b.png",
+    "source_sha256": "1a42afee1f0c634f9828b10293f4f84546e12dfbb2211d25094f1d657b540b6b",
     "crop": [
       312,
       72,
@@ -1532,8 +1532,8 @@
       472
     ],
     "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
-    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
-    "sha256": "9ba9a2b37556f8e393dbbd3f89ab2d5e3fede98b0a398e4c8ee6679d50ad826d",
+    "source_archive_sha256": "89c534416693e5378c808cd2edfcf986051a85a91a8a94258090fc32fdcc399f",
+    "sha256": "6dea409c681b0e83ad5d98693e8af32ae2c557951a879f0b30b01244483da3c8",
     "source": "VM Nautilus capture/window-controls-glassy-light-desktop.png",
     "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
   },
@@ -1593,8 +1593,8 @@
     "scale": 4,
     "background": "#686d76",
     "gtk_glassy": true,
-    "file": "window-controls-glassy-dark-c16357f61cba.png",
-    "source_sha256": "5cd451d9887c6721578021f4452fbfb95d2a79d97c5b7515118e9772951630a1",
+    "file": "window-controls-glassy-dark-864ea28aa4c5.png",
+    "source_sha256": "db60eeed1d5b33d041f0f17ec898aea1cc69f37a018be5b94cd479fb297484fc",
     "crop": [
       312,
       72,
@@ -1602,8 +1602,8 @@
       472
     ],
     "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
-    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
-    "sha256": "c16357f61cbabef83a5c73b30faf782e591a8c58b0d3bdff14f5f05abbbd23bf",
+    "source_archive_sha256": "89c534416693e5378c808cd2edfcf986051a85a91a8a94258090fc32fdcc399f",
+    "sha256": "864ea28aa4c51b0cec82be427f5d2339fa5f8f513584c3d4b1c885dabb54fd48",
     "source": "VM Nautilus capture/window-controls-glassy-dark-desktop.png",
     "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
   },

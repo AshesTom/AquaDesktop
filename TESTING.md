@@ -7,13 +7,51 @@ Release checks cover both editions, theme switching, installation, reboot and re
 
 For test commands and the capture workflow, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Glassy reference refinement
+
+The latest candidate follows the maintainer's supplied button close-up with
+saturated faces, narrow rim highlights and heavier hover glyphs. It removes
+the broad reflection and separate lower arc from the stronger lens design.
+It keeps the high-DPI GTK canvas, all interaction states, Flat artwork, frame geometry, shadow choices
+and installer navigation unchanged. Fork capture findings and exact source
+links are recorded in [window controls](docs/window-controls.md#fork-capture-investigation).
+
+The affected generator is shared by Aurorae and GTK 3/4 in both editions. On
+the maintainer's Linux environment with offscreen Qt, 19 component checks passed:
+
+```sh
+QT_QPA_PLATFORM=offscreen PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider \
+  tests/test_window_controls.py tests/test_gtk_upgrade.py tests/test_gtk_window_geometry.py
+```
+
+These exercise every rendered control state, install/reinstall/removal, explicit
+Flat/Glassy choices in both editions, light/dark/light selection and GTK URL
+handling. The rendered regression now checks that highlights stay at the rim
+without a bright patch across the upper face. Native Nautilus previews are
+recaptured in the pinned disposable VM. The 28 wizard checks also passed with
+the replaced, content-addressed preview assets. Golden Gate prepared source
+`c7373c857bddd3a70717` passed the same 47 affected checks:
+
+```sh
+QT_QPA_PLATFORM=offscreen PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider \
+  tests/test_window_controls.py tests/test_gtk_upgrade.py tests/test_gtk_window_geometry.py \
+  tests/test_installer_wizard.py
+```
+
+The native chooser was captured and visually reviewed in both editions and
+both modes, using the updated Nautilus crops. Capture source archive SHA-256:
+`5ee79bb64e3786d62de67d61651c2ebe3d3547efdfc8cb7d59b21e5c57d40f44`.
+
+Full release captures and publication remain pending the maintainer's approval.
+
 ## Window controls candidate: Nautilus and separate shadows
 
 This is unreleased work on `codex/golden-gate-controls-v0617`. Publication and
 merging to `main` are on hold until the maintainer tests and approves it. The
 already-published v0.61.7 does not contain the Flat/Glassy chooser.
 
-The revised Glassy controls have a broad upper reflection and a lower caustic.
+This earlier candidate used a broad upper reflection and a lower caustic;
+the reference refinement above supersedes that treatment.
 GTK SVGs retain their logical button size while using a larger intrinsic canvas
 for sharp high-DPI rasterization. The wizard has a separate Window shadows page
 with four screenshot cards and its own editable summary row.

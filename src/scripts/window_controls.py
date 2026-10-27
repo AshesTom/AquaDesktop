@@ -11,14 +11,14 @@ STATES = ("active", "inactive", "hover", "pressed", "deactivated",
           "hover-inactive", "pressed-inactive", "deactivated-inactive")
 BUTTONS = ("close", "minimize", "maximize", "restore")
 COLORS = {
-    "close": ("#ff9c91", "#df3d32", "#ff8c75", "#731710"),
-    "minimize": ("#ffe581", "#e8a00c", "#ffe571", "#754500"),
-    "maximize": ("#a5ed79", "#2b9e22", "#a5ef72", "#185c12"),
-    "restore": ("#a5ed79", "#2b9e22", "#a5ef72", "#185c12"),
+    "close": ("#f16a72", "#ee5964", "#f68a92", "#921b1b"),
+    "minimize": ("#f8cf30", "#f9c51a", "#fbe254", "#8b5006"),
+    "maximize": ("#6cd52a", "#55ca16", "#8ae34d", "#287f10"),
+    "restore": ("#6cd52a", "#55ca16", "#8ae34d", "#287f10"),
 }
 GLYPHS = {
-    "close": 'M5.6 5.6l4.8 4.8m0-4.8l-4.8 4.8',
-    "minimize": 'M5 8h6',
+    "close": 'M5.2 5.2l5.6 5.6m0-5.6l-5.6 5.6',
+    "minimize": 'M4.8 8h6.4',
     "maximize": 'M5 8V5h3M8 11h3V8',
     "restore": 'M5 8h3V5M8 11V8h3',
 }
@@ -31,10 +31,10 @@ def _button(button: str, mode: str, state: str, index: int) -> str:
     dark = mode == "Dark"
     if dark and button in ("close", "minimize", "maximize", "restore"):
         top, middle, bottom = {
-            "close": ("#ff8a7d", "#c83227", "#ff8b73"),
-            "minimize": ("#ffdc62", "#cf8800", "#ffe372"),
-            "maximize": ("#89e84e", "#218918", "#97ef5f"),
-            "restore": ("#89e84e", "#218918", "#97ef5f"),
+            "close": ("#ef5b64", "#e94958", "#f87883"),
+            "minimize": ("#f5c51c", "#f8bd08", "#f9df43"),
+            "maximize": ("#62ce1a", "#4fc70b", "#80df41"),
+            "restore": ("#62ce1a", "#4fc70b", "#80df41"),
         }[button]
     if neutral:
         top, middle, bottom = (("#515151", "#484848", "#505050") if dark
@@ -42,10 +42,10 @@ def _button(button: str, mode: str, state: str, index: int) -> str:
     prefix = f"b{index}"
     # Top/bottom reflections survive loss of focus. Disabled controls are
     # deliberately fainter, unlike inactive but still actionable controls.
-    shine = ".85" if dark else ".75"
+    shine = ".62" if dark else ".44"
     opacity = '.45' if disabled else '1'
     glyph = (f'<path d="{GLYPHS[button]}" fill="none" stroke="{ink}" '
-             'stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>') if state in (
+             'stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>') if state in (
                  "hover", "pressed", "hover-inactive", "pressed-inactive") else ''
     if button in ("maximize", "restore") and glyph:
         triangles = ("M4.8 4.8h4.6l-4.6 4.6z M11.2 11.2H6.6l4.6-4.6z" if button == "maximize"
@@ -64,22 +64,14 @@ def _button(button: str, mode: str, state: str, index: int) -> str:
     <stop offset="1" stop-color="#fff" stop-opacity="{shine}"/>
   </linearGradient>
   <radialGradient id="{prefix}-glow" cx=".5" cy="1" r=".7">
-    <stop stop-color="#fff" stop-opacity="{'.32' if not neutral else '.12'}"/>
+    <stop stop-color="#fff" stop-opacity="{'.12' if not neutral else '.04'}"/>
     <stop offset="1" stop-color="#fff" stop-opacity="0"/>
   </radialGradient>
-  <linearGradient id="{prefix}-reflection" x2="0" y2="1">
-    <stop stop-color="#fff" stop-opacity=".85"/>
-    <stop offset="1" stop-color="#fff" stop-opacity=".08"/>
-  </linearGradient>
 </defs>
 <g opacity="{opacity}">
   <circle cx="8" cy="8.5" r="7" fill="#000" opacity="{'.20' if dark else '.08'}"/>
   <circle cx="8" cy="8" r="6.8" fill="url(#{prefix}-body)"/>
   <circle cx="8" cy="8" r="6.8" fill="url(#{prefix}-glow)"/>
-  <path d="M3.05 5.75C3.65 3.65 5.55 2.1 8 2.1s4.35 1.55 4.95 3.65C10.6 7.1 5.4 7.1 3.05 5.75Z"
-        fill="url(#{prefix}-reflection)"/>
-  <path d="M4.5 12.2Q8 14.6 11.5 12.2" fill="none" stroke="#fff" stroke-opacity=".5"
-        stroke-width=".55" stroke-linecap="round"/>
   <circle cx="8" cy="8" r="6.8" fill="none" stroke="#000" stroke-opacity=".18" stroke-width=".4"/>
   <circle cx="8" cy="8" r="6.55" fill="none" stroke="url(#{prefix}-rim)" stroke-width=".6"/>
   {pressed}{glyph}
