@@ -11,6 +11,7 @@ Simple, solid colors.|Colores sólidos y sencillos.|简洁的纯色。|Cores só
 Soft gradients and reflective highlights.|Degradados suaves y reflejos.|柔和的渐变与反光。|Gradientes suaves e reflexos.|Sanfte Farbverläufe und Lichtreflexe.
 Close, minimize and maximize buttons.|Botones para cerrar, minimizar y maximizar.|关闭、最小化和最大化按钮。|Botões para fechar, minimizar e maximizar.|Knöpfe zum Schließen, Minimieren und Maximieren.
 Window shadows|Sombras de las ventanas|窗口阴影|Sombras das janelas|Fensterschatten
+Which window shadows would you like?|¿Qué sombras de ventana prefieres?|你想使用哪种窗口阴影？|Quais sombras de janela você prefere?|Welche Fensterschatten möchtest du verwenden?
 None|Ninguna|无|Nenhuma|Keine
 Soft|Suaves|柔和|Suaves|Weich
 Medium|Medias|中等|Médias|Mittel

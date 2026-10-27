@@ -1468,135 +1468,423 @@
     "file": "glass-dark-gray-3-f96a01994557.png"
   },
   "window-controls-flat-light.png": {
+    "kind": "controls",
     "style": "flat",
+    "level": "medium",
     "mode": "light",
     "window": {
-      "caption": "Documents \u2014 Dolphin",
-      "resourceClass": "org.kde.dolphin",
+      "caption": "Documents",
+      "resourceClass": "org.gnome.Nautilus",
       "type": 0,
       "appletPopup": false,
       "active": true,
       "geometry": {
-        "x": 120,
-        "y": 100,
-        "width": 700,
-        "height": 350
+        "x": 90,
+        "y": 30,
+        "width": 760,
+        "height": 380
       }
     },
     "scale": 4,
-    "decoration": "MacTahoe",
+    "background": "#b8bec6",
     "gtk_glassy": false,
-    "source_sha256": "1d72171c9e3f60fbd1f7e50ce5db7339e9aa41c1822022120a269bd14bd3fc1d",
+    "file": "window-controls-flat-light-9f1d78c2e553.png",
+    "source_sha256": "2285702e8bf885214dce2ba722f38845e629905ecb3e4b84cca5af68a2938163",
     "crop": [
-      432,
-      352,
-      1192,
-      752
+      312,
+      72,
+      1072,
+      472
     ],
     "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
-    "source_archive_sha256": "956cd21ad05e7636ae2bf56c987661b98c4c5bbe65413592629aa0a6ca53d513",
-    "source": "VM title-bar capture/flat-light-desktop.png",
-    "sha256": "64b9a978a83f3ca9345ca3c9f82ee16297cd0c29957d92ae38b1ed920d3ab984",
-    "file": "window-controls-flat-light-64b9a978a83f.png",
-    "capture": "Disposable pinned KDE neon VM; focused Dolphin; 3840x2160 at 4x scale; lossless crop"
+    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
+    "sha256": "9f1d78c2e5539dcb33824a1eb962cee4b1872dbfc82dee72e1d85c7089994361",
+    "source": "VM Nautilus capture/window-controls-flat-light-desktop.png",
+    "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
   },
   "window-controls-glassy-light.png": {
+    "kind": "controls",
     "style": "glassy",
+    "level": "medium",
     "mode": "light",
     "window": {
-      "caption": "Documents \u2014 Dolphin",
-      "resourceClass": "org.kde.dolphin",
+      "caption": "Documents",
+      "resourceClass": "org.gnome.Nautilus",
       "type": 0,
       "appletPopup": false,
       "active": true,
       "geometry": {
-        "x": 120,
-        "y": 100,
-        "width": 700,
-        "height": 350
+        "x": 90,
+        "y": 30,
+        "width": 760,
+        "height": 380
       }
     },
     "scale": 4,
-    "decoration": "MacGoldenGate",
+    "background": "#b8bec6",
     "gtk_glassy": true,
-    "source_sha256": "3c597afc547d27afe3a426e907d0db9bdec122b709f3485d583719605c3c17f4",
+    "file": "window-controls-glassy-light-9ba9a2b37556.png",
+    "source_sha256": "04f395462aefcb32c00a3921dbc8f3505bdcc239bdc7d3466fcc8a07d340f86f",
     "crop": [
-      432,
-      352,
-      1192,
-      752
+      312,
+      72,
+      1072,
+      472
     ],
     "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
-    "source_archive_sha256": "956cd21ad05e7636ae2bf56c987661b98c4c5bbe65413592629aa0a6ca53d513",
-    "source": "VM title-bar capture/glassy-light-desktop.png",
-    "sha256": "497765f490a98dfc6ba9fdeb23561f89988df9bf2750ed7ebd45881ae002a760",
-    "file": "window-controls-glassy-light-497765f490a9.png",
-    "capture": "Disposable pinned KDE neon VM; focused Dolphin; 3840x2160 at 4x scale; lossless crop"
+    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
+    "sha256": "9ba9a2b37556f8e393dbbd3f89ab2d5e3fede98b0a398e4c8ee6679d50ad826d",
+    "source": "VM Nautilus capture/window-controls-glassy-light-desktop.png",
+    "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
   },
   "window-controls-flat-dark.png": {
+    "kind": "controls",
     "style": "flat",
+    "level": "medium",
     "mode": "dark",
     "window": {
-      "caption": "Documents \u2014 Dolphin",
-      "resourceClass": "org.kde.dolphin",
+      "caption": "Documents",
+      "resourceClass": "org.gnome.Nautilus",
       "type": 0,
       "appletPopup": false,
       "active": true,
       "geometry": {
-        "x": 120,
-        "y": 100,
-        "width": 700,
-        "height": 350
+        "x": 90,
+        "y": 30,
+        "width": 760,
+        "height": 380
       }
     },
     "scale": 4,
-    "decoration": "MacTahoe",
+    "background": "#686d76",
     "gtk_glassy": false,
-    "source_sha256": "d0aa6ecb8d355df9ade3dd2b8a971042f6937193f57b1bd5498f3f576fffbca8",
+    "file": "window-controls-flat-dark-312317238609.png",
+    "source_sha256": "6a35ca772b64c8e12bc6be26f238a1f52c54b4cee0da1fba8abcf2c08f5ab7c0",
     "crop": [
-      432,
-      352,
-      1192,
-      752
+      312,
+      72,
+      1072,
+      472
     ],
     "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
-    "source_archive_sha256": "956cd21ad05e7636ae2bf56c987661b98c4c5bbe65413592629aa0a6ca53d513",
-    "source": "VM title-bar capture/flat-dark-desktop.png",
-    "sha256": "e7ef40a3b3aa111d6e4dc684895f3880a28b42fe772887380ccdb7948dd265ff",
-    "file": "window-controls-flat-dark-e7ef40a3b3aa.png",
-    "capture": "Disposable pinned KDE neon VM; focused Dolphin; 3840x2160 at 4x scale; lossless crop"
+    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
+    "sha256": "312317238609ef537cd3dd38648c8bc39da1242cd52cc2a2989f23ea3f77b748",
+    "source": "VM Nautilus capture/window-controls-flat-dark-desktop.png",
+    "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
   },
   "window-controls-glassy-dark.png": {
+    "kind": "controls",
     "style": "glassy",
+    "level": "medium",
     "mode": "dark",
     "window": {
-      "caption": "Documents \u2014 Dolphin",
-      "resourceClass": "org.kde.dolphin",
+      "caption": "Documents",
+      "resourceClass": "org.gnome.Nautilus",
       "type": 0,
       "appletPopup": false,
       "active": true,
       "geometry": {
-        "x": 120,
-        "y": 100,
-        "width": 700,
-        "height": 350
+        "x": 90,
+        "y": 30,
+        "width": 760,
+        "height": 380
       }
     },
     "scale": 4,
-    "decoration": "MacGoldenGate",
+    "background": "#686d76",
     "gtk_glassy": true,
-    "source_sha256": "359b7954e7322d07974047b579f389d38b2edc43c941e80148fe35c9d515d8ae",
+    "file": "window-controls-glassy-dark-c16357f61cba.png",
+    "source_sha256": "5cd451d9887c6721578021f4452fbfb95d2a79d97c5b7515118e9772951630a1",
     "crop": [
-      432,
-      352,
-      1192,
-      752
+      312,
+      72,
+      1072,
+      472
     ],
     "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
-    "source_archive_sha256": "956cd21ad05e7636ae2bf56c987661b98c4c5bbe65413592629aa0a6ca53d513",
-    "source": "VM title-bar capture/glassy-dark-desktop.png",
-    "sha256": "258f41e7fcf6ba88befc6ec87de4b4c6bfe555102cbf1e24af683be409a79b68",
-    "file": "window-controls-glassy-dark-258f41e7fcf6.png",
-    "capture": "Disposable pinned KDE neon VM; focused Dolphin; 3840x2160 at 4x scale; lossless crop"
+    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
+    "sha256": "c16357f61cbabef83a5c73b30faf782e591a8c58b0d3bdff14f5f05abbbd23bf",
+    "source": "VM Nautilus capture/window-controls-glassy-dark-desktop.png",
+    "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
+  },
+  "window-shadows-none-light.png": {
+    "kind": "shadows",
+    "style": "glassy",
+    "level": "none",
+    "mode": "light",
+    "window": {
+      "caption": "Documents",
+      "resourceClass": "org.gnome.Nautilus",
+      "type": 0,
+      "appletPopup": false,
+      "active": true,
+      "geometry": {
+        "x": 90,
+        "y": 30,
+        "width": 760,
+        "height": 380
+      }
+    },
+    "scale": 4,
+    "background": "#b8bec6",
+    "gtk_glassy": true,
+    "file": "window-shadows-none-light-4aa1645b789e.png",
+    "source_sha256": "b1863c1b1ca2d559651b9fee7559a7b6795b7bfc0a01b936a144749b3b36bc2c",
+    "crop": [
+      2440,
+      1520,
+      3580,
+      1884
+    ],
+    "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
+    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
+    "sha256": "4aa1645b789e1897534157ed6da3b66744d523d37c5dde028200dfad4bbc551e",
+    "source": "VM Nautilus capture/window-shadows-none-light-desktop.png",
+    "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
+  },
+  "window-shadows-soft-light.png": {
+    "kind": "shadows",
+    "style": "glassy",
+    "level": "soft",
+    "mode": "light",
+    "window": {
+      "caption": "Documents",
+      "resourceClass": "org.gnome.Nautilus",
+      "type": 0,
+      "appletPopup": false,
+      "active": true,
+      "geometry": {
+        "x": 90,
+        "y": 30,
+        "width": 760,
+        "height": 380
+      }
+    },
+    "scale": 4,
+    "background": "#b8bec6",
+    "gtk_glassy": true,
+    "file": "window-shadows-soft-light-d1a3d4278551.png",
+    "source_sha256": "5034f5cc3db1a9f7fb0e216a82ec66247fb042c1eb15c4e297440c2700997736",
+    "crop": [
+      2440,
+      1520,
+      3580,
+      1884
+    ],
+    "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
+    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
+    "sha256": "d1a3d4278551ae31901b801254f500b145c636f06cca865bbfecf4decad84a7d",
+    "source": "VM Nautilus capture/window-shadows-soft-light-desktop.png",
+    "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
+  },
+  "window-shadows-medium-light.png": {
+    "kind": "shadows",
+    "style": "glassy",
+    "level": "medium",
+    "mode": "light",
+    "window": {
+      "caption": "Documents",
+      "resourceClass": "org.gnome.Nautilus",
+      "type": 0,
+      "appletPopup": false,
+      "active": true,
+      "geometry": {
+        "x": 90,
+        "y": 30,
+        "width": 760,
+        "height": 380
+      }
+    },
+    "scale": 4,
+    "background": "#b8bec6",
+    "gtk_glassy": true,
+    "file": "window-shadows-medium-light-5852798c3cd3.png",
+    "source_sha256": "732fe84928c7e27d4578547a8412983c2a9725124aa8bb94a53f70be2584600a",
+    "crop": [
+      2440,
+      1520,
+      3580,
+      1884
+    ],
+    "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
+    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
+    "sha256": "5852798c3cd3956093867355c1524e7182b89ab31c0f7f1b57bcfec0d1862063",
+    "source": "VM Nautilus capture/window-shadows-medium-light-desktop.png",
+    "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
+  },
+  "window-shadows-hard-light.png": {
+    "kind": "shadows",
+    "style": "glassy",
+    "level": "hard",
+    "mode": "light",
+    "window": {
+      "caption": "Documents",
+      "resourceClass": "org.gnome.Nautilus",
+      "type": 0,
+      "appletPopup": false,
+      "active": true,
+      "geometry": {
+        "x": 90,
+        "y": 30,
+        "width": 760,
+        "height": 380
+      }
+    },
+    "scale": 4,
+    "background": "#b8bec6",
+    "gtk_glassy": true,
+    "file": "window-shadows-hard-light-0be7b4e8ef64.png",
+    "source_sha256": "1ec1eca10fa520bb6f752c7322da41618e10019911e05e4edcedffb6acdf3388",
+    "crop": [
+      2440,
+      1520,
+      3580,
+      1884
+    ],
+    "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
+    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
+    "sha256": "0be7b4e8ef646d6c1ee0b852363d13928f0731b8474c83579164bc207e7d42a7",
+    "source": "VM Nautilus capture/window-shadows-hard-light-desktop.png",
+    "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
+  },
+  "window-shadows-none-dark.png": {
+    "kind": "shadows",
+    "style": "glassy",
+    "level": "none",
+    "mode": "dark",
+    "window": {
+      "caption": "Documents",
+      "resourceClass": "org.gnome.Nautilus",
+      "type": 0,
+      "appletPopup": false,
+      "active": true,
+      "geometry": {
+        "x": 90,
+        "y": 30,
+        "width": 760,
+        "height": 380
+      }
+    },
+    "scale": 4,
+    "background": "#686d76",
+    "gtk_glassy": true,
+    "file": "window-shadows-none-dark-0cd0a5f0dfe9.png",
+    "source_sha256": "00f72161617696001e9199f1e4568bd7fc3a5cba1cebe078432dbc73a4a38446",
+    "crop": [
+      2440,
+      1520,
+      3580,
+      1884
+    ],
+    "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
+    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
+    "sha256": "0cd0a5f0dfe92175263a5764830168fd5ebf95f7790bc02b2f6079e5cc67efdd",
+    "source": "VM Nautilus capture/window-shadows-none-dark-desktop.png",
+    "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
+  },
+  "window-shadows-soft-dark.png": {
+    "kind": "shadows",
+    "style": "glassy",
+    "level": "soft",
+    "mode": "dark",
+    "window": {
+      "caption": "Documents",
+      "resourceClass": "org.gnome.Nautilus",
+      "type": 0,
+      "appletPopup": false,
+      "active": true,
+      "geometry": {
+        "x": 90,
+        "y": 30,
+        "width": 760,
+        "height": 380
+      }
+    },
+    "scale": 4,
+    "background": "#686d76",
+    "gtk_glassy": true,
+    "file": "window-shadows-soft-dark-51759225b33a.png",
+    "source_sha256": "00cf0b038cd77ede8b988599831152993664d12123c8d7dd472330f5d89deacb",
+    "crop": [
+      2440,
+      1520,
+      3580,
+      1884
+    ],
+    "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
+    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
+    "sha256": "51759225b33af0269947a31d19366f596dd1e264547a77cd6c0c6ba8f7bb797d",
+    "source": "VM Nautilus capture/window-shadows-soft-dark-desktop.png",
+    "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
+  },
+  "window-shadows-medium-dark.png": {
+    "kind": "shadows",
+    "style": "glassy",
+    "level": "medium",
+    "mode": "dark",
+    "window": {
+      "caption": "Documents",
+      "resourceClass": "org.gnome.Nautilus",
+      "type": 0,
+      "appletPopup": false,
+      "active": true,
+      "geometry": {
+        "x": 90,
+        "y": 30,
+        "width": 760,
+        "height": 380
+      }
+    },
+    "scale": 4,
+    "background": "#686d76",
+    "gtk_glassy": true,
+    "file": "window-shadows-medium-dark-5a2efdf93d0c.png",
+    "source_sha256": "044424f3ae59ef08df4fe7df864773810670efba5f3b64ad78e45a59a9dd3d77",
+    "crop": [
+      2440,
+      1520,
+      3580,
+      1884
+    ],
+    "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
+    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
+    "sha256": "5a2efdf93d0c456cf2652cec184efe1f889ec65f9929d64f6597e56c10b031bc",
+    "source": "VM Nautilus capture/window-shadows-medium-dark-desktop.png",
+    "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
+  },
+  "window-shadows-hard-dark.png": {
+    "kind": "shadows",
+    "style": "glassy",
+    "level": "hard",
+    "mode": "dark",
+    "window": {
+      "caption": "Documents",
+      "resourceClass": "org.gnome.Nautilus",
+      "type": 0,
+      "appletPopup": false,
+      "active": true,
+      "geometry": {
+        "x": 90,
+        "y": 30,
+        "width": 760,
+        "height": 380
+      }
+    },
+    "scale": 4,
+    "background": "#686d76",
+    "gtk_glassy": true,
+    "file": "window-shadows-hard-dark-5b8590f94fd8.png",
+    "source_sha256": "daa52c9cd4347d4e73d4d1dd0b9ed255f2b4c5477117d624df6b20814317393c",
+    "crop": [
+      2440,
+      1520,
+      3580,
+      1884
+    ],
+    "vm_image_sha256": "2a09de13ad568da01a8e16dd93e6aec120e63375bfc0ec24b4e804b43ecb4f8c",
+    "source_archive_sha256": "9a441fb283fc600d01ad44400b9cf347bfbca9cd06d73a2f3e5bb57b0b1b0232",
+    "sha256": "5b8590f94fd81c44dcf708cde6e8f18332bc66526a88d1e17074de9883568b34",
+    "source": "VM Nautilus capture/window-shadows-hard-dark-desktop.png",
+    "capture": "Disposable pinned KDE neon VM; focused Nautilus; 3840x2160 at 4x scale; lossless crop"
   }
 }

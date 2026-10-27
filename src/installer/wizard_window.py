@@ -26,6 +26,7 @@ STEPS = (
     ("layout", "What would you like to add to your desktop?"),
     ("effects", "Which effects would you like to enable?"),
     ("window_controls", "Which window controls would you like?"),
+    ("shadows", "Which window shadows would you like?"),
     ("fonts", "Which fonts would you like to use?"),
     ("firefox", "Apply the theme to Firefox?"),
     ("files", "Install Nautilus as your file manager?"),
@@ -928,11 +929,6 @@ class InstallerWindow(OpaqueSurface):
             ("rounded_corners", "Rounded corners", "Preserves your radius settings.", self.corner_sample()),
         ], independent=True)
 
-        self.body.addWidget(self.label("Window shadows"))
-        self.radio("shadows", [("none", "None"), ("soft", "Soft"),
-                               ("medium", "Medium"), ("hard", "Hard")], inline=True)
-        self.body.addWidget(self.label("Applies to the theme's window decorations and GTK windows."))
-
     def page_window_controls(self):
         self.cards("window_controls", [
             ("flat", "Flat", "Simple, solid colors.",
@@ -941,6 +937,14 @@ class InstallerWindow(OpaqueSurface):
              picture(f"window-controls-glassy-{self.mode}.png", 362, 190)),
         ])
         self.body.addWidget(self.label("Close, minimize and maximize buttons."))
+
+    def page_shadows(self):
+        self.cards("shadows", [
+            (level, label, "", picture(f"window-shadows-{level}-{self.mode}.png", 362, 116))
+            for level, label in (("none", "None"), ("soft", "Soft"),
+                                 ("medium", "Medium"), ("hard", "Hard"))
+        ], compact=True)
+        self.body.addWidget(self.label("Applies to the theme's window decorations and GTK windows."))
 
     def page_fonts(self):
         self.cards("fonts", [
@@ -1008,6 +1012,7 @@ class InstallerWindow(OpaqueSurface):
             row.addWidget(spin); row.addStretch(); self.body.addLayout(row)
 
     def page_summary(self):
+        self.body.setSpacing(8)
         grid = QGridLayout()
         grid.setHorizontalSpacing(24)
         grid.setVerticalSpacing(0)
@@ -1025,9 +1030,6 @@ class InstallerWindow(OpaqueSurface):
         elif self.existing_install and desktop:
             desktop = self.t("Reset layout") + ": " + desktop
         effects = " + ".join(self.t(label) for key, label in (("acrylic_glass", "Glass"), ("rounded_corners", "Rounded corners")) if c[key])
-        effects = (effects or self.t("Disabled")) + " · " + self.t({
-            "none": "No shadows", "soft": "Soft shadows",
-            "medium": "Medium shadows", "hard": "Hard shadows"}[c["shadows"]])
         rows = (
             ("appearance", "Appearance", value("appearance"), "appearance"),
             ("icons", "Icons", value("icons"), "icons"),
@@ -1037,6 +1039,7 @@ class InstallerWindow(OpaqueSurface):
             ("panel", "Desktop", desktop or self.t("Keep"), "layout"),
             ("acrylic_glass", "Effects", effects or self.t("Disabled"), "effects"),
             ("window_controls", "Window controls", value("window_controls"), "window_controls"),
+            ("shadows", "Window shadows", value("shadows"), "shadows"),
             ("fonts", "Fonts", self.t("Theme fonts" if c["fonts"] else "Keep"), "fonts"),
             ("firefox", "Firefox", enabled("firefox"), "firefox"),
             ("files", "Files", self.t("Keep my file manager") if c["files"] == "keep" else value("files"), "files"),
@@ -1047,7 +1050,7 @@ class InstallerWindow(OpaqueSurface):
             entry = QWidget()
             entry.setObjectName("summaryEntry")
             entry.setStyleSheet(f"QWidget#summaryEntry {{ border-bottom: 1px solid {self.line}; }}")
-            row = QHBoxLayout(entry); row.setContentsMargins(0, 9, 0, 9); row.setSpacing(12)
+            row = QHBoxLayout(entry); row.setContentsMargins(0, 6, 0, 6); row.setSpacing(12)
             label = self.label(title); label.setObjectName("detail"); label.setFixedWidth(94)
             label.setFont(relative_font(self, .86)); row.addWidget(label)
             choice = self.label(text); choice.setFont(relative_font(self, .86)); row.addWidget(choice, 1)
@@ -1058,7 +1061,6 @@ class InstallerWindow(OpaqueSurface):
             button.clicked.connect(lambda _, page=step: self.edit(page)); row.addWidget(button)
             grid.addWidget(entry, i//2, i%2)
         self.body.addLayout(grid)
-        self.body.addSpacing(8)
         self.separator()
         title = self.label("Included with the theme")
         title.setFont(relative_font(self, .93, QFont.Weight.Bold)); self.body.addWidget(title)

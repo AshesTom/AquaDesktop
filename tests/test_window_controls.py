@@ -36,6 +36,12 @@ def test_all_controls_render_every_interaction_state(mode):
             painter.end()
             assert image.pixelColor(16, 16).alpha() > 50
             assert image.pixelColor(0, 0).alpha() == 0
+            if state == 'active':
+                # A visible upper reflection and lower caustic distinguish
+                # the glass lens from the original solid-color controls.
+                middle = image.pixelColor(16, 16).lightnessF()
+                assert image.pixelColor(16, 8).lightnessF() > middle + .12
+                assert image.pixelColor(16, 24).lightnessF() > middle + .06
             pixels[state] = image.constBits().asstring(image.sizeInBytes())
         assert pixels["active"] != pixels["inactive"] != pixels["deactivated"]
         assert pixels["active"] != pixels["hover"] != pixels["pressed"]

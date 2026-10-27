@@ -11,10 +11,10 @@ STATES = ("active", "inactive", "hover", "pressed", "deactivated",
           "hover-inactive", "pressed-inactive", "deactivated-inactive")
 BUTTONS = ("close", "minimize", "maximize", "restore")
 COLORS = {
-    "close": ("#ff6f66", "#f77c74", "#f48983", "#9e2019"),
-    "minimize": ("#fdb82c", "#fdc937", "#fdd341", "#ad6200"),
-    "maximize": ("#60ce2f", "#81d55b", "#95d976", "#267c18"),
-    "restore": ("#60ce2f", "#81d55b", "#95d976", "#267c18"),
+    "close": ("#ff9c91", "#df3d32", "#ff8c75", "#731710"),
+    "minimize": ("#ffe581", "#e8a00c", "#ffe571", "#754500"),
+    "maximize": ("#a5ed79", "#2b9e22", "#a5ef72", "#185c12"),
+    "restore": ("#a5ed79", "#2b9e22", "#a5ef72", "#185c12"),
 }
 GLYPHS = {
     "close": 'M5.6 5.6l4.8 4.8m0-4.8l-4.8 4.8',
@@ -31,10 +31,10 @@ def _button(button: str, mode: str, state: str, index: int) -> str:
     dark = mode == "Dark"
     if dark and button in ("close", "minimize", "maximize", "restore"):
         top, middle, bottom = {
-            "close": ("#f86055", "#f45347", "#ef6664"),
-            "minimize": ("#fcb501", "#fbb200", "#fecd32"),
-            "maximize": ("#3bc203", "#32b409", "#4dc13a"),
-            "restore": ("#3bc203", "#32b409", "#4dc13a"),
+            "close": ("#ff8a7d", "#c83227", "#ff8b73"),
+            "minimize": ("#ffdc62", "#cf8800", "#ffe372"),
+            "maximize": ("#89e84e", "#218918", "#97ef5f"),
+            "restore": ("#89e84e", "#218918", "#97ef5f"),
         }[button]
     if neutral:
         top, middle, bottom = (("#515151", "#484848", "#505050") if dark
@@ -42,7 +42,7 @@ def _button(button: str, mode: str, state: str, index: int) -> str:
     prefix = f"b{index}"
     # Top/bottom reflections survive loss of focus. Disabled controls are
     # deliberately fainter, unlike inactive but still actionable controls.
-    shine = ".65" if dark else ".18"
+    shine = ".85" if dark else ".75"
     opacity = '.45' if disabled else '1'
     glyph = (f'<path d="{GLYPHS[button]}" fill="none" stroke="{ink}" '
              'stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>') if state in (
@@ -64,14 +64,22 @@ def _button(button: str, mode: str, state: str, index: int) -> str:
     <stop offset="1" stop-color="#fff" stop-opacity="{shine}"/>
   </linearGradient>
   <radialGradient id="{prefix}-glow" cx=".5" cy="1" r=".7">
-    <stop stop-color="#fff" stop-opacity="{'.13' if dark and not neutral else '.02'}"/>
+    <stop stop-color="#fff" stop-opacity="{'.32' if not neutral else '.12'}"/>
     <stop offset="1" stop-color="#fff" stop-opacity="0"/>
   </radialGradient>
+  <linearGradient id="{prefix}-reflection" x2="0" y2="1">
+    <stop stop-color="#fff" stop-opacity=".85"/>
+    <stop offset="1" stop-color="#fff" stop-opacity=".08"/>
+  </linearGradient>
 </defs>
 <g opacity="{opacity}">
   <circle cx="8" cy="8.5" r="7" fill="#000" opacity="{'.20' if dark else '.08'}"/>
   <circle cx="8" cy="8" r="6.8" fill="url(#{prefix}-body)"/>
   <circle cx="8" cy="8" r="6.8" fill="url(#{prefix}-glow)"/>
+  <path d="M3.05 5.75C3.65 3.65 5.55 2.1 8 2.1s4.35 1.55 4.95 3.65C10.6 7.1 5.4 7.1 3.05 5.75Z"
+        fill="url(#{prefix}-reflection)"/>
+  <path d="M4.5 12.2Q8 14.6 11.5 12.2" fill="none" stroke="#fff" stroke-opacity=".5"
+        stroke-width=".55" stroke-linecap="round"/>
   <circle cx="8" cy="8" r="6.8" fill="none" stroke="#000" stroke-opacity=".18" stroke-width=".4"/>
   <circle cx="8" cy="8" r="6.55" fill="none" stroke="url(#{prefix}-rim)" stroke-width=".6"/>
   {pressed}{glyph}
@@ -88,8 +96,11 @@ def button_svg(button: str, mode: str, state: str | None = None) -> str:
         groups.append(f'<g id="{current}-center" transform="translate(0 {index * 16})">'
                       '<rect width="16" height="16" fill="none"/>'
                       + _button(button, mode, current, index) + '</g>')
-    return ('<svg xmlns="http://www.w3.org/2000/svg" width="16" '
-            f'height="{16 * len(states)}" viewBox="0 0 16 {16 * len(states)}">\n'
+    # GTK's CSS image loader rasterizes at the SVG's intrinsic size before
+    # scaling. Keep one high-resolution source; CSS still fixes it at 16px.
+    width, height = (128, 128) if state else (16, 16 * len(states))
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" '
+            f'height="{height}" viewBox="0 0 16 {16 * len(states)}">\n'
             + '\n'.join(groups) + '\n</svg>\n')
 
 

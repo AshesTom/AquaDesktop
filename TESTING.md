@@ -7,7 +7,56 @@ Release checks cover both editions, theme switching, installation, reboot and re
 
 For test commands and the capture workflow, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## v0.61.7 window controls validation
+## Window controls candidate: Nautilus and separate shadows
+
+This is unreleased work on `codex/golden-gate-controls-v0617`. Publication and
+merging to `main` are on hold until the maintainer tests and approves it. The
+already-published v0.61.7 does not contain the Flat/Glassy chooser.
+
+The revised Glassy controls have a broad upper reflection and a lower caustic.
+GTK SVGs retain their logical button size while using a larger intrinsic canvas
+for sharp high-DPI rasterization. The wizard has a separate Window shadows page
+with four screenshot cards and its own editable summary row.
+
+Twelve reviewed Nautilus crops replace the Dolphin control previews and add
+all four shadow levels in both modes. They were captured sequentially in the
+pinned disposable KDE neon VM at 3840×2160, 4× scale. Every capture verifies
+the active Nautilus window; the shadow comparisons use identical geometry and
+neutral backgrounds. Their hashes and crop bounds are in
+`src/installer/assets/sources.json`.
+
+Focused validation on the maintainer's Linux environment with offscreen Qt:
+
+```sh
+QT_QPA_PLATFORM=offscreen PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider \
+  tests/test_window_controls.py tests/test_window_shadows.py \
+  tests/test_gtk_upgrade.py tests/test_gtk_window_geometry.py \
+  tests/test_release_screenshots.py tests/test_screenshot_checks.py \
+  tests/test_nix.py tests/test_step_guards.py
+# 84 passed
+QT_QPA_PLATFORM=offscreen PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider \
+  tests/test_installer_wizard.py tests/test_installer_ui.py tests/test_cli.py
+# 140 passed
+```
+
+The wizard checks cover both edition defaults, all four shadow selections,
+summary editing, retained transaction choices and page layout without scrolling.
+The final summary spacing also passed the 28 wizard checks, including the
+larger-font regression found during native VM review. Prepared Golden Gate
+content `8c490c88acf4b742b098` passed 171 checks (wizard, installer UI, CLI,
+window controls, shadows, GTK upgrade/geometry and Nix); after the summary-only
+adjustment, all 28 wizard checks passed again in `444c9a1a9e1329ca8fa1`.
+
+Native VM review covered Controls, Shadows, Effects and Summary in both
+editions and both modes. The first summary overflow was rejected and fixed;
+all four final summaries report zero vertical scroll. Final summary capture
+source archive SHA-256: `81c104bfbb32e826c147d447bcef958ae08b950308359a887ec09945f04df962`.
+
+No native backend or ABI changed. These focused checks are not release evidence.
+The gallery below predates this refinement; the next release needs a new complete
+90-frame bundle at its final version and exact-commit CI on both branches.
+
+### Initial chooser development evidence
 
 The native wizard offers Flat and Glassy window controls, with the source
 edition's default first. Navigation and summary editing preserve the explicit
@@ -41,12 +90,11 @@ QT_QPA_PLATFORM=offscreen PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:ca
 The run passed 260 checks under filesystem isolation; the Unix-socket scheduling
 case passed separately with permission to bind its temporary local socket.
 
-The four new chooser previews were captured sequentially in a disposable overlay
+The initial four chooser previews were captured sequentially in a disposable overlay
 of the pinned KDE neon VM (Plasma 6.8.1, Qt 6.11.1, Wayland), at 3840×2160 and
 4× scale. The probe installed both styles, checked the selected Aurorae family
 and matching GTK assets, and captured focused Dolphin windows in both modes.
-The first unsettled crop was rejected; the bundled crops use the corrected
-capture with verified final geometry. Source hashes and crop rectangles are in
+Those Dolphin crops have since been replaced by the Nautilus candidate above. Source hashes and crop rectangles are in
 `src/installer/assets/sources.json`. The complete release bundle separately uses
 the fixed 2× profile and includes the new installer page for both editions and
 both modes. It requires visual review and exact-commit CI before publication.
