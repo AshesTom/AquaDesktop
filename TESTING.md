@@ -1,15 +1,26 @@
 # Installer testing
 
-Native installer screens for Tahoe 0.61.7, captured in a disposable KDE Plasma VM.
+Native installer screens for Tahoe 0.61.8, captured in a disposable KDE Plasma VM.
 Dark appearance was selected for this installation test.
 The gallery is captured from the release source and reviewed before publication.
 Release checks cover both editions, theme switching, installation, reboot and removal.
 
 For test commands and the capture workflow, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## v0.61.8 focused validation
+
+On 2026-10-27, 171 focused checks passed on the shared Tahoe source and the
+same 171 passed on prepared Golden Gate content `9d2e8e8532812762e034`.
+The checks used Python 3.14 with offscreen Qt on the maintainer's Linux host:
+window controls, shadows, GTK upgrade/geometry, wizard navigation and summary,
+installer supervision, CLI choices and Nix staging. No native ABI changed.
+Existing component and VM evidence below remains applicable to unchanged code.
+The required full CI runs on the exact release commits; no duplicate local
+container matrix is used.
+
 ## Glassy reference refinement
 
-The latest candidate follows the maintainer's supplied button close-up with
+The v0.61.8 controls follow the maintainer's supplied button close-up with
 saturated faces, narrow rim highlights and heavier hover glyphs. It removes
 the broad reflection and separate lower arc from the stronger lens design.
 It keeps the high-DPI GTK canvas, all interaction states, Flat artwork, frame geometry, shadow choices
@@ -42,13 +53,13 @@ The native chooser was captured and visually reviewed in both editions and
 both modes, using the updated Nautilus crops. Capture source archive SHA-256:
 `5ee79bb64e3786d62de67d61651c2ebe3d3547efdfc8cb7d59b21e5c57d40f44`.
 
-Full release captures and publication remain pending the maintainer's approval.
+Release v0.61.8 includes a fresh complete capture from the pinned disposable VM.
+Publication requires successful exact-commit CI on both `main` and `dev`.
 
-## Window controls candidate: Nautilus and separate shadows
+## Window controls: Nautilus and separate shadows
 
-This is unreleased work on `codex/golden-gate-controls-v0617`. Publication and
-merging to `main` are on hold until the maintainer tests and approves it. The
-already-published v0.61.7 does not contain the Flat/Glassy chooser.
+Version 0.61.8 adds the Flat/Glassy chooser and the separate Window shadows
+page. Version 0.61.7 did not contain the chooser.
 
 This earlier candidate used a broad upper reflection and a lower caustic;
 the reference refinement above supersedes that treatment.
@@ -91,8 +102,8 @@ all four final summaries report zero vertical scroll. Final summary capture
 source archive SHA-256: `81c104bfbb32e826c147d447bcef958ae08b950308359a887ec09945f04df962`.
 
 No native backend or ABI changed. These focused checks are not release evidence.
-The gallery below predates this refinement; the next release needs a new complete
-90-frame bundle at its final version and exact-commit CI on both branches.
+The gallery below is generated from the complete 90-frame release bundle at
+the final source/version; every frame is reviewed before staging.
 
 ### Initial chooser development evidence
 
@@ -273,6 +284,7 @@ Scroll horizontally through the installation steps.
   <td align="center"><img src="src/screenshots/installer-layout_dark_v4-609c79632293.png" alt="Top bar and Dock" width="500"><br>Top bar and Dock</td>
   <td align="center"><img src="src/screenshots/installer-effects_dark_v4-1d92b8e0c330.png" alt="Effects" width="500"><br>Effects</td>
   <td align="center"><img src="src/screenshots/installer-window_controls_dark_v4-de5d41212332.png" alt="Flat or Glassy window controls" width="500"><br>Window controls</td>
+  <td align="center"><img src="src/screenshots/installer-shadows_dark_v4.png" alt="Window shadow comparison" width="500"><br>Window shadows</td>
   <td align="center"><img src="src/screenshots/installer-fonts_dark_v4-761f06feda96.png" alt="Fonts" width="500"><br>Fonts</td>
   <td align="center"><img src="src/screenshots/installer-firefox_dark_v4-49cd855a045b.png" alt="Firefox" width="500"><br>Firefox</td>
   <td align="center"><img src="src/screenshots/installer-files_dark_v4-5fcd5eaf13e4.png" alt="File manager" width="500"><br>File manager</td>
