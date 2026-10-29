@@ -310,6 +310,7 @@ def test_installer_gallery_rejects_wrong_page_or_edition(capture, key, value):
     ('VERSION', '1.2.4\n'), ('AGENTS.md', 'Only test changed visual behavior.\n'),
     ('TESTING.md', '![Installer](src/screenshots/installer-welcome_v4.png)\nNew console tests passed.\n'),
     ('tests/new_test.py', '# nonvisual regression coverage\n'),
+    ('.github/workflows/test.yml', '# CI runtime setup does not render the desktop\n'),
 ])
 def test_nonvisual_release_reuses_original_reviewed_evidence(capture, path, content):
     repo, ref, bundle, manifest = capture

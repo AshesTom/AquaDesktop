@@ -42,7 +42,7 @@ jobs:
           pacman -Sy --noconfirm --needed archlinux-keyring
           pacman -Syu --noconfirm \
             python python-pytest zstd python-pillow python-gobject python-pyqt6 gtk4 \
-            qt6-svg librsvg xorg-server-xvfb xorg-xprop nodejs bash git diffutils findutils \
+            qt6-svg librsvg xorg-server-xvfb xorg-xprop bash git diffutils findutils \
             base-devel cmake extra-cmake-modules pkgconf \
             qt6-base qt6-declarative qt6-wayland qt6-tools \
             kconfig kconfigwidgets kcoreaddons kcrash kglobalaccel \
@@ -53,12 +53,16 @@ jobs:
             libksysguard plasma-workspace plasma-desktop plasma5support plasma-sdk \
             kwin kdecoration \
             libepoxy libdrm libx11 libxcb
+      - name: Set up Node for JavaScript regression tests
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
       - name: Verify native popup test prerequisites
         run: |
           python -c "import gi; gi.require_version('Gtk', '4.0'); from gi.repository import Gtk; from PyQt6 import QtSvg; from PIL import Image"
           command -v rsvg-convert
           command -v Xvfb
-          command -v node
+          node --version
           command -v plasmoidviewer
           command -v xprop
       - name: Run tests

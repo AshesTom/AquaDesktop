@@ -79,7 +79,7 @@ def visual_tree(repo: Path, ref: str) -> str:
             continue
         metadata, raw_path = entry.split(b'\t', 1)
         path = raw_path.decode()
-        if (path == 'VERSION' or path.endswith('.md') or path.startswith(('tests/', 'src/screenshots/'))
+        if (path == 'VERSION' or path.endswith('.md') or path.startswith(('tests/', 'src/screenshots/', '.github/'))
                 or path in ('src/scripts/release_screenshots.py', 'src/scripts/release_screenshots_cli.py')):
             continue
         if path == 'src/scripts/cli.py':

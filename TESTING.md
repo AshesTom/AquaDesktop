@@ -336,3 +336,12 @@ VM/profile/effect identity and focused application frames. New tests cover
 reuse across version/documentation changes, console updater changes, rejection
 of UI translation/runtime changes, and publication using the current version
 without relabeling old images. Exact-commit CI remains mandatory.
+
+
+The first final CI run exposed an Arch package ABI mismatch: the distribution
+Node binary required `libsimdjson.so.34`, which was absent from its freshly
+installed dependency set. The primary job now uses the official
+`actions/setup-node@v5` Node 24 runtime and checks `node --version` before
+running every JavaScript regression. No test is skipped or disabled. The
+release verifier treats CI metadata as nonvisual input; its reuse regression
+includes that case. The README count is 2017 collected cases.
