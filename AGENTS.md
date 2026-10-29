@@ -704,16 +704,23 @@ the published Tahoe release commit and verified archive SHA-256 before
 publishing the corresponding Golden Gate release. Each README
 shows its own default launcher preset and wallpaper in light and dark mode.
 
-Capture screenshots for EVERY release with `./release-screenshots capture`.
-Use the checksum-pinned disposable VM and fixed recipe in
-`src/scripts/release_capture_profile.json`; never capture on the host desktop.
-Capture both modes in both editions, verify the active effect matches the
-release source, and visually review every fresh image before staging. Missing,
-rejected, mixed-theme or older-release pictures block publication. Commit the
-reviewed images and provenance, run `./release-screenshots verify`, then push
-the release tag through `.github/workflows/release.yml`. Do not bypass the
-gate with a direct `gh release create`. Changes outside `src/screenshots/`
-after capture require a new run, except README/TESTING screenshot filename hash updates. See CONTRIBUTING.md for the full sequence.
+Run visual tests and capture documentation screenshots only when the actual
+change clearly affects visible output: layout, colors, materials, typography,
+icons, wallpaper, controls or rendered UI content. A release, version bump,
+updater fix, translation of console-only messages, documentation edit or CI
+change alone does not justify visual tests or new captures. State the concrete
+visual impact before starting a VM. Reuse reviewed screenshots and their
+original provenance when visual inputs are unchanged; never relabel old images
+as newly captured. Run focused visual checks only for affected components,
+editions and modes, and do not repeat an unchanged passing check. A failed or
+rejected new frame cannot be filled with an older image.
+
+Use `./release-screenshots` and the checksum-pinned disposable VM for any new
+publication captures. Review each new image, preserve content-hashed filenames,
+and verify committed provenance before publication. Publish through
+`.github/workflows/release.yml`; keep exact-commit CI on main and dev mandatory
+in both repositories. Never use direct `gh release create` to bypass the gate.
+See CONTRIBUTING.md for the capture sequence when visual changes require it.
 
 The same defaults file selects `launcher_preset` (Tahoe: 1, Golden Gate: 2).
 `launcher_defaults.py` stamps only the staged launcher's `defaultLauncherPreset`
@@ -1066,8 +1073,8 @@ on both branches. Earlier-commit evidence never substitutes for the exact-SHA
 release gate: publication requires successful `test.yml` push runs on `main`
 and `dev` for each repository's exact release commit. Never weaken workflows,
 skip required checks or treat missing,
-cancelled or failed checks as success to shorten a task. Release screenshot
-capture and verification remain mandatory for every release.
+cancelled or failed checks as success to shorten a task. Screenshot provenance verification remains mandatory; new visual tests and
+captures are conditional on a clear visual change, as specified below.
 
 Documentation-only delivery does not require a version bump, pin update,
 release or new screenshots. Automatic push CI may still run; report its status

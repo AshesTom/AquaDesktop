@@ -393,14 +393,21 @@ Be a decent human. I'll close anything abusive, off-topic, or trying to drag thi
 Keep the installer gallery in [TESTING.md](TESTING.md); the README links to it
 without embedding installer screenshots. Desktop and Dock photographs stay in the README.
 
-Every release requires a new complete capture. Use `./release-screenshots`,
-not the older single-window helper, for publication. The release workflow
+New captures are required only when the diff clearly changes visible output.
+For nonvisual releases, retain the reviewed images and their original capture
+version and source; run `./release-screenshots verify` without starting a VM.
+The verifier conservatively rejects changed visual inputs and unknown source
+changes. Console updater logic/messages, documentation, tests, release
+verification tools and a version bump alone do not invalidate visual evidence.
+When new captures are needed, use `./release-screenshots` for publication. The release workflow
 verifies committed provenance before creating the GitHub release. Never use
 old images to fill a failed or rejected case. Main README desktop galleries
 show Files and About This Computer separately in both modes. Each frame must
 contain only its featured application with that window focused; capture and
 release validation reject combined or unfocused desktops. Distro qualification
 screenshots are outside this gallery rule.
+
+For a release that changes visual output:
 
 1. Finish the source changes, set `VERSION`, and commit the release candidate.
 2. Run `./release-screenshots capture --ref HEAD --vm-image /path/to/neon-base.qcow2 --output build/captures/vVERSION`.
@@ -418,9 +425,8 @@ screenshots are outside this gallery rule.
    and its checkout as `--destination`. Both versions must already match.
    Staging gives each image a filename containing its content SHA-256 prefix,
    updates README and TESTING URLs, and removes replaced images and obsolete aliases.
-5. Commit the screenshots. This commit may change only `src/screenshots/`
-   and README/TESTING screenshot filename hashes relative to the captured candidate;
-   other changes require recapture.
+5. Commit the screenshots. Further changes to visual inputs require recapture;
+   nonvisual edits do not. Preserve the capture version and source in provenance.
    Run `./release-screenshots verify`. Push the version tag to trigger the
    gated release workflow. Its release title is exactly `vVERSION`.
    Pin Golden Gate to that published Tahoe commit and verified archive, commit

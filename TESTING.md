@@ -295,7 +295,7 @@ Scroll horizontally through the installation steps.
 </table>
 
 
-## v0.61.9: version-aware updates
+## v0.61.10: version-aware updates
 
 Validated on 2026-10-28 with Python 3.14.7, using disposable Git repositories
 and offscreen Qt. Scope: wrapper startup, automatic sibling selection, release
@@ -313,12 +313,26 @@ No desktop installation, native backend or visual appearance change is involved.
 
 The maintainer approved the local installer behavior for release on 2026-10-28.
 Release preparation excludes unrelated Downloads Stack and battery-icon work.
-Publication requires fresh reviewed captures and successful `test.yml` push runs
-on both `main` and `dev` for the exact release commits in both repositories.
+Publication requires successful `test.yml` push runs on both `main` and `dev`
+for the exact release commits in both repositories. Reviewed screenshot
+provenance is retained when visual inputs are unchanged.
 
 The first v0.61.9 CI candidate caught four missing updater messages in the
 Portuguese and German catalogs. Both catalogs now include those messages.
 Focused validation expanded to `tests/test_multilanguage.py` alongside the
 updater, CLI and installer tests: **160 passed** on Python 3.14.7 with offscreen
-Qt. The corrected candidate receives a fresh complete screenshot capture and
-new exact-commit CI runs before publication.
+Qt. The corrected candidate receives new exact-commit CI runs before publication;
+console translation fixes do not change the desktop or installer appearance.
+
+
+Release screenshot policy, 2026-10-28: visual tests and VM captures run only
+for a clear change to visible output. v0.61.10 changes updater behavior,
+console translations and release validation, and keeps Downloads out of the
+Dock. It excludes the separate battery-icon work. Existing reviewed v0.61.9
+captures retain their original source, version and hashes. The redundant
+translation-only capture was stopped; its partial output is not published.
+The release verifier checks unchanged visual inputs, original review hashes,
+VM/profile/effect identity and focused application frames. New tests cover
+reuse across version/documentation changes, console updater changes, rejection
+of UI translation/runtime changes, and publication using the current version
+without relabeling old images. Exact-commit CI remains mandatory.

@@ -1,6 +1,7 @@
 """Release screenshot provenance and publication checks (no desktop access)."""
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 from pathlib import Path
@@ -58,6 +59,54 @@ def runtime_tree(repo: Path, ref: str) -> str:
                             rb'\1\2', blob(repo, ref, document))
             entries[index] = document.encode() + b'\t' + hashlib.sha256(readme).hexdigest().encode()
     return hashlib.sha256(b'\0'.join(entries)).hexdigest()
+
+
+def visual_tree(repo: Path, ref: str) -> str:
+    """Conservative visual inputs; unknown runtime changes require new evidence.
+
+    Keep runtime_tree unchanged so historical manifest hashes remain verifiable.
+    Only console updater functions/messages are excluded from application code.
+    """
+    updater_messages = {
+        'Update available: {current} → {latest}',
+        'Keeping local source: changes present or not a clean git checkout',
+        'Could not verify the published update — keeping the current checkout',
+        'Keeping local commits: the release is not a fast-forward',
+    }
+    entries = []
+    for entry in subprocess.check_output(['git', '-C', str(repo), 'ls-tree', '-rz', ref]).split(b'\0'):
+        if not entry:
+            continue
+        metadata, raw_path = entry.split(b'\t', 1)
+        path = raw_path.decode()
+        if (path == 'VERSION' or path.endswith('.md') or path.startswith(('tests/', 'src/screenshots/'))
+                or path in ('src/scripts/release_screenshots.py', 'src/scripts/release_screenshots_cli.py')):
+            continue
+        if path == 'src/scripts/cli.py':
+            module = ast.parse(blob(repo, ref, path))
+            module.body = [node for node in module.body if not (
+                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and
+                node.name in ('auto_update_and_reexec', '_repo_is_clean_git_checkout'))]
+            content = ast.dump(module, include_attributes=False).encode()
+        elif path.startswith('src/scripts/locales/') and path.endswith('.json'):
+            catalog = json.loads(blob(repo, ref, path))
+            content = json.dumps({k: v for k, v in catalog.items() if k not in updater_messages},
+                                 sort_keys=True, ensure_ascii=False).encode()
+        else:
+            entries.append(entry)
+            continue
+        entries.append(metadata.split(b' ', 1)[0] + b'\t' + raw_path + b'\t' +
+                       hashlib.sha256(content).hexdigest().encode())
+    return hashlib.sha256(b'\0'.join(entries)).hexdigest()
+
+
+def verify_visual_source(repo: Path, source: str, target: str, source_tree: str) -> None:
+    require(runtime_tree(repo, source) == source_tree, 'Inconsistent capture source tree')
+    require(subprocess.run(['git', '-C', str(repo), 'merge-base', '--is-ancestor', source, target],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0,
+            'Capture source is not an ancestor of this release')
+    require(visual_tree(repo, source) == visual_tree(repo, target),
+            'Visual release source changed after capture; recapture required')
 
 
 def expected_frames() -> set[str]:
@@ -128,10 +177,9 @@ def validate(repo: Path, ref: str, bundle: Path, *, reviewed: bool = True) -> di
     require(subprocess.run(['git', '-C', str(repo), 'merge-base', '--is-ancestor', source, target],
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0,
             'Capture source is not an ancestor of this release')
-    require(manifest['source_tree'] == runtime_tree(repo, source) == runtime_tree(repo, target),
-            'Release source changed after capture; recapture required')
-    version = git(repo, 'show', target + ':VERSION')
-    require(manifest['version'] == version, 'Screenshots belong to a different release')
+    verify_visual_source(repo, source, target, manifest['source_tree'])
+    require(manifest['version'] == git(repo, 'show', source + ':VERSION'),
+            'Capture version differs from its original source')
     require(json.loads(blob(repo, target, 'src/scripts/defaults.json')) ==
             {'wallpaper': EDITIONS['tahoe'][0], 'launcher_preset': EDITIONS['tahoe'][1]},
             'Tahoe defaults differ from the capture recipe')
@@ -271,7 +319,7 @@ def verify_committed(repo: Path, ref: str, *, tahoe: Path | None = None) -> dict
     ref = commit_id(repo, ref)
     record = json.loads(blob(repo, ref, 'src/screenshots/release-capture.json'))
     version = git(repo, 'show', ref + ':VERSION')
-    require(record['version'] == version, 'Screenshots belong to a different release')
+    capture_version = record['version']
     edition = record['edition']
     require(edition in EDITIONS, 'Unknown screenshot edition')
     source_repo = tahoe or repo
@@ -286,11 +334,12 @@ def verify_committed(repo: Path, ref: str, *, tahoe: Path | None = None) -> dict
         require(json.loads(blob(repo, ref, 'defaults.json')) ==
                 {'wallpaper': EDITIONS[edition][0], 'launcher_preset': EDITIONS[edition][1]},
                 'Golden Gate defaults differ from the capture recipe')
-    require(runtime_tree(source_repo, source) == record['source_tree'] == runtime_tree(source_repo, target),
-            'Release source changed after capture; recapture required')
+    verify_visual_source(source_repo, source, target, record['source_tree'])
+    require(capture_version == git(source_repo, 'show', source + ':VERSION'),
+            'Capture version differs from its original source')
     manifest = record['capture_manifest']
     require(set(manifest['frames']) == expected_frames(), 'Incomplete release capture')
-    require(manifest['version'] == version and manifest['source_commit'] == source and
+    require(manifest['version'] == capture_version and manifest['source_commit'] == source and
             manifest['source_tree'] == record['source_tree'], 'Inconsistent capture provenance')
     profile_bytes = blob(source_repo, target, 'src/scripts/release_capture_profile.json')
     require(hashlib.sha256(profile_bytes).hexdigest() == record['profile_sha256'] == manifest['profile_sha256'],
@@ -323,6 +372,6 @@ def verify_committed(repo: Path, ref: str, *, tahoe: Path | None = None) -> dict
         require(name.endswith('-' + image['sha256'][:12] + '.png'), 'Screenshot URL is missing its content hash: ' + name)
         require(hashlib.sha256(blob(repo, ref, 'src/screenshots/' + name)).hexdigest() == image['sha256'],
                 'Screenshot changed after review: ' + name)
-        require(image['source_commit'] == source and image['source_release'] == 'v' + version,
+        require(image['source_commit'] == source and image['source_release'] == 'v' + capture_version,
                 'Stale screenshot: ' + name)
     return record

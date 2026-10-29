@@ -99,8 +99,8 @@ def test_base_icons_cannot_replace_the_installed_regular_appearance(capture, mod
         shots.verify_committed(repo, final)
 
 
-@pytest.mark.parametrize('path,content', [('VERSION', '1.2.4\n'), ('src/new-code.py', 'changed code\n')])
-def test_new_release_or_code_requires_recapture(capture, path, content):
+@pytest.mark.parametrize('path,content', [('src/new-code.py', 'changed code\n')])
+def test_unknown_runtime_code_requires_recapture(capture, path, content):
     repo, ref, bundle, _ = capture
     (repo / path).write_text(content)
     final = commit(repo)
@@ -304,3 +304,80 @@ def test_installer_gallery_rejects_wrong_page_or_edition(capture, key, value):
     write_json(bundle / 'manifest.json', manifest)
     with pytest.raises(ValueError, match='Wrong installer'):
         shots.validate(repo, ref, bundle, reviewed=False)
+
+
+@pytest.mark.parametrize('path,content', [
+    ('VERSION', '1.2.4\n'), ('AGENTS.md', 'Only test changed visual behavior.\n'),
+    ('TESTING.md', '![Installer](src/screenshots/installer-welcome_v4.png)\nNew console tests passed.\n'),
+    ('tests/new_test.py', '# nonvisual regression coverage\n'),
+])
+def test_nonvisual_release_reuses_original_reviewed_evidence(capture, path, content):
+    repo, ref, bundle, manifest = capture
+    shots.stage(repo, 'tahoe', bundle, manifest)
+    target = repo / path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if path == "TESTING.md":
+        target.write_text(target.read_text() + "New console tests passed.\n")
+    else:
+        target.write_text(content)
+    final = commit(repo)
+    shots.validate(repo, final, bundle)
+    record = shots.verify_committed(repo, final)
+    assert record['version'] == '1.2.3'
+    assert record['source_commit'] == ref
+    assert all(image['source_release'] == 'v1.2.3' for image in record['images'].values())
+
+
+def test_updater_exclusion_does_not_hide_other_cli_changes(capture):
+    repo, _, bundle, manifest = capture
+    cli = repo / 'src/scripts/cli.py'
+    cli.write_text('def auto_update_and_reexec():\n    return 1\n\ndef install():\n    return "same UI"\n')
+    source = commit(repo)
+    manifest['source_commit'] = source
+    manifest['source_tree'] = shots.runtime_tree(repo, source)
+    write_json(bundle / 'manifest.json', manifest)
+    cli.write_text(cli.read_text().replace('return 1', 'return 2'))
+    updated = commit(repo)
+    shots.validate(repo, updated, bundle, reviewed=False)
+    cli.write_text(cli.read_text().replace('same UI', 'changed UI'))
+    changed = commit(repo)
+    with pytest.raises(ValueError, match='changed after capture'):
+        shots.validate(repo, changed, bundle, reviewed=False)
+
+
+def test_ui_translation_changes_still_require_recapture(capture):
+    repo, _, bundle, manifest = capture
+    catalog = repo / 'src/scripts/locales/de.json'
+    catalog.parent.mkdir(parents=True)
+    write_json(catalog, {'Welcome': 'Willkommen', 'Update available: {current} → {latest}': 'Alt'})
+    source = commit(repo)
+    manifest['source_commit'] = source
+    manifest['source_tree'] = shots.runtime_tree(repo, source)
+    write_json(bundle / 'manifest.json', manifest)
+    write_json(catalog, {'Welcome': 'Willkommen', 'Update available: {current} → {latest}': 'Neu'})
+    updated = commit(repo)
+    shots.validate(repo, updated, bundle, reviewed=False)
+    write_json(catalog, {'Welcome': 'Changed visible text'})
+    changed = commit(repo)
+    with pytest.raises(ValueError, match='changed after capture'):
+        shots.validate(repo, changed, bundle, reviewed=False)
+
+
+def test_nonvisual_release_publishes_current_version_without_relabeling_images(capture, monkeypatch):
+    repo, _, bundle, manifest = capture
+    shots.stage(repo, 'tahoe', bundle, manifest)
+    (repo / 'VERSION').write_text('1.2.4\n')
+    final = commit(repo)
+    subprocess.run(['git', '-C', str(repo), 'tag', 'v1.2.4'], check=True)
+    original = subprocess.run
+    calls = []
+    def run(command, **kwargs):
+        if command[0] == 'gh':
+            calls.append(command)
+            return subprocess.CompletedProcess(command, 0)
+        return original(command, **kwargs)
+    monkeypatch.setattr(subprocess, 'run', run)
+    publish(repo, final)
+    assert calls == [['gh', 'release', 'create', 'v1.2.4', '--verify-tag',
+                      '--title', 'v1.2.4', '--generate-notes']]
+    assert shots.verify_committed(repo, final)['version'] == '1.2.3'

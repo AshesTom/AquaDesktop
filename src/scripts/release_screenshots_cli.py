@@ -6,12 +6,12 @@ import json
 from pathlib import Path
 import subprocess
 
-from release_screenshots import ROOT, EDITIONS, commit_id, digest, require, stage, validate, verify_committed, verify_recipe
+from release_screenshots import ROOT, EDITIONS, commit_id, digest, require, stage, validate, verify_committed, verify_recipe, git
 
 
 def publish(repo, ref, tahoe=None):
     record = verify_committed(repo, ref, tahoe=tahoe)
-    tag = 'v' + record['version']
+    tag = 'v' + git(repo, 'show', commit_id(repo, ref) + ':VERSION')
     require(commit_id(repo, tag) == commit_id(repo, ref), 'Release tag does not point to the verified commit')
     subprocess.run(['gh', 'release', 'create', tag, '--verify-tag', '--title', tag, '--generate-notes'],
                    cwd=repo, check=True)
@@ -68,7 +68,7 @@ def main(argv=None):
             print('Staged the complete reviewed screenshot set; commit it before publishing.')
         elif args.command == 'verify':
             record = verify_committed(args.repo, args.ref, tahoe=args.tahoe_repo)
-            print('Screenshots verified for v' + record['version'])
+            print('Screenshots verified; original capture v' + record['version'])
         elif args.command == 'publish':
             publish(args.repo, args.ref, args.tahoe_repo)
     except (OSError, ValueError, KeyError, RuntimeError, subprocess.SubprocessError) as exc:
