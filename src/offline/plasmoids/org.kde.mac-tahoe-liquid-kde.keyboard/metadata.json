@@ -1,0 +1,24 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "MacTahoe Liquid KDE contributors"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "macOS Input menu: the current keyboard layout in the menu bar, and a menu to switch layouts, show emoji, the keyboard viewer or the clipboard history",
+        "Description[es]": "Menú Entrada de macOS: la distribución de teclado actual en la barra de menús y un menú para cambiarla, mostrar emojis, el visor de teclado o el historial del portapapeles",
+        "Description[fr]": "Menu Saisie de macOS : la disposition du clavier dans la barre des menus, et un menu pour en changer, afficher les émojis, le visualiseur de clavier ou l’historique du presse-papiers",
+        "Description[zh_CN]": "macOS 输入法菜单：在菜单栏显示当前键盘布局，并可切换布局、显示表情符号、键盘显示程序或剪贴板历史",
+        "Icon": "input-keyboard",
+        "Id": "org.kde.mac-tahoe-liquid-kde.keyboard",
+        "License": "GPL-3.0",
+        "Name": "Input Menu (MacTahoe Liquid KDE)",
+        "Name[es]": "Menú Entrada (MacTahoe Liquid KDE)",
+        "Name[fr]": "Menu Saisie (MacTahoe Liquid KDE)",
+        "Name[zh_CN]": "输入法菜单 (MacTahoe Liquid KDE)",
+        "EnabledByDefault": false
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

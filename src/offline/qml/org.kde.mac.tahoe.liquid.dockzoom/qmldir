@@ -1,0 +1,5 @@
+module org.kde.mac.tahoe.liquid.dockzoom
+singleton DockZoom 1.0 DockZoom.qml
+DockZoomTracker 1.0 DockZoomTracker.qml
+DockZoomSlot 1.0 DockZoomSlot.qml
+DockZoomCatcher 1.0 DockZoomCatcher.qml

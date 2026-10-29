@@ -1,0 +1,23 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Vasiliy"
+            }
+        ],
+        "Category": "Utilities",
+        "Category[es]": "Utilidades",
+        "Category[zh_CN]": "实用工具",
+        "Description": "macOS-style Downloads stack for the Dock: fans out your most recent downloads",
+        "Description[es]": "Pila de Descargas al estilo macOS para el Dock: despliega tus descargas más recientes",
+        "Description[zh_CN]": "macOS 风格的 Dock 下载堆栈：展开最近的下载",
+        "Icon": "folder-download",
+        "Id": "org.kde.mac-tahoe-liquid-kde.downloads",
+        "License": "GPL-3.0-or-later",
+        "Name": "Downloads Stack (MacTahoe Liquid KDE)",
+        "Name[es]": "Pila de Descargas (MacTahoe Liquid KDE)",
+        "Name[zh_CN]": "下载堆栈 (MacTahoe Liquid KDE)"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

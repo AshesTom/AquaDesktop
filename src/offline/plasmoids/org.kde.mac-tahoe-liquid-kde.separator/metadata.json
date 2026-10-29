@@ -1,0 +1,23 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Lester Cordero Murillo"
+            }
+        ],
+        "Category": "Windows and Tasks",
+        "Category[es]": "Ventanas y tareas",
+        "Category[zh_CN]": "窗口和任务",
+        "Description": "Thin divider line between Dock sections",
+        "Description[es]": "Línea divisoria fina entre las secciones del Dock",
+        "Description[zh_CN]": "Dock 分区之间的细分隔线",
+        "Icon": "distribute-horizontal-x",
+        "Id": "org.kde.mac-tahoe-liquid-kde.separator",
+        "License": "GPL-3.0",
+        "Name": "Dock Separator (MacTahoe Liquid KDE)",
+        "Name[es]": "Separador del Dock (MacTahoe Liquid KDE)",
+        "Name[zh_CN]": "Dock 分隔线 (MacTahoe Liquid KDE)"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

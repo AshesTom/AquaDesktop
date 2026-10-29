@@ -1,0 +1,23 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Lester Cordero Murillo"
+            }
+        ],
+        "Category": "Utilities",
+        "Category[es]": "Utilidades",
+        "Category[zh_CN]": "实用工具",
+        "Description": "Menu bar search button that opens KRunner, like Spotlight",
+        "Description[es]": "Botón de búsqueda de la barra de menús que abre KRunner, como Spotlight",
+        "Description[zh_CN]": "打开 KRunner 的菜单栏搜索按钮，类似 Spotlight",
+        "Icon": "system-search",
+        "Id": "org.kde.mac-tahoe-liquid-kde.spotlight",
+        "License": "GPL-3.0",
+        "Name": "Search (MacTahoe Liquid KDE)",
+        "Name[es]": "Búsqueda (MacTahoe Liquid KDE)",
+        "Name[zh_CN]": "搜索 (MacTahoe Liquid KDE)"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

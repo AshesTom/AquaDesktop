@@ -12,7 +12,9 @@ import org.kde.kirigami as Kirigami
 AbstractButton {
     id: controlRoot
 
-    font.weight: Font.DemiBold
+    // macOS menu titles use the regular weight; only the app name is bold.
+    font.weight: Font.Normal
+    font.pointSize: Kirigami.Theme.defaultFont.pointSize - 0.75
     property bool menuIsOpen: false
 
     signal activated()
@@ -40,10 +42,13 @@ AbstractButton {
     Kirigami.MnemonicData.controlType: Kirigami.MnemonicData.SecondaryControl
     Kirigami.MnemonicData.label: text
 
-    topPadding: Kirigami.Units.smallSpacing + 1
-    bottomPadding: Kirigami.Units.smallSpacing - 1
-    leftPadding: Kirigami.Units.largeSpacing
-    rightPadding: Kirigami.Units.largeSpacing
+    // Caps sit on rows 10-19 of the 30 px bar: optically centred, on the
+    // clock's baseline.
+    topPadding: Kirigami.Units.smallSpacing - 1
+    bottomPadding: Kirigami.Units.smallSpacing - 2
+    // ~20 px between titles, as in the macOS menu bar.
+    leftPadding: Kirigami.Units.largeSpacing + Kirigami.Units.smallSpacing / 2
+    rightPadding: Kirigami.Units.largeSpacing + Kirigami.Units.smallSpacing / 2
 
     Accessible.description: i18nc("@info:usagetip", "Open a menu")
 
@@ -60,6 +65,6 @@ AbstractButton {
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
         color: Kirigami.Theme.textColor
-        font.weight: controlRoot.font.weight
+        font: controlRoot.font
     }
 }

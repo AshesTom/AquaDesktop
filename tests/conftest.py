@@ -61,6 +61,38 @@ def never_touch_live_plasma_layout(monkeypatch):
 
     monkeypatch.setattr(layout, "_evaluate_layout_script", lambda script: False)
     monkeypatch.setattr(layout, "_reset_layout_builtin", lambda: False)
+    # plasmaparc's OSD keys: tests reach them through fakes of kw_read and
+    # kw_write, never the developer's real file.
+    monkeypatch.setattr(layout, "kw_write", lambda *args: False)
+    monkeypatch.setattr(layout, "kw_read", lambda *args: "")
+
+
+@pytest.fixture(autouse=True)
+def never_touch_live_theme_files(monkeypatch, tmp_path_factory):
+    """The glass styles, Dock tint and Theme Settings write user files and
+    the running session's kwinrc and panels. Tests get an empty sandbox and
+    inert boundaries; the real functions stay reachable as *_unpatched for
+    the tests that sandbox their paths."""
+    import steps.theme_switch as switch_step
+    import theme_switch
+
+    sandbox = tmp_path_factory.mktemp("live-theme-files")
+    for name in ("apply_dock_tint", "reload_plasma_theme", "apply_glass_preset",
+                 "apply_top_bar_style", "glass_style", "dock_tint"):
+        monkeypatch.setattr(theme_switch, f"{name}_unpatched",
+                            getattr(theme_switch, name), raising=False)
+    monkeypatch.setattr(theme_switch, "apply_dock_tint", lambda *a, **k: False)
+    monkeypatch.setattr(theme_switch, "reload_plasma_theme", lambda: True)
+    monkeypatch.setattr(theme_switch, "apply_glass_preset", lambda mode: False)
+    monkeypatch.setattr(theme_switch, "apply_top_bar_style", lambda style=None: False)
+    monkeypatch.setattr(theme_switch, "glass_style", lambda: theme_switch.DEFAULT_GLASS_STYLE)
+    monkeypatch.setattr(theme_switch, "dock_tint", lambda: theme_switch.DEFAULT_DOCK_TINT)
+    monkeypatch.setattr(switch_step, "_theme_settings_paths", lambda: {
+        "src": sandbox / "theme-settings-src",
+        "app": sandbox / "theme-settings",
+        "bin": sandbox / "bin/mac-tahoe-theme-settings",
+        "desktop": sandbox / "applications/theme-settings.desktop",
+    })
 
 
 @pytest.fixture(scope="session")

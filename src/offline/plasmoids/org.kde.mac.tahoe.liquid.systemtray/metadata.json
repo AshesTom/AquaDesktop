@@ -1,0 +1,25 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "mart@kde.org",
+                "Name": "Marco Martin"
+            }
+        ],
+        "Category": "Windows and Tasks",
+        "Description": "The system tray of the macOS menu bar: status icons, and the other items in a macOS menu",
+        "EnabledByDefault": false,
+        "FormFactors": [
+            "desktop"
+        ],
+        "Icon": "preferences-desktop-notification",
+        "Id": "org.kde.mac.tahoe.liquid.systemtray",
+        "License": "GPL-2.0+",
+        "Name": "System Tray (MacTahoe Liquid KDE)"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-ContainmentType": "CustomEmbedded",
+    "X-Plasma-Provides": [
+        "org.kde.plasma.systemtray"
+    ]
+}

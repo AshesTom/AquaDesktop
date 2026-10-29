@@ -20,6 +20,36 @@ TASKMANAGER_BUILD = build_dir("plasmoids/org.kde.mac.tahoe.liquid.taskmanager")
 # failure, not a module-import crash.
 _TASKMANAGER_SO_RELPATH = "plasma/applets/org.kde.mac.tahoe.liquid.taskmanager.so"
 _TASKMANAGER_QML_RELPATH = "plasma/applet/org/kde/mac/tahoe/liquid/taskmanager"
+# Plasma's notifications applet, built under our own ID so its popups can be
+# macOS banners (see org.kde.mac.tahoe.liquid.notifications/UPSTREAM.md).
+NOTIFICATIONS_SRC = SRC_DIR / "org.kde.mac.tahoe.liquid.notifications"
+NOTIFICATIONS_BUILD = build_dir("plasmoids/org.kde.mac.tahoe.liquid.notifications")
+_NOTIFICATIONS_SO_RELPATH = "plasma/applets/org.kde.mac.tahoe.liquid.notifications.so"
+_NOTIFICATIONS_QML_RELPATH = "plasma/applet/org/kde/mac/tahoe/liquid/notifications"
+# Plasma's system tray, built under our own ID so the menu bar has no
+# overflow arrow and its other items open as a macOS menu (see UPSTREAM.md).
+SYSTEMTRAY_SRC = SRC_DIR / "org.kde.mac.tahoe.liquid.systemtray"
+SYSTEMTRAY_BUILD = build_dir("plasmoids/org.kde.mac.tahoe.liquid.systemtray")
+_SYSTEMTRAY_SO_RELPATH = "plasma/applets/org.kde.mac.tahoe.liquid.systemtray.so"
+_SYSTEMTRAY_QML_RELPATH = "plasma/applet/org/kde/mac/tahoe/liquid/systemtray"
+# Pure-QML module shared by every Dock widget for the parabolic
+# magnification. All applets run in plasmashell's single QML engine, so its
+# singleton is the one place they can share the cursor position.
+DOCKZOOM_SRC = offline("qml") / "org.kde.mac.tahoe.liquid.dockzoom"
+# The "Apps" launcher the Dock pins after Finder (it opens the Launcher
+# applet's grid, see layout.py).
+APPS_DESKTOP = offline("applications") / "org.kde.mac-tahoe-liquid-kde.apps.desktop"
+
+
+def _apps_desktop_dest() -> Path:
+    # Next to the plasmoids' data dir (…/share/plasma/plasmoids → …/share).
+    return DEST_DIR.parent.parent / "applications" / APPS_DESKTOP.name
+_DOCKZOOM_QML_RELPATH = "org/kde/mac/tahoe/liquid/dockzoom"
+# Compiled QML module asking KWin to blur behind the Control Center's
+# modules only (each one a separate glass bubble, like macOS).
+GLASS_SRC = offline("qml") / "org.kde.mac.tahoe.liquid.glass"
+GLASS_BUILD = build_dir("qml/org.kde.mac.tahoe.liquid.glass")
+_GLASS_QML_RELPATH = "org/kde/mac/tahoe/liquid/glass"
 _LAUNCHER_QML_RELPATH = "org/kde/mac/tahoe/launcher"
 
 
@@ -28,6 +58,14 @@ def __getattr__(name: str):
         return qt6_plugins_dir() / _TASKMANAGER_SO_RELPATH
     if name == "TASKMANAGER_DEST_QML":
         return qt6_qml_dir() / _TASKMANAGER_QML_RELPATH
+    if name == "NOTIFICATIONS_DEST_SO":
+        return qt6_plugins_dir() / _NOTIFICATIONS_SO_RELPATH
+    if name == "NOTIFICATIONS_DEST_QML":
+        return qt6_qml_dir() / _NOTIFICATIONS_QML_RELPATH
+    if name == "DOCKZOOM_DEST_QML":
+        return qt6_qml_dir() / _DOCKZOOM_QML_RELPATH
+    if name == "GLASS_DEST_QML":
+        return qt6_qml_dir() / _GLASS_QML_RELPATH
     if name == "LAUNCHER_DEST_QML":
         return qt6_qml_dir() / _LAUNCHER_QML_RELPATH
     raise AttributeError(name)
@@ -82,6 +120,14 @@ def deps():
         "kf6-service-cmake:kservice",
         "kf6-windowsystem-cmake:kwindowsystem",
         "kf6-itemmodels-cmake:kitemmodels",
+        # The system tray fork.
+        "kf6-xmlgui-cmake:kxmlgui",
+        "kf6-statusnotifieritem-cmake:kstatusnotifieritem",
+        "kf6-iconthemes-cmake:kiconthemes",
+        "kf6-jobwidgets-cmake:kjobwidgets",
+        # The notifications fork: global shortcuts (its popup windows'
+        # plasma-shell Wayland role uses the Wayland packages above).
+        "kf6-globalaccel-cmake:kglobalaccel",
         # Plasma / KSysGuard / plasma-workspace (provides
         # LibNotificationManager + LibTaskManager cmake config).
         "plasma-cmake:libplasma",
@@ -96,6 +142,10 @@ def build_artifacts() -> list[Path]:
     return [
         TASKMANAGER_BUILD / "bin/plasma/applets/org.kde.mac.tahoe.liquid.taskmanager.so",
         TASKMANAGER_BUILD / "bin/plasma/applet/org/kde/mac/tahoe/liquid/taskmanager",
+        NOTIFICATIONS_BUILD / "bin" / _NOTIFICATIONS_SO_RELPATH,
+        NOTIFICATIONS_BUILD / "bin" / _NOTIFICATIONS_QML_RELPATH,
+        SYSTEMTRAY_BUILD / "bin" / _SYSTEMTRAY_SO_RELPATH,
+        GLASS_BUILD / "bin" / _GLASS_QML_RELPATH,
         TASKMANAGER_BUILD / "bin" / _LAUNCHER_QML_RELPATH / "libmactahoelauncher.so",
     ]
 
@@ -103,6 +153,12 @@ def build_artifacts() -> list[Path]:
 def build() -> None:
     if (TASKMANAGER_SRC / "CMakeLists.txt").is_file():
         cmake_build(TASKMANAGER_SRC, TASKMANAGER_BUILD, "Dock Task Manager")
+    if (NOTIFICATIONS_SRC / "CMakeLists.txt").is_file():
+        cmake_build(NOTIFICATIONS_SRC, NOTIFICATIONS_BUILD, "Notifications")
+    if (SYSTEMTRAY_SRC / "CMakeLists.txt").is_file():
+        cmake_build(SYSTEMTRAY_SRC, SYSTEMTRAY_BUILD, "System Tray")
+    if (GLASS_SRC / "CMakeLists.txt").is_file():
+        cmake_build(GLASS_SRC, GLASS_BUILD, "Control Center glass blur")
 
 
 def _migrate_appletsrc() -> None:
@@ -146,6 +202,85 @@ def _install_taskmanager_qml() -> bool:
     )
 
 
+def _install_notifications() -> bool:
+    """The macOS-banner notifications applet: a compiled plugin plus its
+    runtime QML module, both under the system Qt dirs like the Dock's."""
+    if not (SRC_DIR / NOTIFICATIONS_SRC.name / "CMakeLists.txt").is_file():
+        return False
+    artifact = NOTIFICATIONS_BUILD / "bin" / _NOTIFICATIONS_SO_RELPATH
+    module_src = NOTIFICATIONS_BUILD / "bin" / _NOTIFICATIONS_QML_RELPATH
+    if not artifact.is_file() or not module_src.is_dir():
+        fail(tr('org.kde.mac.tahoe.liquid.notifications (missing build artifact)'))
+        return False
+    if not sudo_install_file(
+        artifact, qt6_plugins_dir() / _NOTIFICATIONS_SO_RELPATH,
+        "org.kde.mac.tahoe.liquid.notifications (macOS notification banners)",
+    ):
+        return False
+    return sudo_install_tree(
+        module_src, qt6_qml_dir() / _NOTIFICATIONS_QML_RELPATH,
+        "org.kde.mac.tahoe.liquid.notifications (installed runtime QML)",
+    )
+
+
+def _install_systemtray() -> bool:
+    """The menu bar's system tray: a compiled plugin, plus its runtime QML
+    module when the build made one."""
+    if not (SRC_DIR / SYSTEMTRAY_SRC.name / "CMakeLists.txt").is_file():
+        return False
+    artifact = SYSTEMTRAY_BUILD / "bin" / _SYSTEMTRAY_SO_RELPATH
+    module_src = SYSTEMTRAY_BUILD / "bin" / _SYSTEMTRAY_QML_RELPATH
+    if not artifact.is_file():
+        fail(tr('org.kde.mac.tahoe.liquid.systemtray (missing build artifact)'))
+        return False
+    if not sudo_install_file(
+        artifact, qt6_plugins_dir() / _SYSTEMTRAY_SO_RELPATH,
+        "org.kde.mac.tahoe.liquid.systemtray (macOS menu bar tray)",
+    ):
+        return False
+    if not module_src.is_dir():
+        return True
+    return sudo_install_tree(
+        module_src, qt6_qml_dir() / _SYSTEMTRAY_QML_RELPATH,
+        "org.kde.mac.tahoe.liquid.systemtray (installed runtime QML)",
+    )
+
+
+def _install_dockzoom_qml() -> bool:
+    if not (DOCKZOOM_SRC / "qmldir").is_file():
+        fail(tr('org.kde.mac.tahoe.liquid.dockzoom (missing qmldir)'))
+        return False
+    return sudo_install_tree(
+        DOCKZOOM_SRC, qt6_qml_dir() / _DOCKZOOM_QML_RELPATH,
+        "org.kde.mac.tahoe.liquid.dockzoom (Dock magnification module)",
+    )
+
+
+def _install_glass_qml() -> bool:
+    """The Control Center loads it through a Loader: without it the modules
+    only lose their blur."""
+    if not (GLASS_SRC / "CMakeLists.txt").is_file():
+        return False
+    module_src = GLASS_BUILD / "bin" / _GLASS_QML_RELPATH
+    if not (module_src / "qmldir").is_file():
+        fail(tr('org.kde.mac.tahoe.liquid.glass (missing build artifact)'))
+        return False
+    return sudo_install_tree(
+        module_src, qt6_qml_dir() / _GLASS_QML_RELPATH,
+        "org.kde.mac.tahoe.liquid.glass (Control Center glass blur)",
+    )
+
+
+def _install_apps_launcher() -> None:
+    if not APPS_DESKTOP.is_file():
+        fail(tr('{name} (missing)', name=APPS_DESKTOP.name))
+        return
+    dest = _apps_desktop_dest()
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(APPS_DESKTOP, dest)
+    ok(tr('Apps launcher (pinned after Finder)'))
+
+
 def _install_launcher_package(widget: Path) -> bool:
     remember_installed_edition(HOME, DEST_DIR / widget.name)
     with temp_dir("mttkde-launcher-package") as tmp:
@@ -157,6 +292,9 @@ def _install_launcher_package(widget: Path) -> bool:
 
 def install() -> None:
     DEST_DIR.mkdir(parents=True, exist_ok=True)
+    # Every Dock widget imports it, so it goes in before any of them.
+    _install_dockzoom_qml()
+    _install_apps_launcher()
 
     dest_qml = qt6_qml_dir() / _TASKMANAGER_QML_RELPATH
     for name in LEGACY_DIRS:
@@ -187,6 +325,9 @@ def install() -> None:
     else:
         fail(tr('org.kde.mac.tahoe.liquid.taskmanager (missing build artifact)'))
 
+    _install_notifications()
+    _install_systemtray()
+    _install_glass_qml()
     launcher_module = TASKMANAGER_BUILD / "bin" / _LAUNCHER_QML_RELPATH
     if (launcher_module / "libmactahoelauncher.so").is_file():
         sudo_install_tree(launcher_module, qt6_qml_dir() / _LAUNCHER_QML_RELPATH,
@@ -218,12 +359,29 @@ def install() -> None:
 
 def uninstall() -> None:
     n = 0
+    apps = _apps_desktop_dest()
+    if apps.is_file():
+        apps.unlink()
+        ok(apps.name)
+        n += 1
     dest_so = qt6_plugins_dir() / _TASKMANAGER_SO_RELPATH
     dest_qml = qt6_qml_dir() / _TASKMANAGER_QML_RELPATH
     if sudo_remove(dest_so, dest_so.name):
         n += 1
     if sudo_remove(dest_qml, dest_qml.name):
         n += 1
+    dest_dockzoom = qt6_qml_dir() / _DOCKZOOM_QML_RELPATH
+    if sudo_remove(dest_dockzoom, dest_dockzoom.name):
+        n += 1
+    dest_glass = qt6_qml_dir() / _GLASS_QML_RELPATH
+    if sudo_remove(dest_glass, dest_glass.name):
+        n += 1
+    for dest in (qt6_plugins_dir() / _NOTIFICATIONS_SO_RELPATH,
+                 qt6_qml_dir() / _NOTIFICATIONS_QML_RELPATH,
+                 qt6_plugins_dir() / _SYSTEMTRAY_SO_RELPATH,
+                 qt6_qml_dir() / _SYSTEMTRAY_QML_RELPATH):
+        if sudo_remove(dest, dest.name):
+            n += 1
     if sudo_remove(qt6_qml_dir() / _LAUNCHER_QML_RELPATH, tr('Launcher native search popup')):
         n += 1
     if LEGACY_TASKMANAGER_USER_SO.is_file():

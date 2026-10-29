@@ -9,6 +9,33 @@
 const iconMargin = Math.round(Kirigami.Units.smallSpacing / 4);
 const labelMargin = Kirigami.Units.smallSpacing;
 
+// macOS Dock proportions: 71 px of glass, 43.5 px icons 14 px below its
+// top edge and a 4 px running dot 4 px above its bottom edge (default
+// macOS Tahoe Dock, 1x capture). The pitch, 0.827 x the glass height
+// (58.7 px, 15 px between icons), comes from a macOS 26 Dock capture over
+// its own wallpaper, measured relative to the glass height. The panel is
+// 64 px thick since the Dock follows a macOS Tahoe desktop scaled to a
+// 1920 px screen (62 px of glass, 39 px of icon art on a 51 px pitch); the
+// ratios hold at any thickness (the glass is drawn 1 px inside it). Icon themes leave ~7%
+// transparent padding around app icons, so the icon box covers 68.5% of
+// the thickness (50 px) and starts 16% below its top edge. Each slot is
+// 75% of the thickness plus the configured spacing (55 + 4 = 59 px).
+const dockIconRatio = 0.685;
+const dockIconTopRatio = 0.16;
+const dockSlotRatio = 0.75;
+
+function isDockLayout() {
+    return tasks.iconsOnly && !tasks.vertical;
+}
+
+function dockIconSize() {
+    return Math.round(tasks.height * dockIconRatio);
+}
+
+function dockIconTopMargin() {
+    return Math.round(tasks.height * dockIconTopRatio);
+}
+
 function horizontalMargins() {
     const spacingAdjustment = (tasks.plasmoid.pluginName === "org.kde.mac.tahoe.liquid.icontasks") ? tasks.plasmoid.configuration.iconSpacing : 1
     return (taskFrame.margins.left + taskFrame.margins.right) * (tasks.vertical ? 1 : spacingAdjustment);
@@ -71,7 +98,7 @@ function preferredMaxWidth() {
             if (tasks.height === 0) {
                 return 0
             }
-            return tasks.height + horizontalMargins();
+            return Math.round(tasks.height * dockSlotRatio) + horizontalMargins();
         }
     }
 

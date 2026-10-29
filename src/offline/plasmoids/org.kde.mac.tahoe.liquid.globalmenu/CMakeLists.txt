@@ -48,6 +48,7 @@ plasma_add_applet(org.kde.mac.tahoe.liquid.globalmenu
         main.xml
         qml/copy-light.svg
         qml/copy-dark.svg
+        qml/apple-logo.svg
     QML_ARGS DEPENDENCIES QtCore org.kde.plasma.core
 )
 

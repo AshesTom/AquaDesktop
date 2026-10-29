@@ -1,0 +1,58 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: MacTahoe Liquid KDE\n"
+"PO-Revision-Date: 2026-10-11 00:00+0200\n"
+"Last-Translator: MacTahoe Liquid KDE contributors\n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "@title"
+msgid "Wi-Fi"
+msgstr "Wi-Fi"
+
+msgctxt "@info Wi-Fi state"
+msgid "Not Connected"
+msgstr "未连接"
+
+msgctxt "@info connection type"
+msgid "Ethernet"
+msgstr "以太网"
+
+msgctxt "@info connection type"
+msgid "VPN"
+msgstr "VPN"
+
+msgctxt "@info connection type"
+msgid "Bluetooth"
+msgstr "蓝牙"
+
+msgctxt "@info connection type"
+msgid "Mobile"
+msgstr "移动网络"
+
+msgctxt "@title Wi-Fi menu section"
+msgid "Known Network"
+msgstr "已知网络"
+
+msgctxt "@title Wi-Fi menu section"
+msgid "Other Networks"
+msgstr "其他网络"
+
+msgctxt "@info"
+msgid "No networks found"
+msgstr "未找到网络"
+
+msgctxt "@info"
+msgid "No Wi-Fi hardware or service (NetworkManager)"
+msgstr "没有 Wi-Fi 硬件或服务 (NetworkManager)"
+
+msgctxt "@action:button"
+msgid "Wi-Fi Settings…"
+msgstr "Wi-Fi 设置…"
+
+msgctxt "@info:placeholder"
+msgid "Password"
+msgstr "密码"

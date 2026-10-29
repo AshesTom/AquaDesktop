@@ -25,6 +25,11 @@ PlasmoidItem {
 
     preferredRepresentation: fullRepresentation
 
+    // In the Dock, take the full thickness so the icon can use the same
+    // macOS proportions as the task icons next to it.
+    Plasmoid.constraintHints: Plasmoid.formFactor === PlasmaCore.Types.Horizontal
+        ? Plasmoid.CanFillArea : Plasmoid.NoHint
+
     compactRepresentation: null
     fullRepresentation: compactRepresentation
 
@@ -33,7 +38,35 @@ PlasmoidItem {
     property QtObject globalFavorites: rootModel.favoritesModel
     property QtObject systemFavorites: rootModel.systemFavoritesModel
 
+    // In the Dock, the "Apps" launcher pinned right after Finder opens the
+    // grid (through PlasmaShell.activateLauncherMenu, which reaches this
+    // applet as a launcher menu); the panel then leaves this button out.
+    Plasmoid.status: Plasmoid.configuration.hiddenInDock
+        && Plasmoid.formFactor === PlasmaCore.Types.Horizontal
+        ? PlasmaCore.Types.HiddenStatus : PlasmaCore.Types.ActiveStatus
+
     Plasmoid.icon: Plasmoid.configuration.useCustomButtonImage ? Plasmoid.configuration.customButtonImage : Plasmoid.configuration.icon
+
+    // The Launchpad window, built with the applet. The Dock's "Apps" pin
+    // reaches this applet through PlasmaShell.activateLauncherMenu
+    // (activated()); the applet is hidden in the Dock, so on a fresh shell
+    // Plasma builds its representation only on that first activation, too
+    // late for a handler living there: the first click was lost.
+    property QtObject dashWindow: null
+
+    function toggleDash(): void {
+        if (!dashWindow) {
+            dashWindow = menuRepresentation.createObject(kicker);
+        }
+        dashWindow.visible = !dashWindow.visible;
+    }
+
+    Connections {
+        target: Plasmoid
+        function onActivated(): void {
+            kicker.toggleDash();
+        }
+    }
 
     function action_menuedit() {
         processRunner.runMenuEditor();
@@ -180,6 +213,7 @@ PlasmoidItem {
     Component.onCompleted: {
         //plasmoid.setAction("menuedit", i18n("Edit Applications..."));
         rootModel.refreshed.connect(reset);
+        dashWindow = menuRepresentation.createObject(kicker);
 
         dragHelper.dropped.connect(resetDragSource);
     }

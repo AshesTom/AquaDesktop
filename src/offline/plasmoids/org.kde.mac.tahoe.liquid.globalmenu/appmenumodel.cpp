@@ -122,6 +122,11 @@ QString AppMenuModel::activeAppName() const
     const QModelIndex idx = m_tasksModel->activeTask();
     if (!idx.isValid())
         return {};
+    // Plasma's own windows (this applet's About window, desktop dialogs)
+    // aren't an app the user switched to; macOS shows no name for them.
+    if (m_tasksModel->data(idx, TaskManager::AbstractTasksModel::AppId).toString()
+        == QLatin1String("org.kde.plasmashell"))
+        return {};
     return m_tasksModel->data(idx, TaskManager::AbstractTasksModel::AppName).toString();
 }
 

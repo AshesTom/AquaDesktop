@@ -1,0 +1,30 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: MacTahoe Liquid KDE\n"
+"PO-Revision-Date: 2026-10-13 00:00+0200\n"
+"Last-Translator: MacTahoe Liquid KDE contributors\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "@item:keyboard the space bar, as macOS menus name it"
+msgid "Space"
+msgstr "Espace"
+
+msgctxt "@action Input menu"
+msgid "Show Emoji & Symbols"
+msgstr "Afficher Emoji et symboles"
+
+msgctxt "@action Input menu"
+msgid "Show Keyboard Viewer"
+msgstr "Afficher le visualiseur de clavier"
+
+msgctxt "@action Input menu"
+msgid "Show Clipboard History"
+msgstr "Afficher l’historique du presse-papiers"
+
+msgctxt "@action Input menu"
+msgid "Open Keyboard Settings…"
+msgstr "Ouvrir les réglages Clavier…"

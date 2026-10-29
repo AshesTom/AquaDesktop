@@ -644,6 +644,51 @@ Legacy appearance files must not influence theme selection; preserve unrelated
 settings and declarative files. Uninstall still cleans up old generated variants.
 Preserve surface masks, shadows, highlights and solid fallbacks.
 
+## Architecture — Menu Bar, Dock and Glass Styles
+
+- Menu bar (top panel): Global Menu, then the macOS extras, each its own
+  plasmoid with a glass flyout: Now Playing, the system tray fork
+  (`org.kde.mac.tahoe.liquid.systemtray`, no overflow arrow), Input menu
+  (`.keyboard`), Sound (`.volume`, its HUD replaces plasma-pa's OSD:
+  `layout.py` turns `VolumeOsd`/`MuteOsd` off and uninstall restores them),
+  Battery, Wi-Fi, Spotlight (Meta+Space), Control Center and Clock. The
+  notifications fork (`org.kde.mac.tahoe.liquid.notifications`) gives
+  macOS banners. Both forks are compiled by `plasmoids.py`.
+- Flyouts blur only their glass shapes through the compiled
+  `org.kde.mac.tahoe.liquid.glass` module (`GlassBlur`): Acrylic Glass
+  honours blur regions and never synthesizes one for a frameless popup, so
+  the transparent room around a flyout stays clear. `GlassSurface.qml`
+  reads `~/.config/mac-tahoe-liquid-kde/glass.ini` (tint, accent, level).
+- The menu bar's shadow is Tahoe's dark veil, a Panel Colorizer panel-layer
+  gradient (`theme_switch.TOP_BAR_SCRIM`), written by the three layouts and
+  by `_top_bar_script`; menu bar text and icons are white
+  (`TOP_BAR_FOREGROUND`). Keep the layouts and `TOP_BAR_SCRIM` identical.
+- Dock: Apps launcher pinned after the file manager (`APPS_PIN`, the
+  Launcher applet stays hidden in the Dock), separator, Downloads stack,
+  a minimized-windows task manager, then the Trash last. Magnification is
+  the shared `org.kde.mac.tahoe.liquid.dockzoom` QML module; the panel
+  reserves its headroom in `panel-background.svgz`
+  (`floating-hint-top-margin` 64 px, side margins matching
+  `DockZoom.sideRoom`), and the `mask-south-*` copies must exist so KSvg
+  does not blur that headroom.
+- Glass styles: `mac-tahoe-theme-switch style {tahoe|frosted}` stored in
+  `~/.config/mac-tahoe-liquid-kde/glass-style`. Tahoe writes the edition's
+  Acrylic Glass preset (`presets.json`, baked into the standalone switcher
+  as `ACRYLIC_PRESETS`); Frosted is that preset more blurred, without lens,
+  refraction or drift, dimmed in Dark and lifted in Light, with the menu
+  bar's translucent background back and no veil. Only a style or tint
+  change, and a light/dark switch while Frosted, rewrite
+  `[Effect-liquidglass]`; Tahoe otherwise keeps the user's tuning.
+- Dock tint (`dock-tint macos|neutral|accent`, `appearance.json`): the
+  `south-center` veil of the installed Plasma themes (`DOCK_VEIL_SHIPPED`
+  for macOS and neutral, the accent at 22 %, 45 % in Frosted); neutral
+  also writes `Saturation=0`.
+- Theme Settings (`src/offline/theme-settings`, GTK 4 without libadwaita,
+  `~/.local/bin/mac-tahoe-theme-settings`): Appearance and accent, Liquid
+  Glass / Frosted, glass tint and level, Desktop & Dock (`dock`,
+  `minimize`, `hot-corners`). It only runs `mac-tahoe-theme-switch`; the
+  Icons page appears only when an Icon Manager is installed next to it.
+
 ## Architecture — NixOS and Home Manager
 
 The `flake.nix` / `nix/` path is a separate, experimental installation route;
@@ -921,13 +966,13 @@ a genuine missing package and fails CI.
 | `nautilus.py`                 | Nautilus integration (file manager set as default on KDE for users who prefer it). |
 | `oled_care.py` (step)         | Installs the opt-in OLED-care binary + systemd user timer or OpenRC cron entry; flag off tears them down; uninstall restores panel geometry. |
 | `plasma_theme.py`             | Translucent panels and dock SVGs. |
-| `plasmoids.py`                | QML plasmoids: Menu, Launcher, Trashcan, IconTasks. |
+| `plasmoids.py`                | Plasmoids: Menu, Launcher, Trashcan, IconTasks, menu bar extras; builds the system tray and notifications forks and the glass and Dock-zoom QML modules. |
 | `plymouth.py`                 | Boot splash. GRUB patch behind `_grub_is_active_bootloader()`; `--no-grub-modify` opt-out exists. |
 | `rounded_corners.py`          | Best-effort verified download of KDE Rounded Corners v0.11.0; compile/install and enable the effect, KCM, shaders, locales, and license without synchronizing other theme geometry. |
 | `portals.py`                  | Route xdg-portal FileChooser / AppChooser to KDE (fixes stale dialog colors). |
 | `sddm.py`                     | Login screen theme. |
 | `sounds.py`                   | Notification and event sounds. |
-| `theme_switch.py` (step)      | Installs the `mac-tahoe-theme-switch` binary and, in automatic mode, systemd user units or OpenRC cron entries. |
+| `theme_switch.py` (step)      | Installs the `mac-tahoe-theme-switch` binary (with the Acrylic Glass presets baked in) and Theme Settings and, in automatic mode, systemd user units or OpenRC cron entries. |
 | `wallpapers.py`               | Copies the bundled wallpaper set. No network. |
 | `window_decorations.py`       | Aurorae assembly (decoration.svg + rc + button icon SVGs + metadata per theme dir) + kwinrc `org.kde.kdecoration2`. |
 
