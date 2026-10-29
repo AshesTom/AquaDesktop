@@ -293,3 +293,25 @@ Scroll horizontally through the installation steps.
   <td align="center"><img src="src/screenshots/installer-summary_dark_v4-64bdc98e7f16.png" alt="Summary" width="500"><br>Summary</td>
 </tr>
 </table>
+
+
+## v0.61.9: version-aware updates
+
+Validated on 2026-10-28 with Python 3.14.7, using disposable Git repositories
+and offscreen Qt. Scope: wrapper startup, automatic sibling selection, release
+version comparison, verified fast-forwards, preservation of dirty/divergent
+development checkouts, explicit source overrides and read-only entry points.
+No desktop installation, native backend or visual appearance change is involved.
+
+- Golden Gate wrapper: `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests -q -p no:cacheprovider`: 80 passed.
+- Tahoe: `QT_QPA_PLATFORM=offscreen PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/test_auto_update.py tests/test_cli.py tests/test_installer_ui.py -q -p no:cacheprovider`: 129 passed.
+- The same 129 checks passed in prepared Golden Gate source `43473c1c0176893cc6d1`.
+- Real Git tests cover clean upgrades from 0.61.9 to 0.61.10, equal/newer local
+  versions, staged/unstaged/untracked/deleted files, committed experiments,
+  concurrent edits, failed fetches, mismatched archive versions and offline use.
+- `git diff --check` passed in both checkouts. No live host installer was run.
+
+The maintainer approved the local installer behavior for release on 2026-10-28.
+Release preparation excludes unrelated Downloads Stack and battery-icon work.
+Publication requires fresh reviewed captures and successful `test.yml` push runs
+on both `main` and `dev` for the exact release commits in both repositories.

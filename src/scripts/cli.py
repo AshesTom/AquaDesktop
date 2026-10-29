@@ -452,7 +452,7 @@ def _repo_is_clean_git_checkout() -> bool:
     inside = _git("rev-parse", "--is-inside-work-tree", capture=True)
     if inside is None or inside.returncode != 0 or inside.stdout.strip() != "true":
         return False
-    status = _git("status", "--porcelain", capture=True)
+    status = _git("status", "--porcelain", "--untracked-files=all", capture=True)
     if status is None or status.returncode != 0:
         return False
     return status.stdout.strip() == ""
@@ -467,14 +467,17 @@ def auto_update_and_reexec(argv: list[str], prog: str = "install") -> None:
     if (os.environ.get("MAC_TAHOE_UPDATED") == "1"
             or os.environ.get("MAC_TAHOE_NO_UPDATE_CHECK", "").lower() == "true"):
         return
+    current = read_version().strip()
+    if not re.fullmatch(r"\d+\.\d+\.\d+", current):
+        return
     latest = fetch_latest_release()
     if (not latest or not re.fullmatch(r"\d+\.\d+\.\d+", latest)
-            or parse_semver(latest) <= parse_semver(read_version())):
+            or parse_semver(latest) <= parse_semver(current)):
         return
 
     if not _repo_is_clean_git_checkout():
-        note(tr('Not a clean git checkout — skipping auto-update'))
-        print(tr('  \x1b[2mUpdate manually: git pull && ./{prog}\x1b[0m', prog=prog))
+        note(tr('Update available: {current} → {latest}', current=current, latest=latest))
+        note(tr('Keeping local source: changes present or not a clean git checkout'))
         return
 
     def git_ok(*args):
@@ -486,9 +489,14 @@ def auto_update_and_reexec(argv: list[str], prog: str = "install") -> None:
     target = git_ok("rev-parse", "FETCH_HEAD^{commit}") if fetched is not None else None
     commit = target.stdout.strip() if target is not None else ""
     version = git_ok("show", commit + ":VERSION") if re.fullmatch(r"[0-9a-f]{40}", commit) else None
-    if (version is None or version.stdout.strip() != latest
-            or git_ok("merge-base", "--is-ancestor", "HEAD", commit) is None
-            or not _repo_is_clean_git_checkout()
+    if version is None or version.stdout.strip() != latest:
+        warn(tr('Could not verify the published update — keeping the current checkout'))
+        return
+    if git_ok("merge-base", "--is-ancestor", "HEAD", commit) is None:
+        note(tr('Update available: {current} → {latest}', current=current, latest=latest))
+        note(tr('Keeping local commits: the release is not a fast-forward'))
+        return
+    if (not _repo_is_clean_git_checkout()
             or git_ok("merge", "--ff-only", commit) is None):
         warn(tr('Could not apply the published update — keeping the current checkout'))
         print("  https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases/tag/v" + latest)

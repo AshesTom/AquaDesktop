@@ -328,10 +328,14 @@ commit before opening the wizard. It then re-execs `./install`;
 `MAC_TAHOE_UPDATED=1` prevents recursion. Dirty or diverged checkouts, missing
 git, network failures and mismatched release versions leave the checkout
 unchanged and show the manual update hint. Uninstall does not update itself.
-Golden Gate first uses `GOLDEN_GATE_TAHOE_SOURCE` or a complete sibling
-`../macos-tahoe-liquid-kde` checkout, staging its own defaults in an isolated
-copy without updates or downloads. Without local sources its wrapper
-fast-forwards its own checkout and selects the latest published Tahoe release.
+Golden Gate compares its wrapper and an automatically discovered sibling Tahoe
+checkout to their respective published versions independently. Each clean
+checkout fast-forwards only to a verified newer release; local edits, untracked
+files and divergent local commits remain available for development. Equal or
+newer local versions are never downgraded. `GOLDEN_GATE_TAHOE_SOURCE` explicitly
+selects local testing and disables automatic updates of both repositories.
+Golden Gate stages its own defaults in an isolated copy, never in Tahoe itself.
+Without local sources it selects the latest published Tahoe release.
 It sets `MAC_TAHOE_NO_UPDATE_CHECK=true` for the prepared source.
 
 ## Architecture — Optional Online Rounded Corners

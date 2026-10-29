@@ -203,9 +203,11 @@ gallery; browse the screenshots on GitHub, or use a Git checkout for the complet
 offline documentation. Installer previews, theme assets, tests and license notices
 remain bundled. Git checkouts retain their history as they are updated.
 
-On launch, a clean Git checkout updates to the latest published release before
-opening the wizard. The updater verifies the release tag and its `VERSION`, and
-fast-forwards only; local edits or divergent history are preserved. Updating
+On launch, `./installer` compares the local `VERSION` with the latest published
+release. A clean checkout fast-forwards only when that verified release is newer,
+before opening the wizard. Equal or newer local versions are never downgraded.
+Local edits, untracked files and divergent local commits are treated as development
+work: they stay in place, and any newer release is reported without replacing them. Updating
 the installer does not apply the theme: review the wizard choices and confirm
 the installation. **Reset Dock and panel customization** starts checked;
 uncheck it to preserve your current layout on reinstall.
