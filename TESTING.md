@@ -315,3 +315,10 @@ The maintainer approved the local installer behavior for release on 2026-10-28.
 Release preparation excludes unrelated Downloads Stack and battery-icon work.
 Publication requires fresh reviewed captures and successful `test.yml` push runs
 on both `main` and `dev` for the exact release commits in both repositories.
+
+The first v0.61.9 CI candidate caught four missing updater messages in the
+Portuguese and German catalogs. Both catalogs now include those messages.
+Focused validation expanded to `tests/test_multilanguage.py` alongside the
+updater, CLI and installer tests: **160 passed** on Python 3.14.7 with offscreen
+Qt. The corrected candidate receives a fresh complete screenshot capture and
+new exact-commit CI runs before publication.
