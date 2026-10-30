@@ -457,12 +457,23 @@ def _restore_volume_osd() -> None:
                      "--key", key, "--delete")
 
 
+# Plasma can clamp a new panel to the applets' first size hints; the menu
+# bar's 30 px (as on macOS) is set again once they have settled.
+_TOP_BAR_HEIGHT_SCRIPT = (
+    "panels().forEach(function (panel) {\n"
+    "    if (panel.location === \"top\") panel.height = 30;\n"
+    "});\n"
+)
+
+
 def _restore_top_bar_style() -> None:
-    """The layout installs the Tahoe menu bar (no background). With the
-    frosted style chosen (`mac-tahoe-theme-switch style frosted`), give it
-    its translucent background back."""
-    from theme_switch import _top_bar_script, glass_style
-    if glass_style() == "frosted" and _evaluate_layout_script(_top_bar_script(True)):
+    """The layout installs the Tahoe menu bar (Tahoe's veil, 30 px). With
+    the frosted style chosen (`mac-tahoe-theme-switch style frosted`), give
+    it its frosted background back."""
+    from theme_switch import _top_bar_script, current_mode, glass_style
+    _evaluate_layout_script(_TOP_BAR_HEIGHT_SCRIPT)
+    if (glass_style() == "frosted"
+            and _evaluate_layout_script(_top_bar_script(True, current_mode()))):
         ok(tr('Menu bar: frosted background'))
 
 

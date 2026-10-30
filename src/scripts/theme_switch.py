@@ -1749,9 +1749,10 @@ def _apply_unlocked(mode: str, context: str = "user") -> bool:
     # Keep the dock translucent so the glass shows through (a theme apply can
     # drop panelOpacity, painting an opaque black panel over the effect).
     patch_dock_transparency()
-    # Frosted glass is brighter in Light and dimmer in Dark.
+    # Frosted glass and its menu bar follow the mode.
     if glass_style() == "frosted":
         apply_glass_preset(mode)
+        apply_top_bar_style("frosted", mode)
     _qdbus("org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure")
     # After KWin re-scans effects, restore a user's third-party effects and
     # warn if one still cannot load (best-effort when KWin is unavailable).
@@ -1801,11 +1802,15 @@ DEFAULT_GLASS_STYLE = "tahoe"
 # Baked in by the installer (steps/theme_switch.py) from presets.json, so
 # the standalone switcher needs no checkout.
 ACRYLIC_PRESETS: list = []
+# Acrylic Glass blurs less than Better Blur DX did at the same strength:
+# frosted takes a deep blur and keeps the wallpaper's colour, as macOS did
+# before Tahoe (matched on a macOS Ventura capture over a blue wallpaper:
+# the glass is not dimmed; the Dock's grey wash does the rest).
 _FROSTED = {
-    "BlurStrength": "11", "RgbDriftStrength": "0", "MagnifyGlassStrength": "0",
+    "BlurStrength": "16", "RgbDriftStrength": "0", "MagnifyGlassStrength": "0",
     "RefractionWidth": "0", "HighlightStrength": "0.05", "Saturation": "1",
 }
-_FROSTED_BRIGHTNESS = {"dark": "0.85", "light": "1.12"}
+_FROSTED_BRIGHTNESS = {"dark": "1", "light": "1.05"}
 
 
 def _appearance_path() -> Path:
@@ -1912,17 +1917,27 @@ TOP_BAR_FOREGROUND = "#ffffff"
 # is a Panel Colorizer panel-layer gradient from 20 % black at the top to
 # nothing at the bar's bottom edge. The layouts write the same value.
 TOP_BAR_SCRIM = '{"enabled": true, "backgroundColor": {"enabled": true, "sourceType": 5, "alpha": 1, "gradient": {"orientation": 1, "stops": [{"color": "#33000000", "position": 0}, {"color": "#2b000000", "position": 0.45}, {"color": "#12000000", "position": 0.8}, {"color": "#00000000", "position": 1}]}}}'
+# The frosted menu bar, as before Tahoe: the wallpaper blurred behind the
+# full width (the panel asks KWin for it) under a light dark tint; on the
+# Ventura capture the bar is the desktop at ~0.65 / 0.8 / 0.95 per channel.
+# The menu bar's glyphs are white, so Light keeps a dark tint too.
+TOP_BAR_FROSTED = {"dark": ("#000000", 0.2), "light": ("#000000", 0.15)}
 
 
-def _top_bar_script(frosted: bool) -> str:
-    """Plasma script setting the menu bar's native background through its
-    Panel Colorizer: hidden for Tahoe (as the layout installs it), back on
-    for frosted; Tahoe's dark veil (TOP_BAR_SCRIM), off for frosted; and its
-    white text and icons. Only those settings change; the rest of the
-    user's Colorizer settings stay."""
-    background = ('{"enabled": true, "opacity": 1, "shadow": false}' if frosted
-                  else '{"enabled": false, "opacity": 0, "shadow": false}')
-    scrim = '{"enabled": false}' if frosted else TOP_BAR_SCRIM
+def _top_bar_frosted_layer(mode: str) -> str:
+    colour, alpha = TOP_BAR_FROSTED.get(mode, TOP_BAR_FROSTED["dark"])
+    return ('{"enabled": true, "blurBehind": true, "backgroundColor": {"enabled": true, '
+            f'"sourceType": 0, "custom": "{colour}", "alpha": {alpha}}}}}')
+
+
+def _top_bar_script(frosted: bool, mode: str = "dark") -> str:
+    """Plasma script setting the menu bar's panel layer through its Panel
+    Colorizer: Tahoe's dark veil (TOP_BAR_SCRIM, as the layout installs it)
+    or the frosted bar of `mode` (TOP_BAR_FROSTED, blurred behind); the
+    native background stays hidden; and its white text and icons. Only
+    those settings change; the rest of the user's Colorizer settings stay."""
+    background = '{"enabled": false, "opacity": 0, "shadow": false}'
+    scrim = _top_bar_frosted_layer(mode) if frosted else TOP_BAR_SCRIM
     return (
         "panels().forEach(function (panel) {\n"
         "    if (panel.location !== \"top\") return;\n"
@@ -1954,11 +1969,12 @@ def _top_bar_script(frosted: bool) -> str:
     )
 
 
-def apply_top_bar_style(style: str | None = None) -> bool:
+def apply_top_bar_style(style: str | None = None, mode: str | None = None) -> bool:
     """The menu bar of the style: Tahoe's veil (tahoe) or the translucent,
-    blurred bar macOS had before Tahoe (frosted). Needs a running Plasma."""
+    blurred bar macOS had before Tahoe (frosted), in the current mode's tint.
+    Needs a running Plasma."""
     style = style or glass_style()
-    out = _evaluate_plasma_script(_top_bar_script(style == "frosted"))
+    out = _evaluate_plasma_script(_top_bar_script(style == "frosted", mode or current_mode()))
     return bool(out) and "ok" in out
 
 
@@ -1968,7 +1984,8 @@ def apply_top_bar_style(style: str | None = None) -> bool:
 #            the Dock, menus and windows' blur is grey;
 #   accent   KDE's accent colour, 22 % on the Dock, and the menu bar
 #            popovers tinted with it (glass.ini).
-# The frosted style lays a denser veil: dark grey in Dark, white in Light,
+# The frosted style lays a denser veil: a neutral grey wash in Dark (the
+# Ventura Dock: ~45 % of #7f8288 over the blurred desktop), white in Light,
 # or the accent at that density.
 # Theme Settings picks it (`mac-tahoe-theme-switch dock-tint <tint>`); it is
 # kept in appearance.json and rewritten into the installed themes on every
@@ -1978,7 +1995,7 @@ DEFAULT_DOCK_TINT = "macos"
 DEFAULT_GLASS_LEVEL = 50
 _DOCK_VEIL_ALPHA = 0.22
 _DOCK_VEIL_FROSTED_ALPHA = 0.45
-_DOCK_VEIL_FROSTED = {"Dark": "#1e1e20", "Light": "#f5f5f7"}
+_DOCK_VEIL_FROSTED = {"Dark": "#7f8288", "Light": "#f5f5f7"}
 # The south-center style both bundled Plasma themes ship (tests pin it).
 DOCK_VEIL_SHIPPED = "opacity:0.015;fill:#ffffff"
 _DOCK_VEIL_RE = re.compile(r'(<rect\b[^>]*?)style="([^"]*)"([^>]*\bid="south-center")')
@@ -2154,7 +2171,9 @@ def reload_plasma_theme() -> bool:
             except OSError:
                 pass
     ok = _kwrite("--file", "plasmarc", "--group", "Theme", "--key", "name", twin)
-    time.sleep(0.5)
+    # Plasma reads plasmarc on a file watch: a shorter pause can leave it on
+    # the twin, the other mode's theme.
+    time.sleep(1.5)
     return _kwrite("--file", "plasmarc", "--group", "Theme", "--key", "name", name) and ok
 
 

@@ -4,6 +4,7 @@ from localization import tr
 from localization_bundle import standalone_source
 
 import os
+import re
 import json
 import signal
 import shutil
@@ -58,7 +59,11 @@ def _install_theme_settings() -> None:
             encoding="utf-8")
         paths["bin"].chmod(0o755)
         paths["desktop"].parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(paths["src"] / THEME_SETTINGS_DESKTOP, paths["desktop"])
+        # Plasma's PATH rarely includes ~/.local/bin: launch by full path.
+        desktop = (paths["src"] / THEME_SETTINGS_DESKTOP).read_text(encoding="utf-8")
+        paths["desktop"].write_text(re.sub(
+            r"(?m)^Exec=mac-tahoe-theme-settings\b", f"Exec={paths['bin']}", desktop),
+            encoding="utf-8")
     except OSError as exc:
         warn(tr('Theme Settings not installed ({exc})', exc=exc))
         return

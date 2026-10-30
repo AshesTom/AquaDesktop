@@ -112,7 +112,8 @@ def test_step_installs_and_removes_the_app(monkeypatch, tmp_path, offline):
     assert (paths["app"] / "theme-settings.css").is_file()
     assert paths["bin"].stat().st_mode & 0o111
     assert str(paths["app"] / "theme_settings.py") in paths["bin"].read_text()
-    assert paths["desktop"].is_file()
+    # Plasma's PATH rarely has ~/.local/bin: the launcher uses the full path.
+    assert f"\nExec={paths['bin']}\n" in paths["desktop"].read_text()
     step._uninstall_theme_settings()
     assert not paths["app"].exists() and not paths["bin"].exists()
     assert not paths["desktop"].exists()
