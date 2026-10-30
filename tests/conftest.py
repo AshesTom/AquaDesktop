@@ -78,7 +78,8 @@ def never_touch_live_theme_files(monkeypatch, tmp_path_factory):
 
     sandbox = tmp_path_factory.mktemp("live-theme-files")
     for name in ("apply_dock_tint", "reload_plasma_theme", "apply_glass_preset",
-                 "apply_top_bar_style", "glass_style", "dock_tint"):
+                 "apply_top_bar_style", "glass_style", "dock_tint",
+                 "accent_from_wallpaper"):
         monkeypatch.setattr(theme_switch, f"{name}_unpatched",
                             getattr(theme_switch, name), raising=False)
     monkeypatch.setattr(theme_switch, "apply_dock_tint", lambda *a, **k: False)
@@ -87,6 +88,8 @@ def never_touch_live_theme_files(monkeypatch, tmp_path_factory):
     monkeypatch.setattr(theme_switch, "apply_top_bar_style", lambda style=None: False)
     monkeypatch.setattr(theme_switch, "glass_style", lambda: theme_switch.DEFAULT_GLASS_STYLE)
     monkeypatch.setattr(theme_switch, "dock_tint", lambda: theme_switch.DEFAULT_DOCK_TINT)
+    # The developer's kdeglobals never decides where the accent comes from.
+    monkeypatch.setattr(theme_switch, "accent_from_wallpaper", lambda: False)
     monkeypatch.setattr(switch_step, "_theme_settings_paths", lambda: {
         "src": sandbox / "theme-settings-src",
         "app": sandbox / "theme-settings",

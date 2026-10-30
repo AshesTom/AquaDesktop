@@ -27,8 +27,13 @@ Item {
     // "r,g,b" as numbers, or [] without a custom accent.
     readonly property var rgb: {
         // Read again on every palette change (a new accent is one).
-        Kirigami.Theme.highlightColor;
+        const highlight = Kirigami.Theme.highlightColor;
         kdeglobals.sync();
+        // Plasma 6.8 applies the wallpaper's accent to the palette only:
+        // AccentColor keeps an earlier one, so follow the selection.
+        if (String(kdeglobals.value("accentColorFromWallpaper", "false")) === "true") {
+            return [highlight.r, highlight.g, highlight.b].map(v => Math.round(v * 255));
+        }
         const raw = kdeglobals.value("AccentColor", "");
         const parts = (Array.isArray(raw) ? raw : String(raw).split(",")).map(Number);
         return parts.length === 3 && parts.every(n => n >= 0 && n <= 255) ? parts : [];

@@ -9,6 +9,7 @@ only as a fallback for systems without the tool."""
 from localization import tr
 
 import datetime as _dt
+import colorsys
 import fcntl
 import gzip
 import hashlib
@@ -1924,22 +1925,46 @@ TOP_BAR_SCRIM = '{"enabled": true, "backgroundColor": {"enabled": true, "sourceT
 TOP_BAR_FROSTED = {"dark": ("#1e1e20", 0.1), "light": ("#f5f5f7", 0.1)}
 
 
-def _top_bar_frosted_layer(mode: str) -> str:
-    colour, alpha = TOP_BAR_FROSTED.get(mode, TOP_BAR_FROSTED["dark"])
+# Frosted bar tint per Dock tint: the half-saturated accent (macos), the
+# accent itself (accent), or the neutral scheme colour above (neutral).
+_TOP_BAR_ACCENT_ALPHA = {"macos": 0.3, "accent": 0.25}
+
+
+def _solid_layer(colour: str, alpha: float) -> str:
     return ('{"enabled": true, "backgroundColor": {"enabled": true, '
             f'"sourceType": 0, "custom": "{colour}", "alpha": {alpha}}}}}')
 
 
-def _top_bar_script(frosted: bool, mode: str = "dark") -> str:
+def _top_bar_frosted_layer(mode: str, tint: str = "neutral", accent: str = "") -> str:
+    if accent and tint in _TOP_BAR_ACCENT_ALPHA:
+        colour = accent if tint == "accent" else half_saturated(accent, mode)
+        return _solid_layer(colour, _TOP_BAR_ACCENT_ALPHA[tint])
+    return _solid_layer(*TOP_BAR_FROSTED.get(mode, TOP_BAR_FROSTED["dark"]))
+
+
+def _top_bar_scrim(tint: str = "macos", accent: str = "") -> str:
+    """Tahoe's veil; with the accent tint, the same fade in the accent."""
+    if tint != "accent" or not accent:
+        return TOP_BAR_SCRIM
+    rgb = accent.lstrip("#").lower()
+    stops = ", ".join(f'{{"color": "#{alpha}{rgb}", "position": {position}}}'
+                      for alpha, position in (("40", 0), ("30", 0.45), ("14", 0.8), ("00", 1)))
+    return ('{"enabled": true, "backgroundColor": {"enabled": true, "sourceType": 5, '
+            f'"alpha": 1, "gradient": {{"orientation": 1, "stops": [{stops}]}}}}}}')
+
+
+def _top_bar_script(frosted: bool, mode: str = "dark", tint: str = "macos",
+                    accent: str = "") -> str:
     """Plasma script setting the menu bar's panel layer through its Panel
     Colorizer: Tahoe's dark veil (TOP_BAR_SCRIM, as the layout installs it,
     native background hidden) or the frosted bar of `mode` (native
-    background shown, so blurred, under TOP_BAR_FROSTED); and its white
-    text and icons. Only those settings change; the rest of the user's
+    background shown, so blurred, under its tint layer), both following
+    the Dock tint and `accent`; and its white text and icons. Only those settings change; the rest of the user's
     Colorizer settings stay."""
     background = ('{"enabled": true, "opacity": 1, "shadow": false}' if frosted
                   else '{"enabled": false, "opacity": 0, "shadow": false}')
-    scrim = _top_bar_frosted_layer(mode) if frosted else TOP_BAR_SCRIM
+    scrim = (_top_bar_frosted_layer(mode, tint, accent) if frosted
+             else _top_bar_scrim(tint, accent))
     return (
         "panels().forEach(function (panel) {\n"
         "    if (panel.location !== \"top\") return;\n"
@@ -1976,7 +2001,8 @@ def apply_top_bar_style(style: str | None = None, mode: str | None = None) -> bo
     blurred bar macOS had before Tahoe (frosted), in the current mode's tint.
     Needs a running Plasma."""
     style = style or glass_style()
-    out = _evaluate_plasma_script(_top_bar_script(style == "frosted", mode or current_mode()))
+    out = _evaluate_plasma_script(_top_bar_script(
+        style == "frosted", mode or current_mode(), dock_tint(), current_accent_hex()))
     return bool(out) and "ok" in out
 
 
@@ -2068,8 +2094,29 @@ def scheme_accent_hex(scheme: str) -> str:
     return _rgb_text_to_hex(_parse_ini(path).get("Colors:Selection", {}).get("BackgroundNormal", ""))
 
 
-def _accent_or_scheme() -> str:
+def current_accent_hex() -> str:
+    """The accent in use. Plasma 6.8 applies the wallpaper's accent (and
+    plasma-apply-colorscheme's) to the palette without updating
+    [General] AccentColor, so the wallpaper's is read from the selection."""
+    if accent_from_wallpaper():
+        selection = _rgb_text_to_hex(_kread("kdeglobals", "Colors:Selection", "BackgroundNormal"))
+        if selection:
+            return selection
     return accent_color_hex() or scheme_accent_hex(_kread("kdeglobals", "General", "ColorScheme"))
+
+
+def _accent_or_scheme() -> str:
+    return current_accent_hex()
+
+
+def half_saturated(accent: str, mode: str) -> str:
+    """The frosted tint of `accent`: its hue at half its saturation, dark in
+    Dark and pale in Light, so the glass stays frosted rather than coloured."""
+    r, g, b = (int(accent.lstrip("#")[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    hue, _, saturation = colorsys.rgb_to_hls(r, g, b)
+    lightness = 0.86 if mode == "light" else 0.24
+    return "#" + "".join(f"{round(v * 255):02x}" for v in
+                         colorsys.hls_to_rgb(hue, lightness, saturation / 2))
 
 
 def dock_veil(theme: str, tint: str | None = None, glass: str | None = None) -> str | None:
@@ -2078,8 +2125,10 @@ def dock_veil(theme: str, tint: str | None = None, glass: str | None = None) -> 
     tint = tint or dock_tint()
     uncoloured = tint in ("macos", "neutral")
     if (glass or glass_style()) == "frosted":
-        colour = (_DOCK_VEIL_FROSTED["Light" if "Light" in theme else "Dark"]
-                  if uncoloured else _accent_or_scheme() or _DOCK_VEIL_FROSTED["Dark"])
+        mode = "light" if "Light" in theme else "dark"
+        accent = "" if tint == "neutral" else _accent_or_scheme()
+        colour = (_DOCK_VEIL_FROSTED[mode.capitalize()] if not accent
+                  else accent if tint == "accent" else half_saturated(accent, mode))
         return f"opacity:{_DOCK_VEIL_FROSTED_ALPHA};fill:{colour}"
     if uncoloured:
         return DOCK_VEIL_SHIPPED
@@ -2187,8 +2236,10 @@ def set_dock_tint(value: str) -> int:
         if not _write_appearance("dock_tint", value):
             return 1
         changed = apply_dock_tint(value)
-        # The neutral tint also changes the glass's saturation.
+        # The neutral tint also changes the glass's saturation; the menu
+        # bar follows the tint too.
         apply_glass_preset(current_mode())
+        apply_top_bar_style()
         return 0 if not changed or reload_plasma_theme() else 1
 
 
@@ -2245,10 +2296,33 @@ def set_accent(accent: str) -> bool:
                                timeout=15).returncode == 0
             except (subprocess.TimeoutExpired, OSError):
                 ok = False
-    # A Dock tinted with the accent follows it.
-    if dock_tint() == "accent" and apply_dock_tint():
-        reload_plasma_theme()
+        # Plasma 6.8's tool recolours the palette but leaves AccentColor,
+        # which the menu bar's popovers and Kvantum read.
+        rgb = ",".join(str(int(accent[i:i + 2], 16)) for i in (1, 3, 5))
+        ok = _kwrite("--file", "kdeglobals", "--group", "General",
+                     "--key", "AccentColor", rgb) and ok
+    # The Dock, menu bar and popovers tinted with the accent follow it (the
+    # wallpaper's arrives later, through accent_sync from the Control Center).
+    accent_sync()
     return ok
+
+
+def accent_sync() -> int:
+    """Re-tint what follows the accent (the Dock veil, the menu bar, the
+    popovers' glass.ini) when the accent in use changed since the last
+    run: one picked elsewhere, or the wallpaper's. The Control Center calls
+    it on every palette change, so it does nothing when nothing changed."""
+    accent = current_accent_hex()
+    if _read_appearance().get("applied_accent") == accent:
+        return 0
+    with _theme_transition_lock():
+        _write_appearance("applied_accent", accent)
+        write_glass_tint()
+        if dock_tint() == "accent" or glass_style() == "frosted":
+            if apply_dock_tint():
+                reload_plasma_theme()
+            apply_top_bar_style()
+    return 0
 
 
 # ── Desktop & Dock (Theme Settings) ──────────────────────────────────
@@ -2391,6 +2465,7 @@ USAGE = ("Usage: mac-tahoe-theme-switch "
          "{light|dark|auto|follow-system} [install]\n"
          "       mac-tahoe-theme-switch style [tahoe|frosted]\n"
          "       mac-tahoe-theme-switch accent [#rrggbb|multicolour|wallpaper]\n"
+         "       mac-tahoe-theme-switch accent-sync\n"
          "       mac-tahoe-theme-switch dock-tint [macos|neutral|accent]\n"
          "       mac-tahoe-theme-switch glass-level [0-100]\n"
          "       mac-tahoe-theme-switch dock [autohide on|off | size N | magnification N]\n"
@@ -2422,6 +2497,8 @@ def main(argv: list[str]) -> int:
             print(tr(USAGE), file=sys.stderr)
             return 1
         return 0 if set_accent(argv[1]) else 1
+    if mode == "accent-sync" and len(argv) == 1:
+        return accent_sync()
     if mode == "dock-tint":
         if len(argv) == 1:
             print(dock_tint())

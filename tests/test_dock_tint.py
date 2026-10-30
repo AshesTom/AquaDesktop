@@ -226,3 +226,90 @@ def test_popovers_glass_follows_the_tint(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
     ts.apply_dock_tint_unpatched("macos")
     assert seen == ["macos"]
+
+
+def test_half_saturated_keeps_the_hue_at_half_saturation():
+    import colorsys
+    for mode, lightness in (("dark", 0.24), ("light", 0.86)):
+        tint = ts.half_saturated("#0088ff", mode)
+        rgb = [int(tint[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+        hue, light, saturation = colorsys.rgb_to_hls(*rgb)
+        assert abs(hue - colorsys.rgb_to_hls(0, 0x88 / 255, 1)[0]) < 0.01
+        assert abs(light - lightness) < 0.01 and abs(saturation - 0.5) < 0.02
+
+
+def test_frosted_follows_the_accent_half_saturated(tmp_path, monkeypatch):
+    paths = _themes(tmp_path, monkeypatch)
+    monkeypatch.setattr(ts, "current_accent_hex", lambda: "#34c759")
+    ts.apply_dock_tint_unpatched("macos", glass="frosted")
+    dark = _veil(paths["MacTahoeLiquidKde-Dark"])
+    assert dark == f'style="opacity:0.45;fill:{ts.half_saturated("#34c759", "dark")}"'
+    assert _veil(paths["MacTahoeLiquidKde-Light"]).endswith(
+        f'fill:{ts.half_saturated("#34c759", "light")}"')
+    # The bar too, a little lighter than the Dock's veil.
+    script = ts._top_bar_script(True, "dark", "macos", "#34c759")
+    assert f'"custom": "{ts.half_saturated("#34c759", "dark")}", "alpha": 0.3' in script
+    # Neutral keeps the uncoloured frosted glass.
+    assert f'"custom": "{ts.TOP_BAR_FROSTED["dark"][0]}"' in ts._top_bar_script(
+        True, "dark", "neutral", "#34c759")
+
+
+def test_accent_tint_reaches_the_menu_bar():
+    tahoe = ts._top_bar_script(False, "dark", "accent", "#FF2D55")
+    assert ts.TOP_BAR_SCRIM not in tahoe
+    assert '"color": "#40ff2d55", "position": 0' in tahoe
+    assert '"color": "#00ff2d55", "position": 1' in tahoe
+    assert '"custom": "#FF2D55", "alpha": 0.25' in ts._top_bar_script(True, "dark", "accent", "#FF2D55")
+    # Without an accent, the uncoloured bars.
+    assert ts.TOP_BAR_SCRIM in ts._top_bar_script(False, "dark", "accent", "")
+    layer = json.loads(ts._top_bar_scrim("accent", "#ff2d55"))
+    assert len(layer["backgroundColor"]["gradient"]["stops"]) == 4
+
+
+def test_wallpaper_accent_is_read_from_the_palette(monkeypatch):
+    """Plasma 6.8 leaves AccentColor stale for the wallpaper's accent."""
+    values = {("General", "AccentColor"): "88,111,217",
+              ("Colors:Selection", "BackgroundNormal"): "49,151,74",
+              ("General", "accentColorFromWallpaper"): "true"}
+    monkeypatch.setattr(ts, "_kread", lambda f, g, k: values.get((g, k), ""))
+    monkeypatch.setattr(ts, "accent_from_wallpaper", ts.accent_from_wallpaper_unpatched)
+    assert ts.current_accent_hex() == "#31974a"
+    values[("General", "accentColorFromWallpaper")] = "false"
+    assert ts.current_accent_hex() == "#586fd9"
+
+
+def test_accent_sync_only_acts_on_a_new_accent(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    monkeypatch.setattr(ts, "glass_style", lambda: "frosted")
+    accent = ["#34c759"]
+    monkeypatch.setattr(ts, "current_accent_hex", lambda: accent[0])
+    calls = []
+    monkeypatch.setattr(ts, "apply_dock_tint", lambda *a, **k: calls.append("dock") or True)
+    monkeypatch.setattr(ts, "reload_plasma_theme", lambda: calls.append("reload") or True)
+    monkeypatch.setattr(ts, "apply_top_bar_style", lambda *a, **k: calls.append("bar") or True)
+    monkeypatch.setattr(ts, "write_glass_tint", lambda *a: calls.append("ini") or True)
+    assert ts.accent_sync() == 0 and calls == ["ini", "dock", "reload", "bar"]
+    calls.clear()
+    assert ts.accent_sync() == 0 and calls == []
+    accent[0] = "#ff2d55"
+    ts.accent_sync()
+    assert calls == ["ini", "dock", "reload", "bar"]
+
+
+def test_set_accent_writes_the_accent_key(monkeypatch):
+    writes = []
+    monkeypatch.setattr(ts, "_kwrite", lambda *args: writes.append(args) or True)
+    monkeypatch.setattr(ts, "_have", lambda cmd: False)
+    monkeypatch.setattr(ts, "accent_sync", lambda: 0)
+    ts.set_accent("#ff8d28")
+    assert ("--file", "kdeglobals", "--group", "General", "--key", "AccentColor",
+            "255,141,40") in writes
+
+
+def test_control_center_runs_accent_sync_on_palette_changes(offline):
+    main = (offline / "plasmoids/org.kde.mac-tahoe-liquid-kde.controlcenter/contents/ui/main.qml").read_text()
+    assert "readonly property color paletteAccent: Kirigami.Theme.highlightColor" in main
+    assert 'mac-tahoe-theme-switch\\" accent-sync' in main
+    for widget in ("controlcenter", "keyboard", "spotlight", "wifi"):
+        accent = (offline / f"plasmoids/org.kde.mac-tahoe-liquid-kde.{widget}/contents/ui/AccentColor.qml").read_text()
+        assert 'kdeglobals.value("accentColorFromWallpaper", "false")' in accent, widget

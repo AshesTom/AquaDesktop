@@ -682,7 +682,19 @@ Preserve surface masks, shadows, highlights and solid fallbacks.
 - Dock tint (`dock-tint macos|neutral|accent`, `appearance.json`): the
   `south-center` veil of the installed Plasma themes (`DOCK_VEIL_SHIPPED`
   for macOS and neutral, the accent at 22 %, 45 % in Frosted); neutral
-  also writes `Saturation=0`.
+  also writes `Saturation=0`. Frosted with the macOS tint follows the
+  accent at half saturation (`half_saturated`); the menu bar follows the
+  tint too (an accent fade instead of `TOP_BAR_SCRIM`, or the frosted
+  bar's tint layer). Frosted shows Plasma's native panel background so the
+  bar is blurred: Panel Colorizer's `blurBehind` needs a compiled helper we
+  do not ship.
+- Accent: Plasma 6.8 applies the wallpaper's accent and
+  `plasma-apply-colorscheme --accent-color` to the palette without
+  updating `[General] AccentColor`. `current_accent_hex()` reads the
+  selection colour when the wallpaper drives it, `set_accent` writes
+  `AccentColor` itself, the widgets' `AccentColor.qml` follow the palette
+  in wallpaper mode, and the Control Center runs `accent-sync` on every
+  palette change (it re-tints only when the accent changed).
 - Theme Settings (`src/offline/theme-settings`, GTK 4 without libadwaita,
   `~/.local/bin/mac-tahoe-theme-settings`): Appearance and accent, Liquid
   Glass / Frosted, glass tint and level, Desktop & Dock (`dock`,

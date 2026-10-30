@@ -64,6 +64,19 @@ PlasmoidItem {
         executable.connectSource(command);
     }
 
+    // A new accent (the wallpaper's, or one picked in System Settings)
+    // reaches Plasma as a palette change: the theme switch then re-tints
+    // the Dock, the menu bar and the popovers that follow it. One Control
+    // Center (the first screen's) is enough; the switch skips an unchanged
+    // accent. The pause lets Plasma finish writing kdeglobals.
+    readonly property color paletteAccent: Kirigami.Theme.highlightColor
+    onPaletteAccentChanged: if (Plasmoid.containment && Plasmoid.containment.screen <= 0) accentSync.restart()
+    Timer {
+        id: accentSync
+        interval: 800
+        onTriggered: root.run("\"$HOME/.local/bin/mac-tahoe-theme-switch\" accent-sync")
+    }
+
     // The popover is a floating dialog of its own, not Plasma's applet popup:
     // on a non-floating panel Plasma glues applet popups to the panel edge
     // (square top corners tucked under the bar), where macOS floats a fully
