@@ -54,7 +54,7 @@ def test_macos_neutral_and_accent(tmp_path, monkeypatch):
 def test_frosted_style_has_its_own_veil(tmp_path, monkeypatch):
     paths = _themes(tmp_path, monkeypatch)
     ts.apply_dock_tint_unpatched("neutral", glass="frosted")
-    assert _veil(paths["MacTahoeLiquidKde-Dark"]) == 'style="opacity:0.45;fill:#7f8288"'
+    assert _veil(paths["MacTahoeLiquidKde-Dark"]) == 'style="opacity:0.45;fill:#1e1e20"'
     assert _veil(paths["MacTahoeLiquidKde-Light"]) == 'style="opacity:0.45;fill:#f5f5f7"'
     monkeypatch.setattr(ts, "accent_color_hex", lambda: "#34c759")
     ts.apply_dock_tint_unpatched("accent", glass="frosted")
@@ -76,8 +76,8 @@ def test_styles_rebuild_the_edition_acrylic_material(offline, monkeypatch):
     assert float(dark["BlurStrength"]) > float(liquid["BlurStrength"])
     for key in ("MagnifyGlassStrength", "RefractionWidth", "RgbDriftStrength"):
         assert float(dark[key]) == 0, key
-    # Not dimmed: the wallpaper's colour shows, as before Tahoe.
-    assert float(dark["Brightness"]) == 1 < float(light["Brightness"])
+    # AquaDesktop's Better Blur DX frosted values, carried over.
+    assert (dark["BlurStrength"], dark["Brightness"], light["Brightness"]) == ("11", "0.85", "1.12")
     # Both styles write the same keys: switching leaves nothing behind.
     assert dark.keys() == liquid.keys() == light.keys()
     # Every key exists in the effect's configuration.
@@ -127,14 +127,16 @@ def test_top_bar_script_carries_the_veil_only_for_tahoe():
     dark = ts._top_bar_script(True, "dark")
     light = ts._top_bar_script(True, "light")
     assert ts.TOP_BAR_SCRIM in tahoe and ts.TOP_BAR_SCRIM not in dark
-    # Frosted: a tinted layer Panel Colorizer blurs behind, per mode.
+    # Tahoe hides Plasma's panel background; frosted shows it, so Plasma
+    # asks KWin to blur behind the bar.
+    assert '"enabled": false, "opacity": 0' in tahoe
     for script, mode in ((dark, "dark"), (light, "light")):
+        assert '"enabled": true, "opacity": 1' in script
         colour, alpha = ts.TOP_BAR_FROSTED[mode]
-        assert '"blurBehind": true' in script
         assert f'"custom": "{colour}", "alpha": {alpha}' in script
-        assert '"blurBehind"' not in tahoe
     for script in (tahoe, dark, light):
-        assert '"enabled": false, "opacity": 0' in script
+        # Panel Colorizer's blurBehind needs its compiled helper: unused.
+        assert "blurBehind" not in script
         assert f'"{ts.TOP_BAR_FOREGROUND}"' in script
 
 

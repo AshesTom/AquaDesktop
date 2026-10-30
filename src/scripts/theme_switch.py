@@ -1802,15 +1802,14 @@ DEFAULT_GLASS_STYLE = "tahoe"
 # Baked in by the installer (steps/theme_switch.py) from presets.json, so
 # the standalone switcher needs no checkout.
 ACRYLIC_PRESETS: list = []
-# Acrylic Glass blurs less than Better Blur DX did at the same strength:
-# frosted takes a deep blur and keeps the wallpaper's colour, as macOS did
-# before Tahoe (matched on a macOS Ventura capture over a blue wallpaper:
-# the glass is not dimmed; the Dock's grey wash does the rest).
+# AquaDesktop's frosted material, measured under Better Blur DX (whose blur
+# Acrylic Glass shares, so strengths carry over): strength 11 dimmed to
+# 85 % in Dark (112 % in Light), saturation unchanged, no refraction.
 _FROSTED = {
-    "BlurStrength": "16", "RgbDriftStrength": "0", "MagnifyGlassStrength": "0",
+    "BlurStrength": "11", "RgbDriftStrength": "0", "MagnifyGlassStrength": "0",
     "RefractionWidth": "0", "HighlightStrength": "0.05", "Saturation": "1",
 }
-_FROSTED_BRIGHTNESS = {"dark": "1", "light": "1.05"}
+_FROSTED_BRIGHTNESS = {"dark": "0.85", "light": "1.12"}
 
 
 def _appearance_path() -> Path:
@@ -1917,26 +1916,29 @@ TOP_BAR_FOREGROUND = "#ffffff"
 # is a Panel Colorizer panel-layer gradient from 20 % black at the top to
 # nothing at the bar's bottom edge. The layouts write the same value.
 TOP_BAR_SCRIM = '{"enabled": true, "backgroundColor": {"enabled": true, "sourceType": 5, "alpha": 1, "gradient": {"orientation": 1, "stops": [{"color": "#33000000", "position": 0}, {"color": "#2b000000", "position": 0.45}, {"color": "#12000000", "position": 0.8}, {"color": "#00000000", "position": 1}]}}}'
-# The frosted menu bar, as before Tahoe: the wallpaper blurred behind the
-# full width (the panel asks KWin for it) under a light dark tint; on the
-# Ventura capture the bar is the desktop at ~0.65 / 0.8 / 0.95 per channel.
-# The menu bar's glyphs are white, so Light keeps a dark tint too.
-TOP_BAR_FROSTED = {"dark": ("#000000", 0.2), "light": ("#000000", 0.15)}
+# The frosted menu bar, as AquaDesktop drew it: Plasma's own panel
+# background back on, so the panel asks KWin to blur behind its full width
+# (Panel Colorizer's blurBehind needs a compiled helper this theme does not
+# ship), under 10 % of the scheme's background, the panel centre
+# AquaDesktop's theme drew.
+TOP_BAR_FROSTED = {"dark": ("#1e1e20", 0.1), "light": ("#f5f5f7", 0.1)}
 
 
 def _top_bar_frosted_layer(mode: str) -> str:
     colour, alpha = TOP_BAR_FROSTED.get(mode, TOP_BAR_FROSTED["dark"])
-    return ('{"enabled": true, "blurBehind": true, "backgroundColor": {"enabled": true, '
+    return ('{"enabled": true, "backgroundColor": {"enabled": true, '
             f'"sourceType": 0, "custom": "{colour}", "alpha": {alpha}}}}}')
 
 
 def _top_bar_script(frosted: bool, mode: str = "dark") -> str:
     """Plasma script setting the menu bar's panel layer through its Panel
-    Colorizer: Tahoe's dark veil (TOP_BAR_SCRIM, as the layout installs it)
-    or the frosted bar of `mode` (TOP_BAR_FROSTED, blurred behind); the
-    native background stays hidden; and its white text and icons. Only
-    those settings change; the rest of the user's Colorizer settings stay."""
-    background = '{"enabled": false, "opacity": 0, "shadow": false}'
+    Colorizer: Tahoe's dark veil (TOP_BAR_SCRIM, as the layout installs it,
+    native background hidden) or the frosted bar of `mode` (native
+    background shown, so blurred, under TOP_BAR_FROSTED); and its white
+    text and icons. Only those settings change; the rest of the user's
+    Colorizer settings stay."""
+    background = ('{"enabled": true, "opacity": 1, "shadow": false}' if frosted
+                  else '{"enabled": false, "opacity": 0, "shadow": false}')
     scrim = _top_bar_frosted_layer(mode) if frosted else TOP_BAR_SCRIM
     return (
         "panels().forEach(function (panel) {\n"
@@ -1984,9 +1986,8 @@ def apply_top_bar_style(style: str | None = None, mode: str | None = None) -> bo
 #            the Dock, menus and windows' blur is grey;
 #   accent   KDE's accent colour, 22 % on the Dock, and the menu bar
 #            popovers tinted with it (glass.ini).
-# The frosted style lays a denser veil: a neutral grey wash in Dark (the
-# Ventura Dock: ~45 % of #7f8288 over the blurred desktop), white in Light,
-# or the accent at that density.
+# The frosted style lays AquaDesktop's denser veil: dark grey in Dark, white
+# in Light, or the accent at that density.
 # Theme Settings picks it (`mac-tahoe-theme-switch dock-tint <tint>`); it is
 # kept in appearance.json and rewritten into the installed themes on every
 # apply, as a theme reinstall brings the shipped veil back.
@@ -1995,7 +1996,7 @@ DEFAULT_DOCK_TINT = "macos"
 DEFAULT_GLASS_LEVEL = 50
 _DOCK_VEIL_ALPHA = 0.22
 _DOCK_VEIL_FROSTED_ALPHA = 0.45
-_DOCK_VEIL_FROSTED = {"Dark": "#7f8288", "Light": "#f5f5f7"}
+_DOCK_VEIL_FROSTED = {"Dark": "#1e1e20", "Light": "#f5f5f7"}
 # The south-center style both bundled Plasma themes ship (tests pin it).
 DOCK_VEIL_SHIPPED = "opacity:0.015;fill:#ffffff"
 _DOCK_VEIL_RE = re.compile(r'(<rect\b[^>]*?)style="([^"]*)"([^>]*\bid="south-center")')
