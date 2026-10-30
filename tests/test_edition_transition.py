@@ -114,7 +114,7 @@ def test_installer_round_trip_replaces_other_edition_and_preserves_same_edition(
         monkeypatch.setattr(layout, "_wait_for_layout_install", lambda: True)
         layout.install()
         assert [result["preset"] for result in results] == [target, target]
-        assert all(result["pins"] == ",".join(pins) for result in results)
+        assert all(result["pins"] == ",".join(layout._with_apps_pin(pins)) for result in results)
         assert defaults.applied_edition(sandbox) == defaults.edition_name()
         # Reinstalling the same edition preserves subsequent explicit choices.
         assert plasmoids._install_launcher_package(widget)
