@@ -17,7 +17,9 @@ var taskManagerInstanceCount = 0;
 // task and then a window task, each a new delegate, so remember the launch
 // per app and let whichever delegate shows it keep bouncing.
 var recentLaunches = {};
-const launchBounceWindowMs = 6000;
+var launchBounceWindowMs = 6000;
+// One hop lasts this long: a window opening sooner has shown no bounce yet.
+var launchLandingWindowMs = 800;
 
 function recordLaunch(launcherUrl) {
     if (launcherUrl) {
@@ -25,9 +27,19 @@ function recordLaunch(launcherUrl) {
     }
 }
 
-function launchedRecently(launcherUrl) {
+function launchedWithin(launcherUrl, ms) {
     const when = launcherUrl ? recentLaunches[launcherUrl.toString()] : undefined;
-    return when !== undefined && Date.now() - when < launchBounceWindowMs;
+    return when !== undefined && Date.now() - when < ms;
+}
+
+function launchedRecently(launcherUrl) {
+    return launchedWithin(launcherUrl, launchBounceWindowMs);
+}
+
+// The Dock's Apps pin only asks the Launcher applet for its grid (see
+// org.kde.mac-tahoe-liquid-kde.apps.desktop): no app starts, so no bounce.
+function isLaunchpadPin(launcherUrl) {
+    return !!launcherUrl && launcherUrl.toString().includes("org.kde.mac-tahoe-liquid-kde.apps");
 }
 
 function forgetLaunch(launcherUrl) {

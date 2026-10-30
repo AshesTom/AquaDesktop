@@ -733,6 +733,18 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
     },
     # openSUSE splits cmake-full / cmake-mini; the ``cmake`` virtual
     # pulls full, so plain "cmake" stays safe everywhere.
+    "patch": {
+        "arch":     "patch",
+        "debian":   "patch",
+        "ubuntu":   "patch",
+        "fedora":   "patch",
+        "rhel":     "patch",
+        "centos":   "patch",
+        "opensuse": "patch",
+        "alpine":   "patch",
+        "void":     "patch",
+        "gentoo":   "sys-devel/patch",
+    },
     "cmake": {
         "arch":     "cmake",
         "debian":   "cmake",

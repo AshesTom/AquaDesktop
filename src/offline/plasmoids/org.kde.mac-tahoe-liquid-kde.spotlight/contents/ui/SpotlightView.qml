@@ -128,7 +128,8 @@ Item {
             y: (Math.min(parent.height, 60) - height) / 2
             width: 22
             height: 22
-            source: "system-search-symbolic"
+            // Bundled, see main.qml.
+            source: Qt.resolvedUrl("icons/SearchIcon.svg")
             color: Kirigami.Theme.textColor
             isMask: true
         }

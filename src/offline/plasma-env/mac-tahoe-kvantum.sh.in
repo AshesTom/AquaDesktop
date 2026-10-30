@@ -1,0 +1,12 @@
+# Managed by mac-tahoe-liquid-kde: Tahoe Kvantum engine
+# Plasma sources this before starting applications. The patched Kvantum
+# style (accent colour, macOS menu shortcuts) lives in the user's data
+# directory; Qt looks in QT_PLUGIN_PATH before its own plugin directory, so
+# it takes over from the distribution's engine without replacing its file.
+if [ -f @PLUGIN@ ]; then
+    case ":${QT_PLUGIN_PATH-}:" in
+        *:@PLUGIN_DIR@:*) ;;
+        *) QT_PLUGIN_PATH=@PLUGIN_DIR@${QT_PLUGIN_PATH:+:${QT_PLUGIN_PATH}} ;;
+    esac
+    export QT_PLUGIN_PATH
+fi

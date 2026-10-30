@@ -101,15 +101,16 @@ PlasmoidItem {
         // Like a macOS menu bar extra: no hover highlight (KRunner opens
         // in its own window, so there is no open state to show either).
 
-        // macOS draws a 13 px magnifier; symbolic themes draw the glyph at
-        // ~65% of the icon box, and standard-size rounding would snap the
-        // box back to 16 px.
+        // macOS draws a 13 px magnifier; the glyph fills ~65% of the icon
+        // box, and standard-size rounding would snap the box back to 16 px.
+        // Bundled: a generated icon theme can answer "system-search-symbolic"
+        // with its opaque system-search tile, a square once drawn as a mask.
         Kirigami.Icon {
             anchors.centerIn: parent
             width: Math.round(Kirigami.Units.iconSizes.small * 1.2)
             roundToIconSize: false
             height: width
-            source: Plasmoid.icon
+            source: Qt.resolvedUrl("icons/SearchIcon.svg")
             // Pure white like the Wi-Fi and Control Center glyphs (the
             // panel's text colour is a grey #dedede).
             isMask: true

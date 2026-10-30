@@ -331,6 +331,14 @@ def install() -> None:
             if not kw_write("--file", "kwinrc", "--group", "Plugins", "--key", plugin, "false"):
                 fail("Could not disable the selected window effect")
                 return
+    # The wizard's colour is KDE's accent, which Kvantum follows live; blue is
+    # the colour schemes' own, so it leaves any custom accent alone.
+    if choices and choices["color"] != "blue":
+        from installer_choices import COLORS
+        accent = COLORS[choices["color"]].lstrip("#")
+        if not kw_write("--file", "kdeglobals", "--group", "General", "--key", "AccentColor",
+                        ",".join(str(int(accent[i:i + 2], 16)) for i in (0, 2, 4))):
+            warn(tr('Accent colour not applied — kwriteconfig6 unavailable'))
     if have("kwriteconfig6") and feat_enabled("FONTS"):
         for key, val in _FONTS_INSTALL.items():
             kw_write("--file", "kdeglobals", "--group", "General",

@@ -87,10 +87,33 @@ PlasmaCore.ToolTipArea {
     // a startup. A window that opens right after a launch was clicked
     // finishes the bounce the launcher started.
     property int pendingBounces: 0
-    readonly property bool launchBouncing: !inPopup && (model.IsStartup || pendingBounces > 0)
+    // An app that maps no window, or ignores its activation token, reports a
+    // startup until Plasma gives up on it: hop for a while, not all that time.
+    property bool startupBounceOver: false
+    readonly property bool launchpadPin: TaskTools.isLaunchpadPin(model.LauncherUrlWithoutIcon)
+    readonly property bool launchBouncing: !inPopup && !launchpadPin
+        && ((model.IsStartup && !startupBounceOver) || pendingBounces > 0)
+
+    Timer {
+        interval: TaskTools.launchBounceWindowMs
+        running: model.IsStartup && !task.startupBounceOver
+        onTriggered: task.startupBounceOver = true
+    }
+
+    // The app's window is up: whatever still reports its launch lands now.
+    Connections {
+        target: tasksRoot
+        enabled: !model.IsWindow
+        function onAppWindowOpened(launcherUrl: string): void {
+            if (launcherUrl === String(model.LauncherUrlWithoutIcon)) {
+                task.pendingBounces = 0;
+                task.startupBounceOver = true;
+            }
+        }
+    }
 
     function startLaunchBounce(): void {
-        if (!inPopup && !tasksRoot.minimizedShelf) {
+        if (!inPopup && !tasksRoot.minimizedShelf && !launchpadPin) {
             pendingBounces = Math.max(pendingBounces, 2);
         }
     }
@@ -780,16 +803,17 @@ PlasmaCore.ToolTipArea {
     ]
 
     Component.onCompleted: {
-        if (!model.IsLauncher && TaskTools.launchedRecently(model.LauncherUrlWithoutIcon)) {
-            if (model.IsWindow) {
-                // The app is ready: land the bounce, then stop.
-                TaskTools.forgetLaunch(model.LauncherUrlWithoutIcon);
-                if (!inPopup && !tasksRoot.minimizedShelf) {
-                    pendingBounces = 1;
-                }
-            } else {
+        if (model.IsWindow) {
+            // The app is ready. Only a launch too quick to have shown a hop
+            // still plays one, on the window's new delegate.
+            if (TaskTools.launchedWithin(model.LauncherUrlWithoutIcon, TaskTools.launchLandingWindowMs)) {
                 startLaunchBounce();
+                pendingBounces = Math.min(pendingBounces, 1);
             }
+            TaskTools.forgetLaunch(model.LauncherUrlWithoutIcon);
+            tasksRoot.appWindowOpened(String(model.LauncherUrlWithoutIcon));
+        } else if (!model.IsLauncher && TaskTools.launchedRecently(model.LauncherUrlWithoutIcon)) {
+            startLaunchBounce();
         }
         if (!inPopup && model.IsWindow) {
             // The Dock marks an app with several windows by its dot alone,

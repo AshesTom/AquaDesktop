@@ -100,6 +100,8 @@ PlasmoidItem {
     property Item dragSource
 
     signal requestLayout
+    // A window delegate appeared: its app's launch bounce is over (Task.qml).
+    signal appWindowOpened(launcherUrl: string)
 
     onDragSourceChanged: {
         if (dragSource === null) {

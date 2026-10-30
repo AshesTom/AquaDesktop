@@ -106,8 +106,32 @@ def test_launch_bounce_survives_the_launcher_to_window_swap(offline):
     assert "task.startLaunchBounce();" in activate
     assert "running: task.launchBouncing" in task
     assert "alwaysRunToEnd: true" in task
-    assert "readonly property bool launchBouncing: !inPopup && (model.IsStartup || pendingBounces > 0)" in task
+    assert "&& ((model.IsStartup && !startupBounceOver) || pendingBounces > 0)" in task
     assert "TaskTools.launchedRecently(model.LauncherUrlWithoutIcon)" in task
+
+
+def test_launch_bounce_stops_once_the_app_is_open(offline):
+    tools = (offline / TASKS_UI / "TaskTools.js").read_text()
+    task = (offline / TASKS_UI / "Task.qml").read_text()
+    main = (offline / TASKS_UI / "main.qml").read_text()
+    # A startup that never ends (no window, ignored token) hops for a while only.
+    assert "var launchBounceWindowMs = 6000;" in tools
+    assert "running: model.IsStartup && !task.startupBounceOver" in task
+    # A window ends the bounce of every delegate still reporting that launch.
+    assert "signal appWindowOpened(launcherUrl: string)" in main
+    assert "tasksRoot.appWindowOpened(String(model.LauncherUrlWithoutIcon));" in task
+    assert "function onAppWindowOpened(launcherUrl: string): void" in task
+    # Only a launch too quick to have shown a hop still plays one.
+    assert "TaskTools.launchedWithin(model.LauncherUrlWithoutIcon, TaskTools.launchLandingWindowMs)" in task
+    assert "pendingBounces = Math.min(pendingBounces, 1);" in task
+
+
+def test_launchpad_pin_never_bounces(offline):
+    tools = (offline / TASKS_UI / "TaskTools.js").read_text()
+    task = (offline / TASKS_UI / "Task.qml").read_text()
+    assert 'includes("org.kde.mac-tahoe-liquid-kde.apps")' in tools
+    assert "readonly property bool launchBouncing: !inPopup && !launchpadPin" in task
+    assert "!tasksRoot.minimizedShelf && !launchpadPin" in task
 
 
 def _svg(offline, theme):

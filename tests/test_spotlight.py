@@ -49,3 +49,14 @@ def test_blur_is_asked_again_after_the_popup_shows(offline):
         assert "readonly property var delays: [0, 60, 140, 300, 700, 1200]" in settler
     glass = (offline / "qml/org.kde.mac.tahoe.liquid.glass/glassblur.cpp").read_text()
     assert "kSettleDelays" in glass and "m_window->setMask(region)" in glass
+
+
+def test_magnifier_is_bundled_not_a_themed_icon(offline):
+    """Icon themes can answer system-search-symbolic with their opaque
+    system-search tile, which isMask paints as a plain square."""
+    ui = offline / "plasmoids/org.kde.mac-tahoe-liquid-kde.spotlight/contents/ui"
+    assert (ui / "icons/SearchIcon.svg").is_file()
+    for name in ("main.qml", "SpotlightView.qml"):
+        source = (ui / name).read_text()
+        assert 'source: Qt.resolvedUrl("icons/SearchIcon.svg")' in source
+        assert 'source: "system-search-symbolic"' not in source
