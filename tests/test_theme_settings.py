@@ -43,7 +43,7 @@ def ts(offline, monkeypatch):
     gi = pytest.importorskip("gi")
     try:
         gi.require_version("Gtk", "4.0")
-    except ValueError:
+    except (AttributeError, ValueError):
         pytest.skip("GTK 4 introspection data is not installed")
     spec = importlib.util.spec_from_file_location(
         "theme_settings", offline / "theme-settings/theme_settings.py")

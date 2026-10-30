@@ -81,6 +81,7 @@ def test_panel_rebuild_preserves_explicit_presets_per_screen(repo, relative, pre
 const assert = require('node:assert/strict');
 const saved = PRESETS;
 const created = [];
+const knownWidgetTypes = [];
 const screenCount = 2;
 function makeWidget(type, preset) {
     return { type, currentConfigGroup: [], config: {launcherPreset: preset},
@@ -129,6 +130,9 @@ def launcher_popup_module(repo, tmp_path_factory):
     result = subprocess.run(["cmake", "--build", str(build), "-j", "2"],
                             capture_output=True, text=True, timeout=120)
     assert result.returncode == 0, result.stdout + result.stderr
+    # The launcher's Dock button imports the QML-only magnification module.
+    shutil.copytree(repo / "src/offline/qml/org.kde.mac.tahoe.liquid.dockzoom",
+                    build / "bin/org/kde/mac/tahoe/liquid/dockzoom")
     return build / "bin"
 
 
