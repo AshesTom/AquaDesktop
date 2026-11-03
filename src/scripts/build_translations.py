@@ -1,5 +1,8 @@
 """Rebuild the bundled German and Brazilian Portuguese KDE catalogs.
 
+The Acrylic Glass French catalogue (po/fr.po) comes from the vendored Glass
+effect and is compiled as is.
+
 Run with Python from any directory; gettext's msgfmt must be on PATH.
 The JSON catalogs are the editable source shared with the installer.
 """
@@ -40,7 +43,7 @@ def widget_messages(widget: Path) -> dict[tuple[str | None, str], str | None]:
 
 
 def kcm_messages() -> dict[tuple[None, str], None]:
-    ui = ROOT / "offline/kwin-effects/acrylic-glass/src/kcm/config.ui"
+    ui = ROOT / "offline/kwin-effects/acrylic-glass/src/kcm/blur_config.ui"
     return {(None, node.text): None for node in ET.parse(ui).iter("string")
             if node.text and node.get("notr") != "true"}
 

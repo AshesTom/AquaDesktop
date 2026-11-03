@@ -577,8 +577,7 @@ def run(args):
     profile = next(profile for profile in profiles if profile["id"] == args.material)
     preset = {key: str(value).lower() if isinstance(value, bool) else str(value)
               for key, value in profile["values"].items()}
-    preset.update(_CORNER_DEFAULTS)
-    preset["MaterialPreset"] = str(profile["value"])
+    preset.update({key: default for key, default, _ in _CORNER_DEFAULTS})
     preset["WindowClasses"] = "capture-desktop"
     (output / "config/kwinrc").write_text(
         "[Plugins]\nblurEnabled=false\nliquidglassEnabled=false\nkwin4_effect_shapecornersEnabled=false\n"

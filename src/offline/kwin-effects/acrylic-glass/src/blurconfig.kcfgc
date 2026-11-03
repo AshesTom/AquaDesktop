@@ -1,4 +1,4 @@
-File=glass.kcfg
+File=blur.kcfg
 ClassName=BlurConfig
 NameSpace=KWin
 Singleton=true

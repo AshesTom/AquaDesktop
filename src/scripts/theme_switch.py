@@ -1790,9 +1790,9 @@ def follow_system() -> int:
 #           (kwin-effects/acrylic-glass/src/presets.json); the menu bar has
 #           no background, only Tahoe's dark veil (TOP_BAR_SCRIM).
 #   frosted the pre-Tahoe material: the same preset more deeply blurred,
-#           without refraction, colour drift or lens, dimmed in Dark and
-#           lifted in Light; the menu bar gets its translucent background
-#           back.
+#           without refraction, colour fringing or rim lights, dimmed in
+#           Dark and lifted in Light; the menu bar gets its translucent
+#           background back.
 # The keys are rewritten only by a style or tint change and, for frosted,
 # by a light/dark switch (its brightness depends on the mode); the tahoe
 # style otherwise leaves the user's Acrylic Glass tuning alone.
@@ -1803,12 +1803,13 @@ DEFAULT_GLASS_STYLE = "tahoe"
 # Baked in by the installer (steps/theme_switch.py) from presets.json, so
 # the standalone switcher needs no checkout.
 ACRYLIC_PRESETS: list = []
-# AquaDesktop's frosted material, measured under Better Blur DX (whose blur
-# Acrylic Glass shares, so strengths carry over): strength 11 dimmed to
+# AquaDesktop's frosted material, measured under Better Blur DX (whose
+# Dual Kawase strengths the Glass effect shares): strength 11 dimmed to
 # 85 % in Dark (112 % in Light), saturation unchanged, no refraction.
 _FROSTED = {
-    "BlurStrength": "11", "RgbDriftStrength": "0", "MagnifyGlassStrength": "0",
-    "RefractionWidth": "0", "HighlightStrength": "0.05", "Saturation": "1",
+    "BlurStrength": "11", "DockBlurStrength": "11", "DecorationBlurStrength": "11",
+    "RefractionStrength": "0", "RefractionRGBFringing": "0",
+    "RimSpecular": "false", "CursorRim": "false", "Saturation": "1",
 }
 _FROSTED_BRIGHTNESS = {"dark": "0.85", "light": "1.12"}
 
@@ -1869,7 +1870,7 @@ def _edition_glass() -> dict[str, str]:
         if isinstance(preset, dict) and preset.get("id") == preset_id:
             values = preset.get("values", {})
             return {key: str(value).lower() if isinstance(value, bool) else str(value)
-                    for key, value in values.items()} | {"MaterialPreset": str(preset["value"])}
+                    for key, value in values.items()}
     return {}
 
 

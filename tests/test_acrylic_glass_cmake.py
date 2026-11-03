@@ -34,8 +34,6 @@ def test_acrylic_glass_enables_optional_x11_backend():
     assert "add_library(liquidglass_x11 MODULE ${liquidglass_SOURCES})" in src
     assert "target_compile_definitions(liquidglass_x11 PRIVATE GLASS_X11 KWIN_BUILD_X11)" in src
     assert "kwin-x11/effects/plugins" in src
-    compat = (ROOT / "src/kwin_version_compat.h").read_text(encoding="utf-8")
-    assert "ACRYLIC_GLASS_WAYLAND_BACKGROUND_EFFECT_V1" in compat
 
 
 def test_acrylic_glass_requests_only_present_backend_sdks(monkeypatch):
@@ -120,17 +118,18 @@ def test_acrylic_glass_preset_fits_kcm_ranges():
     presets = json.loads((ROOT / "src/presets.json").read_text())
     assert [p["id"] for p in presets] == ["tahoe", "golden-gate"]
     assert [p["value"] for p in presets] == [1, 2]
-    root = ET.parse(ROOT / "src/kcm/config.ui").getroot()
-    schema = ET.parse(ROOT / "src/glass.kcfg").getroot()
-    assert schema.find(".//{*}entry[@name='AcrylicGlassType']") is None
+    root = ET.parse(ROOT / "src/kcm/blur_config.ui").getroot()
+    schema = ET.parse(ROOT / "src/blur.kcfg").getroot()
     for preset in presets:
         for key, value in preset["values"].items():
             widget = root.find(f".//widget[@name='kcfg_{key}']")
             assert widget is not None, key
             assert schema.find(f".//{{*}}entry[@name='{key}']") is not None
             if isinstance(value, (int, float)) and not isinstance(value, bool):
-                maximum = widget.find("./property[@name='maximum']")[0]
-                assert 0 <= value <= float(maximum.text), key
+                for bound, inside in (("minimum", lambda limit: value >= limit),
+                                      ("maximum", lambda limit: value <= limit)):
+                    limit = widget.find(f"./property[@name='{bound}']")
+                    assert limit is None or inside(float(limit[0].text)), (key, bound)
     for key, value in presets[0]["values"].items():
         default = schema.find(f".//{{*}}entry[@name='{key}']/{{*}}default").text
         assert default == (str(value).lower() if isinstance(value, bool) else str(value)), key
@@ -195,34 +194,32 @@ def test_acrylic_glass_installs_the_effect_default_blur(monkeypatch, tmp_path, c
     elif identity is None:
         assert "running build could not be verified" in output
 
-    config = ET.parse(ROOT / "src/glass.kcfg").getroot()
+    config = ET.parse(ROOT / "src/blur.kcfg").getroot()
     entry = config.find(".//{*}entry[@name='BlurStrength']/{*}default")
     assert entry is not None
     default = entry.text
-    assert default == "5.0"
+    assert default == "5"
     blur_writes = [args for args in writes if "BlurStrength" in args]
     assert blur_writes == [("--file", "kwinrc", "--group", "Effect-liquidglass",
                            "--key", "BlurStrength", default)]
-    # The complete install must preserve the #89 workaround, including
-    # avoiding the obsolete Menu/Dialog/Tooltip/Bottom radius keys.
-    assert not any(args[-2].endswith("CornerRadius") for args in writes)
+    # Saved radii survive the install (#89); only the retired keys go.
+    radii = {key for key, *_ in acrylic_glass._CORNER_DEFAULTS}
+    assert not any(args[-2] in radii for args in writes)
+    deleted = [args[-2] for args in writes if args[-1] == "--delete"]
+    assert deleted == list(acrylic_glass._RETIRED_KEYS)
 
 
-def test_golden_gate_shares_tahoe_optics_with_its_own_gradient(monkeypatch):
+def test_golden_gate_shares_tahoe_optics_with_its_own_tint(monkeypatch):
     from steps import acrylic_glass as glass
     monkeypatch.setattr(glass, "default_wallpaper", lambda: "MacGoldenGate")
     golden = glass._edition_preset()
     monkeypatch.setattr(glass, "default_wallpaper", lambda: "MacTahoe")
     tahoe = glass._edition_preset()
-    assert tahoe["MaterialPreset"] == "1"
-    assert golden["MaterialPreset"] == "2"
     assert tahoe.keys() == golden.keys()
     differences = {key for key in tahoe if tahoe[key] != golden[key]}
-    assert differences == {"MaterialPreset", "DarkGradientOverlay",
-                           "GradientTopOpacity", "GradientBottomOpacity"}
-    schema = ET.parse(ROOT / "src/glass.kcfg").getroot()
-    rgb_default = schema.find(".//{*}entry[@name='RgbDriftStrength']/{*}default").text
-    assert float(golden["RgbDriftStrength"]) == float(rgb_default)
+    assert differences == {"TintColor"}
+    assert tahoe["TintColor"] == "#00000000"
+    assert golden["TintColor"].startswith("#") and golden["TintColor"].endswith("000000")
 
 
 @pytest.mark.parametrize("saved", [None, "true", "false", ""])
@@ -255,7 +252,10 @@ def test_corner_defaults_only_seed_missing_keys(monkeypatch):
     monkeypatch.setattr(acrylic_glass, "run_user", read)
     monkeypatch.setattr(acrylic_glass, "kw_write", lambda *args: writes.append(args) or True)
     acrylic_glass._install_corner_defaults()
-    assert [args[-2:] for args in writes] == [("PopupCornerRadius", "6")]
+    # The old window radius carries over; the explicitly empty Dock stays.
+    assert [args[-2:] for args in writes] == [
+        ("TopCornerRadius", "28"), ("BottomCornerRadius", "28"),
+        ("MenuCornerRadius", "12")]
 
 
 def test_corner_defaults_do_not_replace_custom_values(monkeypatch):
@@ -302,7 +302,7 @@ def test_corner_defaults_fail_closed_on_read_errors(monkeypatch, capsys):
     acrylic_glass._install_corner_defaults()
     assert writes == []
     output = capsys.readouterr().out
-    assert all(key in output for key, _ in acrylic_glass._CORNER_DEFAULTS)
+    assert all(key in output for key, *_ in acrylic_glass._CORNER_DEFAULTS)
 
 
 def test_corner_defaults_warn_on_failed_write(monkeypatch, capsys):
@@ -319,29 +319,21 @@ def test_corner_defaults_warn_on_failed_write(monkeypatch, capsys):
 
 def test_acrylic_glass_gates_kwin_68_draw_window_api():
     """KWin 6.8 (6.7.90 beta onwards) made Effect::drawWindow() return
-    bool and dropped snapToPixelGrid/snapToPixelGridF. The effect must
-    switch its override signature on GLASS_KWIN_68 and keep its own pixel
-    snapping helpers so it builds on 6.6, 6.7 and 6.8."""
+    bool. The effect switches its override signature on GLASS_KWIN_68 so
+    it builds on 6.6, 6.7 and 6.8."""
     top = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
     assert "VERSION_GREATER_EQUAL 6.7.90" in top
     src = (ROOT / "src/CMakeLists.txt").read_text(encoding="utf-8")
     assert "target_compile_definitions(liquidglass PRIVATE GLASS_KWIN_68)" in src
     assert "target_compile_definitions(liquidglass_x11 PRIVATE GLASS_KWIN_68)" in src
 
-    compat = (ROOT / "src/kwin_version_compat.h").read_text(encoding="utf-8")
-    assert "#ifdef GLASS_KWIN_68" in compat
-    assert "using AcrylicGlassDrawWindowResult = bool;" in compat
-    assert "using AcrylicGlassDrawWindowResult = void;" in compat
+    header = (ROOT / "src/blur.h").read_text(encoding="utf-8")
+    assert "#ifdef GLASS_KWIN_68\nusing DrawWindowResult = bool;" in header
+    assert "using DrawWindowResult = void;" in header
+    assert "DrawWindowResult drawWindow(" in header
 
-    header = (ROOT / "src/effect.h").read_text(encoding="utf-8")
-    assert "AcrylicGlassDrawWindowResult drawWindow(" in header
-
-    effect = (ROOT / "src/effect.cpp").read_text(encoding="utf-8")
-    assert "AcrylicGlassDrawWindowResult BlurEffect::drawWindow(" in effect
-    # KWin's helpers are gone on 6.8; only the local copies may be called.
-    assert re.search(r"(?<![A-Za-z_])snapToPixelGridF?\(", effect) is None
-    assert "inline QRect agSnapToPixelGrid(" in effect
-    assert "inline QRectF agSnapToPixelGridF(" in effect
+    effect = (ROOT / "src/blur.cpp").read_text(encoding="utf-8")
+    assert "DrawWindowResult BlurEffect::drawWindow(" in effect
 
 
 def test_acrylic_glass_selects_abi_per_backend(tmp_path):

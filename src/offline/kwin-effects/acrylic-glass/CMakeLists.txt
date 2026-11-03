@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.16.0)
 
 project(kwin_acrylic_glass)
-set(PROJECT_VERSION "1.0.0")
+# Vendored from AndyKaslana/kwin-effects-glass 47d165c (upstream 1.6.3).
+set(PROJECT_VERSION "1.6.3")
 set(PROJECT_VERSION_MAJOR 0)
 
 set(KF_MIN_VERSION "5.240.0")
@@ -12,12 +13,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CPACK_PACKAGE_NAME "kwin-acrylic-glass")
-set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
-set(CPACK_PACKAGE_FILE_NAME "kwin-acrylic-glass")
-set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Acrylic Glass — blur and rounded corners for KDE Plasma 6 (MacTahoe Liquid KDE)")
-include(CPack)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose Release or Debug" FORCE)
@@ -39,7 +34,6 @@ find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     Gui
     Core
     DBus
-    UiTools
     Widgets
     OpenGL
     Network
@@ -50,27 +44,10 @@ include_directories(${Qt6Widgets_INCLUDE_DIRS} ${Qt6Network_INCLUDE_DIRS} ${Qt6O
 add_definitions(${Qt6Widgets_DEFINITIONS})
 
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
-    Config
-    ConfigWidgets
-    CoreAddons
-    Crash
-    GlobalAccel
     I18n
-    KIO
-    Service
-    #Init
-    Notifications
-    Service
-    WidgetsAddons
-    WindowSystem
     GuiAddons
     KCMUtils
 )
-
-find_package(epoxy REQUIRED)
-
-find_package(X11 REQUIRED)
-find_package(XCB REQUIRED COMPONENTS XCB RENDER)
 
 if(GLASS_WAYLAND)
     find_package(KWin COMPONENTS
@@ -78,6 +55,8 @@ if(GLASS_WAYLAND)
     )
     if (${KWin_FOUND})
         find_package(KWinDBusInterface CONFIG REQUIRED)
+        # Xwayland clients still publish their blur region as an X11 property.
+        find_package(XCB REQUIRED COMPONENTS XCB)
     else()
         set(GLASS_WAYLAND OFF)
     endif()
@@ -87,6 +66,8 @@ if(GLASS_X11)
         kwineffects
     )
     if (${KWinX11_FOUND})
+        find_package(X11 REQUIRED)
+        find_package(XCB REQUIRED COMPONENTS XCB)
         find_package(KWinX11DBusInterface CONFIG REQUIRED)
         if(NOT GLASS_WAYLAND)
             set(KWin_VERSION ${KWinX11_VERSION})
@@ -98,34 +79,20 @@ if(GLASS_X11)
 endif()
 
 if(NOT GLASS_WAYLAND AND NOT GLASS_X11)
-    message(FATAL_ERROR
-        "Acrylic Glass requires KWin development files for Wayland or X11. "
-        "Install the missing KWin dependencies and re-run."
-    )
+    message(FATAL_ERROR "Acrylic Glass requires KWin development files for Wayland or X11.")
 endif()
 
 if(${KWin_VERSION} VERSION_LESS 6.6)
-    # 6.6 is the real floor: the effect only handles the prePaintWindow
-    # signature from 6.5.80 onward (RenderView* first arg), and the
-    # plasmoids link against Plasma 6.6+ headers. The installer preflight
-    # enforces the same 6.6 minimum at runtime.
     message(FATAL_ERROR "Acrylic Glass requires KDE Plasma 6.6+ (found ${KWin_VERSION}).")
 endif()
 
-# KWin's Wayland effect ABI changed at 6.7 (the proprietary blur protocol
-# was replaced by ext_background_effect_v1, and the prePaint* methods
-# dropped presentTime). The Plasma 6.7 X11 SDK retains its legacy effect
-# ABI, so GLASS_KWIN_67 is defined only for the Wayland target.
+# The Wayland SDK changed its effect ABI at 6.7 while the 6.7 X11 SDK kept
+# the legacy one, so each backend gets its own gates. 6.7.90 (the 6.8 beta)
+# made Effect::drawWindow() return bool. Only dereference a backend's
+# version when that backend is enabled.
 set(GLASS_KWIN_67_WAYLAND OFF)
-# 6.8 (6.7.90 beta onwards) made Effect::drawWindow() return bool; GLASS_KWIN_68
-# switches the override signature in kwin_version_compat.h.
 set(GLASS_KWIN_68_WAYLAND OFF)
 set(GLASS_KWIN_68_X11 OFF)
-# Nest the version test so the *_VERSION variable is only dereferenced
-# when its backend is actually enabled (and thus set). CMake's `AND`
-# does not short-circuit at parse time, so a single combined condition
-# would expand an unset KWinX11_VERSION to an empty left operand and
-# error out on a Wayland-only build.
 if(GLASS_WAYLAND)
     if(${KWin_VERSION} VERSION_GREATER_EQUAL 6.7)
         set(GLASS_KWIN_67_WAYLAND ON)
@@ -139,10 +106,12 @@ if(GLASS_X11)
         set(GLASS_KWIN_68_X11 ON)
     endif()
 endif()
-message(STATUS "Acrylic Glass: KWin ${KWin_VERSION} (6.7 Wayland ABI=${GLASS_KWIN_67_WAYLAND}; X11 ABI=legacy; 6.8 drawWindow: Wayland=${GLASS_KWIN_68_WAYLAND} X11=${GLASS_KWIN_68_X11})")
+message(STATUS "Acrylic Glass: KWin ${KWin_VERSION} (6.7 Wayland ABI=${GLASS_KWIN_67_WAYLAND}; 6.8 drawWindow: Wayland=${GLASS_KWIN_68_WAYLAND} X11=${GLASS_KWIN_68_X11})")
 
 find_package(KDecoration3 REQUIRED)
 
 add_subdirectory(src)
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/locale/" DESTINATION "${KDE_INSTALL_LOCALEDIR}")
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

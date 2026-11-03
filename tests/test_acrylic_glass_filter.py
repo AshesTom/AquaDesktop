@@ -18,7 +18,7 @@ def blur_gate(tmp_path_factory):
     if flags.returncode:
         pytest.skip("Qt6Core development files required")
     source = (Path(__file__).resolve().parents[1] /
-              "src/offline/kwin-effects/acrylic-glass/src/effect.cpp").read_text()
+              "src/offline/kwin-effects/acrylic-glass/src/blur.cpp").read_text()
     method = source.split("bool BlurEffect::shouldBlur(", 1)[1].split("\n}\n", 1)[0]
     work = tmp_path_factory.mktemp("acrylic-filter")
     harness = work / "gate.cpp"
@@ -29,12 +29,12 @@ def blur_gate(tmp_path_factory):
 #include <QtGlobal>
 #include <iostream>
 constexpr int WindowForceBlurRole = 1, PAINT_WINDOW_TRANSFORMED = 2;
-constexpr int OverlayLayer = 3, ActiveLayer = 4;
+namespace KWin { enum class Layer { NormalLayer, OverlayLayer, ActiveLayer }; }
 struct Window {
     QString cls, name;
     QString resourceClass() const { return cls; }
     QString resourceName() const { return name; }
-    int layer() const { return 0; }
+    KWin::Layer layer() const { return KWin::Layer::NormalLayer; }
 };
 struct EffectWindow {
     Window meta;

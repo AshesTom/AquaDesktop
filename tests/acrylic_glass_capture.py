@@ -244,7 +244,7 @@ def run(plugin, output, scale, expected, backend, identity, renderer="software",
         "[Compositing]\nBackend=OpenGL\n[Plugins]\nliquidglassEnabled=false\n"
         "blurEnabled=false\nkwin4_effect_shapecornersEnabled=false\n"
         "[Effect-liquidglass]\nBlurStrength=3.5\nBlurDecorations=true\n"
-        "BlurMatching=false\nNoiseStrength=0\nWindowCornerRadius=22\n")
+        "BlurMatching=false\nNoiseStrength=0\nTopCornerRadius=22\nBottomCornerRadius=22\n")
     if shader_dir:
         with (output / "config/kwinrc").open("a") as config:
             config.write(

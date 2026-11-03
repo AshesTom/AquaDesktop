@@ -440,9 +440,9 @@ window.page = 'effects'; window.render(); app.processEvents()
 assert not window.content.findChildren(RadioOption)
 assert not any(c.objectName().startswith('choice-shadows-') for c in window.content.findChildren(ChoiceCard))
 window.page = 'shadows'; window.render(); app.processEvents()
-assert window.choices['shadows'] == 'medium'
+assert window.choices['shadows'] == 'soft'
 options = window.content.findChildren(ChoiceCard)
-assert len(options) == 4 and options[0].objectName() == 'choice-shadows-medium'
+assert len(options) == 4 and options[0].objectName() == 'choice-shadows-soft'
 for level in ['none', 'soft', 'medium', 'hard']:
     window.content.findChild(ChoiceCard, 'choice-shadows-' + level).click()
     assert window.choices['shadows'] == level

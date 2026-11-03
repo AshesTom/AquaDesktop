@@ -68,20 +68,20 @@ def test_styles_rebuild_the_edition_acrylic_material(offline, monkeypatch):
     liquid = ts.glass_preset("dark", "tahoe", "macos")
     # Liquid Glass is exactly what the installer writes.
     assert liquid["BlurStrength"] == str(tahoe["values"]["BlurStrength"])
-    assert liquid["MaterialPreset"] == str(tahoe["value"])
-    assert liquid["DarkGradientOverlay"] == "false"
+    assert liquid["TintColor"] == "#00000000"
     dark = ts.glass_preset("dark", "frosted", "macos")
     light = ts.glass_preset("light", "frosted", "macos")
-    # Frosted: a deeper blur without lens, refraction or colour drift.
+    # Frosted: a deeper blur without refraction, colour fringing or rim lights.
     assert float(dark["BlurStrength"]) > float(liquid["BlurStrength"])
-    for key in ("MagnifyGlassStrength", "RefractionWidth", "RgbDriftStrength"):
+    for key in ("RefractionStrength", "RefractionRGBFringing"):
         assert float(dark[key]) == 0, key
+    assert dark["RimSpecular"] == dark["CursorRim"] == "false"
     # AquaDesktop's Better Blur DX frosted values, carried over.
     assert (dark["BlurStrength"], dark["Brightness"], light["Brightness"]) == ("11", "0.85", "1.12")
     # Both styles write the same keys: switching leaves nothing behind.
     assert dark.keys() == liquid.keys() == light.keys()
     # Every key exists in the effect's configuration.
-    kcfg = (offline / "kwin-effects/acrylic-glass/src/glass.kcfg").read_text()
+    kcfg = (offline / "kwin-effects/acrylic-glass/src/blur.kcfg").read_text()
     for key in dark:
         assert f'<entry name="{key}"' in kcfg, key
 
@@ -92,7 +92,7 @@ def test_neutral_tint_takes_the_colour_out_of_the_glass(monkeypatch):
         assert ts.glass_preset("dark", style, "neutral")["Saturation"] == "0"
         assert ts.glass_preset("dark", style, "macos")["Saturation"] != "0"
     # The baked presets the standalone switcher uses are the bundled ones.
-    assert ts.glass_preset("dark", "tahoe", "macos")["DarkGradientOverlay"] == "true"
+    assert ts.glass_preset("dark", "tahoe", "macos")["TintColor"] == "#26000000"
 
 
 def test_glass_preset_only_while_the_effect_is_enabled(tmp_path, monkeypatch):

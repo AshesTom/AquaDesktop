@@ -2,140 +2,371 @@
 msgid ""
 msgstr "Project-Id-Version: MacTahoe Liquid KDE\nPO-Revision-Date: 2026-10-22 00:00-0600\nLast-Translator: MacTahoe Liquid KDE contributors\nLanguage-Team: pt_BR\nLanguage: pt_BR\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n > 1);\n"
 
-msgid "1 keeps the fully blurred material; lower values reveal more of the sharp background. Text and icons keep their opacity."
-msgstr "1 mantém o material totalmente desfocado; valores menores revelam mais do fundo nítido. Textos e ícones mantêm sua opacidade."
+msgid "%"
+msgstr "%"
 
-msgid "Acrylic Glass — a complete material for your Dock, menus and windows."
-msgstr "Acrylic Glass — um material completo para seu Dock, menus e janelas."
+msgid "About"
+msgstr "Sobre"
 
-msgid "All except matching windows"
-msgstr "Todas exceto as janelas correspondentes"
+msgid "Adapt to Refraction edge"
+msgstr "Adaptar à borda de refração"
 
-msgid "Appearance"
-msgstr "Aparência"
+msgid "Adjusts saturation evenly across all colors instead of in plain RGB."
+msgstr "Ajusta a saturação de modo uniforme em todas as cores em vez de em RGB simples."
 
-msgid "Bend the background near the glass edge. 0 disables distortion."
-msgstr "Distorce o fundo próximo à borda do vidro. 0 desativa a distorção."
+msgid "Apply effects to window decorations as well"
+msgstr "Aplicar os efeitos também às decorações das janelas"
 
-msgid "Blur strength"
-msgstr "Intensidade do desfoque"
+msgid "Apply saturation perceptually (OKLab)"
+msgstr "Aplicar a saturação de forma perceptual (OKLab)"
 
-msgid "Blur window decorations"
-msgstr "Desfocar decorações de janelas"
+msgid "Automatically adjust tint strength"
+msgstr "Ajustar automaticamente a intensidade da tonalidade"
 
-msgid "Bottom color"
-msgstr "Cor inferior"
+msgid "Bevel Intensity:"
+msgstr "Intensidade do chanfro:"
 
-msgid "Bottom tint strength"
-msgstr "Intensidade da tonalidade inferior"
+msgid "Blur"
+msgstr "Desfoque"
+
+msgid "Blur all except matching"
+msgstr "Desfocar todas exceto as correspondentes"
+
+msgid "Blur only matching"
+msgstr "Desfocar apenas as correspondentes"
+
+msgid "Blur slightly desaturates colors — this counters that. Can cause artifacts."
+msgstr "O desfoque dessatura levemente as cores — isto compensa. Pode causar artefatos."
+
+msgid "Body Refraction Reach:"
+msgstr "Alcance da refração interna:"
+
+msgid "Body Refraction Strength:"
+msgstr "Intensidade da refração interna:"
+
+msgid "Body refraction"
+msgstr "Refração interna"
+
+msgid "Border highlight ported from the macOS widgets: a stroke that tapers away from the cursor, plus a fainter opposite light. Works best with the Radius/Thickness cursor light turned off."
+msgstr "Realce de borda portado dos widgets do macOS: um traço que se afina para longe do cursor, mais uma luz oposta mais fraca. Funciona melhor com a luz do cursor de Raio/Espessura desativada."
 
 msgid "Brightness"
 msgstr "Brilho"
 
-msgid "Choose a starting point, then adjust it below. Switching presets replaces all material settings."
-msgstr "Escolha um ponto de partida e ajuste abaixo. Trocar a predefinição substitui todas as configurações de material."
+msgid "Brightness of the rim highlight that follows the mouse cursor."
+msgstr "Intensidade do realce da borda que acompanha o ponteiro do mouse."
 
-msgid "Color separation (px)"
-msgstr "Separação de cores (px)"
+msgid "Classes of windows to force blur:"
+msgstr "Classes de janelas com desfoque forçado:"
+
+msgid "Color mix"
+msgstr "Mistura de cores"
+
+msgid "Content and decorations blur finetune:"
+msgstr "Ajuste fino do desfoque do conteúdo e das decorações:"
+
+msgid "Content blur"
+msgstr "Desfoque do conteúdo"
 
 msgid "Contrast"
 msgstr "Contraste"
 
-msgid "Corner Radius (px)"
-msgstr "Raio dos cantos (px)"
+msgid "Cursor light"
+msgstr "Luz do cursor"
 
-msgid "Corners"
-msgstr "Cantos"
+msgid "Decorations blur"
+msgstr "Desfoque das decorações"
 
-msgid "Dock/Launcher"
-msgstr "Dock/Lançador"
+msgid "Derive the rim width from the refraction edge size so the rim follows the glass edge."
+msgstr "Deriva a largura da borda do tamanho da borda de refração para que a borda acompanhe a beirada do vidro."
 
-msgid "Enable gradient"
-msgstr "Ativar gradiente"
+msgid "Dock corner radius"
+msgstr "Raio dos cantos das docas"
 
-msgid "Fine tuning"
-msgstr "Ajustes finos"
+msgid "Docks"
+msgstr "Docas"
 
-msgid "Force Blur List"
-msgstr "Lista de desfoque forçado"
+msgid "Docks blur"
+msgstr "Desfoque das docas"
 
-msgid "Glass"
-msgstr "Vidro"
+msgid "Don't apply brighter to dock"
+msgstr "Não clarear as docas"
 
-msgid "Glass opacity"
-msgstr "Opacidade do vidro"
+msgid "Don't apply brighter to tooltip"
+msgstr "Não clarear as dicas"
 
-msgid "Golden Gate"
-msgstr "Golden Gate"
+msgid "Don't apply refraction to"
+msgstr "Não aplicar refração a"
 
-msgid "Gradient"
-msgstr "Gradiente"
+msgid "Don't apply tint to decorations"
+msgstr "Não aplicar tonalidade às decorações"
 
-msgid "Grain"
-msgstr "Granulação"
+msgid "Don't apply tint to docks"
+msgstr "Não aplicar tonalidade às docas"
 
-msgid "Highlight strength"
-msgstr "Intensidade do brilho"
+msgid "Don't apply tint to menus"
+msgstr "Não aplicar tonalidade aos menus"
 
-msgid "Highlight width (px)"
-msgstr "Largura do brilho (px)"
+msgid "Don't apply tint to notifications and OSD"
+msgstr "Não aplicar tonalidade às notificações e ao OSD"
 
-msgid "Match Mode"
-msgstr "Modo de correspondência"
+msgid "Don't apply tint to tooltips"
+msgstr "Não aplicar tonalidade às dicas"
 
-msgid "One window class or resource name per line."
-msgstr "Uma classe ou nome de recurso de janela por linha."
+msgid "Dynamic corner radius"
+msgstr "Raio de canto dinâmico"
 
-msgid "Only matching windows"
-msgstr "Somente janelas correspondentes"
+msgid "Enter a color in #AARRGGBB format. The A (alpha) channel sets glow strength."
+msgstr "Digite uma cor no formato #AARRGGBB. O canal A (alfa) define a intensidade do brilho."
 
-msgid "Optics"
-msgstr "Óptica"
+msgid "Enter a color in #AARRGGBB format. The A (alpha) channel sets tint strength."
+msgstr "Digite uma cor no formato #AARRGGBB. O canal A (alfa) define a intensidade da tonalidade."
 
-msgid "Popups"
-msgstr "Janelas sobrepostas"
+msgid "Exclude docks"
+msgstr "Excluir docas"
 
-msgid "Preset"
-msgstr "Predefinição"
+msgid "Exclude menus"
+msgstr "Excluir menus"
 
-msgid "Refraction"
-msgstr "Refração"
+msgid "Exclude tooltips"
+msgstr "Excluir dicas"
 
-msgid "Refraction width (px)"
-msgstr "Largura da refração (px)"
+msgid "Exclude windows"
+msgstr "Excluir janelas"
 
-msgid "Restore this preset"
-msgstr "Restaurar esta predefinição"
+msgid "Extends Snell's-law refraction inward from the glass edge. This adds per-pixel shader work and is off by default."
+msgstr "Estende a refração pela lei de Snell da borda do vidro para dentro. Isto adiciona trabalho de shader por pixel e vem desativado por padrão."
+
+msgid "Failed to load about.html"
+msgstr "Falha ao carregar about.html"
+
+msgid "Finetune"
+msgstr "Ajuste fino"
+
+msgid "Flat"
+msgstr "Plano"
+
+msgid "Force blur"
+msgstr "Forçar desfoque"
+
+msgid "General"
+msgstr "Geral"
+
+msgid "Give notification popups their own top and bottom corner radius instead of the window radius."
+msgstr "Dá às notificações seus próprios raios de canto superior e inferior em vez do raio das janelas."
+
+msgid "Glow"
+msgstr "Brilho"
+
+msgid "Glow color"
+msgstr "Cor do brilho"
+
+msgid "Ignore content blur region"
+msgstr "Ignorar a região de desfoque do conteúdo"
+
+msgid "Improve glass on scaled/animated windows"
+msgstr "Melhorar o vidro em janelas escaladas/animadas"
+
+msgid "Left"
+msgstr "Esquerda"
+
+msgid "Light"
+msgstr "Claro"
+
+msgid "Linear"
+msgstr "Linear"
+
+msgid "Long"
+msgstr "Longo"
+
+msgid "Make the window edges brighter"
+msgstr "Clarear as bordas das janelas"
+
+msgid "Makes the glass follow windows that are scaled by other effects (for example Bouncing Popups). Turn this off if it causes problems."
+msgstr "Faz o vidro acompanhar janelas escaladas por outros efeitos (por exemplo, Bouncing Popups). Desative se causar problemas."
+
+msgid "Maximum tint strength"
+msgstr "Intensidade máxima da tonalidade"
+
+msgid "Menu corner radius"
+msgstr "Raio dos cantos dos menus"
+
+msgid "Menus"
+msgstr "Menus"
+
+msgid "Minimum tint strength"
+msgstr "Intensidade mínima da tonalidade"
+
+msgid "Mixes the refracted colors behind the window into the glow instead of using the glow color alone."
+msgstr "Mistura as cores refratadas atrás da janela no brilho em vez de usar apenas a cor do brilho."
+
+msgid "Narrow"
+msgstr "Estreita"
+
+msgid "Noise"
+msgstr "Ruído"
+
+msgid "Notification bottom corner radius"
+msgstr "Raio dos cantos inferiores das notificações"
+
+msgid "Notification top corner radius"
+msgstr "Raio dos cantos superiores das notificações"
+
+msgid "Notifications and OSD"
+msgstr "Notificações e OSD"
+
+msgid "Off"
+msgstr "Desativado"
+
+msgid "Physically based refraction"
+msgstr "Refração fisicamente baseada"
+
+msgid "Preserve color vibrancy in blur"
+msgstr "Preservar a vivacidade das cores no desfoque"
+
+msgid "Pulls the IOR-based refraction outward based on position within the window (Snell's-law mode only)."
+msgstr "Puxa a refração baseada no IOR para fora conforme a posição na janela (apenas no modo da lei de Snell)."
+
+msgid "RGB Fringing Strength:"
+msgstr "Intensidade da franja RGB:"
+
+msgid "Radius"
+msgstr "Raio"
+
+msgid "Refraction + Rim"
+msgstr "Refração + borda"
+
+msgid "Refraction Edge Size:"
+msgstr "Tamanho da borda de refração:"
+
+msgid "Refraction Falloff:"
+msgstr "Atenuação da refração:"
+
+msgid "Refraction Offset Strength:"
+msgstr "Intensidade do deslocamento da refração:"
+
+msgid "Refraction Strength:"
+msgstr "Intensidade da refração:"
+
+msgid "Right"
+msgstr "Direita"
+
+msgid "Rim"
+msgstr "Borda"
+
+msgid "Rim width"
+msgstr "Largura da borda"
+
+msgid "Round"
+msgstr "Arredondada"
 
 msgid "Round maximized windows"
 msgstr "Arredondar janelas maximizadas"
 
+msgid "Rounded corners"
+msgstr "Cantos arredondados"
+
+msgid "Rounder"
+msgstr "Mais redondo"
+
 msgid "Saturation"
 msgstr "Saturação"
 
-msgid "Soften the background behind glass. 0 leaves the background sharp."
-msgstr "Suaviza o fundo atrás do vidro. 0 mantém o fundo nítido."
+msgid "Scales the automatically derived rim width from 0x to 2x the refraction edge."
+msgstr "Escala a largura da borda derivada automaticamente de 0x a 2x a borda de refração."
 
-msgid "Surface"
-msgstr "Superfície"
+msgid "Scales the silhouette tilt — higher gives a more pronounced rounded-over edge."
+msgstr "Escala a inclinação da silhueta — mais alto gera uma borda mais arredondada."
 
-msgid "Tahoe"
-msgstr "Tahoe"
+msgid "Scales the width of the specular highlight band on the rim."
+msgstr "Escala a largura da faixa de realce especular na borda."
 
-msgid "Tooltips, menus, dialogs and applet popups."
-msgstr "Dicas, menus, diálogos e janelas de plasmoides."
+msgid "Scales tint strength by comparing the tint color with the color behind each pixel."
+msgstr "Escala a intensidade da tonalidade comparando a cor de tonalidade com a cor atrás de cada pixel."
 
-msgid "Top color"
-msgstr "Cor superior"
+msgid "Separate notification corner radius"
+msgstr "Raio de canto separado para notificações"
 
-msgid "Top tint strength"
-msgstr "Intensidade da tonalidade superior"
+msgid "Sharp"
+msgstr "Nítido"
 
-msgid "Window Rules"
-msgstr "Regras de janelas"
+msgid "Shifts the glow along the horizontal axis. Centered by default."
+msgstr "Desloca o brilho ao longo do eixo horizontal. Centralizado por padrão."
+
+msgid "Short"
+msgstr "Curto"
+
+msgid "Small"
+msgstr "Pequeno"
+
+msgid "Smooth 1px edge mask with a shaded outer feather, taken from the macOS widgets. Also removes jagged corners."
+msgstr "Máscara de borda suave de 1 px com esmaecimento externo sombreado, vinda dos widgets do macOS. Também remove cantos serrilhados."
+
+msgid "Smooth edge antialiasing (widget style)"
+msgstr "Suavização de bordas (estilo widget)"
+
+msgid "Soft"
+msgstr "Suave"
+
+msgid "Specular"
+msgstr "Especular"
+
+msgid "Squarer"
+msgstr "Mais quadrado"
+
+msgid "Squircle corners"
+msgstr "Cantos squircle"
+
+msgid "Strong"
+msgstr "Forte"
+
+msgid "Subtle"
+msgstr "Sutil"
+
+msgid "Superellipse exponent of the corners: 2.0 is a circle, higher is squarer (macOS is around 4 to 5)."
+msgstr "Expoente de superelipse dos cantos: 2,0 é um círculo, mais alto é mais quadrado (o macOS fica entre 4 e 5)."
+
+msgid "The corner radius only applies to the blur region."
+msgstr "O raio dos cantos se aplica apenas à região de desfoque."
+
+msgid "Thick"
+msgstr "Grossa"
+
+msgid "Thickness"
+msgstr "Espessura"
+
+msgid "Thin"
+msgstr "Fina"
+
+msgid "Tint color"
+msgstr "Cor de tonalidade"
+
+msgid "Tooltips"
+msgstr "Dicas"
+
+msgid "Tunes the content and decoration blur radius and upsample blend. Lower = tighter / sharper blur, higher = wider / softer blur."
+msgstr "Ajusta o raio do desfoque e a mistura de upsampling do conteúdo e das decorações. Menor = desfoque mais justo / nítido, maior = desfoque mais amplo / suave."
+
+msgid "Tunes the dock blur radius and upsample blend. Lower = tighter / sharper blur, higher = wider / softer blur."
+msgstr "Ajusta o raio do desfoque e a mistura de upsampling das docas. Menor = desfoque mais justo / nítido, maior = desfoque mais amplo / suave."
+
+msgid "Use a Snell's-law (IOR-based) refraction model instead. The Refraction Strength slider is reinterpreted as the index-of-refraction delta in this mode."
+msgstr "Usa um modelo de refração pela lei de Snell (baseado no IOR). Neste modo, o controle Intensidade da refração é interpretado como a diferença do índice de refração."
+
+msgid "Use declared corner radius"
+msgstr "Usar o raio de canto declarado"
+
+msgid "Wide"
+msgstr "Larga"
+
+msgid "Widget border light"
+msgstr "Luz de borda dos widgets"
+
+msgid "Window bottom corner radius"
+msgstr "Raio dos cantos inferiores das janelas"
+
+msgid "Window top corner radius"
+msgstr "Raio dos cantos superiores das janelas"
 
 msgid "Windows"
 msgstr "Janelas"
-
-msgid "examples:\norg.kde.dolphin\nfirefox"
-msgstr "exemplos:\\norg.kde.dolphin\\nfirefox"

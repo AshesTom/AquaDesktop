@@ -340,24 +340,27 @@ It sets `MAC_TAHOE_NO_UPDATE_CHECK=true` for the prepared source.
 
 ## Architecture — Optional Online Rounded Corners
 
-Acrylic Glass's supported radius controls (`WindowCornerRadius`,
-`DockCornerRadius`, `PopupCornerRadius`) are seeded only when absent. Never
+Acrylic Glass's radius controls (`TopCornerRadius`, `BottomCornerRadius`,
+`DockCornerRadius`, `MenuCornerRadius`) are seeded only when absent. Never
 overwrite existing values on reinstall: this preserves custom tuning and the
 corner-artifact workaround from issue #89. An empty value or failed read does
-not authorize a default write. Retired Menu/Dialog/Tooltip/Bottom radius keys
-are no longer written; the current renderer uses the three supported controls.
+not authorize a default write. Radii saved under the previous engine's keys
+(`WindowCornerRadius` for top and bottom, `PopupCornerRadius` for menus) carry
+over before those keys are deleted. Leave `UseDeclaredCornerRadius` at its
+`false` default: Aurorae declares no radius, so windows would get square glass.
 At render time, patched Rounded Corners publishes its animated logical radius
 and squircle blend on the EffectWindow property `_mttkde_corner_shape_v1`.
-Acrylic Glass uses this per-frame shape for glass and grain only while present;
-never synchronize the stored settings. Clear the property on exclusion and
-unload. Mask geometry uses frame-local vertex coordinates, not background
-texture UVs, and glass output must be premultiplied for `GL_ONE` blending.
+Acrylic Glass uses that radius (`sharedCornerRadius()`) while present, ahead of
+the saved and declared radii, except that maximized and fullscreen windows keep
+square glass unless `RoundCornersOfMaximizedWindows` is on; never synchronize
+the stored settings. Clear the
+property on exclusion and unload.
 Rounded Corners must reject desktop surfaces before management/redirection and
 in `hasEffect()`, even when explicitly included. Only `drawWindow()` may start
 redirection after eligibility checks; widget configuration dialogs remain eligible.
 
 VirtualBox VM surfaces (`VirtualBoxVM`, class or resource name, ignoring case)
-are excluded directly in Acrylic Glass's render gate, before either match-list
+are excluded directly in Acrylic Glass's render gate (`shouldBlur()`), before either match-list
 mode, so existing installs and custom filters cannot fill seamless cutouts with
 glass (issue #90). The VirtualBox manager remains eligible for glass.
 
@@ -479,20 +482,18 @@ Preserve support for 6.6 and 6.7 when changing the 6.8 path. Acrylic Glass
 selects KWin ABI flags independently for Wayland and X11 from each backend's
 SDK version. X11 retains its legacy paint and blur ABI on 6.7;
 `GLASS_KWIN_67` covers Wayland blur protocol and paint signature changes; `GLASS_KWIN_68` selects the boolean `Effect::drawWindow()` return
-starting at 6.7.90 (the 6.8 beta). Keep these gates independent and use
-`kwin_version_compat.h` for the shared signatures.
+starting at 6.7.90 (the 6.8 beta). Keep these gates independent; `blur.h`
+switches `DrawWindowResult` on `GLASS_KWIN_68`.
 
 Plasma 6.8 removed `PlasmaCore.WindowThumbnail`. The Dock tooltip retains
 PipeWire previews and uses an icon fallback; do not reintroduce the removed
 QML type. Regression coverage lives in `tests/test_acrylic_glass_cmake.py`
 and `tests/test_taskmanager_qml.py`.
 
-KWin 6.7+ loads shader filenames verbatim and translates modern GLSL for the
-active context; select the `_core` variants explicitly. KWin 6.8's GLES 3
-context rejects the legacy `attribute`/`varying` shaders. Keep the legacy
-selection on 6.6/X11. Disable blending during intermediate Kawase passes;
-only the final surface is composited. Offset client blur regions by the
-content origin only for server-decorated windows.
+The Glass effect generates core-profile shaders only (`compat_core.glsl`),
+into the build tree; KWin 6.8's GLES 3 context rejects legacy
+`attribute`/`varying` shaders. Disable blending during intermediate Kawase
+passes; only the final surface is composited.
 
 Rounded Corners v0.11.0 derives the Wayland 6.8 texture orientation from
 `position0` derivatives upstream; never hardcode a vertical flip by version.
@@ -635,10 +636,28 @@ so the base is re-captured instead of fought. `restore` undoes only the
 currently-applied delta; the step's install() with the flag off tears
 the units down, so a plain re-install is self-healing.
 
+## Architecture — Glass Effect
+
+Acrylic Glass is AndyKaslana/kwin-effects-glass (a fork of 4v3ngR's Glass,
+itself a fork of KWin's blur), vendored at commit `47d165c` under
+`src/offline/kwin-effects/acrylic-glass/` (`UPSTREAM-CHANGELOG.md`). It is
+built as plugin `liquidglass` reading `[Effect-liquidglass]`, never `glass`:
+distribution packages install upstream Glass as `glass.so`, and the installer
+disables that one. Local changes over upstream: the plugin, KCM
+(`kwin_liquidglass_config`) and translation (`kwin_effect_liquidglass`) IDs;
+the config group (upstream reads `[Effect-blurplus]`); per-backend ABI gates
+and the optional X11 target; build-tree shaders under a source-identity
+resource prefix with `debug()` returning the build ID; the default class
+denylist; the VirtualBox gate; the bounded Xwayland blur-property reader in
+the Wayland build; no forced frame for tooltips or applet popups and no
+overwrite of decoration regions; and the Rounded Corners radius hand-off.
+Keep those when refreshing from upstream; `po/fr.po` is upstream's, the
+pt_BR/de catalogues come from `build_translations.py`.
+
 ## Architecture — Transparent Glass
 
 Both editions use transparent Plasma and Kvantum surfaces in light and dark
-mode. Material presets own blur, refraction and gradient tint. Do not generate
+mode. Material presets own blur, refraction and tint. Do not generate
 opaque theme variants or expose a separate reduced-transparency preference.
 Legacy appearance files must not influence theme selection; preserve unrelated
 settings and declarative files. Uninstall still cleans up old generated variants.
@@ -734,19 +753,10 @@ per-screen ownership: selecting an edition never resets custom wallpapers;
 `--reset-wallpapers` remains the explicit opt-in. Golden Gate is a download
 wrapper selecting `MacGoldenGate`, not a separate theme implementation.
 
-Golden Gate's upper glass gradient applies to menus in both light and dark
-mode: 85% black at the top, fading completely within the first 55% of the
-surface height. The lower 45% keeps untinted glass. Dock surfaces are exempt
-from the gradient under every material; do not
-change the saved gradient settings or remove their blur and refraction.
-Dock/panel glass uses a compact Kawase pyramid (up to three levels), less grain
-and 98% centre coverage, with a mild angled lens near the rim. Keep the Gaussian
-finish dense: reconstruct its 5×5 binomial kernel with nine bilinear samples,
-never widen it by separating taps into displaced backdrop copies. Blend the surface normal
-with the centre-directed lens in normalized local coordinates. Derive this
-per surface from the selected material without rewriting optical preferences;
-menus retain their full blur. Keep the bevel displacement independent of the
-Dock's length and scale it in device pixels.
+Golden Gate's black glass tint applies to every glassed surface in both light
+and dark mode; do not remove it or the blur and refraction to repair contrast.
+The Dock has its own blur strength and fine tune (`DockBlurStrength`,
+`DockBlurFinetune`); menus retain their full blur.
 Dock captures must use `widgets/panel-background.svgz`, not a light/dark dialog
 fill. Its glass is identical in both appearance modes.
 
@@ -821,18 +831,10 @@ rounding effects do not override its capsule. Preserve the X11 search capsule's
 position through its native helper: Plasma 6.8's
 `PopupPlasmaWindow` only positions Wayland windows. Keep it centered above its
 anchor when the parent moves or resizes, constrained to the screen.
-Acrylic Glass must preserve applet popups' client blur regions without adding a rectangular decoration
-region. For symmetric rounded popup regions, recover the client curve for
-shader antialiasing without expanding the blur region or changing saved radius
-settings. KSvg's real SVG masks need two logical pixels of rasterization
-tolerance and may have opposite insets differing by one pixel; test the actual
-FrameSvg mask at fractional scales, not only QPainter rounded rectangles.
-Recognize native Qt integer-ellipse masks by exact region equality and keep
-their antialiasing ramp one logical pixel inside the mask, beneath the client
-edge. Never apply that inset to alpha-derived Plasma masks or custom cutouts.
-Discard a cached implicit frame when a late Plasma shell role identifies an
-applet popup. Reject custom cutouts; the Rounded Corners shape property still takes
-precedence. The native helper generates the missing Plasma shell protocol headers
+Acrylic Glass must preserve applet popups' client blur regions without adding a rectangular
+frame: forced frames skip docks, tooltips, menus, popups and applet popups, and
+a decoration's own blur region is never overwritten by the forced frame. The
+Rounded Corners shape property takes precedence over saved radii. The native helper generates the missing Plasma shell protocol headers
 from the bundled XML; Qt Wayland and wayland-scanner are build dependencies.
 After a transparency change, and after the installer's final Plasma restart,
 refresh enabled Acrylic Glass so its popup masks follow the replacement
@@ -840,54 +842,44 @@ surfaces. A KWin reconfigure alone did not clear the stale capsule geometry
 observed at 150% scale. Preserve disabled effects and saved radius settings.
 Refreshing an effect instance does not guarantee Qt unloads its shared library.
 Acrylic Glass has two complete material presets: Tahoe and Golden Gate, both
-with blur strength 5. Keep their persisted `MaterialPreset` IDs at 1 and 2;
-the retired Clear ID 0 falls back to Tahoe in the KCM without resetting optics.
-`src/offline/kwin-effects/acrylic-glass/src/presets.json` is shared by the
-installer and the native KCM. Keep one blur path: Dual Kawase with a symmetric
-Gaussian finish; no selectable box/bokeh kernels. Presets apply every material
-control, including opacity, refraction, grain, highlights, color adjustments,
-and gradient colors/strengths. Radius and window rules remain independent.
-Installing or reinstalling Acrylic Glass explicitly reapplies the complete
-repository edition preset: Tahoe from Tahoe, Golden Gate from Golden Gate.
-Replace previous material selections and optical overrides, including absent
-keys and the gradient toggle/colors. Write `MaterialPreset` last, after every
-material control succeeds. Preserve radius controls and window rules separately.
-The KCM still preserves adjustments when reopening settings; preset selection
-and Restore replace them. Persist `MaterialPreset` even for schema-default Tahoe.
+with blur strength 5, in `src/offline/kwin-effects/acrylic-glass/src/presets.json`
+(Glass effect keys). Golden Gate is Tahoe's optics under a black `TintColor`.
+The schema defaults in `blur.kcfg` are the Tahoe material, so the KCM's
+Defaults restores it; the KCM has no preset selector and `MaterialPreset` is
+retired. Keep one blur path: Dual Kawase. Installing or reinstalling Acrylic
+Glass explicitly reapplies the complete repository edition preset: Tahoe from
+Tahoe, Golden Gate from Golden Gate. Preserve radius controls, window rules and
+optics outside the preset; delete the previous engine's retired keys
+(`_RETIRED_KEYS`) after their radii carried over.
 
-The gradient uses frame-local coordinates and changes color independently of
-blur coverage. Golden Gate uses exactly Tahoe's optical values and adds only
-a black upper gradient. Tahoe context menus, applet popups, tooltips,
+Golden Gate uses exactly Tahoe's optical values and adds only a black tint.
+Tahoe context menus, applet popups, tooltips,
 About This Computer and the detached search capsule use 55% white fills in light mode and 48% black fills
 in dark mode. Golden Gate stages light Plasma popups, tooltips, the detached
 search capsule and native Qt menus with 60% white fill so the system dark
-foreground stays readable above the gradient, including over black backdrops.
+foreground stays readable above the tint, including over black backdrops.
 About This Computer follows the same Golden Gate fills: 60% white in light
 mode and 1% white in dark mode. Its `hint-clear-surface` SVG marker identifies
 the edition, not a request to use 1% in both modes. Keep regression coverage
 for light/dark/light transitions and secondary-label contrast over black;
 never bless the unreadable 1% light-mode fill as a test expectation.
 Golden Gate dark surfaces retain their 1% white fill. Preserve every Tahoe
-asset, the Dock fill, and all unrelated surfaces. Never disable or change the
-saved compositor gradient to repair light-mode foreground contrast.
+asset, the Dock fill, and all unrelated surfaces. Never remove the compositor
+tint to repair light-mode foreground contrast.
 Apply the same staging in the imperative installer and Nix; preserve masks,
 contours and solid fallbacks.
 The Dock retains the same thin fill in both modes.
 Surface contours pair a 0.75 logical-pixel dark outer line with a 0.75
 logical-pixel light inner line; preserve each surface's native mask and radius.
-Only the Dock lowers centre coverage; Launcher and other
-applet popups retain full blur coverage so sharp backdrop details cannot leak
-through their interiors. `DarkGradientOverlay` is retained
-as the persisted enable key; the KCM calls it Enable gradient and exposes both
-colors and strengths. Keep legacy/core shaders equivalent, output premultiplied,
-and pixel widths scaled to the viewport. Shared light/dark Plasma and Kvantum
+Launcher and other applet popups retain full blur coverage so sharp backdrop
+details cannot leak through their interiors. Shared light/dark Plasma and Kvantum
 surface fills let the effect define the material in either edition. Keep popup
 fills translucent; use the system window foreground consistently on popups
 and the detached search capsule. Launcher text uses a soft, centered halo
 of the opposite luminance to its system foreground color in both modes. Keep
 the halo low-opacity and diffuse; do not use a hard outline. Light-mode
 category pills use a translucent white backing to keep dark labels readable
-over the upper gradient.
+over the tint.
 Golden Gate light mode uses full-opacity search text and a stronger diffuse
 halo in the Apps input; category fills use 68% white when selected and 52%
 otherwise. Stage the edition flag independently of the user's launcher preset.
@@ -1210,7 +1202,7 @@ featured application with that window focused; reject combined or unfocused
 frames. Enforce this in capture and release validation. This requirement is
 for the main README gallery, not distro qualification/OS screenshots.
 
-The native wizard offers none, soft, medium (default) and hard window shadows.
+The native wizard offers none, soft (default, Cutefish's diffuse shadow), medium and hard window shadows.
 Apply the chosen level to both Aurorae SVG variants and GTK 3/4 theme sheets
 from fresh bundled sources on each installation. Preserve frame geometry,
 borders, rounded-corner settings and tiled/fullscreen shadow suppression.

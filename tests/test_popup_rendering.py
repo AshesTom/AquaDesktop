@@ -181,13 +181,13 @@ def test_xwayland_property_is_read_and_invalid_data_never_means_full_blur(
     if flags.returncode:
         pytest.skip("Qt6Gui and XCB development files required")
     source = (
-        repo / "src/offline/kwin-effects/acrylic-glass/src/effect.cpp"
+        repo / "src/offline/kwin-effects/acrylic-glass/src/blur.cpp"
     ).read_text()
-    block = source.split("    // Xwayland still advertises blur", 1)[1].split(
-        "    // Plasma's translucent menus", 1
+    # The Wayland build's Xwayland reader (the X11 build reads it itself).
+    block = source.split("#elif KWIN_BUILD_X11\n", 1)[1].split(
+        "    Q_UNUSED(legacyBlurPropertyMissing);", 1
     )[0]
-    block = block.removesuffix("#if defined(GLASS_X11)\n") + "#endif\n"
-    block = block[block.index("#if KWIN_BUILD_X11") :]
+    assert "// Xwayland still advertises blur" in block
     code = (
         r"""
 #include <QRegion>
@@ -201,6 +201,7 @@ def test_xwayland_property_is_read_and_invalid_data_never_means_full_blur(
 #include <vector>
 #define KWIN_BUILD_X11 1
 using Region=QRegion;
+using BlurRegion=QRegion;
 using Rect=QRect;
 namespace Xcb { struct Result { QRect rect; QRect toRect() const { return rect; } }; Result fromXNative(QRect r) { return {r}; } }
 struct Window { xcb_window_t id; long windowId() const { return id; } };

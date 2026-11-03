@@ -311,12 +311,14 @@ def test_uninstall_removes_dockzoom_module(tmp_path, monkeypatch):
 def test_glass_leaves_frameless_applet_popups_clear(offline):
     """Acrylic Glass blurs a popup only where it asks for blur: the
     Downloads fan requests none, so it stays see-through."""
-    effect = (offline / "kwin-effects/acrylic-glass/src/effect.cpp").read_text()
+    effect = (offline / "kwin-effects/acrylic-glass/src/blur.cpp").read_text()
     update = effect[effect.index("void BlurEffect::updateBlurRegion"):]
     update = update[:update.index("\n}\n")]
-    # Frames are only synthesized for decorated, non-popup windows.
-    assert ("!(w->isDock() || w->isTooltip() || w->isMenu() || w->isDropdownMenu() "
-            "|| w->isPopupMenu() || w->isPopupWindow() || w->isAppletPopup())") in update
+    # Frames are only synthesized for non-popup windows.
+    forced = update.split("m_settings.forceBlur.blurDecorations &&", 1)[1].split(") {", 1)[0]
+    excluded = set(re.findall(r"w->(is\w+)\(\)", forced))
+    assert excluded == {"isDock", "isTooltip", "isMenu", "isDropdownMenu",
+                        "isPopupMenu", "isPopupWindow", "isAppletPopup"}
 
 
 def test_downloads_fan_matches_macos_tahoe(offline):

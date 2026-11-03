@@ -25,7 +25,7 @@ LEGACY_USER_PLUGIN_DIR = HOME / ".local/lib/qt6/plugins"
 
 
 def _translation_files():
-    for language in ("pt_BR", "de"):
+    for language in ("pt_BR", "de", "fr"):
         relative = Path(language) / "LC_MESSAGES/kwin_effect_liquidglass.mo"
         yield SRC / "locale" / relative, DATA_HOME / "locale" / relative
 
@@ -40,7 +40,7 @@ def deps():
         "make",
         "g++:gcc",
         "pkg-config:pkgconf",
-        # KF6 components required by the acrylic-glass CMakeLists.
+        # KF6 components required by the Glass effect's CMakeLists.
         "kf6-config-cmake:kconfig",
         "kf6-configwidgets-cmake:kconfigwidgets",
         "kf6-coreaddons-cmake:kcoreaddons",
@@ -131,10 +131,21 @@ def build() -> None:
     cmake_build(SRC, BUILD, "Acrylic Glass")
 
 
+# (key, default, retired Acrylic Glass key whose saved value carries over)
 _CORNER_DEFAULTS = (
-    ("WindowCornerRadius", "22"),
-    ("DockCornerRadius", "20"),
-    ("PopupCornerRadius", "6"),
+    ("TopCornerRadius", "22", "WindowCornerRadius"),
+    ("BottomCornerRadius", "22", "WindowCornerRadius"),
+    ("DockCornerRadius", "20", None),
+    ("MenuCornerRadius", "12", "PopupCornerRadius"),
+)
+
+# Keys of the previous Acrylic Glass engine that the Glass effect ignores.
+_RETIRED_KEYS = (
+    "DarkGradientOverlay", "GradientBottomColor", "GradientBottomOpacity",
+    "GradientTopColor", "GradientTopOpacity", "HighlightStrength",
+    "HighlightWidth", "MagnifyGlassStrength", "MaterialOpacity",
+    "MaterialPreset", "PopupCornerRadius", "RefractionWidth",
+    "RgbDriftStrength", "WindowCornerRadius",
 )
 
 def _edition_preset() -> dict[str, str]:
@@ -144,12 +155,11 @@ def _edition_preset() -> dict[str, str]:
     preset = next(preset for preset in presets if preset["id"] == preset_id)
     values = preset["values"]
     return {key: str(value).lower() if isinstance(value, bool) else str(value)
-            for key, value in values.items()} | {"MaterialPreset": str(preset["value"])}
+            for key, value in values.items()}
 
 
 def _install_material_preset() -> bool:
-    # Installing an edition explicitly reapplies its optics. Write the selector
-    # last so a failed material write cannot announce the new preset.
+    # Installing an edition explicitly reapplies its optics.
     for key, value in _edition_preset().items():
         if not kw_write("--file", "kwinrc", "--group", "Effect-liquidglass",
                         "--key", key, value):
@@ -161,12 +171,36 @@ def _install_material_preset() -> bool:
 def _install_corner_defaults() -> None:
     """Seed missing radii without undoing the user's corner tuning (#89).
 
-    The current effect has only three radius controls: popups also cover
-    menus/tooltips, and normal windows cover dialogs and bottom corners.
-    Preserve even explicitly empty values; failed reads never authorize a
-    write. KConfig's cascade handles both user and system configuration.
+    Radii saved under the previous engine's keys carry over to the Glass
+    keys that replace them. Preserve even explicitly empty values; failed
+    reads never authorize a write. KConfig's cascade handles both user and
+    system configuration.
     """
-    _install_missing_defaults(_CORNER_DEFAULTS)
+    sentinel = f"__mttkde_absent_{uuid.uuid4().hex}__"
+    defaults = []
+    for key, default, retired in _CORNER_DEFAULTS:
+        saved = _read_glass_key(retired, sentinel) if retired else None
+        defaults.append((key, default if saved in (None, sentinel) else saved))
+    _install_missing_defaults(defaults)
+
+
+def _read_glass_key(key: str, sentinel: str) -> str | None:
+    """The saved value of `key`, `sentinel` when absent, None when unreadable."""
+    if not have("kreadconfig6"):
+        return None
+    try:
+        result = run_user(
+            ["kreadconfig6", "--file", "kwinrc", "--group",
+             "Effect-liquidglass", "--key", key, "--default", sentinel],
+            check=False, capture_output=True, text=True, timeout=5,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        warn(tr('Acrylic Glass {key} preserved — could not read it ({exc})', key=key, exc=exc))
+        return None
+    if result.returncode != 0:
+        warn(tr('Acrylic Glass {key} preserved — kreadconfig6 failed', key=key))
+        return None
+    return (result.stdout or "").removesuffix("\n").removesuffix("\r")
 
 
 def _install_missing_defaults(defaults) -> None:
@@ -175,22 +209,17 @@ def _install_missing_defaults(defaults) -> None:
         return
     sentinel = f"__mttkde_absent_{uuid.uuid4().hex}__"
     for key, default in defaults:
-        try:
-            result = run_user(
-                ["kreadconfig6", "--file", "kwinrc", "--group",
-                 "Effect-liquidglass", "--key", key, "--default", sentinel],
-                check=False, capture_output=True, text=True, timeout=5,
-            )
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            warn(tr('Acrylic Glass {key} preserved — could not read it ({exc})', key=key, exc=exc))
-            continue
-        if result.returncode != 0:
-            warn(tr('Acrylic Glass {key} preserved — kreadconfig6 failed', key=key))
-            continue
-        if (result.stdout or "").removesuffix("\n").removesuffix("\r") == sentinel:
+        if _read_glass_key(key, sentinel) == sentinel:
             if not kw_write("--file", "kwinrc", "--group", "Effect-liquidglass",
                             "--key", key, default):
                 warn(tr('Acrylic Glass {key} default not applied — kwriteconfig6 failed', key=key))
+
+
+def _drop_retired_keys() -> None:
+    # After the corners carried over, so their saved radii are not lost.
+    for key in _RETIRED_KEYS:
+        kw_write("--file", "kwinrc", "--group", "Effect-liquidglass",
+                 "--key", key, "--delete")
 
 
 def _versioned_effect_path(source: Path, directory: Path) -> Path:
@@ -329,6 +358,7 @@ def install() -> None:
     _install_corner_defaults()
     _install_missing_defaults((("BlurDecorations", "true"),
                                ("BlurMatching", "false"), ("BlurNonMatching", "true")))
+    _drop_retired_keys()
     if material_applied:
         ok(tr('Acrylic Glass material settings ready'))
     kw_write("--file", "kwinrc", "--group", "Plugins",

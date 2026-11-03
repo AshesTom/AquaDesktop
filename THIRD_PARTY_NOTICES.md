@@ -8,7 +8,7 @@ a whole without replacing independent component grants.
 
 | Material | License or notice to retain |
 | --- | --- |
-| Acrylic Glass | [Bundled GPLv3 text](src/offline/kwin-effects/acrylic-glass/LICENSE) and existing source copyright/SPDX headers, including GPL-2.0-or-later and GPL-3.0-or-later files. |
+| Acrylic Glass ([kwin-effects-glass](https://github.com/AndyKaslana/kwin-effects-glass) by AndyKaslana, after [4v3ngR](https://github.com/4v3ngR/kwin-effects-glass) and the KWin blur effect) | [Bundled GPLv3 text](src/offline/kwin-effects/acrylic-glass/LICENSE), [upstream changelog](src/offline/kwin-effects/acrylic-glass/UPSTREAM-CHANGELOG.md) and existing source copyright/SPDX headers, including GPL-2.0-or-later files. |
 | Launcher | [Original GPLv2 text](src/offline/plasmoids/org.kde.mac-tahoe-liquid-kde.launcher/LICENSE-TahoeLauncher), file notices, and package metadata. The license text alone does not resolve version options for every file. |
 | Panel Colorizer | [Bundled license](src/offline/plasmoids/luisbocanegra.panel.colorizer/LICENSE) and source notices. |
 | KDE-derived plasmoids and integration code | Existing copyright/SPDX headers, including GPL-2.0-or-later, LGPL-2.0-or-later, LGPL-2.1-or-later, and KDE alternative grants. The alternatives remain available as stated in each file. |

@@ -47,8 +47,9 @@ def test_native_material_follows_source_edition_across_reinstalls(tmp_path, firs
         # The working directory must not override the executing source edition.
         other_checkout = "MacGoldenGate" if edition == "MacTahoe" else "MacTahoe"
         result = subprocess.run(
-            [sys.executable, "-c", "from steps.acrylic_glass import _install_material_preset; "
-             "assert _install_material_preset()"],
+            [sys.executable, "-c", "from steps import acrylic_glass as glass; "
+             "assert glass._install_material_preset(); "
+             "glass._install_corner_defaults(); glass._drop_retired_keys()"],
             cwd=tmp_path / other_checkout, env=env, capture_output=True, text=True, timeout=30,
         )
         assert result.returncode == 0, result.stdout + result.stderr
@@ -57,9 +58,11 @@ def test_native_material_follows_source_edition_across_reinstalls(tmp_path, firs
         saved.read(config_file)
         expected = {key: str(value).lower() if isinstance(value, bool) else str(value)
                     for key, value in presets[editions[edition]]["values"].items()}
+        # The previous engine's material keys are gone; its radii carry over.
         assert dict(saved["Effect-liquidglass"]) == expected | {
-            "MaterialPreset": str(editions[edition]), "WindowCornerRadius": "13.5",
-            "DockCornerRadius": "0", "PopupCornerRadius": "", "WindowClasses": "custom-app",
+            "TopCornerRadius": "13.5", "BottomCornerRadius": "13.5",
+            "DockCornerRadius": "0", "MenuCornerRadius": "",
+            "WindowClasses": "custom-app",
             "BlurMatching": "true", "BlurNonMatching": "false",
         }
         assert saved["Plugins"]["otherEffectEnabled"] == "true"
@@ -89,8 +92,9 @@ def test_native_corner_defaults_preserve_present_values(tmp_path, value):
     after_first = config_file.read_bytes()
     subprocess.run([sys.executable, "-c", script], env=env, check=True, timeout=20)
     assert config_file.read_bytes() == after_first
-    for key, expected in (("WindowCornerRadius", "22" if value is None else value),
-                          ("DockCornerRadius", "20"), ("PopupCornerRadius", "6"),
+    for key, expected in (("TopCornerRadius", "22" if value is None else value),
+                          ("BottomCornerRadius", "22" if value is None else value),
+                          ("DockCornerRadius", "20"), ("MenuCornerRadius", "12"),
                           ("CustomSetting", "untouched")):
         result = subprocess.run(["kreadconfig6", "--file", "kwinrc", "--group",
                                  "Effect-liquidglass", "--key", key], env=env,
