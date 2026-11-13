@@ -13,12 +13,19 @@ from launcher_defaults import (
 from steps._helpers import (
     DATA_HOME, HOME, have, install_tree, ok, offline, qdbus_call, warn,
 )
-from utils import qdbus_cmd, run_user
+from utils import kw_read, kw_write, qdbus_cmd, run_user
 
 LAYOUT_SCRIPT = offline("layouts/mac-tahoe.js")
 LAYOUT_RESET = offline("layouts/default.js")
 DOCK_MIGRATION = offline("layouts/migrate-dock-preset.js")
 _DISCOVER_DESKTOP = "applications:org.kde.discover.desktop"
+# The "Apps" launcher (src/offline/applications): macOS pins it right after
+# Finder; it opens the Launcher applet's grid.
+APPS_PIN = "applications:org.kde.mac-tahoe-liquid-kde.apps.desktop"
+_FILE_MANAGER_PIN = re.compile(r"filemanager|dolphin|nautilus|nemo|thunar|pcmanfm|caja", re.I)
+# The menu bar's Sound extra shows macOS Tahoe's volume HUD on the volume
+# and mute keys, so plasma-pa's own on-screen display for them goes off.
+VOLUME_OSD_KEYS = ("VolumeOsd", "MuteOsd")
 COLORIZER_ID = "luisbocanegra.panel.colorizer"
 COLORIZER_SRC = offline("plasmoids") / COLORIZER_ID
 MAC_TASKS_ID = "org.kde.mac.tahoe.liquid.icontasks"
@@ -136,6 +143,19 @@ def _capture_pinned_launchers() -> list[str]:
     return seen
 
 
+def _with_apps_pin(pins: list[str]) -> list[str]:
+    """The user's pins with the "Apps" launcher right after the file manager
+    (first when there is none), like macOS' Finder, Apps, ... No pins keep
+    the layout's own defaults, which already carry it."""
+    if not pins:
+        return pins
+    pins = [pin for pin in pins if pin != APPS_PIN]
+    for index, pin in enumerate(pins):
+        if _FILE_MANAGER_PIN.search(pin):
+            return pins[:index + 1] + [APPS_PIN] + pins[index + 1:]
+    return [APPS_PIN] + pins
+
+
 def _append_launcher_restore(
         script: str, pins: list[str], widget_type: str, *,
         preserve_empty: bool = False) -> str:
@@ -151,6 +171,8 @@ def _append_launcher_restore(
             "      var w = ps[i].widgetById(ws[j]);\n"
             f"      if (w && w.type === {widget}) {{\n"
             "        w.currentConfigGroup = ['General'];\n"
+            # The Dock's minimized-windows section never shows launchers.
+            "        if (String(w.readConfig('showOnlyMinimized', false)) === 'true') continue;\n"
             f"        w.writeConfig('launchers', {joined});\n"
             "      }\n"
             "    }\n"
@@ -266,6 +288,11 @@ _CUSTOM_PANEL_NEEDLES = (
     "plugin=org.kde.mac.tahoe.liquid.icontasks",
     "plugin=org.kde.mac-tahoe-liquid-kde.launcher",
     "plugin=org.kde.mac-tahoe-liquid-kde.trashcan",
+    "plugin=org.kde.mac-tahoe-liquid-kde.separator",
+    "plugin=org.kde.mac-tahoe-liquid-kde.downloads",
+    "plugin=org.kde.mac-tahoe-liquid-kde.clock",
+    "plugin=org.kde.mac-tahoe-liquid-kde.spotlight",
+    "plugin=org.kde.mac-tahoe-liquid-kde.controlcenter",
 )
 _THEME_PLUGIN_RE = re.compile(
     r"^plugin=org\.kde\.(?:"
@@ -429,7 +456,7 @@ def install() -> None:
         return
     pins = _capture_pinned_launchers()
     applied = _evaluate_layout_with_launchers(
-        LAYOUT_SCRIPT, pins, MAC_TASKS_ID,
+        LAYOUT_SCRIPT, _with_apps_pin(pins), MAC_TASKS_ID,
     )
     if applied and _wait_for_layout_install():
         record_applied_edition(HOME, edition_name())
@@ -441,6 +468,36 @@ def install() -> None:
         return
     time.sleep(3)
     _patch_plasmashellrc()
+    _restore_frosted_top_bar()
+    _use_sound_hud()
+
+
+def _use_sound_hud() -> None:
+    """Plasma's volume OSD off: the Sound extra's HUD replaces it."""
+    if all([kw_write("--file", "plasmaparc", "--group", "General",
+                     "--key", key, "false") for key in VOLUME_OSD_KEYS]):
+        ok(tr('Volume keys show the macOS volume HUD'))
+    else:
+        warn(tr("Plasma's volume OSD left on — kwriteconfig6 unavailable "
+                "(install plasma-workspace or your distro's equivalent)"))
+
+
+def _restore_volume_osd() -> None:
+    """Plasma's volume OSD back on, unless the user changed it since."""
+    for key in VOLUME_OSD_KEYS:
+        if kw_read("plasmaparc", "General", key) == "false":
+            kw_write("--file", "plasmaparc", "--group", "General",
+                     "--key", key, "--delete")
+
+
+def _restore_frosted_top_bar() -> None:
+    """The layout installs Tahoe's menu bar (its veil). With the frosted style
+    chosen (`mac-tahoe-theme-switch style frosted`), give it its frosted
+    background back."""
+    from theme_switch import _top_bar_script, current_mode, glass_style
+    if (glass_style() == "frosted"
+            and _evaluate_layout_script(_top_bar_script(True, current_mode()))):
+        ok(tr('Menu bar: frosted background'))
 
 
 def is_installed() -> bool:
@@ -450,6 +507,7 @@ def is_installed() -> bool:
 def uninstall() -> None:
     has_theme_widgets = _layout_has_any_theme_widget()
     _clear_layout_marker()
+    _restore_volume_osd()
     if _reset_plasmashellrc():
         ok(tr('Panel transparency reset'))
     if not has_theme_widgets:

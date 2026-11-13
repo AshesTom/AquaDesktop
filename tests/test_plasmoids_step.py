@@ -158,15 +158,17 @@ def test_taskmanager_build_artifacts_match_install_sources():
     assert plasmoids.TASKMANAGER_BUILD / "bin/plasma/applet/org/kde/mac/tahoe/liquid/taskmanager" in artifacts
 
     task_qml = (plasmoids.TASKMANAGER_SRC / "contents/ui/Task.qml").read_text()
-    assert "z: dockMagnified ? 10 : 0" in task_qml
-    assert "Plasmoid.configuration.dockMagnification" in task_qml
-    assert "readonly property real dockScale: dockMagnified ? reducedDockScale : 1.0" in task_qml
+    # Parabolic magnification shared with every Dock widget (DockZoom).
+    assert "import org.kde.mac.tahoe.liquid.dockzoom" in task_qml
+    assert "readonly property real dockScale: dockMagnifies ? DockZoom.scaleFor(task) : 1.0" in task_qml
     assert "scale: dockScale" in task_qml
-    assert "scale: task.dockMagnified" not in task_qml
+    assert "x: task.dockMagnifies ? DockZoom.shiftFor(task) : 0" in task_qml
+    main_qml = (plasmoids.TASKMANAGER_SRC / "contents/ui/main.qml").read_text()
+    assert "Plasmoid.configuration.dockMagnification / 100" in main_qml
 
     config_xml = (plasmoids.TASKMANAGER_SRC / "contents/config/main.xml").read_text()
     assert '<entry name="dockMagnification" type="Int">' in config_xml
-    assert "<default>110</default>" in config_xml
+    assert "<default>160</default>" in config_xml
 
     appearance_qml = (
         plasmoids.TASKMANAGER_SRC / "contents/ui/ConfigAppearance.qml"
@@ -175,7 +177,7 @@ def test_taskmanager_build_artifacts_match_install_sources():
     assert '"plasma_applet_org.kde.mac.tahoe.liquid.taskmanager"' in appearance_qml
     assert '"Hover magnification:")' in appearance_qml
     assert "from: 100" in appearance_qml
-    assert "to: 150" in appearance_qml
+    assert "to: 200" in appearance_qml
 
 
 def test_taskmanager_badge_count_checks_full_int_range(repo):

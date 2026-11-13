@@ -57,7 +57,8 @@ def test_appearance_preserves_pins_and_survives_rebuild(monkeypatch, appearance,
         script += layout._dock_migration_script()
     script += '''
 JSON.stringify(created.filter(p => p.location === "bottom").map(p =>
- p.widgetIds.map(id => p.widgetById(id)).filter(w => w.type === "org.kde.mac.tahoe.liquid.icontasks")
+ p.widgetIds.map(id => p.widgetById(id)).filter(w => w.type === "org.kde.mac.tahoe.liquid.icontasks"
+     && String(w.config.showOnlyMinimized) !== "true")
  .map(w => ({pins:w.config.launchers, icons:w.config.macOSDockIcons}))));'''
     result = evaluate(script)
     assert result

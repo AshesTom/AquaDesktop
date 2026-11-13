@@ -1,0 +1,30 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Kai Uwe Broulik",
+                "Email": "kde@privat.broulik.de"
+            },
+            {
+                "Name": "MacTahoe Liquid KDE contributors"
+            }
+        ],
+        "Category": "Tasks",
+        "Description": "Plasma's notifications with macOS Tahoe banners: app icon on the left, bold title, no header, rounded glass",
+        "EnabledByDefault": false,
+        "FormFactors": [
+            "desktop"
+        ],
+        "Icon": "preferences-desktop-notification-bell",
+        "Id": "org.kde.mac.tahoe.liquid.notifications",
+        "License": "GPL-2.0+",
+        "Name": "Notifications (MacTahoe Liquid KDE)",
+        "Website": "https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde"
+    },
+    "X-KDE-ParentApp": "org.kde.plasmashell",
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-NotificationAreaCategory": "SystemServices",
+    "X-Plasma-Provides": [
+        "org.kde.plasma.notifications"
+    ]
+}

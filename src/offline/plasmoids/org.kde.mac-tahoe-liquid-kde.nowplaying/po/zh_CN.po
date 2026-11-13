@@ -1,0 +1,18 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: MacTahoe Liquid KDE\n"
+"PO-Revision-Date: 2026-10-09 00:00+0200\n"
+"Last-Translator: MacTahoe Liquid KDE contributors\n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "@title"
+msgid "Now Playing"
+msgstr "正在播放"
+
+msgctxt "@title"
+msgid "Not Playing"
+msgstr "未在播放"

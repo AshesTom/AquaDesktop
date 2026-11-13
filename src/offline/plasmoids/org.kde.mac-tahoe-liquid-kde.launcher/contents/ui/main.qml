@@ -20,8 +20,9 @@ PlasmoidItem {
     NativeLauncher.DockCell {
         id: dockCell
         applet: kicker
-        active: Plasmoid.formFactor === PlasmaCore.Types.Horizontal
-            || Plasmoid.formFactor === PlasmaCore.Types.Vertical
+        // A hidden button takes no part in the Dock's cell compression.
+        active: !kicker.hiddenInDock && (Plasmoid.formFactor === PlasmaCore.Types.Horizontal
+            || Plasmoid.formFactor === PlasmaCore.Types.Vertical)
         vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
     }
     Plasmoid.constraintHints: Plasmoid.CanFillArea
@@ -52,6 +53,31 @@ PlasmoidItem {
 
     property QtObject globalFavorites: rootModel.favoritesModel
     property QtObject systemFavorites: rootModel.systemFavoritesModel
+
+    // In the Dock, the "Apps" launcher pinned right after Finder opens the
+    // grid (PlasmaShell.activateLauncherMenu reaches this applet as
+    // activated()), so the panel leaves this button out.
+    readonly property bool hiddenInDock: Plasmoid.configuration.hiddenInDock
+        && Plasmoid.formFactor === PlasmaCore.Types.Horizontal
+    Plasmoid.status: hiddenInDock ? PlasmaCore.Types.HiddenStatus : PlasmaCore.Types.ActiveStatus
+
+    // The Launchpad window lives with the applet: a hidden applet may never
+    // build its button, which would lose the Apps pin's first click.
+    property QtObject dashWindow: null
+
+    function toggleDash(): void {
+        if (!dashWindow) {
+            dashWindow = menuRepresentation.createObject(kicker);
+        }
+        dashWindow.visible = !dashWindow.visible;
+    }
+
+    Connections {
+        target: Plasmoid
+        function onActivated(): void {
+            kicker.toggleDash();
+        }
+    }
 
     Plasmoid.icon: Plasmoid.configuration.useCustomButtonImage ? Plasmoid.configuration.customButtonImage : Plasmoid.configuration.icon
 

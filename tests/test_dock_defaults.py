@@ -21,6 +21,7 @@ APPS = [
 HARNESS = '''
 var created = [];
 var screenCount = 2;
+var knownWidgetTypes = [];
 function panels() { return created.slice(); }
 function applicationExists(id) { return installed.indexOf(id) !== -1; }
 function Panel() {
@@ -65,6 +66,14 @@ JSON.stringify(created.filter(p => p.location === "bottom").map(p =>
     return json.loads(result.stdout)
 
 
+def _with_apps_pin(apps):
+    """The layouts pin the "Apps" launcher right after the file manager."""
+    pins = ['applications:' + app for app in apps]
+    files = apps[:1] and apps[0] in ('org.kde.dolphin.desktop', 'org.gnome.Nautilus.desktop',
+                                     'thunar.desktop', 'pcmanfm-qt.desktop')
+    return pins[:1] + [layout.APPS_PIN] + pins[1:] if files else [layout.APPS_PIN] + pins
+
+
 @pytest.mark.parametrize('relative', LAYOUTS)
 @pytest.mark.parametrize('installed, expected', [
     (APPS, APPS),
@@ -83,7 +92,7 @@ def test_base_dock_order_and_missing_apps(offline, relative, installed, expected
     assert docks
     for widgets in docks:
         tasks = [w for w in widgets if w['type'] == layout.MAC_TASKS_ID]
-        assert tasks[0]['pins'] == ['applications:' + app for app in expected]
+        assert tasks[0]['pins'] == _with_apps_pin(expected)
         assert widgets[-1]['type'] == 'org.kde.mac-tahoe-liquid-kde.trashcan'
 
 
@@ -200,7 +209,7 @@ def test_fresh_install_preserves_existing_user_pins(monkeypatch):
     calls = []
     monkeypatch.setattr(layout, '_evaluate_layout_with_launchers', lambda path, pins, widget: calls.append(pins) or False)
     layout.install()
-    assert calls == [['applications:stock.desktop']]
+    assert calls == [[layout.APPS_PIN, 'applications:stock.desktop']]
 
 
 @pytest.mark.parametrize('relative', LAYOUTS)
@@ -211,8 +220,8 @@ def test_base_uses_installed_equivalents(offline, relative):
                  'org.gnome.Rhythmbox3.desktop', 'org.gnome.Showtime.desktop',
                  'org.kde.discover.desktop', 'systemsettings.desktop']
     for widgets in execute((offline / relative).read_text(), installed):
-        assert next(w['pins'] for w in widgets if w['type'] == layout.MAC_TASKS_ID) == [
-            'applications:' + app for app in installed]
+        assert next(w['pins'] for w in widgets if w['type'] == layout.MAC_TASKS_ID) == (
+            _with_apps_pin(installed))
 
 
 def test_revision_one_recovers_photos_and_video_from_host_equivalents():

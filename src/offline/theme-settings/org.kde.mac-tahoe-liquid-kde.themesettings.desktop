@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Name=Theme Settings
+Name[es]=Ajustes del tema
+Name[fr]=Réglages du thème
+Name[zh_CN]=主题设置
+GenericName=MacTahoe Liquid KDE
+Comment=Appearance, accent colour, Liquid Glass or Frosted, Desktop & Dock
+Comment[es]=Apariencia, color de acento, Liquid Glass o esmerilado, escritorio y Dock
+Comment[fr]=Apparence, couleur d'accentuation, Liquid Glass ou Givré, bureau et Dock
+Comment[zh_CN]=外观、强调色、液态玻璃或磨砂，以及桌面和程序坞
+Icon=preferences-desktop-theme-global
+Exec=mac-tahoe-theme-settings
+Terminal=false
+Categories=Settings;DesktopSettings;GTK;
+Keywords=theme;appearance;dark;light;accent;glass;frosted;blur;icon;icns;macos;
+StartupNotify=true

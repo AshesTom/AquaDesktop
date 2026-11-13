@@ -19,6 +19,7 @@ import plasma.applet.org.kde.mac.tahoe.liquid.taskmanager as TaskManagerApplet
 import org.kde.plasma.plasmoid
 import "LayoutMetrics.js" as LayoutMetrics
 import "TaskTools.js" as TaskTools
+import org.kde.mac.tahoe.liquid.dockzoom
 import "DockRoles.js" as DockRoles
 
 import org.kde.taskmanager as TaskManager
@@ -103,21 +104,21 @@ PlasmaCore.ToolTipArea {
     readonly property bool highlighted: (inPopup && activeFocus) || (!inPopup && containsMouse)
         || (task.contextMenu && task.contextMenu.status === PlasmaExtras.Menu.Open)
         || (!!tasksRoot.groupDialog && tasksRoot.groupDialog.visualParent === task)
-    readonly property bool dockMagnified: !inPopup && !tasksRoot.vertical && containsMouse
-    readonly property real configuredDockScale: Math.max(
-        1.0, Math.min(1.5, Number(Plasmoid.configuration.dockMagnification) / 100.0))
-    readonly property real reducedDockScale: 1.0 + (configuredDockScale - 1.0) * 0.9
-    readonly property real dockScale: dockMagnified ? reducedDockScale : 1.0
+    readonly property bool dockMagnifies: !inPopup && !tasksRoot.vertical
+    readonly property real dockScale: dockMagnifies ? DockZoom.scaleFor(task) : 1.0
+    // The magnification scales the whole delegate, which only stretches the
+    // resting pixels: while the Dock magnifies, the icon is rasterized at the
+    // largest magnification and drawn scaled back down (sharp when zoomed).
+    readonly property real iconRaster: dockMagnifies && DockZoom.level > 0 ? DockZoom.magnification : 1.0
 
-    // Transform the complete delegate so badges, audio/mute controls, progress,
-    // and group indicators stay attached to the icon during magnification.
-    // Layout geometry remains unchanged, so neighbouring tasks do not jump.
-    z: dockMagnified ? 10 : 0
+    // Parabolic macOS magnification shared with every other Dock widget (see
+    // DockZoom). Transform the complete delegate so badges, audio/mute
+    // controls, progress, and group indicators stay attached to the icon.
+    // Layout geometry remains unchanged; the theme reserves headroom above
+    // and beside the Dock glass for the magnified icons.
+    z: dockScale
     scale: dockScale
-    transformOrigin: Item.Center
-    Behavior on scale {
-        NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
-    }
+    transformOrigin: Item.Bottom
 
     active: !inPopup && !tasksRoot.groupDialog && task.contextMenu?.status !== PlasmaExtras.Menu.Open
     interactive: model.IsWindow || mainItem.playerData
@@ -183,9 +184,14 @@ PlasmaCore.ToolTipArea {
             }
         }
     }
-    transform: Translate {
-        id: translateTransform
-    }
+    transform: [
+        Translate {
+            id: translateTransform
+        },
+        Translate {
+            x: task.dockMagnifies ? DockZoom.shiftFor(task) : 0
+        }
+    ]
 
     Accessible.name: model.display
     Accessible.description: {
@@ -509,6 +515,8 @@ PlasmaCore.ToolTipArea {
         }
 
         imagePath: "widgets/tasks"
+        // macOS draws no running indicator under minimized-window thumbnails.
+        opacity: task.tasksRoot.minimizedShelf ? 0 : 1
         property bool isHovered: task.highlighted && Plasmoid.configuration.taskHoverEffect
         property string basePrefix: "normal"
         prefix: isHovered ? TaskTools.taskPrefixHovered(basePrefix, Plasmoid.location) : TaskTools.taskPrefix(basePrefix, Plasmoid.location)
@@ -602,10 +610,30 @@ PlasmaCore.ToolTipArea {
             return margin;
         }
 
+        // The minimized-windows section shows each window as a thumbnail.
+        Loader {
+            id: windowThumbnail
+
+            anchors.fill: parent
+            active: task.tasksRoot.minimizedShelf === true && task.model.IsWindow && !task.model.IsGroupParent
+            // By URL: only the minimized-windows section needs PipeWire.
+            source: "WindowThumbnail.qml"
+            onLoaded: {
+                item.winId = Qt.binding(() => task.model.WinIdList[0]);
+                item.appIcon = Qt.binding(() => task.model.decoration);
+            }
+        }
+
         Kirigami.Icon {
             id: icon
 
-            anchors.fill: parent
+            // iconRaster: 1 outside the Dock's magnification.
+            readonly property real raster: task.iconRaster || 1
+            width: parent.width * raster
+            height: parent.height * raster
+            scale: 1 / raster
+            transformOrigin: Item.TopLeft
+            visible: !(windowThumbnail.item && windowThumbnail.item.ready)
 
             active: task.highlighted
             enabled: true

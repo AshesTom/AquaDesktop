@@ -21,6 +21,8 @@
             var tasks = ps[p].widgetById(ids[w]);
             if (!tasks || tasks.type !== "org.kde.mac.tahoe.liquid.icontasks") continue;
             tasks.currentConfigGroup = ["General"];
+            // The Dock's minimized-windows section never shows launchers.
+            if (String(tasks.readConfig("showOnlyMinimized", false)) === "true") continue;
             var revision = Number(tasks.readConfig("dockPresetRevision", 0));
             var applyDefaults = revision < 3
                 || (typeof mttkdeResetDock !== "undefined" && mttkdeResetDock);

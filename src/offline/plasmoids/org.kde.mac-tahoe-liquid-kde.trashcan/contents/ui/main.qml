@@ -17,6 +17,7 @@ import org.kde.draganddrop as DragDrop
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as P5Support
 import org.kde.mac.tahoe.launcher as NativeLauncher
+import org.kde.mac.tahoe.liquid.dockzoom
 
 PlasmoidItem {
     id: root
@@ -33,12 +34,30 @@ PlasmoidItem {
     Plasmoid.constraintHints: Plasmoid.CanFillArea
     Layout.fillWidth: dockCell.active
     Layout.fillHeight: dockCell.active
-    Layout.minimumWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? Math.floor(dockCell.size) : 0
-    Layout.preferredWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? dockCell.size : -1
-    Layout.maximumWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? Math.ceil(dockCell.size) : Infinity
+    Layout.minimumWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? Math.floor(dockCell.size) + DockZoom.growthFor(root) : 0
+    Layout.preferredWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? dockCell.size + DockZoom.growthFor(root) : -1
+    Layout.maximumWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? Math.ceil(dockCell.size) + DockZoom.growthFor(root) : Infinity
     Layout.minimumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? Math.floor(dockCell.size) : 0
     Layout.preferredHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? dockCell.size : -1
     Layout.maximumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? Math.ceil(dockCell.size) : Infinity
+
+    // The Trash ends the Dock: while the Dock magnifies (DockZoom), it
+    // widens the glass on its outer side and its icon keeps its resting cell.
+    readonly property bool horizontalDock: inPanel && Plasmoid.formFactor === PlasmaCore.Types.Horizontal
+    function updateGrowthOwner(): void {
+        if (horizontalDock) {
+            DockZoom.registerGrowthOwner(root, dockCell.size, false);
+        } else {
+            DockZoom.unregisterGrowthOwner(root);
+        }
+    }
+    onHorizontalDockChanged: updateGrowthOwner()
+    Connections {
+        target: dockCell
+        function onSizeChanged(): void { root.updateGrowthOwner(); }
+    }
+    Component.onCompleted: updateGrowthOwner()
+    Component.onDestruction: DockZoom.unregisterGrowthOwner(root)
 
     readonly property bool inPanel: (Plasmoid.location === PlasmaCore.Types.TopEdge
         || Plasmoid.location === PlasmaCore.Types.RightEdge
@@ -154,6 +173,10 @@ PlasmoidItem {
         activeFocusOnTab: true
         hoverEnabled: true
 
+        DockZoomTracker {
+            horizontal: root.horizontalDock
+        }
+
         onClicked: Plasmoid.activated()
 
         DragDrop.DropArea {
@@ -216,11 +239,24 @@ PlasmoidItem {
             anchors {
                 left: parent.left
                 right: parent.right
+                rightMargin: DockZoom.growthFor(root)
                 top: parent.top
                 bottom: root.inPanel ? parent.bottom : text.top
             }
             active: mouseArea.containsMouse || root.containsAcceptableDrag
-            hovered: mouseArea.containsMouse
+            // The horizontal Dock magnifies the whole Dock instead.
+            hovered: mouseArea.containsMouse && !root.horizontalDock
+            transform: [
+                Scale {
+                    origin.x: trashIcon.width / 2
+                    origin.y: trashIcon.height
+                    xScale: root.horizontalDock ? DockZoom.scaleFor(trashIcon) : 1
+                    yScale: xScale
+                },
+                Translate {
+                    x: root.horizontalDock ? DockZoom.shiftFor(trashIcon) : 0
+                }
+            ]
         }
 
         PlasmaExtras.ShadowedLabel {

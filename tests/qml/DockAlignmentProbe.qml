@@ -2,6 +2,7 @@
 import QtQuick
 import org.kde.plasma.core as PlasmaCore
 import org.kde.mac.tahoe.launcher as NativeLauncher
+import org.kde.mac.tahoe.liquid.dockzoom
 
 Item {
     id: root

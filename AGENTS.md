@@ -881,6 +881,68 @@ Legacy appearance files must not influence theme selection; preserve unrelated
 settings and declarative files. Uninstall still cleans up old generated variants.
 Preserve surface masks, shadows, highlights and solid fallbacks.
 
+## Architecture — AquaDesktop menu bar, Dock and Frosted style
+
+- The menu bar is upstream's (32 px, Global Menu unchanged) with the
+  AquaDesktop pieces added in all three layouts: Tahoe's dark veil, a Panel
+  Colorizer panel-layer gradient (`theme_switch.TOP_BAR_SCRIM`), and white
+  text and icons (`TOP_BAR_FOREGROUND`); Now Playing, the system tray fork
+  (`org.kde.mac.tahoe.liquid.systemtray`, no overflow arrow, Plasma's tray
+  as fallback) with its applets hidden, Input menu (`.keyboard`), Sound
+  (`.volume`, its HUD replaces plasma-pa's OSD: `layout.py` turns
+  `VolumeOsd`/`MuteOsd` off and uninstall restores them), Battery, Wi-Fi,
+  Spotlight (Meta+Space), Control Center and the macOS Clock (Digital
+  Clock as fallback). The notifications fork
+  (`org.kde.mac.tahoe.liquid.notifications`) gives macOS banners. Both
+  forks and the `GlassBlur` QML module are compiled by `plasmoids.py`.
+- Flyouts blur only their glass shapes through
+  `org.kde.mac.tahoe.liquid.glass`; `GlassSurface.qml` reads
+  `~/.config/mac-tahoe-liquid-kde/glass.ini` (tint, accent, level,
+  `glass-level`). The Control Center runs `accent-sync` on every palette
+  change, so the Dock veil, the menu bar and the popovers follow the
+  accent. Keep the layouts and `TOP_BAR_SCRIM` identical.
+- The Dock is upstream's (shared `DockCell`/`DockMetrics` cells, task frame
+  margins) with the AquaDesktop sections added:
+  Launcher (hidden in the horizontal Dock, `hiddenInDock`; the "Apps" pin
+  opens its grid through `activateLauncherMenu`), task manager with the
+  "Apps" pin right after the file manager (`APPS_PIN`,
+  `src/offline/applications`), separator (`.separator`), Downloads stack
+  (`.downloads`, a `DockCell` drawing in the `DockIcon` box), a
+  minimized-windows task manager (`showOnlyMinimized`: ungrouped PipeWire
+  thumbnails, hidden while nothing is minimized), then the Trash last.
+- Keep the three layouts identical. Layout restores and
+  `migrate-dock-preset.js` never write launchers into the minimized section.
+- The horizontal Dock magnifies with the parabolic
+  `org.kde.mac.tahoe.liquid.dockzoom` QML module (`dockMagnification`, 160 %
+  by default, up to 200 %) instead of `DockIcon`'s hover zoom, which vertical
+  Docks keep. Tasks scale as whole delegates; the Launcher, Downloads stack
+  and Trash scale their `DockIcon`; the separator only moves aside. The
+  Trash is the trailing growth owner: its cell widens on its outer side
+  while the Dock magnifies. The Plasma themes' `panel-background.svgz`
+  reserves the headroom (`floating-hint-top-margin`, side margins matching
+  `DockZoom.sideRoom`), and the `mask-south-*` copies must exist so KSvg
+  does not blur it.
+- Glass styles: `mac-tahoe-theme-switch style {tahoe|frosted}`
+  (`~/.config/mac-tahoe-liquid-kde/glass-style`). Tahoe writes the
+  edition's Acrylic Glass preset (`ACRYLIC_PRESETS`, baked into the
+  standalone switcher) and gives the menu bar Tahoe's veil back.
+  Frosted is that preset more blurred (11) without lens, refraction or
+  drift, at 85 % brightness in Dark and 112 % in Light, shows Plasma's own
+  panel background under a light tint layer so the menu bar is blurred,
+  and lays a denser Dock veil. Only a style or tint change, and a
+  light/dark switch while Frosted, rewrite `[Effect-liquidglass]`.
+- Theme Settings (`src/offline/theme-settings`, GTK 4 without libadwaita,
+  `~/.local/bin/mac-tahoe-theme-settings`, installed with the switcher):
+  appearance and accent, Liquid Glass / Frosted, glass tint and level,
+  Desktop & Dock (`dock`, `minimize`, `hot-corners`). It only runs
+  `mac-tahoe-theme-switch`; the Icons page appears only when an Icon
+  Manager is installed next to it.
+- Dock tint (`dock-tint macos|neutral|accent`, `appearance.json`): the
+  `south-center` veil of the installed Plasma themes (`DOCK_VEIL_SHIPPED`
+  for macOS and neutral, the accent at 22 %, 45 % in Frosted); neutral also
+  writes `Saturation=0`. Frosted with the macOS tint follows the accent at
+  half saturation (`half_saturated`).
+
 ## Architecture — NixOS and Home Manager
 
 The `flake.nix` / `nix/` path is a separate, experimental installation route;

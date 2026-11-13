@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Name=Apps
+Name[es]=Apps
+Name[fr]=Apps
+Name[zh_CN]=应用程序
+Comment=Show all your apps
+Comment[es]=Mostrar todas tus apps
+Comment[fr]=Afficher toutes vos apps
+Comment[zh_CN]=显示所有应用程序
+Icon=view-app-grid
+# The Dock pins this right after Finder, like macOS: it opens the MacTahoe Liquid KDE
+# app grid (the Launcher applet answers PlasmaShell.activateLauncherMenu).
+Exec=dbus-send --session --type=method_call --dest=org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.activateLauncherMenu
+Terminal=false
+StartupNotify=false
+NoDisplay=true

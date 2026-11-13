@@ -32,7 +32,11 @@ bar.floating = false;
 bar.hiding = "none";
 bar.height = 32;
 
-// panel colorizer: transparent background
+// Panel Colorizer hides the continuous native panel background. Its only
+// panel layer is Tahoe's dark veil, a gradient fading to nothing at the
+// bar's bottom edge; do not add widget color layers or a solid panel
+// color: with applets-only floating they render as a full-width gray
+// strip plus dark blocks behind individual applets.
 var colorizer = bar.addWidget("luisbocanegra.panel.colorizer");
 if (colorizer) {
     colorizer.currentConfigGroup = ["General"];
@@ -40,7 +44,12 @@ if (colorizer) {
         "nativePanel": {
             "background": { "enabled": false, "opacity": 0, "shadow": false },
             "floatingDialogs": true
-        }
+        },
+        // Tahoe's dark veil behind the menu bar (theme_switch.TOP_BAR_SCRIM).
+        "panel": { "normal": {"enabled": true, "backgroundColor": {"enabled": true, "sourceType": 5, "alpha": 1, "gradient": {"orientation": 1, "stops": [{"color": "#33000000", "position": 0}, {"color": "#2b000000", "position": 0.45}, {"color": "#12000000", "position": 0.8}, {"color": "#00000000", "position": 1}]}}} },
+        // White menu bar text and icons (theme_switch.TOP_BAR_FOREGROUND).
+        "widgets": { "normal": { "enabled": true, "backgroundColor": { "enabled": false }, "foregroundColor": { "enabled": true, "sourceType": 0, "alpha": 1, "custom": "#ffffff" } } },
+        "trayWidgets": { "normal": { "enabled": true, "backgroundColor": { "enabled": false }, "foregroundColor": { "enabled": true, "sourceType": 0, "alpha": 1, "custom": "#ffffff" } } }
     }));
     colorizer.currentConfigGroup = ["Configuration"];
     colorizer.writeConfig("hideWidget", "true");
@@ -49,29 +58,69 @@ if (colorizer) {
 bar.addWidget("org.kde.mac.tahoe.liquid.globalmenu");
 bar.addWidget("org.kde.plasma.panelspacer");
 
-// system tray — macOS style: only bluetooth, wifi, brightness visible
-var tray = bar.addWidget("org.kde.plasma.systemtray");
+// Now Playing: the macOS play button, right before the tray icons; it
+// hides itself while nothing plays.
+bar.addWidget("org.kde.mac-tahoe-liquid-kde.nowplaying");
+
+// system tray — macOS style: its applets stay hidden for their shortcuts
+// and notifications, the menu bar extras below stand in for them, as
+// macOS keeps the rest in Control Center. Our tray has no overflow
+// arrow (its other items open as a macOS menu from the Control Center);
+// Plasma's when the fork is not installed.
+var tray = bar.addWidget(knownWidgetTypes.indexOf("org.kde.mac.tahoe.liquid.systemtray") >= 0
+    ? "org.kde.mac.tahoe.liquid.systemtray" : "org.kde.plasma.systemtray");
 tray.currentConfigGroup = ["General"];
 
 // shown = always visible, hidden = inside arrow, auto = KDE decides
-tray.writeConfig("shownItems", "org.kde.plasma.bluetooth,org.kde.plasma.networkmanagement,org.kde.plasma.brightness,org.kde.plasma.volume");
-tray.writeConfig("hiddenItems", "org.kde.plasma.clipboard,org.kde.plasma.devicenotifier,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.plasma.notifications,org.kde.plasma.keyboardindicator,org.kde.plasma.weather,org.kde.kscreen,org.kde.plasma.keyboardlayout,org.kde.plasma.printmanager,org.kde.plasma.cameraindicator,org.kde.plasma.vault,org.kde.kdeconnect,org.kde.plasma.battery,Arch-Update,chrome_status_icon_1,discord,plasmashell_microphone,steam,spotify,telegram,slack");
-tray.writeConfig("iconSpacing", 3);
+tray.writeConfig("shownItems", "");
+tray.writeConfig("hiddenItems", "org.kde.plasma.battery,org.kde.plasma.networkmanagement,org.kde.plasma.clipboard,org.kde.plasma.devicenotifier,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.mac.tahoe.liquid.notifications,org.kde.plasma.keyboardindicator,org.kde.plasma.weather,org.kde.kscreen,org.kde.plasma.keyboardlayout,org.kde.plasma.printmanager,org.kde.plasma.cameraindicator,org.kde.plasma.vault,org.kde.kdeconnect,org.kde.plasma.bluetooth,org.kde.plasma.brightness,org.kde.plasma.volume,Arch-Update,Cachy-Update,org.kde.discovernotifier,chrome_status_icon_1,discord,plasmashell_microphone,steam,spotify,telegram,slack");
+// 22 px icons on a 38 px pitch, like the macOS menu bar extras.
+tray.writeConfig("iconSpacing", 4);
+// Plasma's notifications applet gives way to the macOS-banner fork;
+// knownItems keeps the stock applet from being re-added on its own.
+tray.writeConfig("extraItems", "org.kde.kdeconnect,org.kde.plasma.bluetooth,org.kde.plasma.cameraindicator,org.kde.plasma.clipboard,org.kde.plasma.devicenotifier,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.mac.tahoe.liquid.notifications,org.kde.plasma.keyboardindicator,org.kde.plasma.weather,org.kde.kscreen,org.kde.plasma.battery,org.kde.plasma.brightness,org.kde.plasma.keyboardlayout,org.kde.plasma.networkmanagement,org.kde.plasma.volume");
+tray.writeConfig("knownItems", "org.kde.kdeconnect,org.kde.plasma.bluetooth,org.kde.plasma.cameraindicator,org.kde.plasma.clipboard,org.kde.plasma.devicenotifier,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.mac.tahoe.liquid.notifications,org.kde.plasma.keyboardindicator,org.kde.plasma.weather,org.kde.kscreen,org.kde.plasma.battery,org.kde.plasma.brightness,org.kde.plasma.keyboardlayout,org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.notifications");
 
-bar.addWidget("org.kde.plasma.marginsseparator");
+// Input menu: the keyboard layout's letters in a white box, only
+// while more than one layout is set up (macOS shows it then).
+bar.addWidget("org.kde.mac-tahoe-liquid-kde.keyboard");
 
-var clock = bar.addWidget("org.kde.plasma.digitalclock");
-clock.currentConfigGroup = ["Appearance"];
-clock.writeConfig("autoFontAndSize", "false");
-clock.writeConfig("fontFamily", "SF Pro Text");
-clock.writeConfig("fontSize", 10);
-clock.writeConfig("fontWeight", 500);
-clock.writeConfig("showDate", "true");
-clock.writeConfig("use24hFormat", 1);
-clock.writeConfig("showSeconds", 0);
-clock.writeConfig("dateDisplayFormat", "BesideTime");
-clock.writeConfig("dateFormat", "custom");
-clock.writeConfig("customDateFormat", "ddd d ' | '");
+// Sound and Battery: the macOS menu bar extras ("72%" beside the
+// battery glyph), in place of the tray's applets.
+bar.addWidget("org.kde.mac-tahoe-liquid-kde.volume");
+bar.addWidget("org.kde.mac-tahoe-liquid-kde.battery");
+
+// Wi-Fi: the macOS Wi-Fi menu (plasma-nm underneath).
+bar.addWidget("org.kde.mac-tahoe-liquid-kde.wifi");
+
+// Spotlight: magnifier that opens KRunner, between the extras and the clock.
+var spotlight = bar.addWidget("org.kde.mac-tahoe-liquid-kde.spotlight");
+// Meta+Space opens it, as Cmd+Space does on macOS (one bar only: a
+// global shortcut belongs to one widget).
+if (spotlight && bar.screen === 0) {
+    spotlight.globalShortcut = "Meta+Space";
+}
+
+// Control Center: the two-toggle glyph between Spotlight and the clock.
+bar.addWidget("org.kde.mac-tahoe-liquid-kde.controlcenter");
+
+// macOS-style clock: locale-ordered "Mon 5 Oct  14:27"; the stock
+// Digital Clock when ours is not installed.
+var clock = bar.addWidget("org.kde.mac-tahoe-liquid-kde.clock");
+if (!clock) {
+    clock = bar.addWidget("org.kde.plasma.digitalclock");
+    clock.currentConfigGroup = ["Appearance"];
+    clock.writeConfig("autoFontAndSize", "false");
+    clock.writeConfig("fontFamily", "SF Pro Text");
+    clock.writeConfig("fontSize", 10);
+    clock.writeConfig("fontWeight", 500);
+    clock.writeConfig("showDate", "true");
+    clock.writeConfig("use24hFormat", 1);
+    clock.writeConfig("showSeconds", 0);
+    clock.writeConfig("dateDisplayFormat", "BesideTime");
+    clock.writeConfig("dateFormat", "custom");
+    clock.writeConfig("customDateFormat", "ddd d ' | '");
+}
 
 // ── bottom dock ─────────────────────────────────
 // floating, centered, large icons like macOS
@@ -90,6 +139,9 @@ dock.height = 68;
 var launcher = dock.addWidget("org.kde.mac-tahoe-liquid-kde.launcher");
 launcher.currentConfigGroup = ["General"];
 launcher.writeConfig("icon", "view-app-grid");
+// macOS keeps Finder first: the "Apps" launcher pinned right after it
+// opens this applet's grid, so its own Dock button is hidden.
+launcher.writeConfig("hiddenInDock", "true");
 // The installer selects the new edition when migrating between editions.
 if (typeof mttkdeLauncherPreset !== "undefined"
         && (mttkdeLauncherPreset === 1 || mttkdeLauncherPreset === 2)) {
@@ -127,8 +179,26 @@ for (var app = 0; app < dockApplications.length; app++) {
         }
     }
 }
+// The "Apps" launcher (it opens the Launcher's grid) right after the
+// file manager, as macOS keeps Finder first.
+dockLaunchers.splice(resolvedDockCategories[0] === "files" ? 1 : 0, 0,
+    "applications:org.kde.mac-tahoe-liquid-kde.apps.desktop");
 tasks.writeConfig("launchers", dockLaunchers);
 tasks.writeConfig("dockPresetCategories", resolvedDockCategories);
 tasks.writeConfig("dockPresetRevision", 2);
 
+// The thin divider macOS draws between the apps and the stacks.
+if (!dock.addWidget("org.kde.mac-tahoe-liquid-kde.separator")) {
+    dock.addWidget("org.kde.plasma.marginsseparator");
+}
+// macOS Downloads stack.
+dock.addWidget("org.kde.mac-tahoe-liquid-kde.downloads");
+// Minimized windows sit between the stacks and the Trash, one
+// thumbnail per window. The section collapses when nothing is minimized.
+var minimized = dock.addWidget("org.kde.mac.tahoe.liquid.icontasks");
+minimized.currentConfigGroup = ["General"];
+minimized.writeConfig("showOnlyMinimized", "true");
+minimized.writeConfig("groupingStrategy", "0");
+minimized.writeConfig("launchers", "");
+// The Trash must stay last: it widens the glass while the Dock magnifies.
 dock.addWidget("org.kde.mac-tahoe-liquid-kde.trashcan");

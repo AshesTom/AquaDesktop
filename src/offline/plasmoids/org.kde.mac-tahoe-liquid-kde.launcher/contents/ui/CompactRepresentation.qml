@@ -6,11 +6,11 @@ import org.kde.plasma.core as PlasmaCore
 
 import org.kde.kirigami as Kirigami
 import org.kde.mac.tahoe.launcher as NativeLauncher
+import org.kde.mac.tahoe.liquid.dockzoom
 
 NativeLauncher.DockIcon {
     id: root
 
-    property QtObject dashWindow: null
     readonly property bool useCustomButtonImage: (Plasmoid.configuration.useCustomButtonImage && Plasmoid.configuration.customButtonImage.length != 0)
 
     NativeLauncher.IconThemeWatcher {
@@ -26,7 +26,25 @@ NativeLauncher.DockIcon {
     location: Plasmoid.location
     source: useCustomButtonImage ? Plasmoid.configuration.customButtonImage : Plasmoid.configuration.icon
     active: mouseArea.containsMouse
-    hovered: mouseArea.containsMouse
+    // The horizontal Dock magnifies the whole Dock instead (DockZoom); the
+    // button and its click target move together.
+    readonly property bool horizontalDock: Plasmoid.formFactor === PlasmaCore.Types.Horizontal
+    hovered: mouseArea.containsMouse && !horizontalDock
+    transform: [
+        Scale {
+            origin.x: root.width / 2
+            origin.y: root.height
+            xScale: root.horizontalDock ? DockZoom.scaleFor(root) : 1
+            yScale: xScale
+        },
+        Translate {
+            x: root.horizontalDock ? DockZoom.shiftFor(root) : 0
+        }
+    ]
+
+    DockZoomTracker {
+        horizontal: root.horizontalDock
+    }
 
     MouseArea
     {
@@ -36,15 +54,6 @@ NativeLauncher.DockIcon {
 
         hoverEnabled: true
 
-        onClicked: {
-            dashWindow.visible = !dashWindow.visible;
-        }
-    }
-
-    Component.onCompleted: {
-        dashWindow = Qt.createQmlObject("MenuRepresentation {}", root);
-        plasmoid.activated.connect(function() {
-            dashWindow.visible = !dashWindow.visible;
-        });
+        onClicked: kicker.toggleDash()
     }
 }
