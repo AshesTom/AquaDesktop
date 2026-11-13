@@ -52,6 +52,33 @@ Window {
     property string fetcherCommand:
         "sh -c 'PATH=\"$HOME/.local/bin:$PATH\" mac-tahoe-about-info'"
 
+    property var windowControlPaths: ({})
+    readonly property string windowControlPath: windowControlPaths[isDarkTheme ? "Dark" : "Light"] || ""
+    property string controlsCommand: "sh -c 'PATH=\"$HOME/.local/bin:$PATH\" mac-tahoe-about-info --window-controls'"
+
+    P5Support.DataSource {
+        id: controlsSource
+        engine: "executable"
+        connectedSources: []
+        onNewData: (sourceName, data) => {
+            disconnectSource(sourceName);
+            try {
+                aboutWindow.windowControlPaths = JSON.parse(data["stdout"] || "{}");
+            } catch (e) {
+                aboutWindow.windowControlPaths = {};
+            }
+        }
+    }
+    function refreshWindowControls() {
+        if (visible && controlsSource && controlsSource.connectedSources.indexOf(controlsCommand) < 0)
+            controlsSource.connectSource(controlsCommand);
+    }
+    onActiveChanged: {
+        if (active)
+            refreshWindowControls();
+    }
+    onIsDarkThemeChanged: refreshWindowControls()
+
     function localizedInfo(value, fallback) {
         const text = value || fallback || "Unknown";
         if (text === "Unknown")
@@ -236,14 +263,17 @@ Window {
     Component.onCompleted: infoSource.refresh()
 
     onVisibleChanged: {
-        if (visible)
+        if (visible) {
             infoSource.refresh();
+            refreshWindowControls();
+        }
     }
 
     component GlassText: Text {
         style: Text.Raised
         styleColor: Qt.rgba(0, 0, 0, 0.12)
     }
+
 
     KSvg.Svg {
         id: popupSurface
@@ -277,15 +307,12 @@ Window {
 
         layer.enabled: true
 
-        // drag from anywhere
+        // Let the compositor move the frameless window on Wayland and X11.
         MouseArea {
+            objectName: "aboutDragArea"
             anchors.fill: parent
-            property point clickPos: Qt.point(0, 0)
-            onPressed: (mouse) => { clickPos = Qt.point(mouse.x, mouse.y) }
-            onPositionChanged: (mouse) => {
-                aboutWindow.x += mouse.x - clickPos.x;
-                aboutWindow.y += mouse.y - clickPos.y;
-            }
+            acceptedButtons: Qt.LeftButton
+            onPressed: aboutWindow.startSystemMove()
         }
 
         // window buttons
@@ -294,44 +321,47 @@ Window {
             spacing: 8
             z: 1
 
-            readonly property color inactiveColor: aboutWindow.isDarkTheme
-                ? Qt.rgba(1, 1, 1, 0.2) : Qt.rgba(0, 0, 0, 0.12)
-            readonly property color inactiveBorder: aboutWindow.isDarkTheme
-                ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(0, 0, 0, 0.06)
-
-            // Close
-            Rectangle {
-                width: 14; height: 14; radius: 7
-                color: aboutWindow.active ? "#FF5F57" : parent.inactiveColor
-                border.width: 0.5
-                border.color: aboutWindow.active ? Qt.rgba(0, 0, 0, 0.12) : parent.inactiveBorder
-                Behavior on color { ColorAnimation { duration: 150 } }
-
-                HoverHandler { id: closeHover }
-                GlassText {
-                    anchors.centerIn: parent
-                    text: "×"; color: Qt.rgba(0, 0, 0, 0.5)
-                    font.pixelSize: 11; font.bold: true
-                    opacity: closeHover.hovered && aboutWindow.active ? 1 : 0
-                    Behavior on opacity { NumberAnimation { duration: 120 } }
+            Repeater {
+                model: ["close", "minimize", "maximize"]
+                delegate: Item {
+                    id: light
+                    objectName: "aboutWindowLight-" + modelData
+                    required property string modelData
+                    width: 16; height: 16
+                    readonly property bool actionable: modelData === "close"
+                    readonly property bool artworkAvailable: buttonSvg.imagePath.length > 0 && buttonSvg.isValid()
+                    KSvg.Svg {
+                        id: buttonSvg
+                        imagePath: aboutWindow.windowControlPath
+                            ? aboutWindow.windowControlPath + "/" + light.modelData + ".svg" : ""
+                    }
+                    KSvg.SvgItem {
+                        objectName: "aboutWindowLightImage-" + light.modelData
+                        anchors.fill: parent
+                        svg: buttonSvg
+                        elementId: (!light.actionable ? "deactivated" :
+                            !aboutWindow.active ? "inactive" : closeTap.pressed ? "pressed" :
+                            closeHover.hovered ? "hover" : "active") + "-center"
+                        visible: light.artworkAvailable
+                    }
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 14; height: 14; radius: 7
+                        visible: !light.artworkAvailable
+                        color: light.actionable && aboutWindow.active ? "#FF5F57" :
+                            aboutWindow.isDarkTheme ? Qt.rgba(1, 1, 1, 0.2) : Qt.rgba(0, 0, 0, 0.12)
+                        border.width: 0.5
+                        border.color: Qt.rgba(0, 0, 0, 0.12)
+                        GlassText {
+                            anchors.centerIn: parent
+                            text: "×"; color: Qt.rgba(0, 0, 0, 0.5)
+                            font.pixelSize: 11; font.bold: true
+                            visible: light.actionable && closeHover.hovered && aboutWindow.active
+                        }
+                    }
+                    HoverHandler { id: closeHover; enabled: light.actionable }
+                    TapHandler { id: closeTap; enabled: light.actionable; onTapped: aboutWindow.close() }
                 }
-                TapHandler { onTapped: aboutWindow.close() }
-            }
-
-            // Minimize (decorative)
-            Rectangle {
-                width: 14; height: 14; radius: 7
-                color: parent.inactiveColor
-                border.width: 0.5
-                border.color: parent.inactiveBorder
-            }
-
-            // Maximize (decorative)
-            Rectangle {
-                width: 14; height: 14; radius: 7
-                color: parent.inactiveColor
-                border.width: 0.5
-                border.color: parent.inactiveBorder
             }
         }
 
@@ -561,7 +591,8 @@ Window {
                 Layout.alignment: Qt.AlignHCenter
                 spacing: 8
 
-                QQC2.Button {
+                GlassButton {
+                    isDarkTheme: aboutWindow.isDarkTheme
                     text: translations.i18n("More Info…")
                     onClicked: {
                         launcher.exec("kinfocenter");
@@ -569,7 +600,8 @@ Window {
                     }
                 }
 
-                QQC2.Button {
+                GlassButton {
+                    isDarkTheme: aboutWindow.isDarkTheme
                     text: translations.i18n("Report a Bug…")
                     onClicked: {
                         launcher.exec("xdg-open https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/issues/new");
@@ -577,7 +609,8 @@ Window {
                     }
                 }
 
-                QQC2.Button {
+                GlassButton {
+                    isDarkTheme: aboutWindow.isDarkTheme
                     id: copyButton
                     property bool justCopied: false
                     enabled: aboutWindow.infoReady

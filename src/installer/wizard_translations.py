@@ -3,13 +3,39 @@
 from localization import effective_language, translate
 
 # English | Spanish | Simplified Chinese | Brazilian Portuguese | German
-_ROWS = '''Which window controls would you like?|¿Qué controles de ventana prefieres?|你想使用哪种窗口控件？|Quais controles de janela você prefere?|Welche Fensterknöpfe möchtest du verwenden?
+_ROWS = '''Estimating time remaining…|Calculando el tiempo restante…|正在估算剩余时间…|Calculando o tempo restante…|Verbleibende Zeit wird geschätzt…
+About {minutes} minutes remaining|Faltan unos {minutes} minutos|大约还剩 {minutes} 分钟|Faltam cerca de {minutes} minutos|Noch etwa {minutes} Minuten
+About a minute remaining|Falta aproximadamente un minuto|大约还剩 1 分钟|Falta cerca de um minuto|Noch etwa eine Minute
+Less than a minute remaining|Falta menos de un minuto|剩余不到一分钟|Falta menos de um minuto|Noch weniger als eine Minute
+Finishing…|Finalizando…|正在完成…|Finalizando…|Wird abgeschlossen…
+Show installation details|Mostrar detalles de instalación|显示安装详情|Mostrar detalhes da instalação|Installationsdetails anzeigen
+Hide installation details|Ocultar detalles de instalación|隐藏安装详情|Ocultar detalhes da instalação|Installationsdetails ausblenden
+Dock appearance|Apariencia del Dock|程序坞外观|Aparência do Dock|Dock-Erscheinungsbild
+Keep current Dock icons|Conservar los iconos actuales del Dock|保留当前程序坞图标|Manter os ícones atuais do Dock|Aktuelle Dock-Symbole behalten
+macOS-style Dock icons|Iconos del Dock estilo macOS|macOS 风格的程序坞图标|Ícones do Dock no estilo macOS|Dock-Symbole im macOS-Stil
+Application icons|Iconos de las aplicaciones|应用图标|Ícones dos aplicativos|Anwendungssymbole
+Only Dock icons change. Your apps, pin order and desktop icon theme stay the same.|Solo cambian los iconos del Dock. Se conservan tus apps, su orden y el tema de iconos del escritorio.|仅更改程序坞图标。应用、固定顺序和桌面图标主题保持不变。|Somente os ícones do Dock mudam. Seus aplicativos, a ordem e o tema de ícones da área de trabalho permanecem iguais.|Nur die Dock-Symbole ändern sich. Anwendungen, Reihenfolge und Desktop-Symboldesign bleiben erhalten.
+Which window glass would you like?|¿Qué cristal prefieres para las ventanas?|你想使用哪种窗口玻璃效果？|Qual vidro você prefere nas janelas?|Welches Fensterglas möchtest du verwenden?
+Window glass|Cristal de las ventanas|窗口玻璃|Vidro das janelas|Fensterglas
+Classic|Clásico|经典|Clássico|Klassisch
+Tinted|Tintado|着色|Tingido|Getönt
+Classic keeps the original glass. Tinted adds a white backing in light mode and a dark backing in dark mode.|Clásico conserva el cristal original. Tintado añade un fondo blanco en modo claro y oscuro en modo oscuro.|经典保留原始玻璃效果。着色在浅色模式下添加白色底层，在深色模式下添加深色底层。|Clássico mantém o vidro original. Tingido adiciona um fundo branco no modo claro e escuro no modo escuro.|Klassisch behält das ursprüngliche Glas bei. Getönt fügt im hellen Modus einen weißen und im dunklen Modus einen dunklen Hintergrund hinzu.
+Both use the same blur, refraction and highlights. Applies to application windows; panels and menus keep their own materials.|Ambos usan el mismo desenfoque, refracción y reflejos. Se aplica a ventanas de aplicaciones; los paneles y menús conservan sus materiales.|两者使用相同的模糊、折射和高光。仅应用于应用窗口；面板和菜单保留各自的材质。|Ambos usam o mesmo desfoque, refração e reflexos. Aplica-se às janelas dos aplicativos; painéis e menus mantêm seus materiais.|Beide verwenden dieselbe Unschärfe, Brechung und dieselben Lichtreflexe. Gilt für Anwendungsfenster; Panels und Menüs behalten ihre Materialien.
+Which window controls would you like?|¿Qué controles de ventana prefieres?|你想使用哪种窗口控件？|Quais controles de janela você prefere?|Welche Fensterknöpfe möchtest du verwenden?
 Window controls|Controles de ventana|窗口控件|Controles da janela|Fensterknöpfe
 Flat|Planos|扁平|Planos|Flach
 Glassy|Cristalinos|玻璃质感|Vítreos|Glasartig
 Simple, solid colors.|Colores sólidos y sencillos.|简洁的纯色。|Cores sólidas e simples.|Schlichte, einfarbige Knöpfe.
 Soft gradients and reflective highlights.|Degradados suaves y reflejos.|柔和的渐变与反光。|Gradientes suaves e reflexos.|Sanfte Farbverläufe und Lichtreflexe.
 Close, minimize and maximize buttons.|Botones para cerrar, minimizar y maximizar.|关闭、最小化和最大化按钮。|Botões para fechar, minimizar e maximizar.|Knöpfe zum Schließen, Minimieren und Maximieren.
+Where should the window buttons go?|¿Dónde quieres los botones de ventana?|窗口按钮放在哪里？|Onde os botões da janela devem ficar?|Wo sollen die Fensterknöpfe stehen?
+Window buttons|Botones de ventana|窗口按钮|Botões da janela|Fensterknöpfe
+Left|Izquierda|左侧|Esquerda|Links
+Right|Derecha|右侧|Direita|Rechts
+Close, minimize, maximize.|Cerrar, minimizar, maximizar.|关闭、最小化、最大化。|Fechar, minimizar, maximizar.|Schließen, Minimieren, Maximieren.
+Minimize, maximize, close.|Minimizar, maximizar, cerrar.|最小化、最大化、关闭。|Minimizar, maximizar, fechar.|Minimieren, Maximieren, Schließen.
+Keep my layout|Conservar mi disposición|保留我的布局|Manter meu layout|Meine Anordnung beibehalten
+Leave the buttons unchanged.|Los botones no cambian.|保持按钮不变。|Os botões não mudam.|Die Knöpfe bleiben unverändert.
 Window shadows|Sombras de las ventanas|窗口阴影|Sombras das janelas|Fensterschatten
 Which window shadows would you like?|¿Qué sombras de ventana prefieres?|你想使用哪种窗口阴影？|Quais sombras de janela você prefere?|Welche Fensterschatten möchtest du verwenden?
 None|Ninguna|无|Nenhuma|Keine
@@ -70,6 +96,7 @@ Change the boot animation?|¿Cambiar la animación de arranque?|更改启动动�
 Enable OLED protection?|¿Activar la protección para pantallas OLED?|启用 OLED 保护？|Ativar a proteção para telas OLED?|OLED-Schutz aktivieren?
 Review your installation|Revisa la instalación|检查安装选项|Revise a instalação|Installation überprüfen
 Choose your options and begin installation.|Personaliza las opciones y comienza la instalación.|选择选项并开始安装。|Escolha as opções e inicie a instalação.|Wähle deine Optionen und starte die Installation.
+Auto|Auto|自动|Auto|Auto
 Automatic|Automática|自动|Automática|Automatisch
 Light by day, dark at night.|Clara de día, oscura de noche.|白天浅色，夜间深色。|Clara de dia, escura à noite.|Tagsüber hell, nachts dunkel.
 Light|Clara|浅色|Clara|Hell

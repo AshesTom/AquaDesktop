@@ -1,20 +1,21 @@
 """Generate Golden Gate traffic-light controls for Aurorae and GTK offline."""
 
+import os
 from pathlib import Path
 import re
 import shutil
 
-from theme_switch import decoration_theme, window_control_style
+from theme_switch import button_position, decoration_theme, kwin_button_layout, window_control_style
 
 EDITIONS = ("MacTahoe", "MacGoldenGate")
 STATES = ("active", "inactive", "hover", "pressed", "deactivated",
           "hover-inactive", "pressed-inactive", "deactivated-inactive")
 BUTTONS = ("close", "minimize", "maximize", "restore")
 COLORS = {
-    "close": ("#f16a72", "#ee5964", "#f68a92", "#921b1b"),
-    "minimize": ("#f8cf30", "#f9c51a", "#fbe254", "#8b5006"),
-    "maximize": ("#6cd52a", "#55ca16", "#8ae34d", "#287f10"),
-    "restore": ("#6cd52a", "#55ca16", "#8ae34d", "#287f10"),
+    "close": ("#ff6964", "#f35f59", "#ff9282", "#921b1b"),
+    "minimize": ("#ffce2c", "#f5bf1c", "#ffe76b", "#8b5006"),
+    "maximize": ("#70cc48", "#60c139", "#9ae56d", "#287f10"),
+    "restore": ("#70cc48", "#60c139", "#9ae56d", "#287f10"),
 }
 GLYPHS = {
     "close": 'M5.2 5.2l5.6 5.6m0-5.6l-5.6 5.6',
@@ -42,7 +43,7 @@ def _button(button: str, mode: str, state: str, index: int) -> str:
     prefix = f"b{index}"
     # Top/bottom reflections survive loss of focus. Disabled controls are
     # deliberately fainter, unlike inactive but still actionable controls.
-    shine = ".62" if dark else ".44"
+    shine = ".88" if dark else ".72"
     opacity = '.45' if disabled else '1'
     glyph = (f'<path d="{GLYPHS[button]}" fill="none" stroke="{ink}" '
              'stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>') if state in (
@@ -64,7 +65,7 @@ def _button(button: str, mode: str, state: str, index: int) -> str:
     <stop offset="1" stop-color="#fff" stop-opacity="{shine}"/>
   </linearGradient>
   <radialGradient id="{prefix}-glow" cx=".5" cy="1" r=".7">
-    <stop stop-color="#fff" stop-opacity="{'.12' if not neutral else '.04'}"/>
+    <stop stop-color="#fff" stop-opacity="{'.24' if not neutral else '.08'}"/>
     <stop offset="1" stop-color="#fff" stop-opacity="0"/>
   </radialGradient>
 </defs>
@@ -72,8 +73,8 @@ def _button(button: str, mode: str, state: str, index: int) -> str:
   <circle cx="8" cy="8.5" r="7" fill="#000" opacity="{'.20' if dark else '.08'}"/>
   <circle cx="8" cy="8" r="6.8" fill="url(#{prefix}-body)"/>
   <circle cx="8" cy="8" r="6.8" fill="url(#{prefix}-glow)"/>
-  <circle cx="8" cy="8" r="6.8" fill="none" stroke="#000" stroke-opacity=".18" stroke-width=".4"/>
-  <circle cx="8" cy="8" r="6.55" fill="none" stroke="url(#{prefix}-rim)" stroke-width=".6"/>
+  <circle cx="8" cy="8" r="6.8" fill="none" stroke="#000" stroke-opacity=".25" stroke-width=".45"/>
+  <circle cx="8" cy="8" r="6.4" fill="none" stroke="url(#{prefix}-rim)" stroke-width=".9"/>
   {pressed}{glyph}
 </g>'''
 
@@ -159,7 +160,58 @@ def apply_global_theme(theme: Path) -> None:
     """Keep System Settings' global-theme activation on the staged edition."""
     path = theme / "contents/defaults"
     if path.is_file():
-        path.write_text(re.sub(
+        text = re.sub(
             r"(?m)^theme=__aurorae__svg__Mac(?:Tahoe|GoldenGate)LiquidKde-(Light|Dark)$",
             lambda match: f"theme=__aurorae__svg__{decoration_theme(match[1].lower())}",
-            path.read_text()))
+            path.read_text())
+        layout = kwin_button_layout()
+        if layout is None:
+            text = re.sub(r"(?m)^Buttons(?:OnLeft|OnRight)=.*\n", "", text)
+        else:
+            for key, value in zip(("ButtonsOnLeft", "ButtonsOnRight"), layout):
+                text = re.sub(rf"(?m)^{key}=.*$", f"{key}={value}", text)
+        path.write_text(text)
+
+
+def _button_record() -> Path:
+    state = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local/state")
+    return state / "mac-tahoe-liquid-kde/button-position"
+
+
+def record_button_position() -> None:
+    """Remember that the user's own layout was kept, so uninstall leaves it alone."""
+    record = _button_record()
+    if button_position() == "keep":
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text("keep\n")
+    else:
+        record.unlink(missing_ok=True)
+
+
+def buttons_kept() -> bool:
+    try:
+        return _button_record().read_text().strip() == "keep"
+    except OSError:
+        return False
+
+
+def forget_button_position() -> None:
+    _button_record().unlink(missing_ok=True)
+
+
+def apply_firefox_controls(theme: Path) -> None:
+    """Replace fresh Firefox titlebutton assets, retaining its CSS state rules."""
+    if window_control_style() != "glassy":
+        return
+    for folder in (theme / "MacTahoe").glob("titlebuttons*"):
+        for asset in folder.glob("titlebutton-*.svg"):
+            parts = asset.stem.removeprefix("titlebutton-").split("-")
+            button = parts[0]
+            if button == "backdrop":
+                button, state = "close", "inactive"
+            else:
+                button = "restore" if button == "unmaximize" else button
+                state = ("pressed" if "active" in parts else "hover" if "hover" in parts
+                         else "hover-inactive" if "backdrop" in parts else "active")
+            if button in BUTTONS:
+                asset.write_text(button_svg(button, "Dark" if "dark" in parts else "Light", state))

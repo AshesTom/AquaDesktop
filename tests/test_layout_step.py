@@ -6,6 +6,8 @@ logic that keeps the user's pinned taskbar apps alive when --resetLayout
 rebuilds the panel from scratch.
 """
 
+import json
+
 import pytest
 
 import steps.layout as layout
@@ -102,8 +104,8 @@ def test_reset_with_pins_writes_launchers_into_script(monkeypatch):
     script = captured["script"]
     # The default reset JS plus a restore block targeting icontasks.
     assert "org.kde.plasma.icontasks" in script
-    assert ("writeConfig('launchers', "
-            "'preferred://browser,applications:steam.desktop')") in script
+    expected = json.dumps(["preferred://browser", "applications:steam.desktop"])
+    assert f"writeConfig('launchers', {expected})" in script
 
 
 def test_reset_with_pins_skips_restore_block_when_no_pins(monkeypatch):
@@ -116,27 +118,16 @@ def test_reset_with_pins_skips_restore_block_when_no_pins(monkeypatch):
     assert "writeConfig('launchers'" not in captured["script"]
 
 
-def test_mac_layout_adds_no_application_launchers_of_its_own():
+def test_mac_layout_keeps_native_panel_surfaces():
     script = layout.LAYOUT_SCRIPT.read_text()
 
-    assert 'tasks.writeConfig("launchers", "");' in script
     # Keep the full-width panel invisible and let Plasma draw its own
-    # light/dark-aware floating-applet surfaces. The only panel layer is
-    # Tahoe's dark veil (a gradient fading to nothing at the bar's bottom
-    # edge); solid panel/widget layers recreate an opaque strip plus
-    # mismatched dark tiles.
-    import theme_switch
+    # light/dark-aware floating-applet surfaces. Custom panel/widget layers
+    # stack and recreate an opaque strip plus mismatched dark tiles.
     assert ('"background": { "enabled": false, "opacity": 0, '
             '"shadow": false }') in script
-    assert script.count('"panel": {') == 1
-    assert f'"panel": {{ "normal": {theme_switch.TOP_BAR_SCRIM} }}' in script
-    # Widgets only get a white foreground (macOS menu bar text and icons),
-    # never a background layer.
-    for key in ("widgets", "trayWidgets"):
-        assert (f'"{key}": {{ "normal": {{ "enabled": true, '
-                '"backgroundColor": { "enabled": false }, '
-                '"foregroundColor": { "enabled": true, "sourceType": 0, '
-                '"alpha": 1, "custom": "#ffffff" } } }') in script
+    assert '"panel": {' not in script
+    assert '"widgets": {' not in script
     assert '"custom": "#1c1c1e"' not in script
     assert "preferred://filemanager" not in script
     assert "applications:steam.desktop" not in script
@@ -310,8 +301,6 @@ def _quiet_layout_install(monkeypatch, tmp_path):
     monkeypatch.setattr(layout, "DATA_HOME", tmp_path / ".local/share")
     monkeypatch.setattr(layout, "_ensure_panel_colorizer", lambda: None)
     monkeypatch.setattr(layout, "_patch_plasmashellrc", lambda: None)
-    # Reads the user's glass style; tested on its own.
-    monkeypatch.setattr(layout, "_restore_top_bar_style", lambda: None)
     monkeypatch.setattr(layout, "ok", lambda message: None)
     monkeypatch.setattr(layout, "warn", lambda message: None)
     monkeypatch.setattr(layout.time, "sleep", lambda seconds: None)
@@ -337,8 +326,6 @@ def test_install_always_rebuilds_layout_from_user_pins(monkeypatch, tmp_path):
         layout.LAYOUT_SCRIPT,
         [
             "preferred://filemanager",
-            # macOS: Finder, then Apps.
-            layout.APPS_PIN,
             "applications:steam.desktop",
             "preferred://browser",
         ],
@@ -362,8 +349,8 @@ def test_reinstall_applies_autohide_with_preserved_pins(monkeypatch, tmp_path):
     script = captured["script"]
     assert 'dock.hiding = "autohide";' in script
     assert 'bar.hiding = "none";' in script
-    assert "writeConfig('launchers', 'preferred://filemanager," in script
-    assert "applications:steam.desktop,preferred://browser')" in script
+    expected = json.dumps(["preferred://filemanager", "applications:steam.desktop", "preferred://browser"])
+    assert f"writeConfig('launchers', {expected})" in script
     assert marker.is_file()
 
 

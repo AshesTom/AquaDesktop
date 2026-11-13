@@ -2,371 +2,212 @@
 msgid ""
 msgstr "Project-Id-Version: MacTahoe Liquid KDE\nPO-Revision-Date: 2026-10-22 00:00-0600\nLast-Translator: MacTahoe Liquid KDE contributors\nLanguage-Team: de\nLanguage: de\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "%"
-msgstr "%"
+msgid "Acrylic Glass — a complete material for your Dock, menus and windows."
+msgstr "Acrylic Glass — ein vollständiges Material für Ihr Dock, Ihre Menüs und Fenster."
 
-msgid "About"
-msgstr "Über"
+msgid "Add fine grain to the glass texture. 0 disables grain."
+msgstr "Fügt der Glastextur eine feine Körnung hinzu. 0 deaktiviert die Körnung."
 
-msgid "Adapt to Refraction edge"
-msgstr "An die Brechungskante anpassen"
+msgid "Adjust color intensity. 0 gives grayscale; 1 keeps the original colors."
+msgstr "Passt die Farbintensität an. 0 ergibt Graustufen; 1 behält die ursprünglichen Farben bei."
 
-msgid "Adjusts saturation evenly across all colors instead of in plain RGB."
-msgstr "Passt die Sättigung gleichmäßig über alle Farben an statt in reinem RGB."
+msgid "Adjust the difference between light and dark tones. 1 keeps the original contrast."
+msgstr "Passt den Unterschied zwischen hellen und dunklen Tönen an. 1 behält den ursprünglichen Kontrast bei."
 
-msgid "Apply effects to window decorations as well"
-msgstr "Effekte auch auf Fensterdekorationen anwenden"
+msgid "All except matching windows"
+msgstr "Alle außer passenden Fenstern"
 
-msgid "Apply saturation perceptually (OKLab)"
-msgstr "Sättigung wahrnehmungsgetreu anwenden (OKLab)"
+msgid "Appearance"
+msgstr "Erscheinungsbild"
 
-msgid "Automatically adjust tint strength"
-msgstr "Tönungsstärke automatisch anpassen"
+msgid "Background gradient"
+msgstr "Hintergrundverlauf"
 
-msgid "Bevel Intensity:"
-msgstr "Fasenintensität:"
+msgid "Bend the background near the glass edge. 0 disables distortion."
+msgstr "Verzerrt den Hintergrund am Glasrand. 0 deaktiviert die Verzerrung."
 
-msgid "Blur"
-msgstr "Unschärfe"
+msgid "Blur strength"
+msgstr "Unschärfestärke"
 
-msgid "Blur all except matching"
-msgstr "Alle außer passenden unscharf zeichnen"
+msgid "Blur window decorations"
+msgstr "Fensterdekorationen weichzeichnen"
 
-msgid "Blur only matching"
-msgstr "Nur passende unscharf zeichnen"
+msgid "Bottom color"
+msgstr "Untere Farbe"
 
-msgid "Blur slightly desaturates colors — this counters that. Can cause artifacts."
-msgstr "Unschärfe entsättigt Farben leicht – dies wirkt dem entgegen. Kann Artefakte verursachen."
+msgid "Bottom color in dark mode."
+msgstr "Untere Farbe im dunklen Modus."
 
-msgid "Body Refraction Reach:"
-msgstr "Reichweite der inneren Brechung:"
+msgid "Bottom color in light mode."
+msgstr "Untere Farbe im hellen Modus."
 
-msgid "Body Refraction Strength:"
-msgstr "Stärke der inneren Brechung:"
+msgid "Bottom tint strength"
+msgstr "Untere Tönungsstärke"
 
-msgid "Body refraction"
-msgstr "Brechung im Inneren"
-
-msgid "Border highlight ported from the macOS widgets: a stroke that tapers away from the cursor, plus a fainter opposite light. Works best with the Radius/Thickness cursor light turned off."
-msgstr "Aus den macOS-Widgets portiertes Randlicht: eine Linie, die vom Cursor weg ausläuft, plus ein schwächeres Gegenlicht. Funktioniert am besten mit ausgeschaltetem Radius-/Dicke-Cursorlicht."
+msgid "Bottom tint strength for both modes. 0 leaves the glass untinted at this stop."
+msgstr "Untere Tönungsstärke für beide Modi. Bei 0 bleibt das Glas an diesem Punkt ungetönt."
 
 msgid "Brightness"
 msgstr "Helligkeit"
 
-msgid "Brightness of the rim highlight that follows the mouse cursor."
-msgstr "Helligkeit des Randlichts, das dem Mauszeiger folgt."
+msgid "Center color"
+msgstr "Mittlere Farbe"
 
-msgid "Classes of windows to force blur:"
-msgstr "Fensterklassen mit erzwungener Unschärfe:"
+msgid "Center color in dark mode."
+msgstr "Mittlere Farbe im dunklen Modus."
 
-msgid "Color mix"
-msgstr "Farbmischung"
+msgid "Center color in light mode."
+msgstr "Mittlere Farbe im hellen Modus."
 
-msgid "Content and decorations blur finetune:"
-msgstr "Feinabstimmung der Inhalts- und Dekorationsunschärfe:"
+msgid "Center position"
+msgstr "Mittlere Position"
 
-msgid "Content blur"
-msgstr "Inhaltsunschärfe"
+msgid "Center tint strength"
+msgstr "Mittlere Tönungsstärke"
+
+msgid "Center tint strength for both modes. 0 leaves the glass untinted at this stop."
+msgstr "Mittlere Tönungsstärke für beide Modi. Bei 0 bleibt das Glas an diesem Punkt ungetönt."
+
+msgid "Color separation (px)"
+msgstr "Farbaufspaltung (px)"
+
+msgid "Colors follow each window's light or dark appearance automatically."
+msgstr "Die Farben folgen automatisch dem hellen oder dunklen Erscheinungsbild jedes Fensters."
 
 msgid "Contrast"
 msgstr "Kontrast"
 
-msgid "Cursor light"
-msgstr "Cursorlicht"
+msgid "Corner Radius (px)"
+msgstr "Eckenradius (px)"
 
-msgid "Decorations blur"
-msgstr "Unschärfe der Dekorationen"
+msgid "Corners"
+msgstr "Ecken"
 
-msgid "Derive the rim width from the refraction edge size so the rim follows the glass edge."
-msgstr "Leitet die Randbreite aus der Größe der Brechungskante ab, damit der Rand der Glaskante folgt."
+msgid "Dark mode"
+msgstr "Dunkler Modus"
 
-msgid "Dock corner radius"
-msgstr "Eckenradius von Docks"
+msgid "Dock/Launcher"
+msgstr "Dock/Anwendungsstarter"
 
-msgid "Docks"
-msgstr "Docks"
+msgid "Enable gradient"
+msgstr "Farbverlauf aktivieren"
 
-msgid "Docks blur"
-msgstr "Unschärfe der Docks"
+msgid "Extend background blur to translucent window frames and title bars."
+msgstr "Erweitert die Hintergrundunschärfe auf durchscheinende Fensterrahmen und Titelleisten."
 
-msgid "Don't apply brighter to dock"
-msgstr "Docks nicht aufhellen"
-
-msgid "Don't apply brighter to tooltip"
-msgstr "Tooltips nicht aufhellen"
-
-msgid "Don't apply refraction to"
-msgstr "Keine Brechung anwenden auf"
-
-msgid "Don't apply tint to decorations"
-msgstr "Dekorationen nicht tönen"
-
-msgid "Don't apply tint to docks"
-msgstr "Docks nicht tönen"
-
-msgid "Don't apply tint to menus"
-msgstr "Menüs nicht tönen"
-
-msgid "Don't apply tint to notifications and OSD"
-msgstr "Benachrichtigungen und OSD nicht tönen"
-
-msgid "Don't apply tint to tooltips"
-msgstr "Tooltips nicht tönen"
-
-msgid "Dynamic corner radius"
-msgstr "Dynamischer Eckenradius"
-
-msgid "Enter a color in #AARRGGBB format. The A (alpha) channel sets glow strength."
-msgstr "Geben Sie eine Farbe im Format #AARRGGBB ein. Der A-Kanal (Alpha) legt die Leuchtstärke fest."
-
-msgid "Enter a color in #AARRGGBB format. The A (alpha) channel sets tint strength."
-msgstr "Geben Sie eine Farbe im Format #AARRGGBB ein. Der A-Kanal (Alpha) legt die Tönungsstärke fest."
-
-msgid "Exclude docks"
-msgstr "Docks ausschließen"
-
-msgid "Exclude menus"
-msgstr "Menüs ausschließen"
-
-msgid "Exclude tooltips"
-msgstr "Tooltips ausschließen"
-
-msgid "Exclude windows"
-msgstr "Fenster ausschließen"
-
-msgid "Extends Snell's-law refraction inward from the glass edge. This adds per-pixel shader work and is off by default."
-msgstr "Setzt die Brechung nach dem Snelliusschen Gesetz von der Glaskante nach innen fort. Dies erhöht die Shader-Arbeit pro Pixel und ist standardmäßig aus."
-
-msgid "Failed to load about.html"
-msgstr "about.html konnte nicht geladen werden"
-
-msgid "Finetune"
+msgid "Fine tuning"
 msgstr "Feinabstimmung"
 
-msgid "Flat"
-msgstr "Flach"
+msgid "Force Blur List"
+msgstr "Liste für erzwungene Unschärfe"
 
-msgid "Force blur"
-msgstr "Unschärfe erzwingen"
+msgid "Glass"
+msgstr "Glas"
 
-msgid "General"
-msgstr "Allgemein"
+msgid "Golden Gate (Official)"
+msgstr "Golden Gate (Official)"
 
-msgid "Give notification popups their own top and bottom corner radius instead of the window radius."
-msgstr "Gibt Benachrichtigungen einen eigenen oberen und unteren Eckenradius statt des Fensterradius."
+msgid "Grain"
+msgstr "Körnung"
 
-msgid "Glow"
-msgstr "Leuchten"
+msgid "Highlight strength"
+msgstr "Glanzstärke"
 
-msgid "Glow color"
-msgstr "Leuchtfarbe"
+msgid "Highlight width (px)"
+msgstr "Glanzbreite (px)"
 
-msgid "Ignore content blur region"
-msgstr "Unschärfebereich des Inhalts ignorieren"
+msgid "Intensity of the edge highlight. 0 disables it."
+msgstr "Stärke des Glanzlichts am Rand. 0 deaktiviert es."
 
-msgid "Improve glass on scaled/animated windows"
-msgstr "Glas auf skalierten/animierten Fenstern verbessern"
+msgid "Light mode"
+msgstr "Heller Modus"
 
-msgid "Left"
-msgstr "Links"
+msgid "Lighten or darken the glass background. 1 keeps the original brightness."
+msgstr "Hellt den Glashintergrund auf oder dunkelt ihn ab. 1 behält die ursprüngliche Helligkeit bei."
 
-msgid "Light"
-msgstr "Hell"
+msgid "Match Mode"
+msgstr "Abgleichmodus"
 
-msgid "Linear"
-msgstr "Linear"
+msgid "One window class or resource name per line."
+msgstr "Eine Fensterklasse oder ein Ressourcenname pro Zeile."
 
-msgid "Long"
-msgstr "Lang"
+msgid "Only matching windows"
+msgstr "Nur passende Fenster"
 
-msgid "Make the window edges brighter"
-msgstr "Fensterkanten aufhellen"
+msgid "Optics"
+msgstr "Optik"
 
-msgid "Makes the glass follow windows that are scaled by other effects (for example Bouncing Popups). Turn this off if it causes problems."
-msgstr "Lässt das Glas Fenstern folgen, die von anderen Effekten skaliert werden (zum Beispiel Bouncing Popups). Schalten Sie dies aus, wenn es Probleme verursacht."
+msgid "Popups"
+msgstr "Einblendfenster"
 
-msgid "Maximum tint strength"
-msgstr "Maximale Tönungsstärke"
+msgid "Position from top (0) to bottom (1). 0.5 is halfway down the surface."
+msgstr "Position von oben (0) nach unten (1). 0.5 liegt auf halber Höhe der Oberfläche."
 
-msgid "Menu corner radius"
-msgstr "Eckenradius von Menüs"
+msgid "Preset"
+msgstr "Vorgabe"
 
-msgid "Menus"
-msgstr "Menüs"
+msgid "Refraction"
+msgstr "Lichtbrechung"
 
-msgid "Minimum tint strength"
-msgstr "Minimale Tönungsstärke"
+msgid "Refraction width (px)"
+msgstr "Brechungsbreite (px)"
 
-msgid "Mixes the refracted colors behind the window into the glow instead of using the glow color alone."
-msgstr "Mischt die gebrochenen Farben hinter dem Fenster in das Leuchten, statt nur die Leuchtfarbe zu verwenden."
-
-msgid "Narrow"
-msgstr "Schmal"
-
-msgid "Noise"
-msgstr "Rauschen"
-
-msgid "Notification bottom corner radius"
-msgstr "Radius der unteren Benachrichtigungsecken"
-
-msgid "Notification top corner radius"
-msgstr "Radius der oberen Benachrichtigungsecken"
-
-msgid "Notifications and OSD"
-msgstr "Benachrichtigungen und OSD"
-
-msgid "Off"
-msgstr "Aus"
-
-msgid "Physically based refraction"
-msgstr "Physikalisch basierte Brechung"
-
-msgid "Preserve color vibrancy in blur"
-msgstr "Farbintensität in der Unschärfe erhalten"
-
-msgid "Pulls the IOR-based refraction outward based on position within the window (Snell's-law mode only)."
-msgstr "Zieht die IOR-basierte Brechung abhängig von der Position im Fenster nach außen (nur im Snellius-Modus)."
-
-msgid "RGB Fringing Strength:"
-msgstr "Stärke der RGB-Farbsäume:"
-
-msgid "Radius"
-msgstr "Radius"
-
-msgid "Refraction + Rim"
-msgstr "Brechung + Rand"
-
-msgid "Refraction Edge Size:"
-msgstr "Größe der Brechungskante:"
-
-msgid "Refraction Falloff:"
-msgstr "Brechungsabfall:"
-
-msgid "Refraction Offset Strength:"
-msgstr "Stärke des Brechungsversatzes:"
-
-msgid "Refraction Strength:"
-msgstr "Brechungsstärke:"
-
-msgid "Right"
-msgstr "Rechts"
-
-msgid "Rim"
-msgstr "Rand"
-
-msgid "Rim width"
-msgstr "Randbreite"
-
-msgid "Round"
-msgstr "Rund"
+msgid "Restore this preset"
+msgstr "Diese Vorgabe wiederherstellen"
 
 msgid "Round maximized windows"
 msgstr "Maximierte Fenster abrunden"
 
-msgid "Rounded corners"
-msgstr "Abgerundete Ecken"
-
-msgid "Rounder"
-msgstr "Runder"
-
 msgid "Saturation"
 msgstr "Sättigung"
 
-msgid "Scales the automatically derived rim width from 0x to 2x the refraction edge."
-msgstr "Skaliert die automatisch abgeleitete Randbreite vom 0- bis 2-Fachen der Brechungskante."
+msgid "Separate red, green and blue near the glass edge. 0 disables color fringes."
+msgstr "Trennt Rot, Grün und Blau am Glasrand. 0 deaktiviert Farbsäume."
 
-msgid "Scales the silhouette tilt — higher gives a more pronounced rounded-over edge."
-msgstr "Skaliert die Neigung der Silhouette – höher ergibt eine stärker abgerundete Kante."
+msgid "Soften the background behind glass. 0 leaves the background sharp."
+msgstr "Zeichnet den Hintergrund hinter dem Glas weich. Bei 0 bleibt der Hintergrund scharf."
 
-msgid "Scales the width of the specular highlight band on the rim."
-msgstr "Skaliert die Breite des Glanzlichtbands am Rand."
+msgid "Surface"
+msgstr "Oberfläche"
 
-msgid "Scales tint strength by comparing the tint color with the color behind each pixel."
-msgstr "Skaliert die Tönungsstärke, indem die Tönungsfarbe mit der Farbe hinter jedem Pixel verglichen wird."
+msgid "Tahoe (Clear)"
+msgstr "Tahoe (Klar)"
 
-msgid "Separate notification corner radius"
-msgstr "Eigener Eckenradius für Benachrichtigungen"
+msgid "Tahoe (Frosted)"
+msgstr "Tahoe (Mattiert)"
 
-msgid "Sharp"
-msgstr "Scharf"
+msgid "Tint strength"
+msgstr "Tönungsstärke"
 
-msgid "Shifts the glow along the horizontal axis. Centered by default."
-msgstr "Verschiebt das Leuchten entlang der horizontalen Achse. Standardmäßig zentriert."
+msgid "Tooltips, menus, dialogs and applet popups."
+msgstr "Kurzinfos, Menüs, Dialoge und Plasmoid-Einblendfenster."
 
-msgid "Short"
-msgstr "Kurz"
+msgid "Top color"
+msgstr "Obere Farbe"
 
-msgid "Small"
-msgstr "Klein"
+msgid "Top color in dark mode."
+msgstr "Obere Farbe im dunklen Modus."
 
-msgid "Smooth 1px edge mask with a shaded outer feather, taken from the macOS widgets. Also removes jagged corners."
-msgstr "Glatte 1-px-Kantenmaske mit schattiertem äußerem Verlauf, übernommen aus den macOS-Widgets. Entfernt auch gezackte Ecken."
+msgid "Top color in light mode."
+msgstr "Obere Farbe im hellen Modus."
 
-msgid "Smooth edge antialiasing (widget style)"
-msgstr "Glatte Kantenglättung (Widget-Stil)"
+msgid "Top tint strength"
+msgstr "Obere Tönungsstärke"
 
-msgid "Soft"
-msgstr "Weich"
+msgid "Top tint strength for both modes. 0 leaves the glass untinted at this stop."
+msgstr "Obere Tönungsstärke für beide Modi. Bei 0 bleibt das Glas an diesem Punkt ungetönt."
 
-msgid "Specular"
-msgstr "Glanzlicht"
+msgid "Width of the bright rim along the glass edge."
+msgstr "Breite des hellen Saums am Glasrand."
 
-msgid "Squarer"
-msgstr "Eckiger"
+msgid "Width of the edge band where refraction and color separation appear."
+msgstr "Breite des Randbereichs, in dem Lichtbrechung und Farbaufspaltung erscheinen."
 
-msgid "Squircle corners"
-msgstr "Squircle-Ecken"
-
-msgid "Strong"
-msgstr "Stark"
-
-msgid "Subtle"
-msgstr "Dezent"
-
-msgid "Superellipse exponent of the corners: 2.0 is a circle, higher is squarer (macOS is around 4 to 5)."
-msgstr "Superellipsen-Exponent der Ecken: 2,0 ist ein Kreis, höher ist eckiger (macOS liegt etwa bei 4 bis 5)."
-
-msgid "The corner radius only applies to the blur region."
-msgstr "Der Eckenradius gilt nur für den Unschärfebereich."
-
-msgid "Thick"
-msgstr "Dick"
-
-msgid "Thickness"
-msgstr "Dicke"
-
-msgid "Thin"
-msgstr "Dünn"
-
-msgid "Tint color"
-msgstr "Tönungsfarbe"
-
-msgid "Tooltips"
-msgstr "Tooltips"
-
-msgid "Tunes the content and decoration blur radius and upsample blend. Lower = tighter / sharper blur, higher = wider / softer blur."
-msgstr "Stimmt Unschärferadius und Upsampling-Überblendung von Inhalt und Dekorationen ab. Niedriger = engere / schärfere Unschärfe, höher = weitere / weichere Unschärfe."
-
-msgid "Tunes the dock blur radius and upsample blend. Lower = tighter / sharper blur, higher = wider / softer blur."
-msgstr "Stimmt Unschärferadius und Upsampling-Überblendung der Docks ab. Niedriger = engere / schärfere Unschärfe, höher = weitere / weichere Unschärfe."
-
-msgid "Use a Snell's-law (IOR-based) refraction model instead. The Refraction Strength slider is reinterpreted as the index-of-refraction delta in this mode."
-msgstr "Verwendet stattdessen ein Brechungsmodell nach dem Snelliusschen Gesetz (IOR-basiert). Der Regler Brechungsstärke wird in diesem Modus als Differenz des Brechungsindex interpretiert."
-
-msgid "Use declared corner radius"
-msgstr "Deklarierten Eckenradius verwenden"
-
-msgid "Wide"
-msgstr "Breit"
-
-msgid "Widget border light"
-msgstr "Widget-Randlicht"
-
-msgid "Window bottom corner radius"
-msgstr "Radius der unteren Fensterecken"
-
-msgid "Window top corner radius"
-msgstr "Radius der oberen Fensterecken"
+msgid "Window Rules"
+msgstr "Fensterregeln"
 
 msgid "Windows"
 msgstr "Fenster"
+
+msgid "examples:\norg.kde.dolphin\nfirefox"
+msgstr "Beispiele:\\norg.kde.dolphin\\nfirefox"

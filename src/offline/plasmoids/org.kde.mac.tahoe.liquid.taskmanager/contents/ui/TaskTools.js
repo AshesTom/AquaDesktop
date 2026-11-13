@@ -13,41 +13,6 @@
 // Can't be `let`, or else QML counterpart won't be able to assign to it.
 var taskManagerInstanceCount = 0;
 
-// macOS launch bounce. Launching swaps the clicked launcher for a startup
-// task and then a window task, each a new delegate, so remember the launch
-// per app and let whichever delegate shows it keep bouncing.
-var recentLaunches = {};
-var launchBounceWindowMs = 6000;
-// One hop lasts this long: a window opening sooner has shown no bounce yet.
-var launchLandingWindowMs = 800;
-
-function recordLaunch(launcherUrl) {
-    if (launcherUrl) {
-        recentLaunches[launcherUrl.toString()] = Date.now();
-    }
-}
-
-function launchedWithin(launcherUrl, ms) {
-    const when = launcherUrl ? recentLaunches[launcherUrl.toString()] : undefined;
-    return when !== undefined && Date.now() - when < ms;
-}
-
-function launchedRecently(launcherUrl) {
-    return launchedWithin(launcherUrl, launchBounceWindowMs);
-}
-
-// The Dock's Apps pin only asks the Launcher applet for its grid (see
-// org.kde.mac-tahoe-liquid-kde.apps.desktop): no app starts, so no bounce.
-function isLaunchpadPin(launcherUrl) {
-    return !!launcherUrl && launcherUrl.toString().includes("org.kde.mac-tahoe-liquid-kde.apps");
-}
-
-function forgetLaunch(launcherUrl) {
-    if (launcherUrl) {
-        delete recentLaunches[launcherUrl.toString()];
-    }
-}
-
 function activateNextPrevTask(anchor, next, wheelSkipMinimized, wheelEnabled, tasks) {
     // FIXME TODO: Unnecessarily convoluted and costly; optimize.
 
@@ -153,14 +118,8 @@ function groupTopTask(childTaskList, attribute, tasks) {
 
 function activateTask(index, model, modifiers, task, plasmoid, tasks, windowViewAvailable) {
     if (modifiers & Qt.ShiftModifier) {
-        recordLaunch(model.LauncherUrlWithoutIcon);
-        task.startLaunchBounce();
         tasks.tasksModel.requestNewInstance(index);
         return;
-    }
-    if (model.IsLauncher) {
-        recordLaunch(model.LauncherUrlWithoutIcon);
-        task.startLaunchBounce();
     }
     // Publish delegate geometry again if there are more than one task manager instance
     if (taskManagerInstanceCount >= 2) {

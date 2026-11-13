@@ -11,7 +11,7 @@ from __future__ import annotations
 
 def test_acrylic_decoration_region_is_not_overwritten(repo):
     source = (repo / (
-        "src/offline/kwin-effects/acrylic-glass/src/blur.cpp"
+        "src/offline/kwin-effects/acrylic-glass/src/effect.cpp"
     )).read_text()
     body = source.split("void BlurEffect::updateBlurRegion", 1)[1].split(
         "void BlurEffect::", 1,

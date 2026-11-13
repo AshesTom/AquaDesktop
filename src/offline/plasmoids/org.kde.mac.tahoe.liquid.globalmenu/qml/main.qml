@@ -31,6 +31,10 @@ PlasmoidItem {
         useSystemFont: Plasmoid.configuration.useSystemFont
     }
 
+    ApplicationAboutWindow {
+        id: applicationAboutWindow
+    }
+
     Connections {
         target: Plasmoid
         function onAboutRequested() {
@@ -38,7 +42,15 @@ PlasmoidItem {
             aboutWindow.raise();
             aboutWindow.requestActivate();
         }
+        function onApplicationAboutRequested(info) {
+            applicationAboutWindow.applicationInfo = info;
+            applicationAboutWindow.show();
+            applicationAboutWindow.raise();
+            applicationAboutWindow.requestActivate();
+        }
     }
+
+    Component.onCompleted: Plasmoid.view = view
 
     onViewChanged: {
         Plasmoid.view = view;
@@ -69,7 +81,7 @@ PlasmoidItem {
         id: buttonGrid
 
         Plasmoid.status: {
-            if (appMenuModel.menuAvailable && Plasmoid.currentIndex > -1 && buttonRepeater.count > 0) {
+            if (Plasmoid.currentIndex !== -1) {
                 return PlasmaCore.Types.NeedsAttentionStatus;
             }
             return PlasmaCore.Types.ActiveStatus;
@@ -118,21 +130,19 @@ PlasmoidItem {
 
         QQC2.AbstractButton {
             id: systemMenuButton
+            Accessible.name: i18n("System menu")
             readonly property int buttonIndex: -3
             property bool menuIsOpen: Plasmoid.currentIndex !== -1
 
             Layout.fillHeight: !root.vertical
 
-            // macOS keeps the Apple logo ~20 px from the screen edge and
-            // centred on the menu titles, whose caps sit ~2 px above the
-            // middle of the panel.
-            topPadding: Kirigami.Units.smallSpacing - 1
+            topPadding: Kirigami.Units.smallSpacing
             bottomPadding: Kirigami.Units.smallSpacing
-            leftPadding: Kirigami.Units.largeSpacing + Kirigami.Units.smallSpacing + 2
-            rightPadding: Kirigami.Units.largeSpacing
+            leftPadding: 3.5 * Kirigami.Units.smallSpacing
+            rightPadding: 3.5 * Kirigami.Units.smallSpacing
 
             hoverEnabled: true
-            onHoveredChanged: if (hovered && menuIsOpen) { Plasmoid.triggerSystemMenu(this); }
+            onHoveredChanged: if (Plasmoid.configuration.hoverOpensMenu && hovered && menuIsOpen) { Plasmoid.triggerSystemMenu(this); }
             onPressed: Plasmoid.triggerSystemMenu(this)
 
             down: Plasmoid.currentIndex === -3
@@ -144,44 +154,32 @@ PlasmoidItem {
             }
 
             background: Rectangle {
-                radius: Kirigami.Units.cornerRadius
+                y: Math.min(Kirigami.Units.smallSpacing, systemMenuButton.height / 4)
+                height: Math.max(0, systemMenuButton.height - 2 * y)
+                radius: Math.min(width, height) / 2
                 color: systemMenuButton.menuState === 0
                        ? "transparent"
                        : Qt.rgba(0.5, 0.5, 0.5, systemMenuButton.menuState === 2 ? 0.25 : 0.18)
             }
 
-            contentItem: Item {
-                // Render the theme's 32x32 vector Apple logo at 14x16.
-                readonly property bool appleLogo: root.cfgIcon === "start-here-kde-symbolic"
-
-                implicitWidth: logo.width
-                implicitHeight: logo.height
-
-                Kirigami.Icon {
-                    id: logo
-                    anchors.centerIn: parent
-                    anchors.verticalCenterOffset: 0
-                    height: parent.appleLogo ? 18 : Kirigami.Units.iconSizes.small
-                    width: parent.appleLogo ? 16 : height
-                    source: parent.appleLogo ? Qt.resolvedUrl("apple-logo.svg") : root.cfgIcon
-                    isMask: parent.appleLogo
-                    roundToIconSize: !parent.appleLogo
-                    color: Kirigami.Theme.textColor
-                }
+            contentItem: Kirigami.Icon {
+                source: root.cfgIcon
+                implicitWidth: Kirigami.Units.iconSizes.small
+                implicitHeight: Kirigami.Units.iconSizes.small
+                color: Kirigami.Theme.textColor
             }
         }
 
         MenuDelegate {
             id: appNameButton
             readonly property int buttonIndex: -2
-            // macOS always names the active app in bold, even when the
-            // app exports no menus.
             visible: appMenuModel.activeAppName !== ""
             text: appMenuModel.activeAppName
             font.weight: Font.Bold
             Layout.fillHeight: !root.vertical
 
             down: Plasmoid.currentIndex === -2
+            hoverOpensMenu: Plasmoid.configuration.hoverOpensMenu
             menuIsOpen: Plasmoid.currentIndex !== -1
             onActivated: Plasmoid.triggerWindowMenu(this)
         }
@@ -205,6 +203,7 @@ PlasmoidItem {
                 visible: text !== "" && (activeActions?.visible ?? false)
                 enabled: activeActions?.enabled ?? false
 
+                hoverOpensMenu: Plasmoid.configuration.hoverOpensMenu
                 menuIsOpen: Plasmoid.currentIndex !== -1
                 onActivated: Plasmoid.trigger(this, index)
 
@@ -227,6 +226,8 @@ PlasmoidItem {
         containmentStatus: Plasmoid.containment.status
         screenGeometry: root.screenGeometry
         allScreens: Plasmoid.configuration.allScreens
+        enableGenericMenu: Plasmoid.configuration.enableGenericMenu
+        enableMenuSearch: Plasmoid.configuration.enableMenuSearch
         onRequestActivateIndex: Plasmoid.requestActivateIndex(index)
         Component.onCompleted: {
             Plasmoid.model = appMenuModel;

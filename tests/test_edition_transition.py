@@ -36,17 +36,11 @@ def transition(repo, sandbox, monkeypatch):
     return select, widget, installed
 
 
-def _layout_script(scripts):
-    # The panels' own script; later ones only adjust the panels it made.
-    return [script for script in scripts if "new Panel" in script][-1]
-
-
 def execute_layout(script, presets):
     node = shutil.which("node")
     if not node:
         pytest.skip("Node.js required for Plasma layout script execution")
     harness = '''
-const knownWidgetTypes = [];
 const screenCount = 2;
 const created = [];
 function makeWidget(type, preset) {
@@ -58,6 +52,7 @@ const previous = PRESETS.map((preset, screen) => ({screen, widgetIds: [1],
     widgetById() { return makeWidget('org.kde.mac-tahoe-liquid-kde.launcher', preset); },
     remove() {} }));
 function panels() { return created.length ? created : previous; }
+function applicationExists(id) { return false; }
 function Panel() {
     this.items = [];
     this.widgetIds = [];
@@ -90,13 +85,16 @@ def test_installer_round_trip_replaces_other_edition_and_preserves_same_edition(
     shutil.copytree(widget, installed)
     defaults.apply_launcher_default(installed)
     pins = ["applications:browser.desktop", "applications:files.desktop"]
+    # Model the legacy running panel as well as its installed package.
+    appletsrc = sandbox / '.config/plasma-org.kde.plasma.desktop-appletsrc'
+    appletsrc.parent.mkdir(parents=True, exist_ok=True)
+    appletsrc.write_text('plugin=' + defaults.LAUNCHER_ID + '\n')
     monkeypatch.setattr(layout, "_capture_pinned_launchers", lambda: pins)
     saved = [1, 2]  # Explicit choices on two screens must yield to a new edition.
     results = []
 
     def evaluate(script):
-        if "new Panel" in script:
-            results[:] = execute_layout(script, saved)
+        results[:] = execute_layout(script, saved)
         return True
     monkeypatch.setattr(layout, "_evaluate_layout_script", evaluate)
 
@@ -114,7 +112,7 @@ def test_installer_round_trip_replaces_other_edition_and_preserves_same_edition(
         monkeypatch.setattr(layout, "_wait_for_layout_install", lambda: True)
         layout.install()
         assert [result["preset"] for result in results] == [target, target]
-        assert all(result["pins"] == ",".join(layout._with_apps_pin(pins)) for result in results)
+        assert all(result["pins"] == pins for result in results)
         assert defaults.applied_edition(sandbox) == defaults.edition_name()
         # Reinstalling the same edition preserves subsequent explicit choices.
         assert plasmoids._install_launcher_package(widget)
@@ -201,7 +199,7 @@ def test_install_without_legacy_edition_evidence_selects_new_defaults(
     monkeypatch.setattr(layout, "_capture_pinned_launchers", lambda: [])
     monkeypatch.setattr(layout, "_evaluate_layout_script", lambda script: scripts.append(script) or True)
     layout.install()
-    assert [item["preset"] for item in execute_layout(_layout_script(scripts), [3 - target, 3 - target])] == [target, target]
+    assert [item["preset"] for item in execute_layout(scripts[-1], [3 - target, 3 - target])] == [target, target]
     assert defaults.applied_edition(sandbox) == defaults.edition_name()
 
 
@@ -229,5 +227,5 @@ def test_older_release_replacing_package_invalidates_edition_record(
     monkeypatch.setattr(layout, "_capture_pinned_launchers", lambda: [])
     monkeypatch.setattr(layout, "_evaluate_layout_script", lambda script: scripts.append(script) or True)
     layout.install()
-    assert [item["preset"] for item in execute_layout(_layout_script(scripts), [3 - target, 3 - target])] == [target, target]
+    assert [item["preset"] for item in execute_layout(scripts[-1], [3 - target, 3 - target])] == [target, target]
     assert defaults.applied_edition(sandbox) == defaults.edition_name()

@@ -34,39 +34,46 @@ def qt_compile(tmp_path_factory):
 
 def test_glass_uses_runtime_shape_without_mutating_preferences(qt_compile):
     source = (Path(__file__).resolve().parents[1] /
-              "src/offline/kwin-effects/acrylic-glass/src/blur.cpp").read_text()
-    helper = source.split("static std::optional<float> sharedCornerRadius(", 1)[1].split("\n}\n", 1)[0]
-    radius = source.split("BorderRadius BlurEffect::effectiveWindowCornerRadius(", 1)[1].split("\n}\n", 1)[0]
-    # The live shape wins over the saved radii, even the declared one, but
-    # never rounds a maximized or fullscreen window.
-    assert "useDeclaredCornerRadius && !sharedRadius" in radius
-    assert ("!w->isFullScreen() &&\n        (m_settings.roundedCorners.roundMaximized"
-            " || w->window()->maximizeMode() != MaximizeFull)") in radius
-    square = radius.index("    if (!roundWindowCorners) {\n        return BorderRadius(0.0, 0.0, 0.0, 0.0);")
-    assert square < radius.index("topCornerRadius = bottomCornerRadius = *sharedRadius;")
+              "src/offline/kwin-effects/acrylic-glass/src/effect.cpp").read_text()
+    handoff = source.split("    float cornerSquircle = 0.0f;", 1)[1].split(
+        "    // Clamp the radius", 1)[0]
     qt_compile(r'''
 #include <QObject>
 #include <QVariant>
+#include <QRectF>
 #include <algorithm>
 #include <cassert>
-#include <optional>
-static std::optional<float> sharedCornerRadius(''' + helper + r'''
+struct BorderRadius {
+    float radius = 22;
+    BorderRadius() = default;
+    BorderRadius(float a, float, float, float) : radius(a) {}
+};
+struct Window : QObject {
+    QRectF frameGeometry() const { return QRectF(0, 0, 640, 480); }
+};
+void check(Window *w, float expectedRadius, float expectedSquircle) {
+    float topCornerRadius = 22, bottomCornerRadius = 22, cornerSquircle = 0;
+    BorderRadius cornerRadius;
+    QRectF surfaceRect(12, 8, 600, 450);
+''' + handoff + r'''
+    assert(topCornerRadius == expectedRadius && bottomCornerRadius == expectedRadius);
+    assert(cornerRadius.radius == expectedRadius && cornerSquircle == expectedSquircle);
+    if (w->property("_mttkde_corner_shape_v1").toList().size() == 2)
+        assert(surfaceRect == w->frameGeometry());
 }
 int main() {
-    QObject window;
-    assert(!sharedCornerRadius(&window));
+    Window window;
+    check(&window, 22, 0);
     window.setProperty("_mttkde_corner_shape_v1", QVariantList{28.0, 0.5});
-    assert(*sharedCornerRadius(&window) == 28);
+    check(&window, 28, 0.5);
     window.setProperty("_mttkde_corner_shape_v1", QVariantList{13.5, 1.0});
-    assert(*sharedCornerRadius(&window) == 13.5f);
+    check(&window, 13.5, 1);
     window.setProperty("_mttkde_corner_shape_v1", QVariantList{0.0, 0.0});
-    assert(*sharedCornerRadius(&window) == 0);
-    window.setProperty("_mttkde_corner_shape_v1", QVariantList{-4.0, 0.0});
-    assert(*sharedCornerRadius(&window) == 0);
+    check(&window, 0, 0);
     window.setProperty("_mttkde_corner_shape_v1", QVariant());
-    assert(!sharedCornerRadius(&window));
+    check(&window, 22, 0);
     window.setProperty("_mttkde_corner_shape_v1", QVariantList{28.0});
-    assert(!sharedCornerRadius(&window));
+    check(&window, 22, 0);
 }
 ''')
 

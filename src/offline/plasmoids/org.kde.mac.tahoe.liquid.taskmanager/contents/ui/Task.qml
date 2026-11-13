@@ -19,9 +19,9 @@ import plasma.applet.org.kde.mac.tahoe.liquid.taskmanager as TaskManagerApplet
 import org.kde.plasma.plasmoid
 import "LayoutMetrics.js" as LayoutMetrics
 import "TaskTools.js" as TaskTools
+import "DockRoles.js" as DockRoles
 
 import org.kde.taskmanager as TaskManager
-import org.kde.mac.tahoe.liquid.dockzoom
 
 PlasmaCore.ToolTipArea {
     id: task
@@ -56,6 +56,28 @@ PlasmaCore.ToolTipArea {
 
     readonly property int pid: model.AppPid
     readonly property string appName: model.AppName
+    readonly property string dockRole: tasksRoot.iconsOnly && Plasmoid.configuration.macOSDockIcons
+        ? DockRoles.appearanceRoleFor(model.LauncherUrlWithoutIcon, model.AppId) : ""
+    readonly property bool darkDockIcons: DockRoles.darkMode(
+        tasksRoot.iconThemeWatcher.plasmaThemeName, Kirigami.Theme.backgroundColor.hslLightness)
+    readonly property var dockIconSource: dockRole
+        ? backend.dockRoleIcon(dockRole, darkDockIcons)
+        : backend.iconSource(task.model.decoration)
+    readonly property string dockRoleLabel: {
+        switch (dockRole) {
+        case "files": return i18nd("plasma_applet_org.kde.mac.tahoe.liquid.taskmanager", "Files");
+        case "browser": return i18nd("plasma_applet_org.kde.mac.tahoe.liquid.taskmanager", "Browser");
+        case "mail": return i18nd("plasma_applet_org.kde.mac.tahoe.liquid.taskmanager", "Mail");
+        case "calendar": return i18nd("plasma_applet_org.kde.mac.tahoe.liquid.taskmanager", "Calendar");
+        case "notes": return i18nd("plasma_applet_org.kde.mac.tahoe.liquid.taskmanager", "Notes");
+        case "photos": return i18nd("plasma_applet_org.kde.mac.tahoe.liquid.taskmanager", "Photos");
+        case "music": return i18nd("plasma_applet_org.kde.mac.tahoe.liquid.taskmanager", "Music");
+        case "video": return i18nd("plasma_applet_org.kde.mac.tahoe.liquid.taskmanager", "Video");
+        case "store": return i18nd("plasma_applet_org.kde.mac.tahoe.liquid.taskmanager", "App Store");
+        case "settings": return i18nd("plasma_applet_org.kde.mac.tahoe.liquid.taskmanager", "System Settings");
+        default: return "";
+        }
+    }
     readonly property string appId: model.AppId.replace(/\.desktop/, '')
     readonly property bool isIcon: tasksRoot.iconsOnly || model.IsLauncher
     property bool toolTipOpen: false
@@ -81,61 +103,24 @@ PlasmaCore.ToolTipArea {
     readonly property bool highlighted: (inPopup && activeFocus) || (!inPopup && containsMouse)
         || (task.contextMenu && task.contextMenu.status === PlasmaExtras.Menu.Open)
         || (!!tasksRoot.groupDialog && tasksRoot.groupDialog.visualParent === task)
-    readonly property bool dockLayout: !inPopup && LayoutMetrics.isDockLayout()
+    readonly property bool dockMagnified: !inPopup && !tasksRoot.vertical && containsMouse
+    readonly property real configuredDockScale: Math.max(
+        1.0, Math.min(1.5, Number(Plasmoid.configuration.dockMagnification) / 100.0))
+    readonly property real reducedDockScale: 1.0 + (configuredDockScale - 1.0) * 0.9
+    readonly property real dockScale: dockMagnified ? reducedDockScale : 1.0
 
-    // Launch bounce: bounces left to play once the app no longer reports
-    // a startup. A window that opens right after a launch was clicked
-    // finishes the bounce the launcher started.
-    property int pendingBounces: 0
-    // An app that maps no window, or ignores its activation token, reports a
-    // startup until Plasma gives up on it: hop for a while, not all that time.
-    property bool startupBounceOver: false
-    readonly property bool launchpadPin: TaskTools.isLaunchpadPin(model.LauncherUrlWithoutIcon)
-    readonly property bool launchBouncing: !inPopup && !launchpadPin
-        && ((model.IsStartup && !startupBounceOver) || pendingBounces > 0)
-
-    Timer {
-        interval: TaskTools.launchBounceWindowMs
-        running: model.IsStartup && !task.startupBounceOver
-        onTriggered: task.startupBounceOver = true
-    }
-
-    // The app's window is up: whatever still reports its launch lands now.
-    Connections {
-        target: tasksRoot
-        enabled: !model.IsWindow
-        function onAppWindowOpened(launcherUrl: string): void {
-            if (launcherUrl === String(model.LauncherUrlWithoutIcon)) {
-                task.pendingBounces = 0;
-                task.startupBounceOver = true;
-            }
-        }
-    }
-
-    function startLaunchBounce(): void {
-        if (!inPopup && !tasksRoot.minimizedShelf && !launchpadPin) {
-            pendingBounces = Math.max(pendingBounces, 2);
-        }
-    }
-    readonly property bool dockMagnifies: !inPopup && !tasksRoot.vertical
-    readonly property real dockScale: dockMagnifies ? DockZoom.scaleFor(task) : 1.0
-    // The magnification scales the whole delegate, which only stretches the
-    // resting pixels: while the Dock magnifies, the icon is rasterized at the
-    // largest magnification and drawn scaled back down (sharp when zoomed).
-    readonly property real iconRaster: dockMagnifies && DockZoom.level > 0 ? DockZoom.magnification : 1.0
-
-    // Parabolic macOS magnification shared with every other Dock widget (see
-    // DockZoom). Transform the complete delegate so badges, audio/mute
-    // controls, progress, and group indicators stay attached to the icon.
-    // Layout geometry remains unchanged; the theme reserves headroom above
-    // and beside the Dock glass for the magnified icons.
-    z: dockScale
+    // Transform the complete delegate so badges, audio/mute controls, progress,
+    // and group indicators stay attached to the icon during magnification.
+    // Layout geometry remains unchanged, so neighbouring tasks do not jump.
+    z: dockMagnified ? 10 : 0
     scale: dockScale
-    transformOrigin: Item.Bottom
+    transformOrigin: Item.Center
+    Behavior on scale {
+        NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
+    }
 
     active: !inPopup && !tasksRoot.groupDialog && task.contextMenu?.status !== PlasmaExtras.Menu.Open
-    // The Dock's name label is not interactive (macOS).
-    interactive: !dockLayout && (model.IsWindow || mainItem.playerData)
+    interactive: model.IsWindow || mainItem.playerData
     location: Plasmoid.location
     mainItem: !Plasmoid.configuration.showToolTips || !model.IsWindow ? pinnedAppToolTipDelegate : openWindowToolTipDelegate
 
@@ -198,14 +183,9 @@ PlasmaCore.ToolTipArea {
             }
         }
     }
-    transform: [
-        Translate {
-            id: translateTransform
-        },
-        Translate {
-            x: task.dockMagnifies ? DockZoom.shiftFor(task) : 0
-        }
-    ]
+    transform: Translate {
+        id: translateTransform
+    }
 
     Accessible.name: model.display
     Accessible.description: {
@@ -417,12 +397,12 @@ PlasmaCore.ToolTipArea {
         mainItem.pidParent = Qt.binding(() => model.AppPid);
         mainItem.windows = Qt.binding(() => model.WinIdList);
         mainItem.isGroup = Qt.binding(() => model.IsGroupParent);
-        mainItem.icon = Qt.binding(() => backend.iconSource(model.decoration));
+        mainItem.icon = Qt.binding(() => task.dockIconSource);
         mainItem.launcherUrl = Qt.binding(() => model.LauncherUrlWithoutIcon);
         mainItem.isLauncher = Qt.binding(() => model.IsLauncher);
         mainItem.isMinimized = Qt.binding(() => model.IsMinimized);
         mainItem.display = Qt.binding(() => model.display);
-        mainItem.genericName = Qt.binding(() => model.GenericName);
+        mainItem.genericName = Qt.binding(() => task.dockRoleLabel || model.GenericName);
         mainItem.virtualDesktops = Qt.binding(() => model.VirtualDesktops);
         mainItem.isOnAllVirtualDesktops = Qt.binding(() => model.IsOnAllVirtualDesktops);
         mainItem.activities = Qt.binding(() => model.Activities);
@@ -529,8 +509,6 @@ PlasmaCore.ToolTipArea {
         }
 
         imagePath: "widgets/tasks"
-        // macOS draws no running indicator under minimized-window thumbnails.
-        opacity: task.tasksRoot.minimizedShelf ? 0 : 1
         property bool isHovered: task.highlighted && Plasmoid.configuration.taskHoverEffect
         property string basePrefix: "normal"
         prefix: isHovered ? TaskTools.taskPrefixHovered(basePrefix, Plasmoid.location) : TaskTools.taskPrefix(basePrefix, Plasmoid.location)
@@ -594,16 +572,15 @@ PlasmaCore.ToolTipArea {
 
         anchors {
             left: parent.left
-            leftMargin: adjustMargin(true, parent.width, taskFrame.margins.left)
+            leftMargin: tasksRoot.iconsOnly && !tasksRoot.vertical && !task.inPopup ? 0 : adjustMargin(true, parent.width, taskFrame.margins.left)
             top: parent.top
-            topMargin: task.dockLayout ? LayoutMetrics.dockIconTopMargin()
-                : adjustMargin(false, parent.height, taskFrame.margins.top)
+            topMargin: tasksRoot.iconsOnly && tasksRoot.vertical && !task.inPopup ? 0 : adjustMargin(false, parent.height, taskFrame.margins.top)
         }
 
-        width: task.inPopup ? Math.max(Kirigami.Units.iconSizes.sizeForLabels, Kirigami.Units.iconSizes.medium) : Math.min(task.parent?.minimumWidth ?? 0, task.height)
-        height: task.inPopup ? width
-            : task.dockLayout ? LayoutMetrics.dockIconSize()
-            : (parent.height - adjustMargin(false, parent.height, taskFrame.margins.top)
+        width: task.inPopup ? Math.max(Kirigami.Units.iconSizes.sizeForLabels, Kirigami.Units.iconSizes.medium)
+            : tasksRoot.iconsOnly && tasksRoot.vertical ? parent.width - adjustMargin(true, parent.width, taskFrame.margins.left) - adjustMargin(true, parent.width, taskFrame.margins.right)
+            : Math.min(task.parent?.minimumWidth ?? 0, task.height)
+        height: task.inPopup ? width : tasksRoot.iconsOnly && tasksRoot.vertical ? parent.height : (parent.height - adjustMargin(false, parent.height, taskFrame.margins.top)
                  - adjustMargin(false, parent.height, taskFrame.margins.bottom))
 
         asynchronous: true
@@ -625,60 +602,40 @@ PlasmaCore.ToolTipArea {
             return margin;
         }
 
-        // The minimized-windows section shows each window as a thumbnail.
-        Loader {
-            id: windowThumbnail
-
-            anchors.fill: parent
-            active: task.tasksRoot.minimizedShelf && task.model.IsWindow && !task.model.IsGroupParent
-            sourceComponent: WindowThumbnail {
-                winId: task.model.WinIdList[0]
-                appIcon: task.model.decoration
-            }
-        }
-
         Kirigami.Icon {
             id: icon
 
-            width: parent.width * task.iconRaster
-            height: parent.height * task.iconRaster
-            scale: 1 / task.iconRaster
-            transformOrigin: Item.TopLeft
-            visible: !(windowThumbnail.item && windowThumbnail.item.ready)
+            anchors.fill: parent
 
             active: task.highlighted
             enabled: true
-            // Standard-size rounding snaps a ~63 px Dock icon down to 48 px.
-            roundToIconSize: !task.dockLayout
 
             // A cached QIcon can retain the outgoing theme's pixmap.
-            source: backend.iconSource(task.model.decoration)
+            source: task.dockIconSource
 
             Connections {
                 target: tasksRoot.iconThemeWatcher
                 function onChanged() {
                     icon.source = "";
                     Qt.callLater(() => {
-                        icon.source = Qt.binding(() => backend.iconSource(task.model.decoration));
+                        icon.source = Qt.binding(() => task.dockIconSource);
                     });
                 }
             }
 
             transform: Translate { id: bounceTransform }
 
-            // macOS launch bounce: hop while the app starts, at least twice,
-            // and always land before stopping (see TaskTools.recordLaunch).
+            // macOS-style launch bounce: hop while the app is starting,
+            // mirroring the busy spinner it sits alongside above.
             SequentialAnimation {
-                running: task.launchBouncing
+                running: task.model.IsStartup
                 loops: Animation.Infinite
-                alwaysRunToEnd: true
                 onRunningChanged: if (!running) bounceTransform.y = 0
 
                 NumberAnimation {
                     target: bounceTransform
                     property: "y"
-                    // In the icon's own (rasterized) units, before its scale.
-                    to: -Math.max(10 * task.iconRaster, icon.height * 0.22)
+                    to: -Math.max(10, icon.height * 0.22)
                     duration: 220
                     easing.type: Easing.OutQuad
                 }
@@ -690,9 +647,6 @@ PlasmaCore.ToolTipArea {
                     easing.type: Easing.OutBounce
                 }
                 PauseAnimation { duration: 320 }
-                ScriptAction {
-                    script: task.pendingBounces = Math.max(0, task.pendingBounces - 1)
-                }
             }
         }
 
@@ -711,10 +665,14 @@ PlasmaCore.ToolTipArea {
 
                 PropertyChanges {
                     iconBox.anchors.leftMargin: 0
-                    iconBox.width: task.dockLayout ? LayoutMetrics.dockIconSize()
+                    iconBox.width: tasksRoot.iconsOnly && !task.inPopup
+                        ? (tasksRoot.vertical ? task.width
+                            - iconBox.adjustMargin(true, task.width, taskFrame.margins.left)
+                            - iconBox.adjustMargin(true, task.width, taskFrame.margins.right)
+                            : Math.min(task.parent.minimumWidth, task.height))
                         : Math.min(task.parent.minimumWidth, tasksRoot.height)
-                        - iconBox.adjustMargin(true, task.width, taskFrame.margins.left)
-                        - iconBox.adjustMargin(true, task.width, taskFrame.margins.right)
+                            - iconBox.adjustMargin(true, task.width, taskFrame.margins.left)
+                            - iconBox.adjustMargin(true, task.width, taskFrame.margins.right)
                 }
             }
         ]
@@ -723,9 +681,7 @@ PlasmaCore.ToolTipArea {
             anchors.centerIn: parent
             width: Math.min(parent.width, parent.height)
             height: width
-            // macOS shows no spinner while an app starts: the Dock icon
-            // bounces (launchBouncing) and its dot appears.
-            active: task.model.IsStartup && !task.dockLayout
+            active: task.model.IsStartup
             sourceComponent: busyIndicator
         }
     }
@@ -803,26 +759,10 @@ PlasmaCore.ToolTipArea {
     ]
 
     Component.onCompleted: {
-        if (model.IsWindow) {
-            // The app is ready. Only a launch too quick to have shown a hop
-            // still plays one, on the window's new delegate.
-            if (TaskTools.launchedWithin(model.LauncherUrlWithoutIcon, TaskTools.launchLandingWindowMs)) {
-                startLaunchBounce();
-                pendingBounces = Math.min(pendingBounces, 1);
-            }
-            TaskTools.forgetLaunch(model.LauncherUrlWithoutIcon);
-            tasksRoot.appWindowOpened(String(model.LauncherUrlWithoutIcon));
-        } else if (!model.IsLauncher && TaskTools.launchedRecently(model.LauncherUrlWithoutIcon)) {
-            startLaunchBounce();
-        }
         if (!inPopup && model.IsWindow) {
-            // The Dock marks an app with several windows by its dot alone,
-            // as macOS does: no group expander there.
-            if (!dockLayout) {
-                const component = Qt.createComponent("GroupExpanderOverlay.qml");
-                component.createObject(task);
-                component.destroy();
-            }
+            const component = Qt.createComponent("GroupExpanderOverlay.qml");
+            component.createObject(task);
+            component.destroy();
             updateAudioStreams({delay: false});
         }
 

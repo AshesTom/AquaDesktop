@@ -35,11 +35,9 @@ def test_neon_keeps_unmarked_distro_qt6_engine(monkeypatch, tmp_path):
     _neon(monkeypatch, kvantum, destination)
     monkeypatch.setattr(kvantum, "ENGINE_MARKER", tmp_path / "missing-marker")
 
-    # The distro's system plugin is never replaced: no system install; the
-    # patched engine is still built, for the user's plugin directory.
-    assert kvantum._bundled_engine_required() is False
     assert "kvantummanager:kvantum" not in kvantum.deps()
-    assert kvantum.build_artifacts() == [kvantum.ENGINE_BUILD / "style/libkvantum.so"]
+    assert kvantum.build_artifacts() == [kvantum.MENU_BUILD / "libmactahoestyle.so"]
+    assert destination.read_bytes() == b"distro-owned"
 
 
 def test_bundled_archive_extracts_only_after_digest_check(monkeypatch, tmp_path):
@@ -53,11 +51,6 @@ def test_bundled_archive_extracts_only_after_digest_check(monkeypatch, tmp_path)
     assert kvantum._extract_bundled_engine() is True
     assert (source / "Kvantum/CMakeLists.txt").is_file()
     assert (source / "Kvantum/COPYING").is_file()
-    # AquaDesktop's patch is applied on extraction.
-    style = source / "Kvantum/style"
-    assert "accentColorFromWallpaper" in (style / "tahoe.h").read_text()
-    assert "Tahoe::accented(userSvg)" in (style / "Kvantum.cpp").read_text()
-    assert "new Tahoe::AccentWatcher(this)" in (style / "polishing.cpp").read_text()
 
     corrupt = tmp_path / "Kvantum-corrupt.tar.xz"
     corrupt.write_bytes(kvantum.ENGINE_ARCHIVE.read_bytes() + b"corrupt")
@@ -421,72 +414,55 @@ def test_uninstall_retains_invalid_ownership_marker_for_recovery(
     assert failures and "retaining" in failures[0]
 
 
-def test_user_engine_takes_over_through_the_plasma_environment(monkeypatch, tmp_path):
+def test_continuous_menu_install_reinstall_uninstall(tmp_path, monkeypatch):
+    """The sidecar lifecycle leaves the distro-owned engine unchanged."""
+    import shutil
     from steps import kvantum
-
     build = tmp_path / "build"
-    (build / "style").mkdir(parents=True)
-    (build / "style/libkvantum.so").write_bytes(b"engine")
-    root = tmp_path / "data/mac-tahoe-liquid-kde/qt6/plugins"
-    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
-    monkeypatch.setattr(kvantum, "ENGINE_BUILD", build)
-    monkeypatch.setattr(kvantum, "USER_PLUGIN_ROOT", root)
-    monkeypatch.setattr(kvantum, "USER_ENGINE", root / "styles/libkvantum.so")
-    monkeypatch.setattr(kvantum, "_export_to_running_session", lambda remove=False: None)
-    for name in ("ok", "warn"):
-        monkeypatch.setattr(kvantum, name, lambda *_a: None)
+    build.mkdir()
+    artifact = build / "libmactahoestyle.so"
+    artifact.write_bytes(b"menu-style-v1")
+    destination = tmp_path / "plugins/styles/libmactahoestyle.so"
+    engine = destination.with_name("libkvantum.so")
+    engine.parent.mkdir(parents=True)
+    engine.write_bytes(b"distro-owned")
+    monkeypatch.setattr(kvantum, "MENU_BUILD", build)
+    monkeypatch.setattr(kvantum, "menu_style_destination", lambda: destination)
+    monkeypatch.setattr(kvantum, "_engine_destination", lambda: engine)
+    monkeypatch.setattr(kvantum, "_install_bundled_engine", lambda: True)
+    monkeypatch.setattr(kvantum, "ENGINE_MARKER", tmp_path / "no-engine-marker")
+    monkeypatch.setattr(kvantum, "ENGINE_WORK", tmp_path / "engine-work")
+    monkeypatch.setattr(kvantum, "DEST_DIR", tmp_path / "themes/light")
+    monkeypatch.setattr(kvantum, "DEST_DIR_DARK", tmp_path / "themes/dark")
+    monkeypatch.setattr(kvantum, "have", lambda _: False)
+    writes = []
+    monkeypatch.setattr(kvantum, "kw_write", lambda *args: writes.append(args) or True)
+    def install(src, dst, label):
+        if not src.is_file():
+            return False
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
+        return True
+    monkeypatch.setattr(kvantum, "sudo_install_file", install)
+    monkeypatch.setattr(kvantum, "sudo_remove", lambda path, label: path.unlink(missing_ok=True) or True)
+    kvantum.install()
+    assert destination.read_bytes() == b"menu-style-v1"
+    assert writes[-1][-1] == "MacTahoe"
+    artifact.write_bytes(b"menu-style-v2")
+    kvantum.install()
+    assert destination.read_bytes() == b"menu-style-v2"
+    kvantum.uninstall()
+    assert not destination.exists()
+    assert writes[-1][-1] == "Breeze"
+    assert engine.read_bytes() == b"distro-owned"
 
-    kvantum._install_user_engine()
-    assert (root / "styles/libkvantum.so").read_bytes() == b"engine"
-    env = kvantum.kvantum_env_path().read_text()
-    assert env.startswith(kvantum.ENV_MARKER)
-    assert str(root) in env and "@PLUGIN" not in env
 
-    kvantum._remove_user_engine()
-    assert not kvantum.kvantum_env_path().exists()
-    assert not root.exists()
-
-
-def test_user_engine_leaves_a_foreign_environment_script(monkeypatch, tmp_path):
+def test_missing_menu_plugin_does_not_activate_style(tmp_path, monkeypatch):
     from steps import kvantum
-
-    build = tmp_path / "build"
-    (build / "style").mkdir(parents=True)
-    (build / "style/libkvantum.so").write_bytes(b"engine")
-    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
-    monkeypatch.setattr(kvantum, "ENGINE_BUILD", build)
-    monkeypatch.setattr(kvantum, "USER_PLUGIN_ROOT", tmp_path / "qt6/plugins")
-    monkeypatch.setattr(kvantum, "USER_ENGINE", tmp_path / "qt6/plugins/styles/libkvantum.so")
-    monkeypatch.setattr(kvantum, "_export_to_running_session", lambda remove=False: None)
-    warnings = []
-    monkeypatch.setattr(kvantum, "warn", warnings.append)
-    monkeypatch.setattr(kvantum, "ok", lambda *_a: None)
-    env = kvantum.kvantum_env_path()
-    env.parent.mkdir(parents=True)
-    env.write_text("export SOMETHING=mine\n")
-    kvantum._install_user_engine()
-    assert env.read_text() == "export SOMETHING=mine\n" and warnings
-    kvantum._remove_user_engine()
-    assert env.exists()
-
-
-def test_engine_reaches_the_running_session(monkeypatch, tmp_path):
-    """Apps started after the install load the engine without a new login:
-    QT_PLUGIN_PATH goes to the user manager and D-Bus activation."""
-    from steps import kvantum
-
-    calls = []
-    monkeypatch.setattr(kvantum, "USER_PLUGIN_ROOT", tmp_path / "plugins")
-    monkeypatch.setattr(kvantum, "user_service_manager_command",
-                        lambda *a: ["systemctl", "--user", *a])
-    monkeypatch.setattr(kvantum, "have", lambda tool: True)
-    monkeypatch.setattr(kvantum, "run_user", lambda cmd, **kw: calls.append(cmd))
-    monkeypatch.setenv("QT_PLUGIN_PATH", "/opt/qt")
-    kvantum._export_to_running_session()
-    assert calls == [
-        ["systemctl", "--user", "set-environment", f"QT_PLUGIN_PATH={tmp_path}/plugins:/opt/qt"],
-        ["dbus-update-activation-environment", f"QT_PLUGIN_PATH={tmp_path}/plugins:/opt/qt"],
-    ]
-    calls.clear()
-    kvantum._export_to_running_session(remove=True)
-    assert calls[0] == ["systemctl", "--user", "set-environment", "QT_PLUGIN_PATH=/opt/qt"]
+    monkeypatch.setattr(kvantum, "MENU_BUILD", tmp_path / "missing-build")
+    monkeypatch.setattr(kvantum, "_install_bundled_engine", lambda: True)
+    monkeypatch.setattr(kvantum, "sudo_install_file", lambda *args: False)
+    writes = []
+    monkeypatch.setattr(kvantum, "kw_write", lambda *args: writes.append(args) or True)
+    kvantum.install()
+    assert writes == []

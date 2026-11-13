@@ -1,10 +1,14 @@
 /*
     SPDX-FileCopyrightText: 2016 Kai Uwe Broulik <kde@privat.broulik.de>
     SPDX-FileCopyrightText: 2016 Chinmoy Ranjan Pradhan <chinmoyrp65@gmail.com>
+    SPDX-FileCopyrightText: 2026 QuickBar contributors
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
 
 #include "appmenumodel.h"
+#include "quickbarmenuhelpers.h"
+#include "menushortcutsender.h"
+#include <QTimer>
 
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
@@ -40,6 +44,7 @@ protected:
 AppMenuModel::AppMenuModel(QObject* parent)
     : QAbstractListModel(parent)
     , m_tasksModel(new TaskManager::TasksModel(this))
+    , m_shortcutSender(new MenuShortcutSender(this))
     , m_serviceWatcher(new QDBusServiceWatcher(this))
 {
     m_tasksModel->setFilterByScreen(!m_allScreens);
@@ -68,15 +73,24 @@ AppMenuModel::AppMenuModel(QObject* parent)
         }
     });
 
+    connect(m_shortcutSender, &MenuShortcutSender::availabilityChanged, this, [this] {
+        if (m_genericMenu) {
+            for (auto *action : m_genericMenu->findChildren<QAction *>()) {
+                if (!action->shortcut().isEmpty()) action->setEnabled(m_shortcutSender->available());
+            }
+        }
+    });
     onActiveWindowChanged();
 
     m_serviceWatcher->setConnection(QDBusConnection::sessionBus());
     connect(m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered, this, [this](const QString& serviceName) {
         if (serviceName == m_serviceName) {
+            Q_EMIT menuSourceAboutToChange();
             removeSearchActionsFromMenu();
             m_menu.clear();
             m_importer.reset();
             setMenuAvailable(false);
+            updateGenericMenu();
             Q_EMIT modelNeedsUpdate();
         }
     });
@@ -86,7 +100,7 @@ AppMenuModel::AppMenuModel(QObject* parent)
         }
     });
 
-    if (KWindowSystem::isPlatformWayland()) {
+    {
         m_searchAction = new QAction(this);
         m_searchAction->setText(i18n("Search"));
         m_searchAction->setObjectName(QStringLiteral("appmenu"));
@@ -101,11 +115,19 @@ AppMenuModel::AppMenuModel(QObject* parent)
         connect(m_tasksModel, &TaskManager::TasksModel::activeTaskChanged, searchBar, [searchBar]() { searchBar->setText(QString()); });
         connect(searchBar, &QLineEdit::textChanged, this, [searchBar, this]() mutable { insertSearchActionsIntoMenu(searchBar->text()); });
         connect(searchBar, &QLineEdit::returnPressed, this, [this]() mutable {
-            if (!m_currentSearchActions.empty()) {
+            if (!m_currentSearchActions.empty() && m_currentSearchActions.constFirst()
+                && m_currentSearchActions.constFirst()->isEnabled()
+                && m_currentSearchActions.constFirst()->isVisible()) {
                 m_currentSearchActions.constFirst()->trigger();
             }
         });
         connect(this, &AppMenuModel::modelNeedsUpdate, searchBar, [this, searchBar]() mutable { insertSearchActionsIntoMenu(searchBar->text()); });
+        connect(m_searchMenu.get(), &QMenu::aboutToShow, searchBar, [searchBar]() {
+            QTimer::singleShot(0, searchBar, [searchBar]() {
+                searchBar->setFocus(Qt::PopupFocusReason);
+                searchBar->selectAll();
+            });
+        });
         searchAction->setDefaultWidget(searchBar);
         m_searchMenu->addAction(searchAction);
         m_searchMenu->addSeparator();
@@ -113,7 +135,11 @@ AppMenuModel::AppMenuModel(QObject* parent)
     }
 }
 
-AppMenuModel::~AppMenuModel() = default;
+AppMenuModel::~AppMenuModel()
+{
+    Q_EMIT menuSourceAboutToChange();
+    removeSearchActionsFromMenu();
+}
 
 // Property accessors
 
@@ -122,12 +148,23 @@ QString AppMenuModel::activeAppName() const
     const QModelIndex idx = m_tasksModel->activeTask();
     if (!idx.isValid())
         return {};
-    // Plasma's own windows (this applet's About window, desktop dialogs)
-    // aren't an app the user switched to; macOS shows no name for them.
-    if (m_tasksModel->data(idx, TaskManager::AbstractTasksModel::AppId).toString()
-        == QLatin1String("org.kde.plasmashell"))
-        return {};
     return m_tasksModel->data(idx, TaskManager::AbstractTasksModel::AppName).toString();
+}
+
+bool AppMenuModel::enableMenuSearch() const
+{
+    return m_enableMenuSearch;
+}
+
+void AppMenuModel::setEnableMenuSearch(bool enabled)
+{
+    if (m_enableMenuSearch == enabled) {
+        return;
+    }
+    m_enableMenuSearch = enabled;
+    removeSearchActionsFromMenu();
+    Q_EMIT enableMenuSearchChanged();
+    Q_EMIT modelNeedsUpdate();
 }
 
 bool AppMenuModel::menuAvailable() const
@@ -191,28 +228,32 @@ int AppMenuModel::rowCount(const QModelIndex& parent) const
     if (!m_menuAvailable || !m_menu) {
         return 0;
     }
-    return m_menu->actions().count() + (m_searchAction ? 1 : 0);
+    return m_menu->actions().count() + (m_enableMenuSearch && m_searchAction && !m_menu->isEmpty() ? 1 : 0);
 }
 
 // Search-action helpers (Wayland-only path)
 
 void AppMenuModel::removeSearchActionsFromMenu()
 {
-    for (auto action : std::as_const(m_currentSearchActions)) {
-        m_searchAction->menu()->removeAction(action);
+    if (m_searchMenu) {
+        for (auto action : std::as_const(m_currentSearchActions)) {
+            if (action) {
+                m_searchMenu->removeAction(action);
+            }
+        }
     }
-    m_currentSearchActions = QList<QAction*>();
+    m_currentSearchActions.clear();
 }
 
 void AppMenuModel::insertSearchActionsIntoMenu(const QString& filter)
 {
     removeSearchActionsFromMenu();
-    if (filter.isEmpty()) {
+    if (filter.isEmpty() || !m_enableMenuSearch) {
         return;
     }
     const auto actions = flatActionList();
     for (const auto& action : actions) {
-        if (action->text().contains(filter, Qt::CaseInsensitive)) {
+        if (QuickBarMenu::visibleMenuText(action->text()).contains(filter, Qt::CaseInsensitive)) {
             m_searchAction->menu()->addAction(action);
             m_currentSearchActions << action;
         }
@@ -231,13 +272,15 @@ void AppMenuModel::update()
 void AppMenuModel::onActiveWindowChanged()
 {
     const QModelIndex activeTaskIndex = m_tasksModel->activeTask();
-    if (!activeTaskIndex.isValid() && m_containmentStatus == Plasma::Types::AcceptingInputStatus) {
+    if (!activeTaskIndex.isValid() && m_containmentStatus == Plasma::Types::AcceptingInputStatus
+        && (!m_genericMenu || m_genericTarget.isValid())) {
         return;
     }
 
     const QString objectPath = m_tasksModel->data(activeTaskIndex, TaskManager::AbstractTasksModel::ApplicationMenuObjectPath).toString();
     const QString serviceName = m_tasksModel->data(activeTaskIndex, TaskManager::AbstractTasksModel::ApplicationMenuServiceName).toString();
     updateApplicationMenu(serviceName, objectPath);
+    if (serviceName.isEmpty() || objectPath.isEmpty()) updateGenericMenu();
     Q_EMIT activeAppNameChanged();
 }
 
@@ -255,12 +298,8 @@ QList<QAction*> AppMenuModel::flatActionList()
     if (!m_menuAvailable || !m_menu) {
         return ret;
     }
-    const auto actions = m_menu->findChildren<QAction*>();
-    for (auto& action : actions) {
-        if (action->menu() == nullptr) {
-            ret << action;
-        }
-    }
+    QSet<QMenu*> visited;
+    QuickBarMenu::collectMenuActions(m_menu, ret, visited);
     return ret;
 }
 
@@ -285,14 +324,14 @@ QVariant AppMenuModel::data(const QModelIndex& index, int role) const
 
     const auto actions = m_menu->actions();
     const int row = index.row();
-    if (row == actions.count() && m_searchAction) {
+    if (row == actions.count() && m_enableMenuSearch && m_searchAction) {
         if (role == MenuRole) {
             return m_searchAction->text();
         } else if (role == ActionRole) {
             return QVariant::fromValue(m_searchAction.data());
         }
     }
-    if (row >= actions.count()) {
+    if (row < 0 || row >= actions.count()) {
         return {};
     }
 
@@ -312,15 +351,22 @@ QVariant AppMenuModel::data(const QModelIndex& index, int role) const
 /// one starts publishing via ``modelNeedsUpdate``.
 void AppMenuModel::updateApplicationMenu(const QString& serviceName, const QString& menuObjectPath)
 {
+    if (serviceName.isEmpty() && menuObjectPath.isEmpty() && m_genericMenu
+        && m_genericTarget.isValid() && m_genericTarget == m_tasksModel->activeTask() && m_enableGenericMenu) return;
     if (m_serviceName == serviceName && m_menuObjectPath == menuObjectPath && m_importer) {
         QMetaObject::invokeMethod(m_importer.get(), "updateMenu", Qt::QueuedConnection);
         return;
     }
 
+    Q_EMIT menuSourceAboutToChange();
+
     // Do not expose the previous application's actions while the new menu is
     // loading. The importer deletes its QMenu asynchronously.
     removeSearchActionsFromMenu();
     m_menu.clear();
+    m_genericMenu.reset();
+    m_genericTarget = QPersistentModelIndex();
+    ++m_shortcutGeneration;
     setMenuAvailable(false);
     Q_EMIT modelNeedsUpdate();
 
@@ -347,10 +393,33 @@ void AppMenuModel::updateApplicationMenu(const QString& serviceName, const QStri
 
             if (m_menu->isEmpty()) {
                 setMenuAvailable(false);
+                updateGenericMenu();
                 return;
-            } else {
-                setMenuAvailable(true);
             }
+            if (m_genericMenu) {
+                Q_EMIT menuSourceAboutToChange();
+                removeSearchActionsFromMenu();
+                m_genericMenu.reset();
+                m_genericTarget = QPersistentModelIndex();
+                ++m_shortcutGeneration;
+            }
+            setMenuAvailable(true);
+
+            QMenu *windowView = nullptr;
+            const auto viewLabel = i18n("&View").remove(QLatin1Char('&'));
+            for (auto *action : m_menu->actions()) {
+                const auto label = action->text().remove(QLatin1Char('&'));
+                if (action->menu() && (label.compare(viewLabel, Qt::CaseInsensitive) == 0
+                    || label.compare(QStringLiteral("View"), Qt::CaseInsensitive) == 0)) {
+                    windowView = action->menu();
+                    break;
+                }
+            }
+            if (!windowView && m_tasksModel->activeTask().isValid()) {
+                windowView = m_menu->addMenu(i18n("&View"));
+                windowView->setProperty("tahoeLocalView", true);
+            }
+            if (windowView) windowView->setProperty("tahoeWindowView", true);
 
             const auto actions = m_menu->actions();
             for (QAction* a : actions) {
@@ -365,7 +434,7 @@ void AppMenuModel::updateApplicationMenu(const QString& serviceName, const QStri
                 });
                 connect(a, &QAction::destroyed, this, &AppMenuModel::modelNeedsUpdate);
 
-                if (a->menu()) {
+                if (a->menu() && !a->menu()->property("tahoeLocalView").toBool()) {
                     m_importer->updateMenu(a->menu());
                 }
             }
@@ -388,6 +457,115 @@ void AppMenuModel::updateApplicationMenu(const QString& serviceName, const QStri
         setVisible(true);
         Q_EMIT modelNeedsUpdate();
     }
+}
+
+
+bool AppMenuModel::enableGenericMenu() const { return m_enableGenericMenu; }
+void AppMenuModel::setEnableGenericMenu(bool enabled)
+{
+    if (m_enableGenericMenu == enabled) return;
+    m_enableGenericMenu = enabled;
+    if (!enabled && m_genericMenu) {
+        Q_EMIT menuSourceAboutToChange();
+        removeSearchActionsFromMenu();
+        m_menu.clear();
+        m_genericMenu.reset();
+        m_genericTarget = QPersistentModelIndex();
+        ++m_shortcutGeneration;
+        setMenuAvailable(false);
+    }
+    onActiveWindowChanged();
+    Q_EMIT enableGenericMenuChanged();
+}
+
+void AppMenuModel::sendGenericShortcut(const QKeySequence &sequence, const QPersistentModelIndex &target)
+{
+    const quint64 generation = ++m_shortcutGeneration;
+    // Let QMenu release its input grab before restoring the originating window.
+    QTimer::singleShot(0, this, [this, target, sequence, generation] {
+        if (!target.isValid() || target != m_genericTarget || generation != m_shortcutGeneration) return;
+        const auto active = m_tasksModel->activeTask();
+        if (active.isValid() && active != target) return;
+        m_tasksModel->requestActivate(target);
+        QTimer::singleShot(100, this, [this, target, sequence, generation] {
+            if (generation != m_shortcutGeneration || !target.isValid()
+                || target != m_genericTarget || target != m_tasksModel->activeTask()) return;
+            m_shortcutSender->send(sequence);
+        });
+    });
+}
+
+void AppMenuModel::updateGenericMenu()
+{
+    const QPersistentModelIndex target(m_tasksModel->activeTask());
+    if (!m_enableGenericMenu || !target.isValid()
+        || !target.data(TaskManager::AbstractTasksModel::IsWindow).toBool()) return;
+    if (m_genericMenu && m_genericTarget == target) {
+        m_menu = m_genericMenu.get();
+        setMenuAvailable(true);
+        setVisible(true);
+        return;
+    }
+    Q_EMIT menuSourceAboutToChange();
+    removeSearchActionsFromMenu();
+    m_menu.clear();
+    m_genericMenu = std::make_unique<QMenu>();
+    m_genericTarget = target;
+    ++m_shortcutGeneration;
+    m_genericMenu->setObjectName(QStringLiteral("tahoe-generic-menu"));
+    auto *edit = m_genericMenu->addMenu(i18n("&Edit"));
+    auto addShortcut = [this, edit, target](const QString &label, QKeySequence::StandardKey key) {
+        auto *action = edit->addAction(label);
+        action->setShortcut(QKeySequence(key));
+        action->setEnabled(m_shortcutSender->available());
+        connect(action, &QAction::triggered, this, [this, target, sequence = action->shortcut()] {
+            sendGenericShortcut(sequence, target);
+        });
+    };
+    addShortcut(i18n("&Undo"), QKeySequence::Undo);
+    addShortcut(i18n("&Redo"), QKeySequence::Redo);
+    edit->addSeparator();
+    addShortcut(i18n("Cu&t"), QKeySequence::Cut);
+    addShortcut(i18n("&Copy"), QKeySequence::Copy);
+    addShortcut(i18n("&Paste"), QKeySequence::Paste);
+    edit->addSeparator();
+    addShortcut(i18n("Select &All"), QKeySequence::SelectAll);
+    auto *view = m_genericMenu->addMenu(i18n("&View"));
+    view->setProperty("tahoeWindowView", true);
+    refreshWindowActions(view);
+    m_menu = m_genericMenu.get();
+    setMenuAvailable(true);
+    setVisible(true);
+    Q_EMIT modelNeedsUpdate();
+}
+
+void AppMenuModel::refreshWindowActions(QMenu *menu)
+{
+    // Only replace our own additions; imported application actions stay intact.
+    for (auto *action : menu->actions()) {
+        if (action->property("tahoeWindowAction").toBool()) delete action;
+    }
+    const QPersistentModelIndex target(m_tasksModel->activeTask());
+    if (!target.isValid()) return;
+    using Roles = TaskManager::AbstractTasksModel;
+    if (!menu->isEmpty()) {
+        auto *separator = menu->addSeparator();
+        separator->setProperty("tahoeWindowAction", true);
+    }
+    auto add = [this, menu, target](const QString &label, int capability, auto request) {
+        auto *action = menu->addAction(label);
+        action->setProperty("tahoeWindowAction", true);
+        action->setEnabled(target.data(capability).toBool());
+        connect(action, &QAction::triggered, this, [this, target, request] {
+            if (target.isValid()) (m_tasksModel->*request)(target);
+        });
+    };
+    add(i18n("Close Window"), Roles::IsClosable, &TaskManager::TasksModel::requestClose);
+    add(i18n("Minimize"), Roles::IsMinimizable, &TaskManager::TasksModel::requestToggleMinimized);
+    add(target.data(Roles::IsMaximized).toBool() ? i18n("Restore") : i18n("Zoom"),
+        Roles::IsMaximizable, &TaskManager::TasksModel::requestToggleMaximized);
+    add(target.data(Roles::IsFullScreen).toBool() ? i18n("Exit Full Screen") : i18n("Enter Full Screen"),
+        Roles::IsFullScreenable, &TaskManager::TasksModel::requestToggleFullScreen);
 }
 
 #include "moc_appmenumodel.cpp"

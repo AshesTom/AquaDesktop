@@ -74,7 +74,7 @@ INSTALL_ORDER = [
     "sounds",
     "kconf_update",
     "plasmoids", "globalmenu", "acrylic_glass", "rounded_corners",
-    "layout", "nautilus", "portals", "plymouth",
+    "layout", "nautilus", "apps", "portals", "plymouth",
 ]
 
 FEATURE_DESC = {
@@ -348,22 +348,14 @@ GITHUB_RELEASES_URL = (
 )
 
 
-def parse_semver(version: str) -> tuple[int, int, int]:
-    """Permissive semver tuple. Returns ``(0, 0, 0)`` on garbage rather
-    than raising — a bad release tag must never block the installer."""
-    if not version:
-        return (0, 0, 0)
-    s = version.strip().lstrip("vV").split("-", 1)[0].split("+", 1)[0]
-    parts = s.split(".")
-    out: list[int] = []
-    for p in parts[:3]:
-        try:
-            out.append(int(p))
-        except ValueError:
-            out.append(0)
-    while len(out) < 3:
-        out.append(0)
-    return (out[0], out[1], out[2])
+def parse_semver(version: str) -> tuple[int, int, int, int, int]:
+    """Order release candidates before stable versions; invalid tags sort first."""
+    match = re.fullmatch(r"[vV]?(\d+)\.(\d+)(?:\.(\d+))?(?:(?:-)?rc\.?(\d+))?(?:\+[^\s]+)?",
+                         (version or "").strip())
+    if not match:
+        return (0, 0, 0, 0, 0)
+    major, minor, patch, candidate = match.groups()
+    return (int(major), int(minor), int(patch or 0), int(candidate is None), int(candidate or 0))
 
 
 def fetch_latest_release(timeout: float = 2.5) -> str | None:
@@ -434,7 +426,8 @@ def _git(*args: str, capture: bool = False):
         return None
     try:
         return run_user(
-            ["git", "-C", str(REPO_ROOT), *args],
+            ["git", "-c", "maintenance.auto=false", "-c", "gc.auto=0",
+             "-C", str(REPO_ROOT), *args],
             check=False,
             capture_output=capture,
             text=True,
@@ -464,14 +457,30 @@ def auto_update_and_reexec(argv: list[str], prog: str = "install") -> None:
     Never follow an unpublished branch tip or update during a GUI transaction.
     Offline, dirty and divergent checkouts retain their current source.
     """
-    if (os.environ.get("MAC_TAHOE_UPDATED") == "1"
+    if (os.environ.get("GOLDEN_GATE_TAHOE_SOURCE")
+            or os.environ.get("MAC_TAHOE_UPDATED") == "1"
             or os.environ.get("MAC_TAHOE_NO_UPDATE_CHECK", "").lower() == "true"):
         return
+    try:
+        _update_published_checkout(argv, prog)
+    finally:
+        helper = REPO_ROOT / 'src/scripts/repository_maintenance.py'
+        if helper.is_file():
+            try:
+                run_user([sys.executable, str(helper), '--auto', '--repository', str(REPO_ROOT)],
+                         check=False, timeout=660)
+            except (OSError, subprocess.SubprocessError) as exc:
+                warn(f'Git maintenance could not finish: {exc}')
+
+
+def _update_published_checkout(argv: list[str], prog: str) -> None:
     current = read_version().strip()
-    if not re.fullmatch(r"\d+\.\d+\.\d+", current):
+    if not re.fullmatch(r"\d+\.\d+(?:\.\d+|rc[1-9]\d*)", current):
         return
     latest = fetch_latest_release()
-    if (not latest or not re.fullmatch(r"\d+\.\d+\.\d+", latest)
+    from repository_cache import hint
+    hint('lestercorderomurillo/macos-tahoe-liquid-kde', latest)
+    if (not latest or not re.fullmatch(r"\d+\.\d+(?:\.\d+|rc[1-9]\d*)", latest)
             or parse_semver(latest) <= parse_semver(current)):
         return
 
@@ -485,7 +494,9 @@ def auto_update_and_reexec(argv: list[str], prog: str = "install") -> None:
         return result if result is not None and result.returncode == 0 else None
 
     repository = "https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde.git"
-    fetched = git_ok("fetch", "--no-tags", repository, "refs/tags/v" + latest)
+    partial = git_ok('config', '--get', 'remote.origin.partialclonefilter')
+    filtering = ['--filter=blob:none'] if partial is not None and partial.stdout.strip() == 'blob:none' else []
+    fetched = git_ok("fetch", "--no-tags", *filtering, repository, "refs/tags/v" + latest)
     target = git_ok("rev-parse", "FETCH_HEAD^{commit}") if fetched is not None else None
     commit = target.stdout.strip() if target is not None else ""
     version = git_ok("show", commit + ":VERSION") if re.fullmatch(r"[0-9a-f]{40}", commit) else None
@@ -497,7 +508,7 @@ def auto_update_and_reexec(argv: list[str], prog: str = "install") -> None:
         note(tr('Keeping local commits: the release is not a fast-forward'))
         return
     if (not _repo_is_clean_git_checkout()
-            or git_ok("merge", "--ff-only", commit) is None):
+            or git_ok("merge", "--ff-only", "--no-overwrite-ignore", commit) is None):
         warn(tr('Could not apply the published update — keeping the current checkout'))
         print("  https://github.com/lestercorderomurillo/macos-tahoe-liquid-kde/releases/tag/v" + latest)
         return
@@ -1037,6 +1048,13 @@ def _print_done(verb: str) -> None:
 
 
 def _run_install_body(feat: dict[str, object]) -> int:
+    from theme_switch import button_position, preserve_button_layout
+
+    with preserve_button_layout(button_position() == "keep"):
+        return _run_install_steps(feat)
+
+
+def _run_install_steps(feat: dict[str, object]) -> int:
     """The actual install sequence — no banner, confirm, or progress UI.
     Runs under the graphical supervisor or isolated qualification tools."""
     check_cancelled()
@@ -1131,6 +1149,8 @@ def _run_install_body(feat: dict[str, object]) -> int:
             step('Retrying Layout')
             note(tr('Retries the panel layout after Plasma reloads new plasmoids'))
             run_phase("layout", "install")
+        if not feat.get("layout", True) and step_exists("layout"):
+            run_phase("layout", "migrate_dock_preset")
         run_phase("theme_switch", "start_schedule")
     else:
         step('Skipping Activation')
@@ -1141,6 +1161,17 @@ def _run_install_body(feat: dict[str, object]) -> int:
 
 
 def _run_uninstall_body(feat: dict[str, object]) -> int:
+    from theme_switch import preserve_button_layout
+    from window_controls import buttons_kept, forget_button_position
+
+    with preserve_button_layout(buttons_kept()):
+        result = _run_uninstall_steps(feat)
+    if result == 0:
+        forget_button_position()
+    return result
+
+
+def _run_uninstall_steps(feat: dict[str, object]) -> int:
     """The actual uninstall sequence — same split as _run_install_body."""
     check_cancelled()
     preflight_ok = run_preflight("uninstall")

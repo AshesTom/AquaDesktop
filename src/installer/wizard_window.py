@@ -5,16 +5,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 from pathlib import Path
 import json
+import math
+import time
 
-from PyQt6.QtCore import Qt, QEvent, QPointF, QRectF, QSize
-from PyQt6.QtGui import QColor, QFont, QPainter, QPainterPath, QLinearGradient, QPen, QPixmap, QPolygonF, QRegion
+from PyQt6.QtCore import Qt, QEvent, QPointF, QRectF, QSize, QTimer, QUrl
+from PyQt6.QtGui import QColor, QFont, QFontDatabase, QPainter, QPainterPath, QLinearGradient, QPalette, QPen, QPixmap, QPolygonF, QRegion
 from PyQt6.QtWidgets import (
-    QApplication, QButtonGroup, QCheckBox, QComboBox, QFileDialog, QFrame,
+    QApplication, QButtonGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QFrame,
     QGridLayout, QHBoxLayout, QLabel, QPlainTextEdit, QProgressBar, QPushButton,
-    QRadioButton, QScrollArea, QSizePolicy, QSpinBox, QToolButton, QVBoxLayout, QWidget,
+    QRadioButton, QScrollArea, QSizePolicy, QSpinBox, QVBoxLayout, QWidget,
 )
 
 from installer_choices import COLORS, defaults, validate
+from window_controls import button_svg
 
 ASSETS = Path(__file__).with_name("assets")
 ASSET_FILES = json.loads((ASSETS / "sources.json").read_text())
@@ -26,17 +29,19 @@ STEPS = (
     ("layout", "What would you like to add to your desktop?"),
     ("effects", "Which effects would you like to enable?"),
     ("window_controls", "Which window controls would you like?"),
+    ("button_position", "Where should the window buttons go?"),
     ("shadows", "Which window shadows would you like?"),
     ("fonts", "Which fonts would you like to use?"),
     ("firefox", "Apply the theme to Firefox?"),
     ("files", "Install Nautilus as your file manager?"),
+    ("glass_style", "Which window glass would you like?"),
     ("boot", "Change the boot animation?"),
     ("oled", "Enable OLED protection?"),
     ("summary", "Review your installation"),
 )
 
 
-def picture(name, width, height, other=None, *, cover=False):
+def picture(name, width, height, other=None, *, cover=False, crop=None):
     """Contain full screenshots; diagonal splits share the same canvas."""
     canvas = QPixmap(width*2, height*2)
     canvas.fill(Qt.GlobalColor.transparent)
@@ -46,9 +51,11 @@ def picture(name, width, height, other=None, *, cover=False):
     for index, filename in enumerate((name, other)):
         if not filename:
             continue
-        source = QPixmap(str(ASSETS / ASSET_FILES[filename]["file"]))
+        source = QPixmap(str(filename if isinstance(filename, Path) else ASSETS / ASSET_FILES[filename]["file"]))
         if source.isNull():
             continue
+        if crop is not None:
+            source = source.copy(*crop)
         fitted = source.scaled(width*2, height*2, Qt.AspectRatioMode.KeepAspectRatioByExpanding if cover else Qt.AspectRatioMode.KeepAspectRatio,
                                Qt.TransformationMode.SmoothTransformation)
         fitted.setDevicePixelRatio(2)
@@ -62,6 +69,35 @@ def picture(name, width, height, other=None, *, cover=False):
         painter.setPen(QPen(QColor("#baffffff"), 1))
         painter.drawLine(QPointF(width*.61, 0), QPointF(width*.39, height))
     painter.end()
+    canvas.setDevicePixelRatio(2)
+    return canvas
+
+
+def current_wallpaper_preview(width, height):
+    """Read the user's saved desktops without changing or capturing the desktop."""
+    from theme_switch import _wallpapers_from_config
+    images = []
+    for desktop in _wallpapers_from_config():
+        value = str(desktop["image"])
+        url = QUrl(value)
+        path = Path(url.toLocalFile() if url.isLocalFile() else value)
+        if path.is_dir():
+            candidates = [sorted((path / "contents" / folder).glob("*"))
+                          for folder in ("images", "images_dark")]
+            paths = [next((p for p in files if p.is_file() and not QPixmap(str(p)).isNull()), None)
+                     for files in candidates]
+        else:
+            paths = [path]
+            if path.parent.name in ("images", "images_dark"):
+                alternate = path.parent.parent / ("images_dark" if path.parent.name == "images" else "images") / path.name
+                paths = [path, alternate] if path.parent.name == "images" else [alternate, path]
+        for candidate in paths:
+            if candidate and candidate not in images and not QPixmap(str(candidate)).isNull():
+                images.append(candidate)
+    if images:
+        return picture(images[0], width, height, images[1] if len(images) > 1 else None, cover=True)
+    canvas = QPixmap(width * 2, height * 2)
+    canvas.fill(QApplication.palette().window().color())
     canvas.setDevicePixelRatio(2)
     return canvas
 
@@ -136,7 +172,58 @@ class GlassButton(QPushButton):
         self.update()
 
 
-class LanguageSelector(QComboBox):
+class DetailsButton(GlassButton):
+    def sizeHint(self):
+        return QSize(44, 30)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        paint_glass_control(self, painter, pressed=self.isDown())
+        painter.setPen(QPen(self.palette().text().color(), 1.5,
+                           Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+        x, y = self.width() / 2, self.height() / 2 - 1
+        direction = -1 if self.isChecked() else 1
+        painter.drawPolyline(QPolygonF([QPointF(x-4, y-direction*2),
+                                        QPointF(x, y+direction*2),
+                                        QPointF(x+4, y-direction*2)]))
+
+
+class ProgressSpinner(QWidget):
+    """A smooth circular progress arc, animated only while visible."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(24, 24)
+        self.frame = 0
+        self.timer = QTimer(self)
+        self.timer.setInterval(16)
+        self.timer.timeout.connect(self.tick)
+
+    def tick(self):
+        self.frame = (self.frame + 6) % 360
+        self.update()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.timer.start()
+
+    def hideEvent(self, event):
+        self.timer.stop()
+        super().hideEvent(event)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        ring = QRectF(3, 3, 18, 18)
+        color = QColor(self.palette().text().color())
+        color.setAlphaF(.12)
+        painter.setPen(QPen(color, 2.2))
+        painter.drawEllipse(ring)
+        color.setAlphaF(.85)
+        painter.setPen(QPen(color, 2.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+        painter.drawArc(ring, (90 - self.frame) * 16, -260 * 16)
+
+
+class GlassComboBox(QComboBox):
     def focusInEvent(self, event):
         self.keyboard_focus = event.reason() in (
             Qt.FocusReason.TabFocusReason, Qt.FocusReason.BacktabFocusReason,
@@ -145,7 +232,7 @@ class LanguageSelector(QComboBox):
         self.update()
 
     def sizeHint(self):
-        return QSize(self.fontMetrics().horizontalAdvance(self.currentText()) + 42, 32)
+        return QSize(max((self.fontMetrics().horizontalAdvance(self.itemText(i)) for i in range(self.count())), default=0) + 42, 32)
 
     def minimumSizeHint(self):
         return self.sizeHint()
@@ -155,11 +242,15 @@ class LanguageSelector(QComboBox):
         paint_glass_control(self, painter)
         painter.setPen(self.palette().text().color())
         painter.drawText(QRectF(12, 0, self.width()-36, self.height()),
-                         Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, self.currentText())
+                         Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, self.fontMetrics().elidedText(self.currentText(), Qt.TextElideMode.ElideRight, self.width()-36))
         x, y = self.width()-15, self.height()/2
         painter.setPen(QPen(self.palette().text().color(), 1.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
         painter.drawLine(QPointF(x-3, y-1.5), QPointF(x, y+1.5))
         painter.drawLine(QPointF(x, y+1.5), QPointF(x+3, y-1.5))
+
+
+class LanguageSelector(GlassComboBox):
+    pass
 
 
 class WindowLight(QPushButton):
@@ -182,6 +273,17 @@ class WindowLight(QPushButton):
                  "-backdrop-hover" if hover else "-backdrop")
         mode = "Dark" if dark else "Light"
         action = "restore" if self.action == "maximize" and self.window().isMaximized() else self.action
+        if self.window().choices["window_controls"] == "glassy":
+            svg_state = ("deactivated" if not self.isEnabled() else
+                         {"": "active", "-active": "pressed", "-hover": "hover",
+                          "-backdrop-hover": "hover-inactive", "-backdrop": "inactive"}[state])
+            key = ("glassy", mode, action, svg_state)
+            if key not in self._pixmaps:
+                pixmap = QPixmap()
+                pixmap.loadFromData(button_svg(action, mode, svg_state).encode(), "SVG")
+                self._pixmaps[key] = pixmap
+            painter.drawPixmap(self.rect(), self._pixmaps[key])
+            return
         filename = f"titlebutton-{action}{state}{'-dark' if dark else ''}@2.png"
         key = (mode, filename)
         if key not in self._pixmaps:
@@ -210,8 +312,9 @@ class WindowHeader(QWidget):
 
 class CheckOption(QCheckBox):
     """Keep native checkbox behavior with the same mark as selection cards."""
+    content_margin = 0
     def sizeHint(self):
-        return QSize(self.fontMetrics().horizontalAdvance(self.text())+26,
+        return QSize(self.fontMetrics().horizontalAdvance(self.text())+26+2*self.content_margin,
                      max(32, self.fontMetrics().height()+14))
 
     def hitButton(self, point):
@@ -220,6 +323,7 @@ class CheckOption(QCheckBox):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.translate(self.content_margin, 0)
         accent = QColor(self.window().accent)
         y = (self.height()-16)/2
         box = QRectF(1, y, 16, 16)
@@ -232,11 +336,30 @@ class CheckOption(QCheckBox):
             path = QPainterPath(QPointF(5, y+8)); path.lineTo(8, y+11); path.lineTo(13, y+5)
             painter.drawPath(path)
         painter.setPen(self.palette().text().color())
-        painter.drawText(QRectF(26, 0, self.width()-26, self.height()),
+        painter.drawText(QRectF(26, 0, self.width()-26-2*self.content_margin, self.height()),
                          Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, self.text())
 
 
+class GlassCheckOption(CheckOption):
+    content_margin = 12
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        paint_glass_control(self, painter, pressed=self.isDown())
+        painter.end()
+        super().paintEvent(event)
+
+    def enterEvent(self, event):
+        super().enterEvent(event)
+        self.update()
+
+    def leaveEvent(self, event):
+        super().leaveEvent(event)
+        self.update()
+
+
 class RadioOption(QRadioButton):
+    content_margin = 0
     sizeHint = CheckOption.sizeHint
     hitButton = CheckOption.hitButton
 
@@ -261,17 +384,18 @@ class StepDots(QWidget):
     def __init__(self):
         super().__init__()
         self.index = 1
+        self.count = len(STEPS) - 1
         self.setFixedSize(132, 20)
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.setPen(Qt.PenStyle.NoPen)
-        for index in range(1, len(STEPS)):
+        for index in range(1, self.count + 1):
             active = index == self.index
             painter.setBrush(self.palette().windowText() if active else self.palette().mid())
             radius = 3 if active else 2
-            painter.drawEllipse(QPointF(5 + (index - 1) * 11, 10), radius, radius)
+            painter.drawEllipse(QPointF(5 + (index - 1) * (self.width() - 10) / max(1, self.count - 1), 10), radius, radius)
 
 
 class PreviewImage(QWidget):
@@ -416,10 +540,56 @@ class PageScrollArea(QScrollArea):
         painter.fillRect(event.rect(), color)
 
 
+def installer_palette(dark):
+    """The wizard owns its colors; desktop settings only select light or dark."""
+    palette = QPalette(QApplication.style().standardPalette())
+    colors = {
+        QPalette.ColorRole.Window: "#292929" if dark else "#f6f6f6",
+        QPalette.ColorRole.Base: "#333333" if dark else "#ffffff",
+        QPalette.ColorRole.AlternateBase: "#383838" if dark else "#eeeeee",
+        QPalette.ColorRole.Button: "#333333" if dark else "#f6f6f6",
+        QPalette.ColorRole.WindowText: "#eeeeee" if dark else "#292929",
+        QPalette.ColorRole.Text: "#eeeeee" if dark else "#292929",
+        QPalette.ColorRole.ButtonText: "#eeeeee" if dark else "#292929",
+        QPalette.ColorRole.ToolTipBase: "#333333" if dark else "#ffffff",
+        QPalette.ColorRole.ToolTipText: "#eeeeee" if dark else "#292929",
+        QPalette.ColorRole.Highlight: "#007aff",
+        QPalette.ColorRole.HighlightedText: "#ffffff",
+        QPalette.ColorRole.Link: "#007aff",
+        QPalette.ColorRole.LinkVisited: "#af52de",
+        QPalette.ColorRole.Mid: "#626262" if dark else "#c9c9c9",
+        QPalette.ColorRole.Light: "#626262" if dark else "#ffffff",
+        QPalette.ColorRole.Dark: "#191919" if dark else "#a0a0a0",
+        QPalette.ColorRole.Shadow: "#121212" if dark else "#686868",
+        QPalette.ColorRole.PlaceholderText: "#bcbcbc" if dark else "#686868",
+    }
+    for role, color in colors.items():
+        palette.setColor(role, QColor(color))
+    for role in (QPalette.ColorRole.WindowText, QPalette.ColorRole.Text, QPalette.ColorRole.ButtonText):
+        palette.setColor(QPalette.ColorGroup.Disabled, role, QColor("#aaaaaa" if dark else "#777777"))
+    return palette
+
+
 class InstallerWindow(OpaqueSurface):
     def __init__(self, bridge, *, uninstall=False):
+        # Fusion ships with Qt. Use it only in this installer process so native
+        # controls cannot acquire Breeze/Kvantum geometry or transparent fills.
+        app = QApplication.instance()
+        desktop_palette = QPalette(app.palette())
+        desktop_font = QFont(app.font())
+        dark = desktop_palette.window().color().lightnessF() <= .5
+        app.setStyle("Fusion")
+        app.setPalette(installer_palette(dark))
+        app.setFont(desktop_font)
         super().__init__()
+        self.setPalette(installer_palette(dark))
         self.bridge = bridge
+        self._log_font = QFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
+        self._operation_started = None
+        self._details_expanded = False
+        self._eta_timer = QTimer(self)
+        self._eta_timer.setInterval(1000)
+        self._eta_timer.timeout.connect(self.refresh_progress)
         self.defaults = defaults()
         self.choices = dict(self.defaults)
         from cli import _theme_is_already_installed
@@ -438,8 +608,8 @@ class InstallerWindow(OpaqueSurface):
         # Use the system face and scale its hierarchy together with accessibility settings.
         self.setFont(relative_font(self, 7/6))
         self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
-        self.resize(820, 606)
-        self.setMinimumSize(820, 606)
+        self.resize(900, 680)
+        self.setMinimumSize(820, 640)
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
@@ -597,6 +767,8 @@ class InstallerWindow(OpaqueSurface):
 
     def select(self, key, value):
         self.choices[key] = value
+        if key == "window_controls":
+            self.refresh_window_controls()
         controls = self.choice_widgets.get(key, [])
         groups = {button.group() for _, button in controls if button.group()}
         for group in groups:
@@ -615,12 +787,13 @@ class InstallerWindow(OpaqueSurface):
                 self.glass_preview.update()
                 self.accent_preview.setPixmap(picture(
                     f"accent-{self.asset_edition}-{self.mode}-{value}.jpg", 236, 133))
-            elif key == "icons":
-                self.icon_caption.setText(self.t("Icons, selections, top bar and Dock."
-                                                if value == "glass" else "Selections, top bar and Dock."))
         elif self.page == "wallpaper" and key == "wallpaper":
             self.wallpaper_filename.setText(Path(self.choices["wallpaper_path"]).name)
             self.wallpaper_filename.setVisible(value == "custom")
+        elif self.page == "layout" and key == "dock":
+            button = self.content.findChild(QPushButton, "edit-dock-apps")
+            if button:
+                button.setEnabled(value)
         elif self.page == "files" and key == "files":
             self.bookmarks.setVisible(value == "nautilus")
         elif self.page == "oled" and key == "oled_care":
@@ -696,9 +869,12 @@ class InstallerWindow(OpaqueSurface):
             self.setUpdatesEnabled(updates_enabled)
 
     def _render(self):
+        # Qt stylesheets can resolve child palettes from the application rather
+        # than their parent. Keep that application-local palette consistent too.
+        QApplication.setPalette(self.palette())
         focused = QApplication.focusWidget()
         focus_name = focused.objectName() if focused else ""
-        # Follow the desktop appearance; the installation choices affect previews only.
+        # Keep the opening light/dark appearance; installation choices affect previews only.
         self.accent = "#007aff"
         light = self.window().palette().window().color().lightnessF() > .5
         surface, footer = ("#f6f6f6", "#eeeeee") if light else ("#292929", "#242424")
@@ -745,16 +921,18 @@ class InstallerWindow(OpaqueSurface):
         getattr(self, "page_" + self.page)()
         self.body.addStretch()
         self.scroll.setWidget(self.content)
-        index = next((i for i, item in enumerate(STEPS) if item[0] == self.page), -1)
+        visible_steps = [item for item in STEPS if item[0] != "glass_style" or self.show_glass_style()]
+        index = next((i for i, item in enumerate(visible_steps) if item[0] == self.page), -1)
         self.version_label.setVisible(self.page == "welcome")
         self.welcome_actions.setVisible(self.page == "welcome")
         self.express.setText(self.t("Express install"))
         self.express.setToolTip(self.t("Use the defaults and review before installing."))
         self.express.setEnabled(not self.updating and not self.bridge.running)
         self.dots.setVisible(0 < index < len(STEPS))
+        self.dots.count = len(visible_steps) - 1
         self.dots.index = index
         self.dots.update()
-        self.dots.setAccessibleName(self.t("Step") + f" {index}/{len(STEPS)-1}")
+        self.dots.setAccessibleName(self.t("Step") + f" {index}/{len(visible_steps)-1}")
         self.back.setVisible(self.page not in ("progress", "done", "removed"))
         self.back.setText(self.t("Uninstall" if self.page == "welcome" else "Back"))
         self.next.setText(self.t(
@@ -794,7 +972,7 @@ class InstallerWindow(OpaqueSurface):
         self.body.addSpacing(28)
         stem = f"desktop-{self.asset_edition}-"
         self.cards("appearance", [
-            ("auto", "Automatic", "Light by day, dark at night.", picture(stem+"light.jpg", 232, 131, stem+"dark.jpg")),
+            ("auto", "Auto", "", picture(stem+"light.jpg", 232, 131, stem+"dark.jpg")),
             ("light", "Light", "", picture(stem+"light.jpg", 232, 131)),
             ("dark", "Dark", "", picture(stem+"dark.jpg", 232, 131)),
         ], columns=3)
@@ -856,10 +1034,7 @@ class InstallerWindow(OpaqueSurface):
             swatches.addWidget(button)
         swatches.addStretch()
         controls.addLayout(swatches)
-        caption = self.label("Icons, selections, top bar and Dock." if self.choices["icons"] == "glass" else "Selections, top bar and Dock.")
-        caption.setFont(relative_font(self, .79)); caption.setObjectName("detail")
-        self.icon_caption = caption
-        controls.addWidget(caption); controls.addStretch(); row.addLayout(controls, 1)
+        controls.addStretch(); row.addLayout(controls, 1)
         self.accent_preview = self.image(f"accent-{self.asset_edition}-{self.mode}-{self.choices['color']}.jpg", 236, 133)
         row.addWidget(self.accent_preview)
         self.body.addLayout(row)
@@ -869,17 +1044,14 @@ class InstallerWindow(OpaqueSurface):
         return "dark" if self.choices["appearance"] == "dark" else "light"
 
     def page_wallpaper(self):
-        group = self.cards("wallpaper", [(key, label, "", picture(key+".jpg", 362, 112, key+"-dark.jpg", cover=True))
-                   for key, label in (("tahoe", "Tahoe"), ("golden", "Golden Gate"),
-                                      ("landscape", "Landscape"), ("sonoma", "Sonoma"))], compact=True)
+        items = [(key, label, "", picture(key+".jpg", 170, 112, key+"-dark.jpg", cover=True))
+                 for key, label in (("tahoe", "Tahoe"), ("golden", "Golden Gate"),
+                                    ("landscape", "Landscape"), ("sonoma", "Sonoma"),
+                                    ("prism", "Prism"), ("macos", "Monterey"))]
+        items.append(("keep", "Keep my wallpaper", "", current_wallpaper_preview(170, 112)))
+        self.cards("wallpaper", items, columns=4, compact=True)
         row = QHBoxLayout()
-        keep = RadioOption(self.t("Keep my wallpaper"))
-        keep.setFont(relative_font(self, .93))
-        keep.setChecked(self.choices["wallpaper"] == "keep")
-        group.addButton(keep)
-        self.bind_choice("wallpaper", "keep", keep)
-        keep.clicked.connect(lambda: self.select("wallpaper", "keep"))
-        row.addWidget(keep); row.addStretch()
+        row.addStretch()
         button = QPushButton(self.t("Choose a file…")); button.clicked.connect(self.choose_file)
         button.setObjectName("textLink")
         row.addWidget(button); self.body.addLayout(row)
@@ -914,6 +1086,106 @@ class InstallerWindow(OpaqueSurface):
                 card.setEnabled(not self.existing_install or self.choices["reset_layout"])
         reset.toggled.connect(enable_layout_options)
         enable_layout_options()
+        self.dock_app_options()
+
+    def dock_app_options(self):
+        button = GlassButton(self.t("Dock apps…"))
+        button.setObjectName("edit-dock-apps")
+        button.setEnabled(self.choices["dock"])
+        button.clicked.connect(self.edit_dock_apps)
+        self.body.addWidget(button, 0, Qt.AlignmentFlag.AlignLeft)
+
+    def edit_dock_apps(self):
+        from dock_apps import OPTIONAL, LABELS, installed_apps, recommendation
+        choices = self.choices.copy()
+        choices["dock_apps"] = list(choices["dock_apps"])
+        installed = installed_apps()
+        dialog = QDialog(self)
+        # Custom checkbox painting uses the colors of its containing window.
+        # A modal QDialog is a separate window even with the wizard as parent.
+        dialog.setPalette(self.palette())
+        dialog.setAutoFillBackground(True)
+        dialog.accent = self.accent
+        dialog.line = self.line
+        dialog.setWindowTitle(self.t("Dock apps"))
+        dialog.setMinimumWidth(620)
+        body = QVBoxLayout(dialog)
+        body.addWidget(self.label("Dock appearance"))
+        appearance = GlassComboBox()
+        appearance.setObjectName("dock-appearance")
+        for key, label in (("auto", "Automatic"), ("keep", "Keep current Dock icons"), ("macos", "macOS-style Dock icons"), ("native", "Application icons")):
+            appearance.addItem(self.t(label), key)
+        appearance.setCurrentIndex(appearance.findData(choices["dock_appearance"]))
+        appearance.setEnabled(choices["dock"])
+        appearance.currentIndexChanged.connect(lambda: choices.update(dock_appearance=appearance.currentData()))
+        body.addWidget(appearance)
+        body.addWidget(self.label("Only Dock icons change. Your apps, pin order and desktop icon theme stay the same."))
+
+        intro = self.label("Installed equivalents are reused. Select only the missing apps you want to install.")
+        body.addWidget(intro)
+        source = GlassComboBox()
+        source.setObjectName("dock-apps-source")
+        source.addItem(self.t("Distribution repositories"), "native")
+        source.addItem(self.t("Flatpak for my user (installs Flatpak if needed)"), "flatpak")
+        source.setCurrentIndex(0 if choices["dock_apps_source"] == "native" else 1)
+        body.addWidget(source)
+        remote = GlassCheckOption(self.t("Allow adding Flathub for my user if it is missing"))
+        remote.setObjectName("dock-add-flathub")
+        remote.setChecked(choices["dock_add_flathub"])
+        remote.toggled.connect(lambda checked: choices.update(dock_add_flathub=checked))
+        body.addWidget(remote)
+        flatpak_note = self.label("Flatpak apps may use their own appearance. No system remote is changed.")
+        body.addWidget(flatpak_note)
+        options = {}
+        for category in OPTIONAL:
+            option = GlassCheckOption("")
+            option.setObjectName("dock-app-" + category)
+            option.setFont(relative_font(self, .93))
+            def choose(checked, key=category):
+                chosen = set(choices["dock_apps"])
+                chosen.add(key) if checked else chosen.discard(key)
+                choices["dock_apps"] = [key for key in OPTIONAL if key in chosen]
+            option.toggled.connect(choose)
+            options[category] = option
+            body.addWidget(option)
+        def refresh():
+            choices["dock_apps_source"] = source.currentData()
+            remote.setVisible(source.currentData() == "flatpak")
+            flatpak_note.setVisible(source.currentData() == "flatpak")
+            for category, option in options.items():
+                proposal = recommendation(category, source.currentData())
+                existing = installed.get(category)
+                title = self.t(LABELS[category]) + " — "
+                if existing:
+                    title += existing + " · " + self.t("Installed")
+                elif proposal:
+                    title += proposal[0] + " (" + proposal[1] + ")"
+                else:
+                    title += self.t("Unavailable from this source")
+                option.setText(title)
+                option.setEnabled(bool(proposal) and not existing)
+                option.setChecked(category in choices["dock_apps"] and option.isEnabled())
+            # Already-unchecked controls do not emit toggled when a saved
+            # selection becomes installed or unavailable on reopening.
+            choices["dock_apps"] = [key for key, option in options.items() if option.isChecked()]
+        source.currentIndexChanged.connect(refresh)
+        refresh()
+        body.addWidget(self.label("Availability is checked during installation. Failed apps remain pending; removing the theme keeps your apps."))
+        buttons = QDialogButtonBox()
+        accept = GlassButton(self.t("Continue"))
+        accept.setObjectName("dock-apps-continue")
+        accept.setDefault(True)
+        cancel = GlassButton(self.t("Cancel"))
+        cancel.setObjectName("dock-apps-cancel")
+        buttons.addButton(accept, QDialogButtonBox.ButtonRole.AcceptRole)
+        buttons.addButton(cancel, QDialogButtonBox.ButtonRole.RejectRole)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        body.addWidget(buttons)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            for key in ("dock_apps", "dock_apps_source", "dock_add_flathub", "dock_appearance"):
+                self.choices[key] = choices[key]
+            self.render()
 
     def corner_sample(self):
         source = QPixmap(str(ASSETS / ASSET_FILES["corners.jpg"]["file"]))
@@ -938,13 +1210,80 @@ class InstallerWindow(OpaqueSurface):
         ])
         self.body.addWidget(self.label("Close, minimize and maximize buttons."))
 
+    def button_position_sample(self, position):
+        dark = self.mode == "dark"
+        mode = "Dark" if dark else "Light"
+        style = self.choices["window_controls"]
+        width, height, size = 232, 96, 14
+        canvas = QPixmap(width*2, height*2)
+        canvas.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(canvas)
+        painter.scale(2, 2)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor("#1f2024" if dark else "#d7dae0"))
+        painter.drawRect(0, 0, width, height)
+        window = QRectF(18, 18, width-36, height-30)
+        painter.setPen(QPen(QColor(255, 255, 255, 34) if dark else QColor(0, 0, 0, 40), .75))
+        painter.setBrush(QColor("#2d2e32" if dark else "#fafafa"))
+        painter.drawRoundedRect(window, 9, 9)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(255, 255, 255, 18) if dark else QColor(0, 0, 0, 22))
+        painter.drawRoundedRect(QRectF(width/2-18, 27, 36, 6), 3, 3)
+        for row in range(3):
+            painter.drawRoundedRect(QRectF(32, 50 + row*11, (width-64) * (.82, .6, .72)[row], 5), 2.5, 2.5)
+        order = ("minimize", "maximize", "close") if position == "right" else ("close", "minimize", "maximize")
+        for index, action in enumerate(order):
+            left = window.left() + 14 + index * 21
+            right = window.right() - 14 - size - (2 - index) * 21
+            target = QRectF(right if position == "right" else left, 30 - size/2, size, size)
+            if position == "keep":
+                painter.setBrush(QColor(255, 255, 255, 46) if dark else QColor(0, 0, 0, 38))
+                for x in (left, right):
+                    painter.drawEllipse(QRectF(x, 30 - size/2, size, size).adjusted(1, 1, -1, -1))
+                continue
+            pixmap = QPixmap()
+            if style == "glassy":
+                pixmap.loadFromData(button_svg(action, mode, "active").encode(), "SVG")
+            else:
+                asset = (Path(__file__).resolve().parents[1] / "offline/gtk" / f"MacTahoeLiquidKde-{mode}" /
+                         "gtk-4.0/windows-assets" / f"titlebutton-{action}{'-dark' if dark else ''}@2.png")
+                pixmap.load(str(asset))
+            painter.drawPixmap(target, pixmap, QRectF(pixmap.rect()))
+        painter.end()
+        canvas.setDevicePixelRatio(2)
+        return canvas
+
+    def page_button_position(self):
+        self.cards("button_position", [
+            ("left", "Left", "Close, minimize, maximize.", self.button_position_sample("left")),
+            ("right", "Right", "Minimize, maximize, close.", self.button_position_sample("right")),
+            ("keep", "Keep my layout", "Leave the buttons unchanged.", self.button_position_sample("keep")),
+        ], columns=3)
+        self.body.addWidget(self.label("Close, minimize and maximize buttons."))
+
+    def page_glass_style(self):
+        mode = self.mode
+        automatic = self.choices["appearance"] == "auto"
+        self.cards("glass_style", [
+            (key, title, "", picture(f"glass-preset-{preset}-{mode}.png",
+                                     232, 220,
+                                     f"glass-preset-{preset}-dark.png" if automatic else None,
+                                     cover=True, crop=(820, 300, 1280, 1214)))
+            for key, title, preset in (
+                ("classic", "Tahoe (Clear)", "tahoe-clear"),
+                ("tinted", "Tahoe (Frosted)", "tahoe-frosted"),
+                ("official", "Golden Gate (Official)", "golden-gate-official"),
+            )
+        ], columns=3)
+
     def page_shadows(self):
         self.cards("shadows", [
             (level, label, "", picture(f"window-shadows-{level}-{self.mode}.png", 362, 116))
             for level, label in (("none", "None"), ("soft", "Soft"),
                                  ("medium", "Medium"), ("hard", "Hard"))
         ], compact=True)
-        self.body.addWidget(self.label("Applies to the theme's window decorations and GTK windows."))
 
     def page_fonts(self):
         self.cards("fonts", [
@@ -1011,6 +1350,16 @@ class InstallerWindow(OpaqueSurface):
             spin.setFixedWidth(80)
             row.addWidget(spin); row.addStretch(); self.body.addLayout(row)
 
+    def dock_app_summary(self):
+        from dock_apps import recommendation
+        names = [recommendation(key, self.choices["dock_apps_source"])
+                 for key in self.choices["dock_apps"]] if self.choices["dock"] else []
+        selected = ", ".join(item[0] for item in names if item)
+        if not selected:
+            return self.t("Use installed apps only")
+        source = self.t("Distribution repositories") if self.choices["dock_apps_source"] == "native" else "Flatpak"
+        return selected + " · " + source
+
     def page_summary(self):
         self.body.setSpacing(8)
         grid = QGridLayout()
@@ -1019,8 +1368,10 @@ class InstallerWindow(OpaqueSurface):
         c = self.choices
         names = {"auto": "Automatic", "light": "Light", "dark": "Dark", "regular": "Regular",
                  "glass": "Glass", "keep": "Keep", "golden": "Golden Gate", "tahoe": "Tahoe",
-                 "landscape": "Landscape", "sonoma": "Sonoma", "custom": "Custom file",
-                 "nautilus": "Nautilus", "dolphin": "Dolphin"}
+                 "landscape": "Landscape", "sonoma": "Sonoma", "macos": "Monterey", "custom": "Custom file",
+                 "nautilus": "Nautilus", "dolphin": "Dolphin",
+                 "classic": "Tahoe (Clear)", "tinted": "Tahoe (Frosted)",
+                 "official": "Golden Gate (Official)"}
         value = lambda key: self.t(names.get(str(c[key]), str(c[key]).capitalize()))
         enabled = lambda key: self.t("Enabled" if c[key] else "Disabled")
         desktop = " + ".join(self.t(label) for key, label in (("panel", "Top bar"), ("dock", "Dock")) if c[key])
@@ -1037,12 +1388,16 @@ class InstallerWindow(OpaqueSurface):
             ("wallpaper", "Background", value("wallpaper"), "wallpaper"),
             ("launcher", "Launcher", self.t("Keep") if keep_layout else value("launcher"), "launcher"),
             ("panel", "Desktop", desktop or self.t("Keep"), "layout"),
+            ("dock_apps", "Dock apps", self.dock_app_summary() + (" · " + self.t("macOS-style Dock icons" if c["dock_appearance"] == "macos" else "Application icons") if c["dock"] and c["dock_appearance"] not in ("auto", "keep") else ""), "layout"),
             ("acrylic_glass", "Effects", effects or self.t("Disabled"), "effects"),
             ("window_controls", "Window controls", value("window_controls"), "window_controls"),
+            ("button_position", "Window buttons", value("button_position"), "button_position"),
             ("shadows", "Window shadows", value("shadows"), "shadows"),
             ("fonts", "Fonts", self.t("Theme fonts" if c["fonts"] else "Keep"), "fonts"),
             ("firefox", "Firefox", enabled("firefox"), "firefox"),
             ("files", "Files", self.t("Keep my file manager") if c["files"] == "keep" else value("files"), "files"),
+            *((("glass_style", "Glass", value("glass_style"), "glass_style"),)
+              if self.show_glass_style() else ()),
             ("plymouth", "Boot", enabled("plymouth"), "boot"),
             ("oled_care", "OLED", enabled("oled_care"), "oled"),
         )
@@ -1050,7 +1405,7 @@ class InstallerWindow(OpaqueSurface):
             entry = QWidget()
             entry.setObjectName("summaryEntry")
             entry.setStyleSheet(f"QWidget#summaryEntry {{ border-bottom: 1px solid {self.line}; }}")
-            row = QHBoxLayout(entry); row.setContentsMargins(0, 6, 0, 6); row.setSpacing(12)
+            row = QHBoxLayout(entry); row.setContentsMargins(0, 2, 0, 2); row.setSpacing(12)
             label = self.label(title); label.setObjectName("detail"); label.setFixedWidth(94)
             label.setFont(relative_font(self, .86)); row.addWidget(label)
             choice = self.label(text); choice.setFont(relative_font(self, .86)); row.addWidget(choice, 1)
@@ -1061,51 +1416,89 @@ class InstallerWindow(OpaqueSurface):
             button.clicked.connect(lambda _, page=step: self.edit(page)); row.addWidget(button)
             grid.addWidget(entry, i//2, i%2)
         self.body.addLayout(grid)
-        self.separator()
-        title = self.label("Included with the theme")
-        title.setFont(relative_font(self, .93, QFont.Weight.Bold)); self.body.addWidget(title)
-        included = self.label("Global menu, window theme, cursors, sounds, Qt and GTK styles and file dialogs.")
-        included.setObjectName("detail")
-        included.setFont(relative_font(self, .86)); self.body.addWidget(included)
-        note = self.label("The theme is applied immediately when installation finishes.")
-        note.setFont(relative_font(self, .86)); self.body.addWidget(note)
+
 
     def edit(self, page):
         self.editing = True; self.page = page; self.render()
 
     def details(self):
-        toggle = QToolButton()
-        toggle.setText(self.t("Installation details"))
-        toggle.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-        toggle.setArrowType(Qt.ArrowType.RightArrow)
-        toggle.setCheckable(True)
-        toggle.setAutoRaise(True)
-        self.body.addWidget(toggle, 0, Qt.AlignmentFlag.AlignLeft)
-        self.log = QPlainTextEdit(self.bridge.logTail()); self.log.setReadOnly(True)
+        self.details_toggle = DetailsButton()
+        self.details_toggle.setObjectName("detailsToggle")
+        self.details_toggle.setCheckable(True)
+        self.body.addWidget(self.details_toggle, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.log = QPlainTextEdit(self.bridge.logTail())
+        self.log.setObjectName("installationLog")
+        self.log.setReadOnly(True)
         self.log.setAccessibleName(self.t("Installation details"))
-        self.log.setMinimumHeight(110)
+        self.log.setFont(self._log_font)
+        self.log.document().setDefaultFont(self._log_font)
+        self.log.setMaximumBlockCount(2000)
+        # Explicit font properties survive theme/font changes during installation.
+        family = self._log_font.family().replace("\\", "\\\\").replace('"', '\\"')
+        size = self._log_font.pointSizeF()
+        font_size = f"{size}pt" if size > 0 else f"{self._log_font.pixelSize()}px"
+        self.log.setStyleSheet(f'''
+            QPlainTextEdit {{ background: #191b20; color: #d6dae1;
+                border: 1px solid #343740; border-radius: 10px; padding: 12px;
+                font-family: "{family}"; font-size: {font_size};
+                font-weight: normal; font-style: normal;
+                selection-background-color: #36577c; selection-color: #ffffff; }}
+        ''')
+        self.log.setFixedHeight(190)
         self.body.addWidget(self.log)
-        self.log.hide()
         def expanded(value):
+            self._details_expanded = value
             self.log.setVisible(value)
-            toggle.setArrowType(Qt.ArrowType.DownArrow if value else Qt.ArrowType.RightArrow)
-        toggle.toggled.connect(expanded)
+            title = self.t("Hide installation details" if value else "Show installation details")
+            self.details_toggle.setAccessibleName(title)
+            self.details_toggle.setToolTip(title)
+            self.details_toggle.update()
+        self.details_toggle.toggled.connect(expanded)
+        self.details_toggle.setChecked(self._details_expanded)
+        expanded(self._details_expanded)
 
     def page_progress(self):
-        self.body.addWidget(self.label("Uninstalling…" if self.action == "uninstall" else "Installing…", heading=True))
-        self.body.addSpacing(60)
-        self.step_label = self.label(self.bridge.currentStep or self.t("Preparing…"))
-        self.body.addWidget(self.step_label)
-        self.progress = QProgressBar(); self.progress.setRange(0, 1000)
-        self.progress.setTextVisible(False); self.body.addWidget(self.progress)
-        self.body.addSpacing(12)
+        self.body.addSpacing(95)
+        row = QHBoxLayout()
+        row.setContentsMargins(60, 0, 60, 0)
+        row.setSpacing(12)
+        self.spinner = ProgressSpinner()
+        self.spinner.setAccessibleName(self.t("Uninstalling…" if self.action == "uninstall" else "Installing…"))
+        row.addWidget(self.spinner)
+        self.progress = QProgressBar()
+        self.progress.setRange(0, 1000)
+        self.progress.setAccessibleName(self.spinner.accessibleName())
+        self.progress.setTextVisible(False)
+        row.addWidget(self.progress, 1)
+        self.body.addLayout(row)
+        self.remaining_label = self.label("Estimating time remaining…")
+        self.remaining_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.body.addWidget(self.remaining_label)
         self.details()
+        self._eta_timer.start()
         self.refresh_progress()
 
     def refresh_progress(self):
-        if self.page == "progress" and hasattr(self, "progress"):
-            self.progress.setValue(round(self.bridge.progress * 1000))
-            self.step_label.setText(self.bridge.currentStep or self.t("Preparing…"))
+        if self.page != "progress" or not hasattr(self, "progress"):
+            self._eta_timer.stop()
+            return
+        fraction = max(0.0, min(1.0, self.bridge.progress))
+        self.progress.setValue(round(fraction * 1000))
+        self.progress.setAccessibleDescription(self.bridge.currentStep)
+        elapsed = time.monotonic() - self._operation_started if self._operation_started is not None else 0
+        if fraction >= 1:
+            message = self.t("Finishing…")
+        elif elapsed < 15 or fraction < .02:
+            message = self.t("Estimating time remaining…")
+        else:
+            seconds = elapsed * (1 - fraction) / fraction
+            if seconds < 60:
+                message = self.t("Less than a minute remaining")
+            else:
+                minutes = math.ceil(seconds / 60)
+                message = (self.t("About a minute remaining") if minutes == 1 else
+                           self.t("About {minutes} minutes remaining").format(minutes=minutes))
+        self.remaining_label.setText(message)
 
     def append_log(self, text):
         if self.page == "progress" and hasattr(self, "log"):
@@ -1159,7 +1552,12 @@ class InstallerWindow(OpaqueSurface):
         else:
             index = [item[0] for item in STEPS].index(self.page)
             self.page = STEPS[max(0, index-1)][0]
+            if self.page == "glass_style" and not self.show_glass_style():
+                self.page = "files"
         self.render()
+
+    def show_glass_style(self):
+        return self.choices["files"] == "nautilus" and self.choices["acrylic_glass"]
 
     def advance(self):
         if self.editing:
@@ -1172,13 +1570,18 @@ class InstallerWindow(OpaqueSurface):
             if self.page != "error":
                 self.action = "uninstall" if self.page == "uninstall" else "install"
             self.bridge.setChoices(validate(self.choices))
+            self._operation_started = time.monotonic()
+            self._details_expanded = False
             self.page = "progress"; self.render(); self.bridge.start(self.action); return
         else:
             index = [item[0] for item in STEPS].index(self.page)
             self.page = STEPS[index+1][0]
+            if self.page == "glass_style" and not self.show_glass_style():
+                self.page = "boot"
         self.render()
 
     def finished(self, code):
+        self._eta_timer.stop()
         if self.close_pending:
             self.close(); return
         self.next.setEnabled(True)

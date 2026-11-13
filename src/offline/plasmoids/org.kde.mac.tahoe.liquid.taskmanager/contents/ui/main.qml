@@ -23,7 +23,6 @@ import org.kde.mac.tahoe.launcher as NativeLauncher
 import org.kde.plasma.workspace.dbus as DBus
 import "LayoutMetrics.js" as LayoutMetrics
 import "TaskTools.js" as TaskTools
-import org.kde.mac.tahoe.liquid.dockzoom
 
 PlasmoidItem {
     id: tasks
@@ -37,9 +36,6 @@ PlasmoidItem {
     readonly property bool shouldShrinkToZero: tasksModel.count === 0
     readonly property bool vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
     readonly property bool iconsOnly: Plasmoid.pluginName === "org.kde.mac.tahoe.liquid.icontasks"
-    // The Dock's minimized-windows section (before the Trash): one window
-    // thumbnail per minimized window, like macOS.
-    readonly property bool minimizedShelf: iconsOnly && Plasmoid.configuration.showOnlyMinimized
 
     property Task toolTipOpenedByClick
     property Task toolTipAreaItem
@@ -61,17 +57,37 @@ PlasmoidItem {
         }
     }
 
+    NativeLauncher.DockCell {
+        applet: tasks
+        active: iconsOnly && (Plasmoid.formFactor === PlasmaCore.Types.Horizontal
+            || Plasmoid.formFactor === PlasmaCore.Types.Vertical)
+        vertical: tasks.vertical
+        taskManager: true
+        count: tasks.vertical ? taskList.rows : taskList.columns
+        spacing: tasks.vertical ? taskList.rowSpacing : taskList.columnSpacing
+    }
+
     Layout.fillWidth: vertical ? true : Plasmoid.configuration.fill
     Layout.fillHeight: !vertical ? true : Plasmoid.configuration.fill
+    Layout.maximumWidth: iconsOnly && !vertical ? taskList.Layout.maximumWidth : Infinity
+    Layout.maximumHeight: iconsOnly && vertical ? taskList.Layout.maximumHeight : Infinity
     Layout.minimumWidth: {
         if (shouldShrinkToZero) {
             return Kirigami.Units.gridUnit; // For edit mode
+        }
+        if (iconsOnly && !vertical) {
+            return taskList.columns * Kirigami.Units.iconSizes.small
+                + Math.max(0, taskList.columns - 1) * taskList.columnSpacing;
         }
         return vertical ? 0 : LayoutMetrics.preferredMinWidth();
     }
     Layout.minimumHeight: {
         if (shouldShrinkToZero) {
             return Kirigami.Units.gridUnit; // For edit mode
+        }
+        if (iconsOnly && vertical) {
+            return taskList.rows * Kirigami.Units.iconSizes.small
+                + Math.max(0, taskList.rows - 1) * taskList.rowSpacing;
         }
         return !vertical ? 0 : LayoutMetrics.preferredMinHeight();
     }
@@ -100,8 +116,6 @@ PlasmoidItem {
     property Item dragSource
 
     signal requestLayout
-    // A window delegate appeared: its app's launch bounce is over (Task.qml).
-    signal appWindowOpened(launcherUrl: string)
 
     onDragSourceChanged: {
         if (dragSource === null) {
@@ -185,8 +199,7 @@ PlasmoidItem {
             return true;
         }
 
-        groupMode: tasks.minimizedShelf ? TaskManager.TasksModel.GroupDisabled
-            : groupModeEnumValue(Plasmoid.configuration.groupingStrategy)
+        groupMode: groupModeEnumValue(Plasmoid.configuration.groupingStrategy)
         groupInline: !Plasmoid.configuration.groupPopups && !tasks.iconsOnly
         groupingWindowTasksThreshold: (Plasmoid.configuration.onlyGroupWhenFull && !tasks.iconsOnly
             ? LayoutMetrics.optimumCapacity(tasks.width, tasks.height) + 1 : -1)
@@ -329,16 +342,8 @@ PlasmoidItem {
         Binding {
             target: Plasmoid
             property: "status"
-            value: {
-                // With nothing minimized, the Dock's minimized-windows section
-                // leaves the Dock entirely (the panel still shows hidden
-                // applets in edit mode).
-                if (tasks.minimizedShelf && tasks.shouldShrinkToZero) {
-                    return PlasmaCore.Types.HiddenStatus;
-                }
-                return tasksModel.anyTaskDemandsAttention && Plasmoid.configuration.unhideOnAttention
-                    ? PlasmaCore.Types.NeedsAttentionStatus : PlasmaCore.Types.PassiveStatus;
-            }
+            value: (tasksModel.anyTaskDemandsAttention && Plasmoid.configuration.unhideOnAttention
+                ? PlasmaCore.Types.NeedsAttentionStatus : PlasmaCore.Types.PassiveStatus)
             restoreMode: Binding.RestoreBinding
         }
 
@@ -370,19 +375,6 @@ PlasmoidItem {
             Drag.onDragFinished: dropAction => {
                 tasks.dragSource = null;
             }
-        }
-
-        // Parabolic Dock magnification, shared with the other Dock widgets.
-        DockZoomTracker {
-            horizontal: !tasks.vertical && tasks.iconsOnly
-        }
-
-        Binding {
-            target: DockZoom
-            property: "magnification"
-            // The minimized-windows instance follows the main Dock setting.
-            when: tasks.iconsOnly && !Plasmoid.configuration.showOnlyMinimized
-            value: Math.max(1, Math.min(2, Plasmoid.configuration.dockMagnification / 100))
         }
 
         KSvg.FrameSvgItem {
@@ -476,21 +468,21 @@ PlasmoidItem {
 
                 Layout.maximumWidth: {
                     const totalMaxWidth = children.reduce((accumulator, child) => {
-                            if (!isFinite(child.Layout.maximumWidth)) {
+                            if (!isFinite(child.Layout.maximumWidth) || child.Layout.maximumWidth <= 0) {
                                 return accumulator;
                             }
                             return accumulator + child.Layout.maximumWidth
                         }, 0);
-                    return Math.round(totalMaxWidth / widthOccupation);
+                    return Math.round(totalMaxWidth / widthOccupation) + Math.max(0, columns - 1) * columnSpacing;
                 }
                 Layout.maximumHeight: {
                     const totalMaxHeight = children.reduce((accumulator, child) => {
-                            if (!isFinite(child.Layout.maximumHeight)) {
+                            if (!isFinite(child.Layout.maximumHeight) || child.Layout.maximumHeight <= 0) {
                                 return accumulator;
                             }
                             return accumulator + child.Layout.maximumHeight
                         }, 0);
-                    return Math.round(totalMaxHeight / heightOccupation);
+                    return Math.round(totalMaxHeight / heightOccupation) + Math.max(0, rows - 1) * rowSpacing;
                 }
                 width: {
                     if (tasks.shouldShrinkToZero) {

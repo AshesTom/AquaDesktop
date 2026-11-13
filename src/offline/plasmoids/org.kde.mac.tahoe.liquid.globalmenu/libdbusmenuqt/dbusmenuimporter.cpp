@@ -75,7 +75,6 @@ public:
     ActionForId m_actionForId;
     QTimer m_pendingLayoutUpdateTimer;
 
-    QSet<int> m_idsRefreshedByAboutToShow;
     QSet<int> m_pendingLayoutUpdates;
 
     QDBusPendingCallWatcher *refresh(int id)
@@ -298,9 +297,9 @@ DBusMenuImporter::~DBusMenuImporter()
 void DBusMenuImporter::slotLayoutUpdated(uint revision, int parentId)
 {
     Q_UNUSED(revision)
-    if (d->m_idsRefreshedByAboutToShow.remove(parentId)) {
-        return;
-    }
+    // A previous AboutToShow refresh must not suppress a later, independent
+    // layout change (notably an application publishing its initially empty menu).
+    // The pending-update set already coalesces duplicate notifications.
     d->m_pendingLayoutUpdates << parentId;
     if (!d->m_pendingLayoutUpdateTimer.isActive()) {
         d->m_pendingLayoutUpdateTimer.start();
@@ -398,7 +397,11 @@ void DBusMenuImporter::slotGetLayoutFinished(QDBusPendingCallWatcher *watcher)
         newDBusMenuItemIds << item.id;
     }
     for (QAction *action : menu->actions()) {
-        int id = action->property(DBUSMENU_PROPERTY_ID).toInt();
+        // Locally supplied window controls have no exporter ID. Never remove
+        // them or confuse their missing ID with the exported root (ID 0).
+        const QVariant exportedId = action->property(DBUSMENU_PROPERTY_ID);
+        if (!exportedId.isValid()) continue;
+        int id = exportedId.toInt();
         if (!newDBusMenuItemIds.contains(id)) {
             // Not calling removeAction() as QMenu will immediately close when it becomes empty,
             // which can happen when an application completely reloads this menu.
@@ -447,6 +450,13 @@ void DBusMenuImporter::slotGetLayoutFinished(QDBusPendingCallWatcher *watcher)
         }
     }
 
+    // Keep locally appended actions after the exporter's ordered actions.
+    for (QAction *action : menu->actions()) {
+        if (!action->property(DBUSMENU_PROPERTY_ID).isValid()) {
+            menu->removeAction(action);
+            menu->addAction(action);
+        }
+    }
     Q_EMIT menuUpdated(menu);
 }
 
@@ -504,7 +514,6 @@ void DBusMenuImporter::slotAboutToShowDBusCallFinished(QDBusPendingCallWatcher *
     bool needRefresh = reply.argumentAt<0>();
 
     if (needRefresh || menu->actions().isEmpty()) {
-        d->m_idsRefreshedByAboutToShow << id;
         d->refresh(id);
     } else if (menu) {
         Q_EMIT menuUpdated(menu);

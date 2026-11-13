@@ -95,6 +95,9 @@ Q_SIGNALS:
     /// "About This Computer" menu entry selected.
     void aboutRequested();
 
+    /// Immutable information about the application whose menu was opened.
+    void applicationAboutRequested(const QVariantMap &info);
+
 public Q_SLOTS:
     // QML-triggered actions
 
@@ -123,11 +126,14 @@ private:
     /// Cleanup hooks — reset currentIndex / unparent the QMenu when
     /// the popup closes so the QML highlight de-activates.
     void onMenuAboutToHide();
-    void onWindowMenuAboutToHide();
-    void onSystemMenuAboutToHide();
+    void showMenu(QQuickItem* ctx, QMenu* source, int index);
 
     // State
 
+    void restoreBorrowedActions();
+    void resetApplicationMenu();
+    bool m_ownsCurrentMenu = false;
+    bool m_registered = true;
     int m_currentIndex = -1;
     int m_viewType = FullView;
 

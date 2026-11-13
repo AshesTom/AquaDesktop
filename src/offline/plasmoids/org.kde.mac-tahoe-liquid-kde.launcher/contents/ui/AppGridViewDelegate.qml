@@ -49,19 +49,35 @@ Item {
  	Kirigami.Icon {
 		id: appicon
 		animated: false
-		y: main.detachedSearch ? 0 : 2 * highlightItemSvg.margins.top
+		y: main.detachedSearch || main.tahoeStyle ? 0 : 2 * highlightItemSvg.margins.top
 		anchors.horizontalCenter: parent.horizontalCenter
 		width: root.iconSize
 		height: width
 		source: model.decoration
 	}
 
+    // Follow the icon's alpha silhouette, including non-square third-party icons.
+    // A narrow upper rim catches the light without adding a tile behind the artwork.
+    InnerShadow {
+        z: 1 // Render above the existing shadow effect, which also composites the source.
+        anchors.fill: appicon
+        visible: main.tahoeStyle
+        source: appicon
+        horizontalOffset: 0.5
+        verticalOffset: 1
+        radius: 1.5
+        samples: 5
+        spread: 0.35
+        color: Qt.rgba(1, 1, 1, main.isDarkTheme ? 0.60 : 0.40)
+        cached: true
+    }
+
 	PlasmaComponents.Label {
 		id: appname
 		text: ("name" in model ? model.name : model.display)
 		font.family: main.textFont
 		font.pointSize: main.appTextSize
-		font.weight: main.detachedSearch ? Font.Medium : 650
+		font.weight: main.detachedSearch || main.tahoeStyle ? Font.Medium : 650
 		color: main.textColor
 		layer.enabled: true
 		layer.effect: GlassTextShadow {}
@@ -69,15 +85,15 @@ Item {
 			top: appicon.bottom
 			left: parent.left
 			right: parent.right
-			topMargin: Kirigami.Units.largeSpacing * (main.detachedSearch ? 0.5 : 1.2)
+			topMargin: Kirigami.Units.largeSpacing * (main.detachedSearch || main.tahoeStyle ? 0.5 : 1.2)
 			leftMargin: Kirigami.Units.smallSpacing
 			rightMargin: Kirigami.Units.smallSpacing
 		}
 		textFormat: Text.PlainText
-		elide: main.detachedSearch ? Text.ElideRight : Text.ElideMiddle
+		elide: main.detachedSearch || main.tahoeStyle ? Text.ElideRight : Text.ElideMiddle
 		horizontalAlignment: Text.AlignHCenter
-		maximumLineCount: main.detachedSearch ? 1 : 2
-		wrapMode: main.detachedSearch ? Text.NoWrap : Text.Wrap
+		maximumLineCount: main.detachedSearch || main.tahoeStyle ? 1 : 2
+		wrapMode: main.detachedSearch || main.tahoeStyle ? Text.NoWrap : Text.Wrap
 	}
 
 	
@@ -110,12 +126,12 @@ Item {
 	state: "default"
 	states: [
 		State {
-			name: "highlight"; when: (view.canMoveWithKeyboard ? activeFocus : highlighted)
+			name: "highlight"; when: main.tahoeStyle ? (highlighted || (activeFocus && view.movedWithKeyboard)) : (view.canMoveWithKeyboard ? activeFocus : highlighted)
 			PropertyChanges { target: appIconShadow;  color: "#4D000000"}
-			PropertyChanges { target: appiconHighlight;  opacity: 0.4}
+			PropertyChanges { target: appiconHighlight;  opacity: main.tahoeStyle ? 1 : 0.4}
 		},
 		State {
-			name: "default"; when: (view.canMoveWithKeyboard ? !activeFocus : !highlighted)
+			name: "default"; when: main.tahoeStyle ? (!highlighted && !(activeFocus && view.movedWithKeyboard)) : (view.canMoveWithKeyboard ? !activeFocus : !highlighted)
 			PropertyChanges { target: appIconShadow; color: "#33000000"}
 			PropertyChanges { target: appiconHighlight;  opacity: 0}
 		}

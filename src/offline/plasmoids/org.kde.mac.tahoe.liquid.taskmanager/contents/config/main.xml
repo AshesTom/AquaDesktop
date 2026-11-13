@@ -6,6 +6,10 @@
   <kcfgfile name=""/>
 
   <group name="General">
+    <entry name="macOSDockIcons" type="Bool">
+      <label>Use consistent function icons only inside this Dock.</label>
+      <default>false</default>
+    </entry>
     <entry name="showOnlyCurrentScreen" type="Bool">
       <label>Whether to show only window tasks that are on the same screen as the widget.</label>
       <default>false</default>
@@ -120,9 +124,7 @@
     </entry>
     <entry name="indicateAudioStreams" type="Bool">
       <label>Whether to indicate applications that are playing audio.</label>
-      <!-- MacTahoe Liquid KDE: the macOS Dock has no audio badge; playback lives
-           in the menu bar's Now Playing item instead. -->
-      <default>false</default>
+      <default>true</default>
     </entry>
     <entry name="interactiveMute" type="Bool">
       <label>Whether to mute applications that are playing audio using audio indicators.</label>
@@ -152,15 +154,11 @@
       <label>Whether to grow the tasks in according to system configuration or opposite to system configuration.</label>
       <default>false</default>
     </entry>
-    <entry name="iconSpacing" type="Int">
-      <label> Spacing between icons in task manager. Margin is multiplied by this value.</label>
-      <default>1</default>
-    </entry>
     <entry name="dockMagnification" type="Int">
-      <label>Peak percentage of the parabolic Dock magnification under the cursor (100 disables it).</label>
-      <default>160</default>
+      <label>Percentage used to magnify a hovered Dock task and its overlays.</label>
+      <default>110</default>
       <min>100</min>
-      <max>200</max>
+      <max>150</max>
     </entry>
   </group>
 

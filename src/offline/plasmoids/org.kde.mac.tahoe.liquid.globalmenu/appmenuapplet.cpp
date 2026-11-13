@@ -1,10 +1,12 @@
 /*
     SPDX-FileCopyrightText: 2016 Kai Uwe Broulik <kde@privat.broulik.de>
+    SPDX-FileCopyrightText: 2026 QuickBar contributors
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
 
 #include "appmenuapplet.h"
 #include "appmenumodel.h"
+#include "systemmenustyle.h"
 
 #include <KColorScheme>
 #include <KLocalizedString>
@@ -16,6 +18,12 @@
 #include <QDBusMessage>
 #include <QKeyEvent>
 #include <QMenu>
+#include <QFileInfo>
+#include <QPersistentModelIndex>
+#include <QStandardPaths>
+#include <QTimer>
+#include <KDesktopFile>
+#include <QLineEdit>
 #include <QMouseEvent>
 #include <QProcess>
 #include <QQuickItem>
@@ -31,18 +39,6 @@
 int AppMenuApplet::s_refs = 0;
 
 namespace {
-class SystemMenu : public QMenu
-{
-protected:
-    void initStyleOption(QStyleOptionMenuItem* option, const QAction* action) const override
-    {
-        QMenu::initStyleOption(option, action);
-        if (!action->isSeparator() && !action->isIconVisibleInMenu()) {
-            option->maxIconWidth = 0;
-        }
-    }
-};
-
 /// DBus name we register as while at least one AppMenuApplet is alive.
 /// Other system pieces (Latte, Plank, etc.) listen for this to know a
 /// global menu view is on screen and suppress their own in-window menubar.
@@ -96,7 +92,8 @@ AppMenuApplet::AppMenuApplet(QObject* parent, const KPluginMetaData& data, const
         QDBusConnection::sessionBus().interface()->registerService(
             viewService(), QDBusConnectionInterface::QueueService, QDBusConnectionInterface::DontAllowReplacement);
     }
-    connect(this, &Applet::destroyedChanged, this, [](bool destroyed) {
+    connect(this, &Applet::destroyedChanged, this, [this](bool destroyed) {
+        m_registered = !destroyed;
         if (destroyed) {
             if (--s_refs == 0) {
                 QDBusConnection::sessionBus().interface()->unregisterService(viewService());
@@ -110,7 +107,57 @@ AppMenuApplet::AppMenuApplet(QObject* parent, const KPluginMetaData& data, const
     });
 }
 
-AppMenuApplet::~AppMenuApplet() = default;
+AppMenuApplet::~AppMenuApplet()
+{
+    // Plasma destroys the QML model in its base destructor, after our menu state.
+    if (m_model) {
+        disconnect(m_model, nullptr, this, nullptr);
+    }
+    resetApplicationMenu();
+    if (m_ownsCurrentMenu && m_currentMenu) {
+        delete m_currentMenu.data();
+    }
+    delete m_systemMenu.data();
+    if (m_registered && --s_refs == 0) {
+        QDBusConnection::sessionBus().interface()->unregisterService(viewService());
+    }
+}
+
+// Adapted from QuickBar's owned-proxy/borrowed-menu lifecycle, preserving
+// Tahoe's AboutToShow refresh and its persistent Wayland popup grab.
+void AppMenuApplet::restoreBorrowedActions()
+{
+    if (!m_ownsCurrentMenu || !m_currentMenu) {
+        return;
+    }
+    auto* menuAction = m_currentMenu->menuAction();
+    for (auto* action : m_currentMenu->actions()) {
+        if (action->menu() && action->menu() != m_currentMenu) {
+            action->menu()->hide();
+        }
+        m_currentMenu->removeAction(action);
+        if (m_sourceMenu) {
+            m_sourceMenu->addAction(action);
+        }
+    }
+    if (m_sourceMenu) {
+        menuAction->setMenu(m_sourceMenu);
+    }
+}
+
+void AppMenuApplet::resetApplicationMenu()
+{
+    if (m_currentMenu) {
+        m_currentMenu->hide();
+        m_currentMenu->removeEventFilter(this);
+    }
+    restoreBorrowedActions();
+    m_sourceMenu.clear();
+    if (!m_ownsCurrentMenu) {
+        m_currentMenu.clear();
+    }
+    setCurrentIndex(-1);
+}
 
 void AppMenuApplet::init() { }
 
@@ -124,7 +171,19 @@ QAbstractItemModel* AppMenuApplet::model() const
 void AppMenuApplet::setModel(QAbstractItemModel* model)
 {
     if (m_model != model) {
+        resetApplicationMenu();
+        if (m_model) {
+            disconnect(m_model, nullptr, this, nullptr);
+        }
         m_model = model;
+        if (m_model) {
+            if (auto* appModel = qobject_cast<AppMenuModel*>(m_model)) {
+                connect(appModel, &AppMenuModel::menuSourceAboutToChange, this, &AppMenuApplet::resetApplicationMenu);
+            } else {
+                connect(m_model, &QAbstractItemModel::modelAboutToBeReset, this, &AppMenuApplet::resetApplicationMenu);
+            }
+            connect(m_model, &QObject::destroyed, this, &AppMenuApplet::resetApplicationMenu);
+        }
         Q_EMIT modelChanged();
     }
 }
@@ -137,6 +196,7 @@ int AppMenuApplet::view() const
 void AppMenuApplet::setView(int type)
 {
     if (m_viewType != type) {
+        resetApplicationMenu();
         m_viewType = type;
         Q_EMIT viewChanged();
     }
@@ -188,16 +248,19 @@ QMenu* AppMenuApplet::createMenu(int idx) const
         }
     }
 
+    if (menu && menu->property("tahoeWindowView").toBool()) {
+        if (auto *model = qobject_cast<AppMenuModel*>(m_model))
+            model->refreshWindowActions(menu);
+    }
     return menu;
 }
 
 void AppMenuApplet::onMenuAboutToHide()
 {
-    auto menuAction = m_currentMenu->menuAction();
-    menuAction->setMenu(m_sourceMenu);
     if (m_sourceMenu && m_sourceMenu != m_currentMenu) {
         Q_EMIT m_sourceMenu->aboutToHide();
     }
+    restoreBorrowedActions();
     setCurrentIndex(-1);
 }
 
@@ -238,97 +301,96 @@ void AppMenuApplet::trigger(QQuickItem* ctx, int idx)
         return;
     }
 
-    if (m_windowMenu && m_windowMenu->isVisible()) {
-        m_windowMenu->hide();
-    }
-    if (m_systemMenu && m_systemMenu->isVisible()) {
-        m_systemMenu->hide();
-    }
-
     if (!ctx || !ctx->window() || !ctx->window()->screen()) {
         return;
     }
 
-    QMenu* actionMenu = createMenu(idx);
-    if (actionMenu) {
-        auto ungrabMouseHack = [ctx]() {
-            if (ctx && ctx->window() && ctx->window()->mouseGrabberItem()) {
-                ctx->window()->mouseGrabberItem()->ungrabMouse();
-            }
-        };
-
-        if (view() == FullView) {
-            if (!m_currentMenu) {
-                m_currentMenu = new QMenu(qobject_cast<QWidget*>(actionMenu->parent()));
-                connect(m_currentMenu, &QMenu::aboutToHide, this, &AppMenuApplet::onMenuAboutToHide, Qt::UniqueConnection);
-            } else if (m_sourceMenu != actionMenu) {
-                if (m_sourceMenu) {
-                    Q_EMIT m_sourceMenu->aboutToHide();
-                }
-                auto menuAction = m_currentMenu->menuAction();
-                for (QAction* action : m_currentMenu->actions()) {
-                    m_currentMenu->removeAction(action);
-                    m_sourceMenu->addAction(action);
-                }
-                menuAction->setMenu(m_sourceMenu);
-            }
-            m_sourceMenu = actionMenu;
-            auto menuAction = m_sourceMenu->menuAction();
-            for (QAction* action : m_sourceMenu->actions()) {
-                m_sourceMenu->removeAction(action);
-                m_currentMenu->addAction(action);
-            }
-            menuAction->setMenu(m_currentMenu);
-            // The persistent popup keeps the Wayland grab across File/Edit.
-            // Notify the imported menu on every selection so its D-Bus
-            // AboutToShow handler refreshes dynamic application actions.
-            Q_EMIT m_sourceMenu->aboutToShow();
-        } else {
-            m_currentMenu = actionMenu;
-            m_sourceMenu = actionMenu;
-        }
-
-        QTimer::singleShot(0, ctx, ungrabMouseHack);
-
-        const auto& geo = ctx->window()->screen()->availableVirtualGeometry();
-        QPoint pos = ctx->window()->mapToGlobal(ctx->mapToScene(QPointF()).toPoint());
-
-        const Qt::Edges edges = edgeFromLocation(location());
-        m_currentMenu->setProperty("_breeze_menu_seamless_edges", QVariant::fromValue(edges));
-
-        if (location() == Plasma::Types::TopEdge) {
-            pos.setY(pos.y() + ctx->height());
-        }
-
-        m_currentMenu->adjustSize();
-        pos = QPoint(qBound(geo.x(), pos.x(), geo.x() + geo.width() - m_currentMenu->width()),
-            qBound(geo.y(), pos.y(), geo.y() + geo.height() - m_currentMenu->height()));
-
-        if (view() == FullView) {
-            if (m_currentMenu->isVisible()) {
-                m_currentMenu->move(pos);
-            } else {
-                m_currentMenu->installEventFilter(this);
-                m_currentMenu->winId();
-                m_currentMenu->windowHandle()->setTransientParent(ctx->window());
-                m_currentMenu->popup(pos);
-            }
-        } else if (view() == CompactView) {
-            if (m_currentMenu->isEmpty()) {
-                return;
-            }
-            m_currentMenu->popup(pos);
-            connect(actionMenu, &QMenu::aboutToHide, this, &AppMenuApplet::onMenuAboutToHide, Qt::UniqueConnection);
-        }
-
-        setCurrentIndex(idx);
-
-    } else {
-        if (auto* action = m_model->index(idx, 0).data(AppMenuModel::ActionRole).value<QAction*>()) {
-            Q_ASSERT(!action->menu());
-            action->trigger();
-        }
+    if (QMenu* actionMenu = createMenu(idx)) {
+        showMenu(ctx, actionMenu, idx);
+    } else if (selectedAction) {
+        selectedAction->trigger();
     }
+}
+
+void AppMenuApplet::showMenu(QQuickItem* ctx, QMenu* actionMenu, int idx)
+{
+    auto ungrabMouseHack = [ctx]() {
+        if (ctx && ctx->window() && ctx->window()->mouseGrabberItem()) {
+            ctx->window()->mouseGrabberItem()->ungrabMouse();
+        }
+    };
+
+    if (view() == FullView) {
+        if (!m_currentMenu || !m_ownsCurrentMenu) {
+            m_currentMenu = new QMenu;
+            m_ownsCurrentMenu = true;
+            connect(m_currentMenu, &QMenu::aboutToHide, this, &AppMenuApplet::onMenuAboutToHide, Qt::UniqueConnection);
+        } else if (m_sourceMenu != actionMenu) {
+            if (m_sourceMenu) {
+                Q_EMIT m_sourceMenu->aboutToHide();
+            }
+            restoreBorrowedActions();
+        }
+        m_currentMenu->setActiveAction(nullptr);
+        m_currentMenu->setStyle(actionMenu->style());
+        m_currentMenu->setPalette(actionMenu->palette());
+        m_currentMenu->setFont(actionMenu->font());
+        m_sourceMenu = actionMenu;
+        auto menuAction = m_sourceMenu->menuAction();
+        for (QAction* action : m_sourceMenu->actions()) {
+            m_sourceMenu->removeAction(action);
+            m_currentMenu->addAction(action);
+        }
+        menuAction->setMenu(m_currentMenu);
+        // Keep one popup and Wayland grab across Apple, app name and File/Edit.
+        // Notify the imported menu on every selection so its D-Bus
+        // AboutToShow handler refreshes dynamic application actions.
+        Q_EMIT m_sourceMenu->aboutToShow();
+    } else {
+        restoreBorrowedActions();
+        if (m_ownsCurrentMenu && m_currentMenu) {
+            delete m_currentMenu.data();
+        }
+        m_ownsCurrentMenu = false;
+        m_currentMenu = actionMenu;
+        m_sourceMenu = actionMenu;
+    }
+
+    QTimer::singleShot(0, ctx, ungrabMouseHack);
+
+    const auto& geo = ctx->window()->screen()->availableVirtualGeometry();
+    QPoint pos = ctx->window()->mapToGlobal(ctx->mapToScene(QPointF()).toPoint());
+
+    const Qt::Edges edges = edgeFromLocation(location());
+    m_currentMenu->setProperty("_breeze_menu_seamless_edges", QVariant::fromValue(edges));
+
+    if (location() == Plasma::Types::TopEdge) {
+        pos.setY(pos.y() + ctx->height());
+    }
+
+    m_currentMenu->adjustSize();
+    pos = QPoint(qBound(geo.x(), pos.x(), geo.x() + geo.width() - m_currentMenu->width()),
+        qBound(geo.y(), pos.y(), geo.y() + geo.height() - m_currentMenu->height()));
+
+    if (view() == FullView) {
+        if (m_currentMenu->isVisible()) {
+            m_currentMenu->move(pos);
+        } else {
+            m_currentMenu->installEventFilter(this);
+            m_currentMenu->winId();
+            m_currentMenu->windowHandle()->setTransientParent(ctx->window());
+            m_currentMenu->popup(pos);
+        }
+    } else if (view() == CompactView) {
+        if (m_currentMenu->isEmpty()) {
+            return;
+        }
+        m_currentMenu->installEventFilter(this);
+        m_currentMenu->popup(pos);
+        connect(actionMenu, &QMenu::aboutToHide, this, &AppMenuApplet::onMenuAboutToHide, Qt::UniqueConnection);
+    }
+
+    setCurrentIndex(idx);
 }
 
 void AppMenuApplet::triggerWindowMenu(QQuickItem* ctx)
@@ -343,96 +405,74 @@ void AppMenuApplet::triggerWindowMenu(QQuickItem* ctx)
         return;
     }
 
-    if (m_currentMenu && m_currentMenu->isVisible()) {
-        m_currentMenu->hide();
-    }
-    if (m_systemMenu && m_systemMenu->isVisible()) {
-        m_systemMenu->hide();
-    }
-
     auto* appModel = qobject_cast<AppMenuModel*>(m_model.data());
     if (!appModel) {
         return;
     }
 
     auto* tasks = appModel->tasksModel();
-    const QModelIndex activeTask = tasks->activeTask();
+    const QPersistentModelIndex activeTask(tasks->activeTask());
     if (!activeTask.isValid()) {
         return;
     }
 
     if (!m_windowMenu) {
         m_windowMenu = std::make_unique<QMenu>();
-        connect(m_windowMenu.get(), &QMenu::aboutToHide, this, &AppMenuApplet::onWindowMenuAboutToHide);
-        m_windowMenu->installEventFilter(this);
     }
     m_windowMenu->clear();
     // Reused across light↔dark switches, so refresh the palette on every open.
     applyActiveColorScheme(m_windowMenu.get());
 
-    const bool isClosable = tasks->data(activeTask, TaskManager::AbstractTasksModel::IsClosable).toBool();
-    const bool isMinimizable = tasks->data(activeTask, TaskManager::AbstractTasksModel::IsMinimizable).toBool();
-    const bool isMaximizable = tasks->data(activeTask, TaskManager::AbstractTasksModel::IsMaximizable).toBool();
-    const bool isMaximized = tasks->data(activeTask, TaskManager::AbstractTasksModel::IsMaximized).toBool();
-    const bool isFullScreenable = tasks->data(activeTask, TaskManager::AbstractTasksModel::IsFullScreenable).toBool();
-    const bool isFullScreen = tasks->data(activeTask, TaskManager::AbstractTasksModel::IsFullScreen).toBool();
-
-    auto* closeAction = m_windowMenu->addAction(QIcon::fromTheme(QStringLiteral("window-close")), i18n("Close"));
-    closeAction->setEnabled(isClosable);
-    connect(closeAction, &QAction::triggered, tasks, [tasks, activeTask]() { tasks->requestClose(activeTask); });
-
-    m_windowMenu->addSeparator();
-
-    auto* minimizeAction = m_windowMenu->addAction(QIcon::fromTheme(QStringLiteral("window-minimize")), i18n("Minimize"));
-    minimizeAction->setEnabled(isMinimizable);
-    connect(minimizeAction, &QAction::triggered, tasks, [tasks, activeTask]() { tasks->requestToggleMinimized(activeTask); });
-
-    auto* zoomAction = m_windowMenu->addAction(QIcon::fromTheme(isMaximized ? QStringLiteral("window-restore") : QStringLiteral("window-maximize")),
-        isMaximized ? i18n("Restore") : i18n("Zoom"));
-    zoomAction->setEnabled(isMaximizable);
-    connect(zoomAction, &QAction::triggered, tasks, [tasks, activeTask]() { tasks->requestToggleMaximized(activeTask); });
-
-    m_windowMenu->addSeparator();
-
-    auto* fullScreenAction = m_windowMenu->addAction(
-        QIcon::fromTheme(QStringLiteral("view-fullscreen")), isFullScreen ? i18n("Exit Full Screen") : i18n("Enter Full Screen"));
-    fullScreenAction->setEnabled(isFullScreenable);
-    connect(fullScreenAction, &QAction::triggered, tasks, [tasks, activeTask]() { tasks->requestToggleFullScreen(activeTask); });
-
-    auto ungrabMouseHack = [ctx]() {
-        if (ctx && ctx->window() && ctx->window()->mouseGrabberItem()) {
-            ctx->window()->mouseGrabberItem()->ungrabMouse();
-        }
-    };
-
-    QTimer::singleShot(0, ctx, ungrabMouseHack);
-
-    const auto& geo = ctx->window()->screen()->availableVirtualGeometry();
-    QPoint pos = ctx->window()->mapToGlobal(ctx->mapToScene(QPointF()).toPoint());
-
-    const Qt::Edges edges = edgeFromLocation(location());
-    m_windowMenu->setProperty("_breeze_menu_seamless_edges", QVariant::fromValue(edges));
-
-    if (location() == Plasma::Types::TopEdge) {
-        pos.setY(pos.y() + ctx->height());
+    // Read metadata only. Never execute an application's binary or Exec entry
+    // to discover its version, and never expose process command-line arguments.
+    QVariantMap info;
+    info.insert(QStringLiteral("name"), activeTask.data(TaskManager::AbstractTasksModel::AppName));
+    info.insert(QStringLiteral("description"), activeTask.data(TaskManager::AbstractTasksModel::GenericName));
+    info.insert(QStringLiteral("applicationId"), activeTask.data(TaskManager::AbstractTasksModel::AppId));
+    info.insert(QStringLiteral("icon"), activeTask.data(Qt::DecorationRole));
+    const auto pid = activeTask.data(TaskManager::AbstractTasksModel::AppPid).toLongLong();
+    if (pid > 0) {
+        info.insert(QStringLiteral("processId"), QString::number(pid));
+        info.insert(QStringLiteral("executable"), QFileInfo(QStringLiteral("/proc/%1/exe").arg(pid)).symLinkTarget());
     }
-
-    m_windowMenu->adjustSize();
-    pos = QPoint(
-        qBound(geo.x(), pos.x(), geo.x() + geo.width() - m_windowMenu->width()), qBound(geo.y(), pos.y(), geo.y() + geo.height() - m_windowMenu->height()));
-
-    if (!m_windowMenu->isVisible()) {
-        m_windowMenu->winId();
-        m_windowMenu->windowHandle()->setTransientParent(ctx->window());
-        m_windowMenu->popup(pos);
+    auto launcher = activeTask.data(TaskManager::AbstractTasksModel::LauncherUrlWithoutIcon).toUrl();
+    if (launcher.isEmpty()) launcher = activeTask.data(TaskManager::AbstractTasksModel::LauncherUrl).toUrl();
+    QString desktopPath;
+    if (launcher.isLocalFile()) {
+        desktopPath = launcher.toLocalFile();
+    } else if (launcher.scheme() == QLatin1String("applications")) {
+        const QString name = launcher.path();
+        if (!name.contains(QLatin1Char('/')) && name.endsWith(QLatin1String(".desktop")))
+            desktopPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("applications/") + name);
     }
+    if (desktopPath.endsWith(QLatin1String(".desktop")) && QFileInfo(desktopPath).isFile()) {
+        KDesktopFile desktop(desktopPath);
+        info.insert(QStringLiteral("desktopFile"), desktopPath);
+        if (info.value(QStringLiteral("name")).toString().isEmpty()) info.insert(QStringLiteral("name"), desktop.readName());
+        if (info.value(QStringLiteral("description")).toString().isEmpty()) info.insert(QStringLiteral("description"), desktop.readGenericName());
+        if (qvariant_cast<QIcon>(info.value(QStringLiteral("icon"))).isNull())
+            info.insert(QStringLiteral("icon"), QIcon::fromTheme(desktop.readIcon()));
+    }
+    if (info.value(QStringLiteral("name")).toString().isEmpty())
+        info.insert(QStringLiteral("name"), info.value(QStringLiteral("applicationId")));
+    if (info.value(QStringLiteral("name")).toString().isEmpty())
+        info.insert(QStringLiteral("name"), i18n("Application"));
+    if (qvariant_cast<QIcon>(info.value(QStringLiteral("icon"))).isNull())
+        info.insert(QStringLiteral("icon"), QIcon::fromTheme(QStringLiteral("application-x-executable")));
 
-    setCurrentIndex(WINDOW_MENU_INDEX);
-}
+    auto *aboutAction = m_windowMenu->addAction(i18n("About %1", QString(info.value(QStringLiteral("name")).toString()).replace(QLatin1Char('&'), QStringLiteral("&&"))));
+    connect(aboutAction, &QAction::triggered, this, [this, activeTask, info] {
+        if (!activeTask.isValid()) return;
+        // Release the popup grab before the independent About window opens.
+        QTimer::singleShot(0, this, [this, info] { Q_EMIT applicationAboutRequested(info); });
+    });
+    auto* closeAction = m_windowMenu->addAction(i18n("Close %1", QString(info.value(QStringLiteral("name")).toString()).replace(QLatin1Char('&'), QStringLiteral("&&"))));
+    closeAction->setEnabled(tasks->data(activeTask, TaskManager::AbstractTasksModel::IsClosable).toBool());
+    connect(closeAction, &QAction::triggered, tasks, [tasks, activeTask]() {
+        if (activeTask.isValid()) tasks->requestClose(activeTask);
+    });
 
-void AppMenuApplet::onWindowMenuAboutToHide()
-{
-    setCurrentIndex(-1);
+    showMenu(ctx, m_windowMenu.get(), WINDOW_MENU_INDEX);
 }
 
 static void runCommand(const QString& cmd)
@@ -541,23 +581,24 @@ void AppMenuApplet::triggerSystemMenu(QQuickItem* ctx)
         return;
     }
 
-    if (m_currentMenu && m_currentMenu->isVisible()) {
-        m_currentMenu->hide();
+    if (!m_systemMenu) {
+        m_systemMenu = new QMenu;
+        QFont menuFont = QApplication::font("QMenu");
+        menuFont.setWeight(QFont::Normal);
+        m_systemMenu->setFont(menuFont);
+        m_systemMenu->setStyle(new SystemMenuStyle(m_systemMenu));
     }
-    if (m_windowMenu && m_windowMenu->isVisible()) {
-        m_windowMenu->hide();
-    }
-
-    auto* menu = new SystemMenu;
-    menu->setAttribute(Qt::WA_DeleteOnClose);
+    auto* menu = m_systemMenu.data();
+    menu->clear();
     applyActiveColorScheme(menu);
-    m_systemMenu = menu;
-    connect(menu, &QMenu::aboutToHide, this, &AppMenuApplet::onSystemMenuAboutToHide);
-    menu->installEventFilter(this);
 
     const auto cfg = config();
 
-    auto icon = [&cfg](const char* key, const QString& fallback) { return QIcon::fromTheme(cfg.readEntry(key, fallback)); };
+    const auto preset = SystemMenuStyle::themePreset();
+    static_cast<SystemMenuStyle*>(menu->style())->setPreset(preset);
+    auto icon = [&cfg, preset](const char* key, const QString& fallback) {
+        return SystemMenuStyle::menuIcon(cfg.readEntry(key, fallback), fallback, preset);
+    };
 
     menu->addAction(icon("iconAbout", QStringLiteral("computer")), i18n("About This Computer"), this, [this]() { Q_EMIT aboutRequested(); });
 
@@ -573,7 +614,7 @@ void AppMenuApplet::triggerSystemMenu(QQuickItem* ctx)
     menu->addSeparator();
 
     menu->addAction(icon("iconForceQuit", QStringLiteral("dialog-cancel")), i18n("Force Quit…"),
-        []() { runCommand(QStringLiteral("qdbus6 org.kde.KWin /KWin slotKillWindow || xkill")); })->setIconVisibleInMenu(false);
+        []() { runCommand(QStringLiteral("qdbus6 org.kde.KWin /KWin slotKillWindow || xkill")); });
 
     menu->addSeparator();
 
@@ -581,7 +622,7 @@ void AppMenuApplet::triggerSystemMenu(QQuickItem* ctx)
         [cmd = cfg.readEntry(
              "cmdSleep", QStringLiteral("qdbus6 org.kde.Solid.PowerManagement /org/kde/Solid/PowerManagement/Actions/SuspendSession org.kde.Solid.PowerManagement.Actions.SuspendSession.suspendToRam || qdbus-qt6 org.kde.Solid.PowerManagement /org/kde/Solid/PowerManagement/Actions/SuspendSession org.kde.Solid.PowerManagement.Actions.SuspendSession.suspendToRam || qdbus org.kde.Solid.PowerManagement /org/kde/Solid/PowerManagement/Actions/SuspendSession org.kde.Solid.PowerManagement.Actions.SuspendSession.suspendToRam"))]() {
             runSuspendAction(cmd);
-        })->setIconVisibleInMenu(false);
+        });
     menu->addAction(icon("iconRestart", QStringLiteral("system-reboot")), i18n("Restart…"),
         [cmd = cfg.readEntry("cmdRestart", QStringLiteral("qdbus6 org.kde.LogoutPrompt /LogoutPrompt org.kde.LogoutPrompt.promptReboot"))]() {
             runSystemAction(cmd,
@@ -589,7 +630,7 @@ void AppMenuApplet::triggerSystemMenu(QQuickItem* ctx)
                 QStringLiteral("/LogoutPrompt"),
                 QStringLiteral("org.kde.LogoutPrompt"),
                 QStringLiteral("promptReboot"));
-        })->setIconVisibleInMenu(false);
+        });
     menu->addAction(icon("iconShutDown", QStringLiteral("system-shutdown")), i18n("Shut Down…"),
         [cmd = cfg.readEntry("cmdShutDown", QStringLiteral("qdbus6 org.kde.LogoutPrompt /LogoutPrompt org.kde.LogoutPrompt.promptShutDown"))]() {
             runSystemAction(cmd,
@@ -597,56 +638,29 @@ void AppMenuApplet::triggerSystemMenu(QQuickItem* ctx)
                 QStringLiteral("/LogoutPrompt"),
                 QStringLiteral("org.kde.LogoutPrompt"),
                 QStringLiteral("promptShutDown"));
-        })->setIconVisibleInMenu(false);
+        });
 
     menu->addSeparator();
 
-    menu->addAction(icon("iconLockScreen", QStringLiteral("system-lock-screen")), i18n("Lock Screen"),
+    auto* lockAction = menu->addAction(icon("iconLockScreen", QStringLiteral("system-lock-screen")), i18n("Lock Screen"),
         [cmd = cfg.readEntry("cmdLockScreen", QStringLiteral("qdbus6 org.freedesktop.ScreenSaver /ScreenSaver Lock || loginctl lock-session"))]() {
             runCommand(cmd);
-        })->setIconVisibleInMenu(false);
+        });
+    lockAction->setShortcut(QKeySequence(Qt::CTRL | Qt::META | Qt::Key_Q));
+    lockAction->setShortcutContext(Qt::WidgetShortcut);
     const QString firstName = KUser().property(KUser::FullName).toString().section(QLatin1Char(' '), 0, 0);
-    menu->addAction(icon("iconLogOut", QStringLiteral("user-identity")), i18n("Log Out %1…", firstName),
+    auto* logoutAction = menu->addAction(icon("iconLogOut", QStringLiteral("user-identity")), i18n("Log Out %1…", firstName),
         [cmd = cfg.readEntry("cmdLogOut", QStringLiteral("qdbus6 org.kde.LogoutPrompt /LogoutPrompt org.kde.LogoutPrompt.promptLogout"))]() {
             runSystemAction(cmd,
                 QStringLiteral("org.kde.LogoutPrompt"),
                 QStringLiteral("/LogoutPrompt"),
                 QStringLiteral("org.kde.LogoutPrompt"),
                 QStringLiteral("promptLogout"));
-        })->setIconVisibleInMenu(false);
+        });
+    logoutAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::META | Qt::Key_Q));
+    logoutAction->setShortcutContext(Qt::WidgetShortcut);
 
-    auto ungrabMouseHack = [ctx]() {
-        if (ctx && ctx->window() && ctx->window()->mouseGrabberItem()) {
-            ctx->window()->mouseGrabberItem()->ungrabMouse();
-        }
-    };
-
-    QTimer::singleShot(0, ctx, ungrabMouseHack);
-
-    const auto& geo = ctx->window()->screen()->availableVirtualGeometry();
-    QPoint pos = ctx->window()->mapToGlobal(ctx->mapToScene(QPointF()).toPoint());
-
-    const Qt::Edges edges = edgeFromLocation(location());
-    menu->setProperty("_breeze_menu_seamless_edges", QVariant::fromValue(edges));
-
-    if (location() == Plasma::Types::TopEdge) {
-        pos.setY(pos.y() + ctx->height());
-    }
-
-    menu->setMinimumWidth(menu->sizeHint().width() + 65);
-    menu->adjustSize();
-    pos = QPoint(qBound(geo.x(), pos.x(), geo.x() + geo.width() - menu->width()), qBound(geo.y(), pos.y(), geo.y() + geo.height() - menu->height()));
-
-    menu->winId();
-    menu->windowHandle()->setTransientParent(ctx->window());
-    menu->popup(pos);
-
-    setCurrentIndex(SYSTEM_MENU_INDEX);
-}
-
-void AppMenuApplet::onSystemMenuAboutToHide()
-{
-    setCurrentIndex(-1);
+    showMenu(ctx, menu, SYSTEM_MENU_INDEX);
 }
 
 // Keyboard event hookup
@@ -660,6 +674,26 @@ bool AppMenuApplet::eventFilter(QObject* watched, QEvent* event)
 
     if (event->type() == QEvent::KeyPress) {
         auto* e = static_cast<QKeyEvent*>(event);
+        // QMenu owns the keyboard grab; widget shortcuts on borrowed actions
+        // are not reliably dispatched by Qt's window shortcut map.
+        if (m_currentIndex == -3) {
+            const QKeySequence pressed(e->keyCombination());
+            for (auto* action : menu->actions()) {
+                if (action->isEnabled() && action->isVisible() && !action->shortcut().isEmpty()
+                    && action->shortcut().matches(pressed) == QKeySequence::ExactMatch) {
+                    if (!e->isAutoRepeat()) {
+                        menu->hide();
+                        action->trigger();
+                    }
+                    return true;
+                }
+            }
+        }
+        if (auto* field = qobject_cast<QLineEdit*>(QApplication::focusWidget());
+            field && menu->isAncestorOf(field)
+            && (e->key() == Qt::Key_Left || e->key() == Qt::Key_Right)) {
+            return false;
+        }
 
         if (e->key() == Qt::Key_Left) {
             if (m_currentIndex == -3) {
@@ -692,6 +726,9 @@ bool AppMenuApplet::eventFilter(QObject* watched, QEvent* event)
         }
 
     } else if (event->type() == QEvent::MouseMove) {
+        if (!config().group(QStringLiteral("Appearance")).readEntry("hoverOpensMenu", true)) {
+            return false;
+        }
         auto* e = static_cast<QMouseEvent*>(event);
 
         if (!m_buttonGrid || !m_buttonGrid->window()) {
@@ -699,6 +736,10 @@ bool AppMenuApplet::eventFilter(QObject* watched, QEvent* event)
         }
 
         const QPointF& windowLocalPos = m_buttonGrid->window()->mapFromGlobal(e->globalPosition());
+        if (auto* viewport = m_buttonGrid->parentItem(); viewport && viewport->clip()
+            && !viewport->contains(viewport->mapFromScene(windowLocalPos))) {
+            return false;
+        }
         const QPointF& buttonGridLocalPos = m_buttonGrid->mapFromScene(windowLocalPos);
         auto* item = m_buttonGrid->childAt(buttonGridLocalPos.x(), buttonGridLocalPos.y());
         if (!item) {
@@ -711,7 +752,11 @@ bool AppMenuApplet::eventFilter(QObject* watched, QEvent* event)
             return false;
         }
 
-        Q_EMIT requestActivateIndex(buttonIndex);
+        if (buttonIndex != m_currentIndex) {
+            Q_EMIT requestActivateIndex(buttonIndex);
+        }
+        // QMenu must not process the old popup's mouse event after a switch.
+        return true;
     }
 
     return false;

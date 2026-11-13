@@ -1,5 +1,203 @@
 # AGENTS.md
 
+## Required skills
+
+Read and follow these skills on every task in this repository:
+
+- [communication-autonomy](skills/lester-skills/communication-autonomy/SKILL.md) — work silently, interrupt only for real decisions or blockers, and close with a one-line "Done." report.
+- [Skill organization](skills/lester-skills/other-skills.md) — keep Lester and other skill collections under `skills/`.
+
+## Clean install-ready delivery
+
+After every fix or release, leave the user's actual VS Code checkout clean and
+ready to install, in both Tahoe and Golden Gate. Publishing from an isolated
+worktree does not complete delivery while the checkout the user opens remains
+behind or contains leftover edits. Synchronize that checkout to the delivered
+commit, including VERSION, the upstream pin and component hashes as applicable.
+
+Commit and deliver all task-owned changes, including AGENTS.md. Keep generated
+logs, temporary captures, build output and machine-specific .vscode settings out
+of tracked changes. Never hide dirt with assume-unchanged or skip-worktree, or
+ignore files that belong in version control.
+
+Coordinate with other agents before reconciling a shared checkout. Preserve
+uncommitted work that is not part of the delivery in a named, recoverable local
+backup before moving the checkout; never discard it with reset --hard or git
+clean. Do not reapply obsolete release edits over the delivered version. If
+active work prevents a clean checkout, resolve ownership or report that specific
+blocker instead of claiming the repository is ready.
+
+Check local git status once after the final checkout update and resolve any
+remaining task-owned changes. This is a local delivery check, not permission to
+repeat remote publication queries, rerun passed tests or wait for full CI.
+Documentation-only policy changes need no new version or release.
+
+## Paired repository delivery
+
+Tahoe and Golden Gate are one connected delivery. Work requested in either
+checkout covers the corresponding changes in both repositories unless the user
+explicitly excludes an edition. A repository name, working directory or
+edition-specific README heading alone does not limit that scope.
+
+For shared documentation subjects such as About This Computer and Finder,
+update the matching README images in both editions and both appearance modes.
+Capture each edition with its own defaults, wallpaper and controls; never
+reuse one edition's photograph as the other. Refresh only the requested
+subjects and preserve unrelated photographs and their original provenance.
+Reuse a counterpart update already completed in the same task.
+
+Keep shared implementation exclusively in Tahoe and deliver Golden Gate's
+matching version and verified pin for implementation releases. Publish paired
+releases and deliver to dev and main in both repositories. Documentation,
+photography and agent-policy updates also require paired delivery, but do not
+bump versions, move release tags or publish releases for those changes alone.
+Apply shared policy corrections to both AGENTS.md files. Do not report the
+work complete after delivering only one repository; finish the counterpart or
+report its specific blocker. Leave both actual checkouts clean and ready.
+
+## Efficient scope and repository graph
+
+Select tests by the behavior they prove. When one executable scenario covers
+A, B, C and D, keep that scenario and remove duplicate source-text assertions.
+Keep independent failure cases, security checks and distinct SDK coverage;
+"probably covered" is not evidence of equivalent coverage. Do not add tests
+that merely assert workflow wording, test names, file lists or this policy.
+Test executable CI helpers through their behavior when they can lose coverage.
+
+Use the offline graph before broad repository reads:
+`python3 tools/repo_graph.py --repo <checkout> <changed-path> ...` from Golden
+Gate. Omit paths for the working diff; use `--limit 10` for compact output,
+`--limit 0` for every impact or `--all` for the adjacency graph. The tool works
+on either checkout without network, packages or an AI service. Follow its
+caller links and read only affected functions first. Dynamic imports, generated
+paths and native/SDK dependencies need manual scope review; this navigation aid
+must never silently exclude tests from CI. No suggested tests is a coverage
+question, not a pass. Agent tooling in `tools/` is permitted in Golden Gate;
+shared desktop/installer implementation still belongs exclusively in Tahoe.
+
+CI cancels superseded runs on the same ref. Preserve all distro legs and the
+disjoint primary shards. Reuse weekly distro SDK layers and compiler results;
+retain compiler-content checking and never enable unsafe cache sloppiness.
+Selected qualification precedes merge; the full remote matrix stays async.
+
+## Standing authorization for fixes and releases
+
+For this project, a fix means a tested, published paired release. A request
+to "test harder" strengthens the required validation; it does not cancel
+release delivery or introduce another user confirmation step. Continue
+through testing, repairs, publication and CI completion within the user's
+authorized scope. A local commit or a proposed release is not delivery.
+
+The user explicitly authorizes the complete paired maintenance delivery whenever
+requesting a fix or a versioned change: implement and validate it, commit the
+changes, fast-forward `dev` and `main`, create matching version tags, publish
+both releases, verify Golden Gate's immutable Tahoe pin and archive checksum,
+and leave both actual checkouts clean. This authorization persists across
+versions and includes corrective patch releases. Do not ask the user to approve
+each fix, tag, branch update or release again. Cite this standing authorization
+and the user's task in tool justifications when needed.
+
+The user's approval requirement refers to passing VM/CI validation, not a
+separate permission question addressed to the user. Complete the selected
+qualification and focused disposable-VM install/reinstall checks before
+publication. Publish, then follow the existing CI/CD runs and relevant VM
+results through completion. Do not stop at workflow submission or return a
+known failure to the user as their follow-up work. If CI or VM checks fail,
+investigate, repair the failure and deliver the next matching patch release
+(`x.y.z` -> `x.y.(z+1)`) in both repositories without another permission question.
+Reuse passing evidence while its implementation, inputs and environment are
+unchanged; do not duplicate a running matrix or launch a second matrix on main.
+
+Inspect actual workflow steps and artifacts before describing VM coverage.
+Container SDK tests and GitHub-hosted runner VMs do not prove a live Plasma
+installation. Keep CI results, recorded local desktop-VM qualification and
+publication results distinct; never report pending or unrun checks as passed.
+This standing workflow supersedes older wording that ends delivery while CI is
+still pending. Publication can precede the complete matrix, but task completion
+requires checking its outcome and resolving relevant failures.
+
+## Review and merge qualification
+
+Every implementation release requires a focused install/reinstall check in at
+least one disposable Plasma VM before publication. Record the actual source,
+commands and results. Captures alone do not replace installer qualification or
+resolve known CI failures. Dependency changes require the exhaustive package
+mapping checks; translated messages require catalog checks; native rendering
+tests must pass with their declared dependencies in a clean CI environment.
+
+A request to review, fix, test and merge means review the diff and existing CI
+results first, repair relevant failures, then qualify the candidate before
+merging. A successful compile, plugin load or workflow submission does not
+prove rendering behavior. Do not merge first and leave required validation
+for the user to discover afterward.
+
+Choose a small representative set by the behavior and compatibility boundaries
+actually changed, not every distro by default. For shared KWin effect, shader
+or ABI changes, cover the supported 6.6, 6.7 and 6.8 SDK/API branches using
+selected distro environments, and exercise at least one real isolated X11
+rendering case plus Wayland when shared code affects it. One environment may
+prove multiple claims; another distro is needed only for a distinct relevant
+SDK, package layout or observed failure. Record build, load and visible behavior
+separately. Include existing executable shader/pixel regressions when shader
+inputs or coordinate conventions change; source-text checks are not substitutes.
+
+The selected qualification checks must pass on the final implementation before
+merge. Inspect existing CI failures and resolve those relevant to the change;
+do not choose a passing subset to avoid an observed regression. Reuse matching
+passing evidence and running CI jobs rather than launching duplicate matrices.
+The complete distro matrix stays enabled and may finish asynchronously. Once
+the selected checks pass, publication does not wait for every distro or a
+second run on main. Investigate later failures with a focused reproduction and
+repair; do not automatically revert an entire delivery for every CI failure.
+Revert when the user requests it or the failure warrants withdrawing the change.
+Never describe pending or unrun checks as passed.
+
+Release commands must stop on failed prerequisites. Verify the version, immutable
+pin, archive checksum and evidence before committing or pushing a release tag;
+use fail-fast scripts or separate dependent commands. Never continue publication
+after a failed validation command. Policy-only edits need no new release.
+
+## Respect for the user's time
+
+Apply these rules in both Tahoe and Golden Gate. They supersede older delivery
+or communication wording below. In the user's sense, *necio* means persisting
+stubbornly after a correction, not useful diligence ([Diccionario del español
+de México](https://dem.colmex.mx/ver/necio)). The following are concrete failure
+patterns to stop, not reasons to remove necessary correctness checks.
+
+1. Rechecking publication after a successful publishing command: use that result; do not issue a second release lookup.
+2. Polling a release repeatedly: submit the authorized operation and report the known outcome; do not invent an obligation to wait.
+3. Rechecking remote branches after a successful push: use the push result unless it reports an error or ambiguity.
+4. Narrating plans, tool calls or implementation details: omit routine process narration; explain only when asked or when needed for user input.
+5. Repeating unchanged status messages: no stream of “still waiting”, “verifying” or “almost done”.
+6. Announcing that you will be concise or respectful: demonstrate it in the response instead.
+7. Delaying publication for the entire remote matrix: pass the selected qualification before merge, then publish without waiting for every distro; keep full CI asynchronous.
+8. Waiting for main to repeat dev's result: promote the same commit without a polling job.
+9. Running the full matrix twice for the same delivered change: run it on dev and on PRs; main promotion does not launch a duplicate.
+10. Running runtime CI for Markdown-only edits: use documentation/path filters; do not build native components for prose.
+11. Repeating passing local tests after bookkeeping: reuse evidence while tested code, inputs and environment are unchanged.
+12. Running the whole suite for a narrow fix: choose affected behavior and expand only for a concrete failure or dependency.
+13. Taking every screenshot for one changed component: capture only the needed views in a disposable VM.
+14. Revalidating the entire historical gallery at every release: retain original provenance and check changed artifacts; do not repeat historical audits without cause.
+15. Replacing reviewed images because the version changed: preserve them and their actual capture identity.
+16. Expanding a bug fix into an unsolicited redesign or framework: make the smallest complete repair.
+17. Asking again for permission already granted: act within the existing authorization.
+18. Asking questions already answered by the repository or session: consult existing context first.
+19. Treating old AGENTS wording as stronger than a new user instruction: apply the user's correction and reconcile the conflicting rule.
+20. Reciting internal checklists to the user: keep operational records in files and return the useful result.
+21. Printing long logs when one error explains the failure: inspect quietly and surface only the decision-relevant issue.
+22. Sending coordination acknowledgment loops: message peers for ownership conflicts or actionable handoffs, not ceremonial updates.
+23. Bumping versions or publishing releases for instruction-only edits: commit and push the documentation without release churn.
+24. Continuing after the requested result is complete: stop; do not add a new verification phase.
+
+Default final response: the result, its usable link/path when relevant, and a
+material unresolved limitation if one exists. Do not describe how it was done
+unless requested. Ask only for missing input that changes the outcome. Never
+claim an unobserved success: “submitted” is sufficient when an asynchronous
+operation has only been submitted. A failed operation still needs correction;
+removing redundant confirmation is not permission to hide failure.
+
+
 ## #1 — Self-explanatory code
 
 Do not explain what a terminal command does when it is already obvious
@@ -186,22 +384,35 @@ Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
 
 ## UI/UX Conventions
 
-- System menu icons appear only beside About This Computer, System Settings
-  and App Store, matching the Golden Gate reference. Keep the remaining
-  actions icon-free and omit their reserved icon column; preserve the
-  surrounding menu margins and row spacing.
-- Keep the system menu's `computer`, `preferences-system` and
-  `software-store-symbolic` artwork inherited from the base icon theme.
+- The system menu follows the active edition's macOS reference. Tahoe shows
+  reference symbols on every action; Golden Gate shows only About, System
+  Settings and App Store. Hidden symbols reserve no icon column. Recent Items
+  is intentionally absent. SystemMenuStyle scopes the font-scaled metrics and
+  reference symbols to this popup; explicit custom icon choices remain usable.
+  Ordinary menus keep their existing Kvantum style. Lock Screen and Log Out
+  show right-aligned Mac shortcut symbols (⌃⌘Q and ⇧⌘Q). These shortcuts
+  work within the open system menu; do not replace KDE global key bindings.
+- Draw default system-menu symbols from the corresponding edition's reference
+  in SystemMenuStyle; custom icons and other widgets retain the inherited
+  base-theme artwork.
   Generated app appearances must also omit `preferences`, `software` and
   `software-store`: Qt/KDE resolve those generic fallbacks before inherited
   menu icons. Test both QIcon rendering and KIconLoader resolution. Use
   `systemsettings` and `org.kde.discover` for generated application tiles.
+- `kdeglobals`'s `MacTahoeLiquidKde/SystemMenuPreset` follows the active edition
+  through light/dark transitions, independently of the Launcher preset. Read it
+  again whenever the cached menu opens. The System Settings symbol is the
+  reference 18-tooth wheel with three spokes and a hollow hub; preserve the
+  existing App Store symbol. README captures must show each edition's own
+  wallpaper, preset and icon visibility in both modes.
 - Hover tiles: glass effect (semi-transparent fill, 0.5px micro
   border, 22px radius) — not outlined borders.
-- Native menu selection rounding uses Kvantum `expand-menuitem-normal` tiles
-  and `frame.expansion=12`. Keep the 3px layout frame, text margins, row
-  heights, icon sizes and separators unchanged; frame expansion affects
-  painting only. The system menu adds 65 logical pixels to its natural width.
+- Match native menu selections against real macOS references at 50/50 opacity.
+  Tahoe and Golden Gate use their own references and retain their respective
+  materials. Both reference selections have 8px corners on 24px rows, not
+  full semicircular caps. Kvantum `frame.expansion=16` changes painting only;
+  preserve row heights, text margins, icons and separators. The system menu
+  retains its independently measured style.
 - System font always — never hardcode font names or sizes.
 - Popup plasmoids are fixed-size, not resizable.
 - Top panel is applets-only floating (not full-floating). Keep the menu bar
@@ -311,7 +522,11 @@ build artifacts; the tool must not change live themes or installer defaults.
 
 **Reset Dock and panel customization** starts checked on every new wizard launch.
 Unchecking it preserves existing Dock/panel geometry, hiding behavior, widgets
-and launcher configuration during reinstall.
+and launcher configuration during reinstall, except for the one-time 0.64 Dock
+migration. Revision 3 applies the pictured preset and icons, preserving pins
+and their order. Later reinstalls without reset respect removed pins and icon
+choices. Explicit resets reapply the preset. Browsers retain their own artwork
+and names, including Firefox; never substitute Safari artwork.
 Determine whether this is an existing installation before copying any assets;
 skip both layout creation and its post-restart retry when preserving. Fresh
 installs still create the selected layout. File-manager choices explicitly offer
@@ -340,27 +555,24 @@ It sets `MAC_TAHOE_NO_UPDATE_CHECK=true` for the prepared source.
 
 ## Architecture — Optional Online Rounded Corners
 
-Acrylic Glass's radius controls (`TopCornerRadius`, `BottomCornerRadius`,
-`DockCornerRadius`, `MenuCornerRadius`) are seeded only when absent. Never
+Acrylic Glass's supported radius controls (`WindowCornerRadius`,
+`DockCornerRadius`, `PopupCornerRadius`) are seeded only when absent. Never
 overwrite existing values on reinstall: this preserves custom tuning and the
 corner-artifact workaround from issue #89. An empty value or failed read does
-not authorize a default write. Radii saved under the previous engine's keys
-(`WindowCornerRadius` for top and bottom, `PopupCornerRadius` for menus) carry
-over before those keys are deleted. Leave `UseDeclaredCornerRadius` at its
-`false` default: Aurorae declares no radius, so windows would get square glass.
+not authorize a default write. Retired Menu/Dialog/Tooltip/Bottom radius keys
+are no longer written; the current renderer uses the three supported controls.
 At render time, patched Rounded Corners publishes its animated logical radius
 and squircle blend on the EffectWindow property `_mttkde_corner_shape_v1`.
-Acrylic Glass uses that radius (`sharedCornerRadius()`) while present, ahead of
-the saved and declared radii, except that maximized and fullscreen windows keep
-square glass unless `RoundCornersOfMaximizedWindows` is on; never synchronize
-the stored settings. Clear the
-property on exclusion and unload.
+Acrylic Glass uses this per-frame shape for glass and grain only while present;
+never synchronize the stored settings. Clear the property on exclusion and
+unload. Mask geometry uses frame-local vertex coordinates, not background
+texture UVs, and glass output must be premultiplied for `GL_ONE` blending.
 Rounded Corners must reject desktop surfaces before management/redirection and
 in `hasEffect()`, even when explicitly included. Only `drawWindow()` may start
 redirection after eligibility checks; widget configuration dialogs remain eligible.
 
 VirtualBox VM surfaces (`VirtualBoxVM`, class or resource name, ignoring case)
-are excluded directly in Acrylic Glass's render gate (`shouldBlur()`), before either match-list
+are excluded directly in Acrylic Glass's render gate, before either match-list
 mode, so existing installs and custom filters cannot fill seamless cutouts with
 glass (issue #90). The VirtualBox manager remains eligible for glass.
 
@@ -482,18 +694,20 @@ Preserve support for 6.6 and 6.7 when changing the 6.8 path. Acrylic Glass
 selects KWin ABI flags independently for Wayland and X11 from each backend's
 SDK version. X11 retains its legacy paint and blur ABI on 6.7;
 `GLASS_KWIN_67` covers Wayland blur protocol and paint signature changes; `GLASS_KWIN_68` selects the boolean `Effect::drawWindow()` return
-starting at 6.7.90 (the 6.8 beta). Keep these gates independent; `blur.h`
-switches `DrawWindowResult` on `GLASS_KWIN_68`.
+starting at 6.7.90 (the 6.8 beta). Keep these gates independent and use
+`kwin_version_compat.h` for the shared signatures.
 
 Plasma 6.8 removed `PlasmaCore.WindowThumbnail`. The Dock tooltip retains
 PipeWire previews and uses an icon fallback; do not reintroduce the removed
 QML type. Regression coverage lives in `tests/test_acrylic_glass_cmake.py`
 and `tests/test_taskmanager_qml.py`.
 
-The Glass effect generates core-profile shaders only (`compat_core.glsl`),
-into the build tree; KWin 6.8's GLES 3 context rejects legacy
-`attribute`/`varying` shaders. Disable blending during intermediate Kawase
-passes; only the final surface is composited.
+KWin 6.7+ loads shader filenames verbatim and translates modern GLSL for the
+active context; select the `_core` variants explicitly. KWin 6.8's GLES 3
+context rejects the legacy `attribute`/`varying` shaders. Keep the legacy
+selection on 6.6/X11. Disable blending during intermediate Kawase passes;
+only the final surface is composited. Offset client blur regions by the
+content origin only for server-decorated windows.
 
 Rounded Corners v0.11.0 derives the Wayland 6.8 texture orientation from
 `position0` derivatives upstream; never hardcode a vertical flip by version.
@@ -636,89 +850,36 @@ so the base is re-captured instead of fought. `restore` undoes only the
 currently-applied delta; the step's install() with the flag off tears
 the units down, so a plain re-install is self-healing.
 
-## Architecture — Glass Effect
-
-Acrylic Glass is AndyKaslana/kwin-effects-glass (a fork of 4v3ngR's Glass,
-itself a fork of KWin's blur), vendored at commit `47d165c` under
-`src/offline/kwin-effects/acrylic-glass/` (`UPSTREAM-CHANGELOG.md`). It is
-built as plugin `liquidglass` reading `[Effect-liquidglass]`, never `glass`:
-distribution packages install upstream Glass as `glass.so`, and the installer
-disables that one. Local changes over upstream: the plugin, KCM
-(`kwin_liquidglass_config`) and translation (`kwin_effect_liquidglass`) IDs;
-the config group (upstream reads `[Effect-blurplus]`); per-backend ABI gates
-and the optional X11 target; build-tree shaders under a source-identity
-resource prefix with `debug()` returning the build ID; the default class
-denylist; the VirtualBox gate; the bounded Xwayland blur-property reader in
-the Wayland build; no forced frame for tooltips or applet popups and no
-overwrite of decoration regions; and the Rounded Corners radius hand-off.
-Keep those when refreshing from upstream; `po/fr.po` is upstream's, the
-pt_BR/de catalogues come from `build_translations.py`.
-
 ## Architecture — Transparent Glass
 
 Both editions use transparent Plasma and Kvantum surfaces in light and dark
-mode. Material presets own blur, refraction and tint. Do not generate
-opaque theme variants or expose a separate reduced-transparency preference.
+mode. Material presets own blur, refraction and gradient tint. Do not generate
+opaque theme variants. Keep shell surfaces unchanged. The KCM offers Tahoe (Clear),
+Tahoe (Frosted) and Golden Gate (Official). Golden Gate clear is hidden from
+the selector; old selections retain their saved optics and display Official. Alternate
+presets use the shared `tinted_values` overrides; selection, Restore and the
+installer apply them consistently. Tahoe (Clear) uses the former Frost Glass
+optics with blur 5; Tahoe (Frosted) differs only in blur strength 12. Preserve `MaterialPreset` IDs 1/2 and the
+legacy `BackingTint` key as the alternate-preset identity only. It no longer
+activates a flat backing, and retired BackgroundColor, BackgroundAutomatic and
+BackgroundOpacity keys must not affect rendering.
+The single Background gradient section owns the color overlay. Top, center
+and bottom each have separate Light mode and Dark mode color pickers, with a
+shared tint strength per stop and a center position from 0 (top) to 1 (bottom).
+Colors follow each window's palette at render time. Existing Gradient*Color
+keys serve light mode; absent Gradient*DarkColor keys inherit the old color in
+both the renderer and KCM. Save explicit dark colors, including default black,
+so a custom light color cannot override a deliberate dark choice.
+Golden Gate (Official) uses blur 4, refraction 0.032, color separation 8 px,
+refraction width 64 px, highlight width 16 px, highlight strength 0.1,
+brightness 1.1, contrast 1, saturation 1.13 and no grain. Its gradient uses
+#CECECE in light mode and black in dark mode, with top/center/bottom strengths
+1/0.69/0 and center position 0.56. Window decoration blur is enabled. Corners and window rules
+remain independent. Endpoint positions collapse the corresponding segment
+safely; keep interpolation premultiplied and surface coverage unchanged.
 Legacy appearance files must not influence theme selection; preserve unrelated
 settings and declarative files. Uninstall still cleans up old generated variants.
 Preserve surface masks, shadows, highlights and solid fallbacks.
-
-## Architecture — Menu Bar, Dock and Glass Styles
-
-- Menu bar (top panel): Global Menu, then the macOS extras, each its own
-  plasmoid with a glass flyout: Now Playing, the system tray fork
-  (`org.kde.mac.tahoe.liquid.systemtray`, no overflow arrow), Input menu
-  (`.keyboard`), Sound (`.volume`, its HUD replaces plasma-pa's OSD:
-  `layout.py` turns `VolumeOsd`/`MuteOsd` off and uninstall restores them),
-  Battery, Wi-Fi, Spotlight (Meta+Space), Control Center and Clock. The
-  notifications fork (`org.kde.mac.tahoe.liquid.notifications`) gives
-  macOS banners. Both forks are compiled by `plasmoids.py`.
-- Flyouts blur only their glass shapes through the compiled
-  `org.kde.mac.tahoe.liquid.glass` module (`GlassBlur`): Acrylic Glass
-  honours blur regions and never synthesizes one for a frameless popup, so
-  the transparent room around a flyout stays clear. `GlassSurface.qml`
-  reads `~/.config/mac-tahoe-liquid-kde/glass.ini` (tint, accent, level).
-- The menu bar's shadow is Tahoe's dark veil, a Panel Colorizer panel-layer
-  gradient (`theme_switch.TOP_BAR_SCRIM`), written by the three layouts and
-  by `_top_bar_script`; menu bar text and icons are white
-  (`TOP_BAR_FOREGROUND`). Keep the layouts and `TOP_BAR_SCRIM` identical.
-- Dock: Apps launcher pinned after the file manager (`APPS_PIN`, the
-  Launcher applet stays hidden in the Dock), separator, Downloads stack,
-  a minimized-windows task manager, then the Trash last. Magnification is
-  the shared `org.kde.mac.tahoe.liquid.dockzoom` QML module; the panel
-  reserves its headroom in `panel-background.svgz`
-  (`floating-hint-top-margin` 64 px, side margins matching
-  `DockZoom.sideRoom`), and the `mask-south-*` copies must exist so KSvg
-  does not blur that headroom.
-- Glass styles: `mac-tahoe-theme-switch style {tahoe|frosted}` stored in
-  `~/.config/mac-tahoe-liquid-kde/glass-style`. Tahoe writes the edition's
-  Acrylic Glass preset (`presets.json`, baked into the standalone switcher
-  as `ACRYLIC_PRESETS`); Frosted is that preset more blurred, without lens,
-  refraction or drift, dimmed in Dark and lifted in Light, with the menu
-  bar's translucent background back and no veil. Only a style or tint
-  change, and a light/dark switch while Frosted, rewrite
-  `[Effect-liquidglass]`; Tahoe otherwise keeps the user's tuning.
-- Dock tint (`dock-tint macos|neutral|accent`, `appearance.json`): the
-  `south-center` veil of the installed Plasma themes (`DOCK_VEIL_SHIPPED`
-  for macOS and neutral, the accent at 22 %, 45 % in Frosted); neutral
-  also writes `Saturation=0`. Frosted with the macOS tint follows the
-  accent at half saturation (`half_saturated`); the menu bar follows the
-  tint too (an accent fade instead of `TOP_BAR_SCRIM`, or the frosted
-  bar's tint layer). Frosted shows Plasma's native panel background so the
-  bar is blurred: Panel Colorizer's `blurBehind` needs a compiled helper we
-  do not ship.
-- Accent: Plasma 6.8 applies the wallpaper's accent and
-  `plasma-apply-colorscheme --accent-color` to the palette without
-  updating `[General] AccentColor`. `current_accent_hex()` reads the
-  selection colour when the wallpaper drives it, `set_accent` writes
-  `AccentColor` itself, the widgets' `AccentColor.qml` follow the palette
-  in wallpaper mode, and the Control Center runs `accent-sync` on every
-  palette change (it re-tints only when the accent changed).
-- Theme Settings (`src/offline/theme-settings`, GTK 4 without libadwaita,
-  `~/.local/bin/mac-tahoe-theme-settings`): Appearance and accent, Liquid
-  Glass / Frosted, glass tint and level, Desktop & Dock (`dock`,
-  `minimize`, `hot-corners`). It only runs `mac-tahoe-theme-switch`; the
-  Icons page appears only when an Icon Manager is installed next to it.
 
 ## Architecture — NixOS and Home Manager
 
@@ -753,16 +914,29 @@ per-screen ownership: selecting an edition never resets custom wallpapers;
 `--reset-wallpapers` remains the explicit opt-in. Golden Gate is a download
 wrapper selecting `MacGoldenGate`, not a separate theme implementation.
 
-Golden Gate's black glass tint applies to every glassed surface in both light
-and dark mode; do not remove it or the blur and refraction to repair contrast.
-The Dock has its own blur strength and fine tune (`DockBlurStrength`,
-`DockBlurFinetune`); menus retain their full blur.
+Golden Gate (Official) is the only offered Golden Gate material and the
+installer default. Its independently tuned three-stop gradient, documented
+above, applies to menus in both light and dark mode. Dock surfaces are exempt
+from the gradient under every material; do not
+change the saved gradient settings or remove their blur and refraction.
+Dock/panel optics stay pinned to v0.62.0 independently of window presets and
+fine tuning: three Kawase levels, offset `5 * 0.14`, repaint expansion 50,
+RGB separation `12 * 0.24`, refraction 0.1 / width 18, highlight 3.5 / 0.1,
+brightness 1, contrast 1, saturation 1.33 and 98% centre coverage. The old
+grain strength 1 generated an all-zero texture, so skip that no-op on Docks.
+Corner geometry and rendering fixes remain active. Keep the Gaussian
+finish dense: reconstruct its 5×5 binomial kernel with nine bilinear samples,
+never widen it by separating taps into displaced backdrop copies. Blend the surface normal
+with the centre-directed lens in normalized local coordinates. Derive this
+per surface without rewriting optical preferences;
+menus retain their full blur. Keep the bevel displacement independent of the
+Dock's length and scale it in device pixels.
 Dock captures must use `widgets/panel-background.svgz`, not a light/dark dialog
 fill. Its glass is identical in both appearance modes.
 
 Publish Tahoe and Golden Gate with matching release versions and `v<version>`
 tags. Deliver completed changes to both `dev` and `main` in both repositories,
-and verify both remote branches include them before reporting completion.
+and use the successful push result as delivery evidence; do not re-query refs.
 Release titles must be exactly `v<version>`, with no subtitles, descriptions
 or other extra text. Golden Gate's `VERSION` must match its pinned Tahoe
 release. Golden Gate installs the latest Tahoe release at runtime; its
@@ -771,22 +945,43 @@ the published Tahoe release commit and verified archive SHA-256 before
 publishing the corresponding Golden Gate release. Each README
 shows its own default launcher preset and wallpaper in light and dark mode.
 
-Run visual tests and capture documentation screenshots only when the actual
-change clearly affects visible output: layout, colors, materials, typography,
-icons, wallpaper, controls or rendered UI content. A release, version bump,
-updater fix, translation of console-only messages, documentation edit or CI
-change alone does not justify visual tests or new captures. State the concrete
-visual impact before starting a VM. Reuse reviewed screenshots and their
-original provenance when visual inputs are unchanged; never relabel old images
-as newly captured. Run focused visual checks only for affected components,
-editions and modes, and do not repeat an unchanged passing check. A failed or
-rejected new frame cannot be filled with an older image.
+Visual validation and documentation photography are separate tasks. A visible
+change may justify a focused visual check; it does not require refreshing the
+documentation gallery. New documentation captures are optional unless the user
+requests them or an affected published image would otherwise misrepresent the
+changed behavior. A request to "show me" authorizes a focused preview of the
+changed component, not a full release capture run.
+
+Before starting a VM, name the changed component, the visible difference and
+the exact frames needed. For a Dock application-list or icon-alias change,
+check the affected Dock in the relevant editions and appearance modes. Do not
+recapture installer pages, window materials, Files, About This Computer, boot
+or shutdown unless the diff changes their behavior or the user requests a
+gallery refresh. The Dock appearing incidentally in another screenshot does
+not by itself require replacing that screenshot.
+
+Reuse reviewed images with their original source commit, hashes and provenance;
+never relabel them as newly captured. A new version, source commit, VM checksum,
+profile change or capture-tool limitation is not evidence that every component
+changed. Do not modify the global capture profile or rebuild the full gallery
+merely to obtain a focused preview. If the publication tooling cannot preserve
+unaffected images, report that limitation and keep the preview separate; do not
+expand the capture scope to satisfy the tool. A rejected new frame must not be
+replaced by an older image presented as fresh evidence.
+
+Once the planned affected checks pass, stop. Do not repeat them for documentation,
+version or release bookkeeping. A user instruction to stop testing cancels
+further test, VM, capture and manual CI launches; preserve completed evidence
+and report any remaining publication gate without trying to satisfy it through
+another test route.
 
 Use `./release-screenshots` and the checksum-pinned disposable VM for any new
 publication captures. Review each new image, preserve content-hashed filenames,
-and verify committed provenance before publication. Publish through
-`.github/workflows/release.yml`; keep exact-commit CI on main and dev mandatory
-in both repositories. Never use direct `gh release create` to bypass the gate.
+and record their source hashes and review before publication. Keep unchanged
+gallery images with their original provenance and label historical galleries
+accurately. Publish through `.github/workflows/release.yml` after its fast local-
+evidence check; full remote CI runs independently. Do not create releases outside
+that workflow.
 See CONTRIBUTING.md for the capture sequence when visual changes require it.
 
 The same defaults file selects `launcher_preset` (Tahoe: 1, Golden Gate: 2).
@@ -831,10 +1026,18 @@ rounding effects do not override its capsule. Preserve the X11 search capsule's
 position through its native helper: Plasma 6.8's
 `PopupPlasmaWindow` only positions Wayland windows. Keep it centered above its
 anchor when the parent moves or resizes, constrained to the screen.
-Acrylic Glass must preserve applet popups' client blur regions without adding a rectangular
-frame: forced frames skip docks, tooltips, menus, popups and applet popups, and
-a decoration's own blur region is never overwritten by the forced frame. The
-Rounded Corners shape property takes precedence over saved radii. The native helper generates the missing Plasma shell protocol headers
+Acrylic Glass must preserve applet popups' client blur regions without adding a rectangular decoration
+region. For symmetric rounded popup regions, recover the client curve for
+shader antialiasing without expanding the blur region or changing saved radius
+settings. KSvg's real SVG masks need two logical pixels of rasterization
+tolerance and may have opposite insets differing by one pixel; test the actual
+FrameSvg mask at fractional scales, not only QPainter rounded rectangles.
+Recognize native Qt integer-ellipse masks by exact region equality and keep
+their antialiasing ramp one logical pixel inside the mask, beneath the client
+edge. Never apply that inset to alpha-derived Plasma masks or custom cutouts.
+Discard a cached implicit frame when a late Plasma shell role identifies an
+applet popup. Reject custom cutouts; the Rounded Corners shape property still takes
+precedence. The native helper generates the missing Plasma shell protocol headers
 from the bundled XML; Qt Wayland and wayland-scanner are build dependencies.
 After a transparency change, and after the installer's final Plasma restart,
 refresh enabled Acrylic Glass so its popup masks follow the replacement
@@ -842,44 +1045,54 @@ surfaces. A KWin reconfigure alone did not clear the stale capsule geometry
 observed at 150% scale. Preserve disabled effects and saved radius settings.
 Refreshing an effect instance does not guarantee Qt unloads its shared library.
 Acrylic Glass has two complete material presets: Tahoe and Golden Gate, both
-with blur strength 5, in `src/offline/kwin-effects/acrylic-glass/src/presets.json`
-(Glass effect keys). Golden Gate is Tahoe's optics under a black `TintColor`.
-The schema defaults in `blur.kcfg` are the Tahoe material, so the KCM's
-Defaults restores it; the KCM has no preset selector and `MaterialPreset` is
-retired. Keep one blur path: Dual Kawase. Installing or reinstalling Acrylic
-Glass explicitly reapplies the complete repository edition preset: Tahoe from
-Tahoe, Golden Gate from Golden Gate. Preserve radius controls, window rules and
-optics outside the preset; delete the previous engine's retired keys
-(`_RETIRED_KEYS`) after their radii carried over.
+with blur strength 5. Keep their persisted `MaterialPreset` IDs at 1 and 2;
+the retired Clear ID 0 falls back to Tahoe in the KCM without resetting optics.
+`src/offline/kwin-effects/acrylic-glass/src/presets.json` is shared by the
+installer and the native KCM. Keep one blur path: Dual Kawase with a symmetric
+Gaussian finish; no selectable box/bokeh kernels. Presets apply every material
+control, including opacity, refraction, grain, highlights, color adjustments,
+and gradient colors/strengths. Radius and window rules remain independent.
+Installing or reinstalling Acrylic Glass explicitly reapplies the complete
+repository edition preset: Tahoe from Tahoe, Golden Gate from Golden Gate.
+Replace previous material selections and optical overrides, including absent
+keys and the gradient toggle/colors. Write `MaterialPreset` last, after every
+material control succeeds. Preserve radius controls and window rules separately.
+The KCM still preserves adjustments when reopening settings; preset selection
+and Restore replace them. Persist `MaterialPreset` even for schema-default Tahoe.
 
-Golden Gate uses exactly Tahoe's optical values and adds only a black tint.
-Tahoe context menus, applet popups, tooltips,
+The gradient uses frame-local coordinates and changes color independently of
+blur coverage. Golden Gate uses exactly Tahoe's optical values and adds only
+a black upper gradient. Tahoe context menus, applet popups, tooltips,
 About This Computer and the detached search capsule use 55% white fills in light mode and 48% black fills
 in dark mode. Golden Gate stages light Plasma popups, tooltips, the detached
 search capsule and native Qt menus with 60% white fill so the system dark
-foreground stays readable above the tint, including over black backdrops.
+foreground stays readable above the gradient, including over black backdrops.
 About This Computer follows the same Golden Gate fills: 60% white in light
 mode and 1% white in dark mode. Its `hint-clear-surface` SVG marker identifies
 the edition, not a request to use 1% in both modes. Keep regression coverage
 for light/dark/light transitions and secondary-label contrast over black;
 never bless the unreadable 1% light-mode fill as a test expectation.
 Golden Gate dark surfaces retain their 1% white fill. Preserve every Tahoe
-asset, the Dock fill, and all unrelated surfaces. Never remove the compositor
-tint to repair light-mode foreground contrast.
+asset, the Dock fill, and all unrelated surfaces. Never disable or change the
+saved compositor gradient to repair light-mode foreground contrast.
 Apply the same staging in the imperative installer and Nix; preserve masks,
 contours and solid fallbacks.
 The Dock retains the same thin fill in both modes.
 Surface contours pair a 0.75 logical-pixel dark outer line with a 0.75
 logical-pixel light inner line; preserve each surface's native mask and radius.
-Launcher and other applet popups retain full blur coverage so sharp backdrop
-details cannot leak through their interiors. Shared light/dark Plasma and Kvantum
+Only the Dock lowers centre coverage; Launcher and other
+applet popups retain full blur coverage so sharp backdrop details cannot leak
+through their interiors. `DarkGradientOverlay` is retained
+as the persisted enable key; the KCM calls it Enable gradient and exposes both
+colors and strengths. Keep legacy/core shaders equivalent, output premultiplied,
+and pixel widths scaled to the viewport. Shared light/dark Plasma and Kvantum
 surface fills let the effect define the material in either edition. Keep popup
 fills translucent; use the system window foreground consistently on popups
 and the detached search capsule. Launcher text uses a soft, centered halo
 of the opposite luminance to its system foreground color in both modes. Keep
 the halo low-opacity and diffuse; do not use a hard outline. Light-mode
 category pills use a translucent white backing to keep dark labels readable
-over the tint.
+over the upper gradient.
 Golden Gate light mode uses full-opacity search text and a stronger diffuse
 halo in the Apps input; category fills use 68% white when selected and 52%
 otherwise. Stage the edition flag independently of the user's launcher preset.
@@ -935,7 +1148,7 @@ bootloader probe.
 | ---------------------------- | ---- |
 | `tests/containers/Dockerfile.<distro>` | One per supported distro. CachyOS pulls both `archlinux-keyring` and `cachyos-keyring` after `pacman-key --init && pacman-key --populate archlinux cachyos`. |
 | `tests/containers/Dockerfile.arch-kdeunstable` | Canary against Arch's `[kde-unstable]` staging repo — catches the next Plasma release early. Every matrix target, including staging, must pass. |
-| `tests/containers/run_in_container.py` | Per-distro probe: qmake6 resolves, the distro layer agrees with what qmake6 reports, every `package_for()` token resolves in the distro's repo (with a "transient network" skip so flaky upstream CDN edges don't tank CI), preflight destination checks, pytest. |
+| `tests/containers/run_in_container.py` | Per-distro probe: qmake6 resolves, the distro layer agrees with what qmake6 reports, every `package_for()` token resolves in the distro's repo (with a "transient network" skip so flaky upstream CDN edges don't tank CI), preflight destination checks and platform-sensitive pytest. The general suite runs once per commit, split into disjoint file shards. |
 | `tests/containers/run_matrix.sh` | Local runner. CI runs the same workflow via `.github/workflows/test.yml`. |
 
 Gentoo is no longer a supported installation target. Package-manager entry
@@ -970,13 +1183,13 @@ a genuine missing package and fails CI.
 | `nautilus.py`                 | Nautilus integration (file manager set as default on KDE for users who prefer it). |
 | `oled_care.py` (step)         | Installs the opt-in OLED-care binary + systemd user timer or OpenRC cron entry; flag off tears them down; uninstall restores panel geometry. |
 | `plasma_theme.py`             | Translucent panels and dock SVGs. |
-| `plasmoids.py`                | Plasmoids: Menu, Launcher, Trashcan, IconTasks, menu bar extras; builds the system tray and notifications forks and the glass and Dock-zoom QML modules. |
+| `plasmoids.py`                | QML plasmoids: Menu, Launcher, Trashcan, IconTasks. |
 | `plymouth.py`                 | Boot splash. GRUB patch behind `_grub_is_active_bootloader()`; `--no-grub-modify` opt-out exists. |
 | `rounded_corners.py`          | Best-effort verified download of KDE Rounded Corners v0.11.0; compile/install and enable the effect, KCM, shaders, locales, and license without synchronizing other theme geometry. |
 | `portals.py`                  | Route xdg-portal FileChooser / AppChooser to KDE (fixes stale dialog colors). |
 | `sddm.py`                     | Login screen theme. |
 | `sounds.py`                   | Notification and event sounds. |
-| `theme_switch.py` (step)      | Installs the `mac-tahoe-theme-switch` binary (with the Acrylic Glass presets baked in) and Theme Settings and, in automatic mode, systemd user units or OpenRC cron entries. |
+| `theme_switch.py` (step)      | Installs the `mac-tahoe-theme-switch` binary and, in automatic mode, systemd user units or OpenRC cron entries. |
 | `wallpapers.py`               | Copies the bundled wallpaper set. No network. |
 | `window_decorations.py`       | Aurorae assembly (decoration.svg + rc + button icon SVGs + metadata per theme dir) + kwinrc `org.kde.kdecoration2`. |
 
@@ -1068,6 +1281,21 @@ green   yellow   orange   red   purple   blue
 | Pinned taskbar apps wiped during layout rebuild | First installs, selected layout resets and uninstall rebuild panels from scratch. `layout.py` captures every `launchers=` list from appletsrc first (deduped, minus our own plasmoids), writes it onto the new Mac Dock during install, and restores it onto the default Breeze icontasks during uninstall. Wizard updates preserve the existing layout when reset is unchecked. |
 | GTK popups never get compositor blur           | Client-side popups (Firefox menus, popovers) receive no KWin blur, so GTK CSS popup surfaces must keep mirrored light/dark rgba alpha — literal `transparent` renders see-through (issue #11). The gtk-4.0 sheets must also define every libadwaita named color they reference; only libadwaita apps define those at runtime. `test_static.py` guards both. |
 
+## Documentation style
+
+Keep TESTING.md as a concise snapshot of the latest verified release, stated
+once, followed by the installer photographs. Replace the previous summary;
+never append a changelog, superseded candidates or unreleased development logs.
+Keep one short validation summary with a link to detailed evidence and coverage
+limits. When consolidating accumulated history, reduce the document by at least
+half. Preserve reviewed photographs, content-hashed filenames and original
+provenance; do not recapture or relabel unchanged images. Keep README concise
+and put installer photographs only in TESTING.md.
+
+Limit README installation/update notes to two short lines of user actions.
+Omit updater internals and repeated explanations; keep technical details in
+CONTRIBUTING.md or linked developer documentation.
+
 ## Testing
 
 `./test` runs the full pytest suite. Apply the following scope policy before
@@ -1086,22 +1314,24 @@ that scope when a failure or shared dependency reveals another affected path.
 | --- | --- |
 | Wrapper, downloader or source selection | Wrapper suite, including local-source staging, release fallback and checksum/version handling where affected. |
 | Tahoe implementation | Component regressions and affected installer lifecycle paths in Tahoe; exercise the prepared Golden Gate source when edition staging can change the result. |
-| Defaults, materials or appearance | Affected editions, light/dark transitions, saved choices and relevant visual checks in a disposable VM. |
+| Defaults, materials or appearance | Target the changed behavior, affected editions and saved choices. Use a disposable VM only for rendering or transition claims that need visual evidence; scope it to the changed component. Documentation photography follows the optional capture policy. |
 | Native backend, ABI or distro packages | Build against the affected SDKs and test the changed backend on representative distros with distinct relevant SDK/package layouts. Record build, load and behavior results separately. |
 | Documentation or agent instructions only | Review consistency, references and `git diff --check`; no manual pytest, native builds or VM runs. |
 
-For an X11-only fix, test the affected component on at least two supported
-distros with X11 available, covering the relevant KWin ABI differences. Verify
-the intended module loads and the reported behavior is fixed in an isolated
-session. Include install/reinstall/uninstall regressions when those paths
-changed, and a Wayland regression check when shared code changed. A successful
-compile or plugin load alone does not prove rendering is correct. Missing X11
-support is a coverage gap, not a pass. Do not repeat unrelated desktop lifecycle
-qualification on every distro for this fix.
+For an X11 fix, run at least one representative isolated X11 session and
+verify both module loading and the reported behavior. Cover affected KWin
+6.6, 6.7 and 6.8 SDK/API branches with selected distro environments; add another
+runtime distro only for a distinct relevant compatibility difference or failure.
+Include install/reinstall/uninstall regressions only when those paths changed,
+and a Wayland regression when shared code changed. Compilation or plugin loading
+alone does not prove rendering. Missing X11 support is a coverage gap, not a pass.
+Do not repeat unrelated desktop lifecycle qualification across distros.
 
 Run focused checks while implementing; reserve broad integration runs for a
 stable candidate. Required CI supplies the complete suite and configured distro
-matrix on the final implementation commit. Do not also run the entire matrix
+matrix on the final implementation commit. The full general suite runs once on
+`dev` (two disjoint shards); each distro retains dependency, SDK build, native
+rendering and platform checks. `main` receives the same commit without launching another CI run or polling job. Pull requests run their own complete checks. Do not also run the entire matrix
 locally unless CI cannot exercise the needed case or a failure needs local
 reproduction. Run the shared suite against the prepared source when staging
 changes executable behavior; a pin-only update to an already validated Tahoe
@@ -1117,13 +1347,17 @@ matrix just to obtain the same evidence sooner. Once the planned checks pass
 and coverage gaps are resolved, stop testing unless new changes invalidate
 that evidence.
 
-For implementation delivery, inspect required CI results for the exact commits
-on both branches. Earlier-commit evidence never substitutes for the exact-SHA
-release gate: publication requires successful `test.yml` push runs on `main`
-and `dev` for each repository's exact release commit. Never weaken workflows,
-skip required checks or treat missing,
-cancelled or failed checks as success to shorten a task. Screenshot provenance verification remains mandatory; new visual tests and
-captures are conditional on a clear visual change, as specified below.
+For implementation delivery, run focused local checks for the affected behavior,
+review component-scoped VM captures when needed, and record their exact source
+fingerprint in `release-evidence.json`. Complete the selected merge qualification
+above and resolve relevant known CI failures, then publish the installable fix. Full remote CI remains enabled and runs asynchronously on
+`dev`; `main` promotion does not run a polling or duplicate test job.
+Do not wait for the full matrix or repeat the historical screenshot audit before
+telling the user the release can be installed. Clearly distinguish local checks,
+reviewed captures, published release and pending/passed/failed remote CI. Never
+call pending, cancelled, skipped or failed checks successful. Investigate later
+CI failures and deliver a corrective release when necessary. Preserve complete
+CI coverage; this policy changes publication ordering, not the test matrix.
 
 Documentation-only delivery does not require a version bump, pin update,
 release or new screenshots. Automatic push CI may still run; report its status
@@ -1202,7 +1436,7 @@ featured application with that window focused; reject combined or unfocused
 frames. Enforce this in capture and release validation. This requirement is
 for the main README gallery, not distro qualification/OS screenshots.
 
-The native wizard offers none, soft (default, Cutefish's diffuse shadow), medium and hard window shadows.
+The native wizard offers none, soft, medium (default) and hard window shadows.
 Apply the chosen level to both Aurorae SVG variants and GTK 3/4 theme sheets
 from fresh bundled sources on each installation. Preserve frame geometry,
 borders, rounded-corner settings and tiled/fullscreen shadow suppression.
@@ -1222,3 +1456,57 @@ Defaults remain edition-specific (Tahoe Flat, Golden Gate Glassy), but an explic
 choice overrides the edition for Aurorae, GTK, global-theme defaults and the
 standalone switcher. Preserve the choice through light/dark transitions; new
 wizard launches still start from source-edition defaults.
+
+
+Optional Dock applications are a separate, user-authorized package operation.
+Keep theme assets offline. Reuse installed equivalents first; never install
+applications in an express/default transaction. The custom wizard previews each
+selected app and its source. Native packages use only configured repositories;
+per-user Flatpak and adding Flathub require explicit transaction choices. Do not
+silently switch sources, upgrade the distribution or remove these apps during
+theme uninstall. Failed optional apps warn and remain pending in the Dock.
+
+## Component installation fingerprints
+
+Maintain independent installation fingerprints for each component, including each
+plasmoid. Changes to component sources, installation logic, shared dependencies
+or relevant choices must invalidate only the affected components. Never use the
+release version or repository commit as a global reinstall key. Record success
+only after installation completes; failures, cancellation, missing installed
+artifacts and uninstall must not leave a reusable success record. Keep source
+fingerprints auditable in the repository and validate them before release.
+
+Installer file-manager previews must show the featured Nautilus or Dolphin
+window focused. Verify window identity, focus and settled geometry immediately
+before and after capture inside a disposable VM; reject interrupted captures.
+Preserve original provenance for unaffected photographs.
+
+Before committing a component change, run
+`python src/scripts/component_manifest.py --write` and commit
+`component-hashes.json` with it. Review that only affected payloads and their
+shared recipe dependents changed. CI verifies this ledger against the actual
+sources; never bump a global release hash to force every component to reinstall.
+Runtime comparisons hash actual staged bytes (including local development
+changes), permissions and symlink targets. Keep configuration application and
+explicit reset choices outside payload reuse. Native build reuse must retain
+CMake configuration and Make's SDK/header dependency checks.
+
+Menu appearance comparisons use real screenshots of the corresponding macOS
+edition, aligned at the same display scale and blended at 50/50 opacity.
+Do not use a Tahoe photograph as Golden Gate evidence or vice versa. Installer
+source defaults remain Tahoe with launcher preset 1 and Golden Gate with
+preset 2; explicit per-step choices still override their own setting. Native
+menu selections use the measured 8px corners, while edition materials remain
+independent of the launcher preset. Record any remaining geometry differences
+instead of claiming a pixel-identical match.
+
+Native menu outer borders use continuous corners independently of the 5px
+content inset. Keep the blue selection at its measured 8px corners. The
+MacTahoe Qt style delegates ordinary widgets and edition materials to Kvantum;
+install its sidecar in both editions and retain it through light/dark switches.
+
+Use the original Apple glyph outlines from the bundled font for system-menu
+symbols, not hand-drawn approximations. Regenerate the committed paths with
+`src/scripts/build_menu_symbols.py`; keep the font hash, glyph identities and
+uniform transforms in `systemmenusymbols.json`. The plugin must not require
+a host Apple font or an SVG loader at runtime. App Store remains unchanged.

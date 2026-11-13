@@ -12,16 +12,15 @@ import org.kde.kirigami as Kirigami
 AbstractButton {
     id: controlRoot
 
-    // macOS menu titles use the regular weight; only the app name is bold.
     font.weight: Font.Normal
-    font.pointSize: Kirigami.Theme.defaultFont.pointSize - 0.75
     property bool menuIsOpen: false
+    property bool hoverOpensMenu: true
 
     signal activated()
 
     hoverEnabled: true
 
-    onHoveredChanged: if (hovered && menuIsOpen) { activated(); }
+    onHoveredChanged: if (hoverOpensMenu && hovered && menuIsOpen) { activated(); }
     onPressed: activated()
 
     enum State {
@@ -42,18 +41,17 @@ AbstractButton {
     Kirigami.MnemonicData.controlType: Kirigami.MnemonicData.SecondaryControl
     Kirigami.MnemonicData.label: text
 
-    // Caps sit on rows 10-19 of the 30 px bar: optically centred, on the
-    // clock's baseline.
-    topPadding: Kirigami.Units.smallSpacing - 1
-    bottomPadding: Kirigami.Units.smallSpacing - 2
-    // ~20 px between titles, as in the macOS menu bar.
-    leftPadding: Kirigami.Units.largeSpacing + Kirigami.Units.smallSpacing / 2
-    rightPadding: Kirigami.Units.largeSpacing + Kirigami.Units.smallSpacing / 2
+    topPadding: Kirigami.Units.smallSpacing
+    bottomPadding: Kirigami.Units.smallSpacing
+    leftPadding: 3 * Kirigami.Units.smallSpacing
+    rightPadding: 3 * Kirigami.Units.smallSpacing
 
     Accessible.description: i18nc("@info:usagetip", "Open a menu")
 
     background: Rectangle {
-        radius: Kirigami.Units.cornerRadius
+        y: Math.min(Kirigami.Units.smallSpacing, controlRoot.height / 4)
+        height: Math.max(0, controlRoot.height - 2 * y)
+        radius: Math.min(width, height) / 2
         color: controlRoot.menuState === MenuDelegate.State.Rest
                ? "transparent"
                : Qt.rgba(0.5, 0.5, 0.5, controlRoot.menuState === MenuDelegate.State.Down ? 0.25 : 0.18)
@@ -65,6 +63,6 @@ AbstractButton {
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
         color: Kirigami.Theme.textColor
-        font: controlRoot.font
+        font.weight: controlRoot.font.weight
     }
 }

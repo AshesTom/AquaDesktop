@@ -46,6 +46,8 @@ CHROME_BLOCKS = {
 USER_BLOCK = (
     f"{USER_START}\n"
     'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);\n'
+    # Local symbolic SVGs use context-fill to follow the toolbar palette.
+    'user_pref("svg.context-properties.content.enabled", true);\n'
     f"{USER_END}\n"
 )
 LEGACY_PREF_LINES = (
@@ -448,6 +450,8 @@ def _install_payload(chrome: Path) -> None:
     elif staged.is_symlink():
         staged.unlink()
     shutil.copytree(source, staged, symlinks=True)
+    from window_controls import apply_firefox_controls
+    apply_firefox_controls(staged)
     previous = chrome / f".{THEME_DIRNAME}.mttkde-previous"
     if previous.exists() or previous.is_symlink():
         if staged.is_dir():

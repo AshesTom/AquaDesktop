@@ -23,7 +23,7 @@ let
       kservice kwidgetsaddons kwindowsystem kcolorscheme libplasma plasma-activities
       plasma-activities-stats libksysguard plasma-workspace kwin kdecoration ]
       ++ [ pkgs.libepoxy pkgs.libdrm pkgs.wayland pkgs.libxkbcommon
-           pkgs.libGL pkgs.vulkan-headers pkgs.vulkan-loader pkgs.libx11 pkgs.libxcb ];
+           pkgs.libGL pkgs.vulkan-headers pkgs.vulkan-loader pkgs.libx11 pkgs.libxcb pkgs.libxtst ];
     dontWrapQtApps = true;
     cmakeFlags = [ "-DCMAKE_BUILD_TYPE=Release" ];
   } // extra);
@@ -47,9 +47,14 @@ in rec {
       PYTHONPATH=${../src/scripts} python ${./install-assets.py} . "$out"
       mkdir -p "$out/share/icons"
       tar --zstd -xf "$src/icons/MacTahoeLiquidKde-Icons.tar.zst" -C "$out/share/icons"
+      PYTHONPATH=${../src/scripts} python ${../src/scripts/interface_icons.py} "$out/share/icons"
       tar --zstd -xf "$src/cursors/MacTahoeLiquidKde-Cursors.tar.zst" -C "$out/share/icons"
       runHook postInstall
     '';
+  };
+  menu-style = buildPlugin "menu-style" (offline + "/menu-style") {
+    cmakeFlags = [ "-DCMAKE_BUILD_TYPE=Release"
+      "-DMENU_STYLE_PLUGIN_DIR=${placeholder "out"}/${kde.qtbase.qtPluginPrefix}/styles" ];
   };
   global-menu = buildPlugin "global-menu" (offline + "/plasmoids/org.kde.mac.tahoe.liquid.globalmenu") {};
   task-manager = buildPlugin "task-manager" (offline + "/plasmoids/org.kde.mac.tahoe.liquid.taskmanager") {};
@@ -87,6 +92,7 @@ in rec {
   };
   apple-assets = pkgs.stdenvNoCC.mkDerivation {
     pname = "mac-tahoe-apple-assets";
+    nativeBuildInputs = [ pkgs.xz ];
     inherit version;
     src = lib.fileset.toSource {
       root = offline;
@@ -95,7 +101,8 @@ in rec {
     meta = meta // { license = lib.licenses.unfree; };
     installPhase = ''
       mkdir -p "$out/share/fonts" "$out/share/wallpapers" "$out/share/sounds"
-      cp -r fonts/. "$out/share/fonts/"
+      tar -xJf fonts/fonts.tar.xz -C "$out/share/fonts"
+      cp fonts/SF-Pro-Display-Regular.otf "$out/share/fonts/"
       cp -r wallpapers/. "$out/share/wallpapers/"
       cp -r sounds/. "$out/share/sounds/"
     '';
@@ -116,7 +123,7 @@ in rec {
   };
   default = pkgs.symlinkJoin {
     name = "mac-tahoe-liquid-kde-${version}";
-    paths = [ theme-assets global-menu task-manager acrylic-glass rounded-corners tools kde.plasma5support kde.kitemmodels ];
+    paths = [ theme-assets menu-style global-menu task-manager acrylic-glass rounded-corners tools kde.plasma5support kde.kitemmodels ];
     inherit meta;
   };
 }

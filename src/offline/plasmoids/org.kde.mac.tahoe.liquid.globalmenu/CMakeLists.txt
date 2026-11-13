@@ -39,7 +39,9 @@ plasma_add_applet(org.kde.mac.tahoe.liquid.globalmenu
         qml/configGeneral.qml
         qml/main.qml
         qml/MenuDelegate.qml
+        qml/GlassButton.qml
         qml/AboutWindow.qml
+        qml/ApplicationAboutWindow.qml
         qml/configSystemMenu.qml
     CPP_SOURCES
         appmenuapplet.cpp
@@ -48,7 +50,6 @@ plasma_add_applet(org.kde.mac.tahoe.liquid.globalmenu
         main.xml
         qml/copy-light.svg
         qml/copy-dark.svg
-        qml/apple-logo.svg
     QML_ARGS DEPENDENCIES QtCore org.kde.plasma.core
 )
 
@@ -71,3 +72,6 @@ target_link_libraries(org.kde.mac.tahoe.liquid.globalmenu PRIVATE
 )
 
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/locale/" DESTINATION "${KDE_INSTALL_LOCALEDIR}")
+
+include(menushortcuts.cmake)
+tahoe_menu_shortcuts(org.kde.mac.tahoe.liquid.globalmenu)

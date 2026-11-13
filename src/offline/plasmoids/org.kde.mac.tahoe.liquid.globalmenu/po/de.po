@@ -5,6 +5,27 @@ msgstr "Project-Id-Version: MacTahoe Liquid KDE\nPO-Revision-Date: 2026-10-22 00
 msgid "%1 (%2 physical)"
 msgstr "%1 (%2 physisch)"
 
+msgid "&Copy"
+msgstr "&Kopieren"
+
+msgid "&Edit"
+msgstr "&Bearbeiten"
+
+msgid "&Paste"
+msgstr "&Einfügen"
+
+msgid "&Redo"
+msgstr "&Wiederherstellen"
+
+msgid "&Undo"
+msgstr "&Rückgängig"
+
+msgid "&View"
+msgstr "&Ansicht"
+
+msgid "About %1"
+msgstr "Über %1"
+
 msgid "About This Computer"
 msgstr "Über diesen Computer"
 
@@ -23,14 +44,23 @@ msgstr "App-Store…"
 msgid "Appearance"
 msgstr "Erscheinungsbild"
 
+msgid "Application"
+msgstr "Anwendung"
+
+msgid "Application ID"
+msgstr "Anwendungskennung"
+
 msgid "Chip"
 msgstr "Chip"
 
 msgid "Choose…"
 msgstr "Auswählen…"
 
-msgid "Close"
-msgstr "Schließen"
+msgid "Close %1"
+msgstr "%1 schließen"
+
+msgid "Close Window"
+msgstr "Fenster schließen"
 
 msgid "Commands"
 msgstr "Befehle"
@@ -38,14 +68,26 @@ msgstr "Befehle"
 msgid "Copied"
 msgstr "Kopiert"
 
+msgid "Copy Details"
+msgstr "Details kopieren"
+
 msgid "Copy details"
 msgstr "Details kopieren"
 
 msgid "Cores"
 msgstr "Kerne"
 
+msgid "Cu&t"
+msgstr "&Ausschneiden"
+
+msgid "Desktop file"
+msgstr "Desktop-Datei"
+
 msgid "Enter Full Screen"
 msgstr "Vollbildmodus starten"
+
+msgid "Executable"
+msgstr "Programmdatei"
 
 msgid "Exit Full Screen"
 msgstr "Vollbildmodus beenden"
@@ -58,6 +100,9 @@ msgstr "Sofort beenden…"
 
 msgid "Graphics"
 msgstr "Grafik"
+
+msgid "Location"
+msgstr "Speicherort"
 
 msgid "Lock Screen"
 msgstr "Bildschirm sperren"
@@ -98,6 +143,9 @@ msgstr "Betriebssystem"
 msgid "Personal Computer"
 msgstr "Personal Computer"
 
+msgid "Process ID"
+msgstr "Prozesskennung"
+
 msgid "Report a Bug…"
 msgstr "Fehler melden…"
 
@@ -113,11 +161,20 @@ msgstr "Wiederherstellen"
 msgid "Search"
 msgstr "Suchen"
 
+msgid "Search application menu actions"
+msgstr "Aktionen im Anwendungsmenü suchen"
+
 msgid "Search…"
 msgstr "Suchen…"
 
+msgid "Select &All"
+msgstr "&Alles auswählen"
+
 msgid "Serial number"
 msgstr "Seriennummer"
+
+msgid "Show common menus for applications without a menu bar"
+msgstr "Allgemeine Menüs für Anwendungen ohne Menüleiste anzeigen"
 
 msgid "Show full application menu"
 msgstr "Vollständiges Anwendungsmenü anzeigen"
@@ -140,6 +197,9 @@ msgstr "Ruhezustand:"
 msgid "Startup disk"
 msgstr "Startvolume"
 
+msgid "Switch open menus on hover"
+msgstr "Geöffnete Menüs beim Überfahren mit der Maus wechseln"
+
 msgid "System Menu"
 msgstr "Systemmenü"
 
@@ -148,6 +208,9 @@ msgstr "Systemeinstellungen:"
 
 msgid "System Settings…"
 msgstr "Systemeinstellungen…"
+
+msgid "System menu"
+msgstr "Systemmenü"
 
 msgid "Unknown"
 msgstr "Unbekannt"

@@ -1,0 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+#pragma once
+
+inline constexpr char materialPresetsJson[] = R"presets(@MATERIAL_PRESETS_JSON@)presets";

@@ -733,18 +733,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
     },
     # openSUSE splits cmake-full / cmake-mini; the ``cmake`` virtual
     # pulls full, so plain "cmake" stays safe everywhere.
-    "patch": {
-        "arch":     "patch",
-        "debian":   "patch",
-        "ubuntu":   "patch",
-        "fedora":   "patch",
-        "rhel":     "patch",
-        "centos":   "patch",
-        "opensuse": "patch",
-        "alpine":   "patch",
-        "void":     "patch",
-        "gentoo":   "sys-devel/patch",
-    },
     "cmake": {
         "arch":     "cmake",
         "debian":   "cmake",
@@ -840,6 +828,20 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
     },
     # Qt6SvgConfig.cmake — required by the bundled Kvantum Qt 6 fallback
     # used when a Debian-family repository still ships only the Qt 5 engine.
+    # Direct SVG QIcons need the runtime icon engine; Debian/Ubuntu split it
+    # from the library and -dev package when recommends are disabled.
+    "qt6-svg-icons": {
+        "arch":     "qt6-svg",
+        "debian":   "qt6-svg-plugins",
+        "ubuntu":   "qt6-svg-plugins",
+        "neon":     "qt6-svg",
+        "fedora":   "qt6-qtsvg",
+        "rhel":     "qt6-qtsvg",
+        "centos":   "qt6-qtsvg",
+        "opensuse": "libQt6Svg6",
+        "alpine":   "qt6-qtsvg",
+        "void":     "qt6-svg",
+    },
     "qt6-svg-cmake": {
         "arch":     "qt6-svg",
         "debian":   "qt6-svg-dev",
@@ -969,43 +971,6 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "rhel":     "kf6-kio-devel",
         "centos":   "kf6-kio-devel",
         "opensuse": "kf6-kio-devel",
-    },
-    # The menu bar's system tray and notifications forks.
-    "kf6-xmlgui-cmake": {
-        "arch":     "kxmlgui",
-        "debian":   "libkf6xmlgui-dev",
-        "ubuntu":   "libkf6xmlgui-dev",
-        "fedora":   "kf6-kxmlgui-devel",
-        "rhel":     "kf6-kxmlgui-devel",
-        "centos":   "kf6-kxmlgui-devel",
-        "opensuse": "kf6-kxmlgui-devel",
-    },
-    "kf6-statusnotifieritem-cmake": {
-        "arch":     "kstatusnotifieritem",
-        "debian":   "libkf6statusnotifieritem-dev",
-        "ubuntu":   "libkf6statusnotifieritem-dev",
-        "fedora":   "kf6-kstatusnotifieritem-devel",
-        "rhel":     "kf6-kstatusnotifieritem-devel",
-        "centos":   "kf6-kstatusnotifieritem-devel",
-        "opensuse": "kf6-kstatusnotifieritem-devel",
-    },
-    "kf6-iconthemes-cmake": {
-        "arch":     "kiconthemes",
-        "debian":   "libkf6iconthemes-dev",
-        "ubuntu":   "libkf6iconthemes-dev",
-        "fedora":   "kf6-kiconthemes-devel",
-        "rhel":     "kf6-kiconthemes-devel",
-        "centos":   "kf6-kiconthemes-devel",
-        "opensuse": "kf6-kiconthemes-devel",
-    },
-    "kf6-jobwidgets-cmake": {
-        "arch":     "kjobwidgets",
-        "debian":   "libkf6jobwidgets-dev",
-        "ubuntu":   "libkf6jobwidgets-dev",
-        "fedora":   "kf6-kjobwidgets-devel",
-        "rhel":     "kf6-kjobwidgets-devel",
-        "centos":   "kf6-kjobwidgets-devel",
-        "opensuse": "kf6-kjobwidgets-devel",
     },
     "kf6-notifications-cmake": {
         "arch":     "knotifications",
@@ -1170,6 +1135,17 @@ _PACKAGE_MAP: dict[str, dict[str, str]] = {
         "opensuse": "libepoxy-devel",
         "alpine":   "libepoxy-dev",
         "void":     "libepoxy-devel",
+    },
+    "xtst-cmake": {
+        "arch": "libxtst",
+        "debian": "libxtst-dev",
+        "ubuntu": "libxtst-dev",
+        "fedora": "libXtst-devel",
+        "rhel": "libXtst-devel",
+        "centos": "libXtst-devel",
+        "opensuse": "libXtst-devel",
+        "alpine": "libxtst-dev",
+        "void": "libXtst-devel",
     },
     "x11-cmake": {
         "arch":     "libx11",
@@ -1511,3 +1487,27 @@ def plasma_version_probe_cmds() -> tuple[list[str], ...]:
     if build_cmd is None:
         return ()
     return tuple(build_cmd(pkg) for pkg in packages)
+
+
+_DOCK_APP_PACKAGES = {
+    "mail": ("Thunderbird", "thunderbird"),
+    "calendar": ("Merkuro", "merkuro"),
+    "notes": ("Marknote", "marknote"),
+    "photos": ("Gwenview", "gwenview"),
+    "music": ("Elisa", "elisa"),
+    "video": ("Haruna", "haruna"),
+    "flatpak": ("Flatpak", "flatpak"),
+}
+
+
+def dock_app_package(category: str) -> tuple[str, str] | None:
+    """Optional apps use only existing native repositories; no distro upgrades."""
+    for family in (current_distro(), *_compatibility_parents()):
+        if family not in _PACKAGE_MANAGER_INSTALL:
+            continue
+        if category == "calendar" and family != "arch":
+            return ("KOrganizer", "korganizer")
+        if category == "mail" and family == "opensuse":
+            return ("Thunderbird", "MozillaThunderbird")
+        return _DOCK_APP_PACKAGES.get(category)
+    return None

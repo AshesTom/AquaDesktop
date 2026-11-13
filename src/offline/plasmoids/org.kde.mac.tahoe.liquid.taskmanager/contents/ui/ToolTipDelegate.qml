@@ -63,22 +63,7 @@ Loader {
     active: !blockingUpdates && rootIndex !== undefined && ((parentTask && parentTask.containsMouse) || Window.visibility !== Window.Hidden)
     asynchronous: true
 
-    // macOS Dock: just the app's name over its icon, no window thumbnails
-    // or media controls.
-    readonly property bool dockLabel: parentTask !== null && parentTask.dockLayout
-    sourceComponent: dockLabel ? dockNameLabel : isGroup ? groupToolTip : singleTooltip
-
-    Component {
-        id: dockNameLabel
-
-        PlasmaComponents3.Label {
-            text: toolTipDelegate.appName || toolTipDelegate.display
-            textFormat: Text.PlainText
-            font.pixelSize: 13
-            leftPadding: 4
-            rightPadding: 4
-        }
-    }
+    sourceComponent: isGroup ? groupToolTip : singleTooltip
 
     Component {
         id: singleTooltip

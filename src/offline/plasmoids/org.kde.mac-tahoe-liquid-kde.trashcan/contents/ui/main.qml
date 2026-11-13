@@ -17,10 +17,28 @@ import org.kde.draganddrop as DragDrop
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as P5Support
 import org.kde.mac.tahoe.launcher as NativeLauncher
-import org.kde.mac.tahoe.liquid.dockzoom
 
 PlasmoidItem {
     id: root
+
+    // Prefer a full-thickness cell, but share compression with task cells
+    // when the panel runs out of space.
+    NativeLauncher.DockCell {
+        id: dockCell
+        applet: root
+        active: Plasmoid.formFactor === PlasmaCore.Types.Horizontal
+            || Plasmoid.formFactor === PlasmaCore.Types.Vertical
+        vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
+    }
+    Plasmoid.constraintHints: Plasmoid.CanFillArea
+    Layout.fillWidth: dockCell.active
+    Layout.fillHeight: dockCell.active
+    Layout.minimumWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? Math.floor(dockCell.size) : 0
+    Layout.preferredWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? dockCell.size : -1
+    Layout.maximumWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? Math.ceil(dockCell.size) : Infinity
+    Layout.minimumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? Math.floor(dockCell.size) : 0
+    Layout.preferredHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? dockCell.size : -1
+    Layout.maximumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? Math.ceil(dockCell.size) : Infinity
 
     readonly property bool inPanel: (Plasmoid.location === PlasmaCore.Types.TopEdge
         || Plasmoid.location === PlasmaCore.Types.RightEdge
@@ -46,11 +64,6 @@ PlasmoidItem {
     }
 
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
-    // In the Dock, take the full thickness so the icon can use the same
-    // macOS proportions as the task icons (see the task manager's
-    // LayoutMetrics.js): 68.5% of the thickness, 16% below the top edge.
-    readonly property bool dockLayout: inPanel && Plasmoid.formFactor === PlasmaCore.Types.Horizontal
-    Plasmoid.constraintHints: dockLayout ? Plasmoid.CanFillArea : Plasmoid.NoHint
     Plasmoid.icon: hasContents ? cfgFullIcon : cfgEmptyIcon
     Plasmoid.status: hasContents ? PlasmaCore.Types.ActiveStatus
                                 : PlasmaCore.Types.PassiveStatus
@@ -139,33 +152,9 @@ PlasmoidItem {
         id: mouseArea
 
         activeFocusOnTab: true
-        // In the Dock, clicks and hover go to the magnified slot below, so
-        // they land where the Trash is drawn.
-        hoverEnabled: !root.dockLayout
-        acceptedButtons: root.dockLayout ? Qt.NoButton : Qt.LeftButton
-
-        // The Trash ends the Dock, so it widens the glass while the Dock
-        // magnifies (see DockZoom); its icon stays on the leading side.
-        readonly property int dockBaseWidth: Math.round(height * 0.75) - Kirigami.Units.smallSpacing
-        Layout.minimumWidth: root.dockLayout ? dockBaseWidth + DockZoom.growthFor(mouseArea) : -1
-        Layout.maximumWidth: root.dockLayout ? Layout.minimumWidth : -1
-
-        function updateGrowthOwner(): void {
-            if (root.dockLayout) {
-                DockZoom.registerGrowthOwner(mouseArea, dockBaseWidth);
-            } else {
-                DockZoom.unregisterGrowthOwner(mouseArea);
-            }
-        }
-        onDockBaseWidthChanged: updateGrowthOwner()
-        Component.onCompleted: updateGrowthOwner()
-        Component.onDestruction: DockZoom.unregisterGrowthOwner(mouseArea)
+        hoverEnabled: true
 
         onClicked: Plasmoid.activated()
-
-        DockZoomTracker {
-            horizontal: root.dockLayout
-        }
 
         DragDrop.DropArea {
             anchors.fill: parent
@@ -212,8 +201,11 @@ PlasmoidItem {
             }
         }
 
-        Kirigami.Icon {
+        NativeLauncher.DockIcon {
             id: trashIcon
+            normalizeTrashArtwork: true
+            inPanel: root.inPanel
+            location: Plasmoid.location
             NativeLauncher.IconThemeWatcher {
                 onChanged: {
                     trashIcon.source = "";
@@ -221,7 +213,6 @@ PlasmoidItem {
                 }
             }
             source: Plasmoid.icon
-            visible: !root.dockLayout
             anchors {
                 left: parent.left
                 right: parent.right
@@ -229,42 +220,7 @@ PlasmoidItem {
                 bottom: root.inPanel ? parent.bottom : text.top
             }
             active: mouseArea.containsMouse || root.containsAcceptableDrag
-        }
-
-        DockZoomSlot {
-            id: dockSlot
-
-            horizontal: root.dockLayout
-            visible: root.dockLayout
-            width: mouseArea.dockBaseWidth
-            height: mouseArea.height
-
-            Kirigami.Icon {
-                id: dockIcon
-                NativeLauncher.IconThemeWatcher {
-                    onChanged: {
-                        dockIcon.source = "";
-                        dockIcon.source = Qt.binding(() => Plasmoid.icon);
-                    }
-                }
-                source: Plasmoid.icon
-                readonly property real size: Math.round(dockSlot.height * 0.685)
-                width: size * (dockSlot.raster || 1)
-                height: width
-                scale: 1 / (dockSlot.raster || 1)
-                transformOrigin: Item.TopLeft
-                x: Math.round((dockSlot.width - size) / 2)
-                y: Math.round(dockSlot.height * 0.16)
-                roundToIconSize: false
-                active: dockHit.containsMouse || root.containsAcceptableDrag
-            }
-
-            MouseArea {
-                id: dockHit
-                anchors.fill: parent
-                hoverEnabled: true
-                onClicked: Plasmoid.activated()
-            }
+            hovered: mouseArea.containsMouse
         }
 
         PlasmaExtras.ShadowedLabel {
@@ -280,8 +236,6 @@ PlasmoidItem {
         }
 
         PlasmaCore.ToolTipArea {
-            // Follows the magnified slot in the Dock.
-            parent: root.dockLayout ? dockSlot : mouseArea
             anchors.fill: parent
             mainText: Plasmoid.title
             subText: root.toolTipSubText

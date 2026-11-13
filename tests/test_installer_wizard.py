@@ -12,6 +12,23 @@ import pytest
 import installer_choices as choices
 
 
+@pytest.mark.parametrize('edition', ['MacTahoe', 'MacGoldenGate'])
+@pytest.mark.parametrize('mode', ['light', 'dark'])
+def test_native_dock_apps_dialog_paints_and_preserves_transaction(repo, tmp_path, edition, mode):
+    source_defaults = tmp_path / 'defaults.json'
+    source_defaults.write_text(json.dumps({'wallpaper': edition, 'launcher_preset': 2 if edition == 'MacGoldenGate' else 1}))
+    env = os.environ | {'QT_QPA_PLATFORM': 'offscreen', 'QT_FORCE_STDERR_LOGGING': '1',
+                        'XDG_CONFIG_HOME': str(tmp_path),
+                        'MAC_TAHOE_NO_UPDATE_CHECK': 'true', 'PYTHONDONTWRITEBYTECODE': '1'}
+    # A separate process also makes a fatal exception in a Qt paint callback a
+    # normal test failure instead of aborting the rest of the test suite.
+    result = subprocess.run([sys.executable, str(repo / 'tests/installer_dock_apps_probe.py'), mode,
+                             '--defaults', str(source_defaults)],
+                            cwd=repo, env=env, capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert json.loads(result.stdout)['edition'] == ('Golden Gate' if edition == 'MacGoldenGate' else 'Tahoe')
+
+
 @pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate", "MacTahoe"])
 def test_new_wizard_uses_source_defaults_after_other_edition(monkeypatch, tmp_path, edition):
     import launcher_defaults
@@ -36,7 +53,7 @@ def test_new_wizard_uses_source_defaults_after_other_edition(monkeypatch, tmp_pa
     assert json.loads(config.read_text()) == stale  # Opening is read-only.
 
 
-@pytest.mark.parametrize("payload", [[], {"shell": "echo bad"}, {"icons": "unknown"}, {"shadows": "unknown"}, {"window_controls": "unknown"},
+@pytest.mark.parametrize("payload", [[], {"shell": "echo bad"}, {"icons": "unknown"}, {"shadows": "unknown"}, {"window_controls": "unknown"}, {"button_position": "center"}, {"glass_style": "unknown"},
                                     {"fonts": "false"}, {"oled_interval": True},
                                     {"oled_max_shift": 17}, {"wallpaper": "custom"}])
 def test_reject_invalid_selections_before_install(payload):
@@ -157,14 +174,15 @@ def test_layout_uses_explicit_launcher_and_independent_panels(monkeypatch, tmp_p
     assert "applications:example.desktop" in script
 
 
-def test_installed_switcher_uses_selected_wallpaper_pair_and_icon_mode(monkeypatch, tmp_path):
+@pytest.mark.parametrize("pack", ["landscape", "prism", "macos"])
+def test_installed_switcher_uses_selected_wallpaper_pair_and_icon_mode(monkeypatch, tmp_path, pack):
     import theme_switch as switch
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
-    for name in choices.WALLPAPERS["landscape"]:
+    for name in set(choices.WALLPAPERS[pack]):
         (tmp_path / "wallpapers" / name).mkdir(parents=True)
-    monkeypatch.setattr(switch, "INSTALLER_OPTIONS", choices.defaults() | {"wallpaper": "landscape", "icons": "glass"})
-    assert switch._wallpaper_path("light").name == "MacTahoe-Landscape-Morning"
-    assert switch._wallpaper_path("dark").name == "MacTahoe-Landscape-Night"
+    monkeypatch.setattr(switch, "INSTALLER_OPTIONS", choices.defaults() | {"wallpaper": pack, "icons": "glass"})
+    assert switch._wallpaper_path("light").name == choices.WALLPAPERS[pack][0]
+    assert switch._wallpaper_path("dark").name == choices.WALLPAPERS[pack][1]
     writes = []
     monkeypatch.setattr(switch, "_have", lambda _: True)
     monkeypatch.setattr(switch, "_kwrite", lambda *args: writes.append(args) or True)
@@ -183,7 +201,7 @@ def test_native_wizard_navigation_preserves_choices_and_waits_for_completion(rep
 import sys
 from pathlib import Path
 sys.path[:0] = [str(Path.cwd() / 'src/scripts'), str(Path.cwd() / 'src/installer')]
-from PyQt6.QtWidgets import QApplication, QPushButton
+from PyQt6.QtWidgets import QApplication, QPushButton, QLabel
 from PyQt6.QtCore import Qt
 from PyQt6.QtTest import QTest
 from installer_ui import _make_installer_bridge
@@ -210,8 +228,8 @@ def start(action):
 bridge.start = start
 window = InstallerWindow(bridge)
 window.show(); app.processEvents()
-assert app.palette().window().color().name() == '#111111'
-assert window.palette().window().color().name() == '#111111'
+assert app.palette().window().color().name() == '#292929'
+assert window.palette().window().color().name() == '#292929'
 assert window.grab().toImage().pixelColor(10, 60).name() == '#292929'
 assert window.windowFlags() & Qt.WindowType.FramelessWindowHint
 from wizard_window import WindowLight
@@ -234,7 +252,7 @@ for page, _ in STEPS:
     assert window.scroll.verticalScrollBar().maximum() == 0, page
     assert window.content.findChild(type(window.label('')), 'pageTitle') is not None or page == 'welcome'
     cards = window.content.findChildren(ChoiceCard)
-    if page in ('appearance', 'icons', 'wallpaper', 'launcher', 'window_controls', 'shadows', 'fonts', 'files'):
+    if page in ('appearance', 'icons', 'wallpaper', 'launcher', 'window_controls', 'button_position', 'shadows', 'fonts', 'files'):
         assert cards and cards[0].isChecked(), page
         assert cards[0].height() > 80, page
 # Match the capture VM's larger system typography: the added shadows row must
@@ -298,6 +316,20 @@ assert window.page == 'window_controls'
 window.content.findChild(ChoiceCard, 'choice-window_controls-flat').click()
 window.advance(); app.processEvents()
 assert window.page == 'summary' and window.choices['window_controls'] == 'flat'
+window.page = 'button_position'; window.render(); app.processEvents()
+assert window.choices['button_position'] == 'left'
+buttons = window.content.findChildren(ChoiceCard)
+assert [card.objectName() for card in buttons] == ['choice-button_position-' + v for v in ('left', 'right', 'keep')]
+assert buttons[0].isChecked() and sum(card.isChecked() for card in buttons) == 1
+window.content.findChild(ChoiceCard, 'choice-button_position-right').click()
+assert window.choices['button_position'] == 'right'
+window.content.findChild(ChoiceCard, 'choice-button_position-keep').click()
+window.page = 'summary'; window.render(); app.processEvents()
+window.content.findChild(QPushButton, 'edit-button_position').click()
+assert window.page == 'button_position'
+window.content.findChild(ChoiceCard, 'choice-button_position-left').click()
+window.advance(); app.processEvents()
+assert window.page == 'summary' and window.choices['button_position'] == 'left'
 window.page = 'icons'; window.render(); app.processEvents()
 window.content.findChild(ChoiceCard, 'choice-icons-keep').click(); app.processEvents()
 assert window.choices['icons'] == 'keep'
@@ -318,13 +350,44 @@ for completed in (0, 100, 6366):
     message = f'Generating icons: {completed}/6366'
     bridge._handle_record('__STATUS__\t' + message)
     app.processEvents()
-    assert window.step_label.text() == message
+    assert window.progress.accessibleDescription() == message
+    assert message in window.log.toPlainText()
     assert bridge._step_index == step_index and bridge.progress == progress
     assert bridge.running and window.page == 'progress'
 bridge._handle_record('14\tInstalling fonts\tInstalling fonts')
 assert bridge._step_index == step_index + 1
-assert window.step_label.text() == 'Installing fonts'
+assert window.progress.accessibleDescription() == 'Installing fonts'
 assert calls[-1][1]['icons'] == 'glass'
+# Progress remains compact; elapsed-time estimates and details are localized.
+import wizard_window
+from types import SimpleNamespace
+wizard_window.time = SimpleNamespace(monotonic=lambda: 1200.)
+window._operation_started = 600.
+bridge._progress = .5
+window.refresh_progress()
+assert window.remaining_label.text() == 'Faltan unos 10 minutos'
+assert window.log.isHidden() and not window.details_toggle.isChecked()
+window.details_toggle.click(); app.processEvents()
+assert window.log.isVisible() and window.details_toggle.isChecked()
+assert window.details_toggle.accessibleName() == 'Ocultar detalles de instalación'
+frozen_font = window.log.font().toString()
+frozen_document_font = window.log.document().defaultFont().toString()
+changed_font = app.font(); changed_font.setPointSizeF(changed_font.pointSizeF() + 3)
+app.setFont(changed_font); app.processEvents()
+bridge.logAppended.emit('New output after the desktop font changed')
+assert window.log.font().toString() == frozen_font
+assert window.log.document().defaultFont().toString() == frozen_document_font
+assert window.log.palette().base().color().name() == '#191b20'
+assert 'New output after the desktop font changed' in window.log.toPlainText()
+window.details_toggle.click(); app.processEvents()
+assert window.log.isHidden() and window.details_toggle.accessibleName() == 'Mostrar detalles de instalación'
+for fraction, expected in [(0, 'Calculando el tiempo restante…'), (.99, 'Falta menos de un minuto'), (1, 'Finalizando…')]:
+    bridge._progress = fraction; window.refresh_progress()
+    assert window.remaining_label.text() == expected
+bridge._language = 'de'; bridge._progress = .5; window.refresh_progress()
+assert window.remaining_label.text() == 'Noch etwa 10 Minuten'
+bridge._language = 'es'
+
 bridge._running = False; bridge.finished.emit(0)
 assert window.page == 'done'
 window.page = 'uninstall'; window.render(); window.advance()
@@ -360,7 +423,7 @@ class PageEvents(QObject):
             self.hidden += 1
         return False
 for page in ('appearance', 'icons', 'wallpaper', 'launcher', 'layout', 'effects',
-             'window_controls', 'shadows', 'fonts', 'firefox', 'files', 'boot', 'oled'):
+             'window_controls', 'button_position', 'shadows', 'fonts', 'firefox', 'files', 'boot', 'oled'):
     window.page = page; window.render(); app.processEvents(); app.processEvents()
     content = window.content
     observer = PageEvents(); content.installEventFilter(observer)
@@ -390,7 +453,6 @@ assert window.accent_preview.pixmap().toImage() != before_accent
 assert regular.pixmap.toImage() == regular_image
 assert window.color_buttons['green'].isChecked() and not window.color_buttons['blue'].isChecked()
 window.select('icons', 'glass')
-assert window.icon_caption.text() == window.t('Icons, selections, top bar and Dock.')
 window.select('icons', 'keep')
 assert sum(card.isChecked() for card in window.content.findChildren(ChoiceCard)) == 1
 window.page = 'wallpaper'; window.render(); app.processEvents()
@@ -410,7 +472,7 @@ with tempfile.TemporaryDirectory() as directory:
     window.select('wallpaper', 'keep')
     assert not window.wallpaper_filename.isVisible()
     window.select('wallpaper', 'tahoe')
-    assert not content.findChild(RadioOption).isChecked()
+    assert not content.findChild(ChoiceCard, 'choice-wallpaper-keep').isChecked()
 window.page = 'files'; window.render(); app.processEvents()
 bookmarks = window.bookmarks
 bookmarks.setChecked(False)
@@ -419,6 +481,29 @@ window.select('files', 'nautilus'); assert bookmarks.isVisible() and not bookmar
 window.content.findChild(RadioOption, 'choice-files-keep').click(); app.processEvents()
 assert window.choices['files'] == 'keep' and not bookmarks.isVisible()
 assert not any(card.isChecked() for card in window.content.findChildren(ChoiceCard))
+window.advance(); app.processEvents()
+assert window.page == 'boot'
+window.previous(); app.processEvents()
+assert window.page == 'files'
+window.select('files', 'nautilus')
+window.advance(); app.processEvents()
+assert window.page == 'glass_style'
+glass_text = ' '.join(label.text() for label in window.content.findChildren(QLabel))
+assert 'white backing' not in glass_text
+assert 'Dock' not in glass_text and 'blur strength' not in glass_text
+assert len(window.content.findChildren(ChoiceCard)) == 3
+window.content.findChild(ChoiceCard, 'choice-glass_style-tinted').click()
+assert window.choices['glass_style'] == 'tinted'
+window.advance(); window.previous(); app.processEvents()
+assert window.page == 'glass_style' and window.choices['glass_style'] == 'tinted'
+window.choices['acrylic_glass'] = False
+window.page = 'files'; window.render()
+window.advance(); app.processEvents()
+assert window.page == 'boot'
+window.previous(); app.processEvents()
+assert window.page == 'files'
+window.choices['acrylic_glass'] = True
+window.select('files', 'keep')
 window.page = 'summary'; window.render(); app.processEvents()
 assert window.choices['files'] == 'keep'
 window.existing_install = True
@@ -440,9 +525,9 @@ window.page = 'effects'; window.render(); app.processEvents()
 assert not window.content.findChildren(RadioOption)
 assert not any(c.objectName().startswith('choice-shadows-') for c in window.content.findChildren(ChoiceCard))
 window.page = 'shadows'; window.render(); app.processEvents()
-assert window.choices['shadows'] == 'soft'
+assert window.choices['shadows'] == 'medium'
 options = window.content.findChildren(ChoiceCard)
-assert len(options) == 4 and options[0].objectName() == 'choice-shadows-soft'
+assert len(options) == 4 and options[0].objectName() == 'choice-shadows-medium'
 for level in ['none', 'soft', 'medium', 'hard']:
     window.content.findChild(ChoiceCard, 'choice-shadows-' + level).click()
     assert window.choices['shadows'] == level
@@ -460,6 +545,25 @@ window.select('oled_care', True); assert all(spin.isEnabled() for spin in spins)
 spins[0].setValue(17)
 window.select('oled_care', False); assert all(not spin.isEnabled() for spin in spins)
 window.select('oled_care', True); assert spins[0].value() == 17
+# Current wallpaper cards render actual files and package light/dark partners.
+from wizard_window import current_wallpaper_preview
+from PyQt6.QtCore import QUrl
+import theme_switch
+snapshot = theme_switch._wallpapers_from_config
+with tempfile.TemporaryDirectory() as directory:
+    package = Path(directory) / 'My wallpaper'
+    for folder, color in [('images', 'red'), ('images_dark', 'blue')]:
+        destination = package / 'contents' / folder / 'image.png'
+        destination.parent.mkdir(parents=True)
+        tile = QPixmap(80, 40); tile.fill(QColor(color)); tile.save(str(destination))
+    for path in [package, package/'contents/images/image.png', package/'contents/images_dark/image.png']:
+        theme_switch._wallpapers_from_config = lambda: [{'screen': 0, 'image': QUrl.fromLocalFile(str(path)).toString()}]
+        preview = current_wallpaper_preview(100, 50).toImage()
+        assert preview.pixelColor(10, 50) == QColor('red')
+        assert preview.pixelColor(190, 50) == QColor('blue')
+    theme_switch._wallpapers_from_config = lambda: [{'screen': 0, 'image': str(package/'missing.png')}]
+    assert not current_wallpaper_preview(100, 50).isNull()
+theme_switch._wallpapers_from_config = snapshot
 window.close()
 print('native wizard flow passed')
 '''
@@ -484,3 +588,67 @@ def test_wizard_catalogs_have_the_same_translated_messages():
     source = set(CATALOGS["es"])
     for catalog in CATALOGS.values():
         assert set(catalog) == source and all(value.strip() for value in catalog.values())
+
+
+def test_wizard_appearance_does_not_depend_on_desktop_style(repo, tmp_path):
+    script = r'''
+import sys
+from pathlib import Path
+sys.path[:0] = [str(Path.cwd() / 'src/scripts'), str(Path.cwd() / 'src/installer')]
+from PyQt6.QtCore import QEvent
+from PyQt6.QtGui import QColor, QPalette
+from PyQt6.QtWidgets import QApplication, QStyleFactory
+from PyQt6.QtTest import QTest
+from installer_ui import _make_installer_bridge
+from wizard_window import InstallerWindow
+import cli
+cli._theme_is_already_installed = lambda: False
+app = QApplication([])
+font = app.font()
+styles = [style for style in QStyleFactory.keys()
+          if style.lower() in ('fusion', 'windows', 'breeze', 'kvantum')]
+assert len(styles) >= 2
+for dark in (False, True):
+    baseline = None
+    for style in styles:
+        app.setStyle(style)
+        app.setFont(font)
+        desktop = app.palette()
+        desktop.setColor(QPalette.ColorRole.Window, QColor('#202327' if dark else '#eff0f1'))
+        desktop.setColor(QPalette.ColorRole.Base, QColor('#451a45' if style == styles[0] else '#164536'))
+        desktop.setColor(QPalette.ColorRole.Highlight, QColor('#ef5522'))
+        app.setPalette(desktop)
+        bridge = _make_installer_bridge()
+        bridge._language = 'en'
+        window = InstallerWindow(bridge)
+        window.page = 'wallpaper'; window.render(); window.show()
+        window.activateWindow(); window.next.setFocus()
+        QTest.qWait(30)
+        assert app.style().objectName().lower() == 'fusion'
+        assert app.palette() == window.palette()
+        assert window.font().family() == font.family()
+        assert window.palette().highlight().color().name() == '#007aff'
+        capture = window.grab().toImage()
+        if baseline is None:
+            baseline = capture
+        else:
+            assert capture == baseline, (dark, style)
+        # Applying the desktop theme during installation cannot recolor cards.
+        changed = QPalette(desktop)
+        changed.setColor(QPalette.ColorRole.Base, QColor('#ff0000'))
+        changed.setColor(QPalette.ColorRole.Window, QColor('#ffffff' if dark else '#000000'))
+        app.setPalette(changed); app.processEvents()
+        window.render(); app.processEvents()
+        window.next.setFocus()
+        assert window.grab().toImage() == capture, (dark, style, 'palette update')
+        window.close(); window.deleteLater()
+        app.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+print('Compared light/dark renders:', ', '.join(styles))
+'''
+    result = subprocess.run([sys.executable, '-c', script], cwd=repo,
+                            env=dict(os.environ, QT_QPA_PLATFORM='offscreen',
+                                     QT_QPA_PLATFORMTHEME='generic',
+                                     XDG_CONFIG_HOME=str(tmp_path / 'config'),
+                                     XDG_CACHE_HOME=str(tmp_path / 'cache')),
+                            capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stdout + result.stderr
