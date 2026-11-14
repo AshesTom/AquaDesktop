@@ -303,6 +303,9 @@ def _flush_caches() -> None:
         warn(tr('KDE application cache rebuild failed — app launchers may be unavailable until the next successful rebuild'))
         return
     ok(tr('Caches flushed'))
+    if feat_enabled("LAYOUT"):
+        from steps import layout
+        layout.ensure_apps_pin()
 
 
 def _live_plasma_ready_quick() -> bool:

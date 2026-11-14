@@ -174,3 +174,11 @@ def test_apps_entry_is_indexed_before_the_dock_is_created():
     import inspect
     source = inspect.getsource(layout.install)
     assert source.index("_index_apps_launcher()") < source.index("_evaluate_layout_with_launchers(")
+
+
+def test_apps_pin_is_put_back_after_the_cache_rebuild(repo):
+    """The install rebuilds KDE's application cache after the Dock exists;
+    Plasma drops the pin meanwhile."""
+    apply_step = (repo / "src/scripts/steps/apply.py").read_text()
+    assert apply_step.index("kbuildsycoca6") < apply_step.index("layout.ensure_apps_pin()")
+    assert "showOnlyMinimized" in layout._APPS_PIN_SCRIPT and layout.APPS_PIN in layout._APPS_PIN_SCRIPT

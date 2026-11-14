@@ -154,6 +154,38 @@ def _index_apps_launcher() -> None:
             pass
 
 
+# Pins the "Apps" launcher after the file manager (first without one) on
+# every Dock that lost it; the minimized-windows section stays empty.
+_APPS_PIN_SCRIPT = (
+    "panels().forEach(function (panel) {\n"
+    f"    panel.widgets({MAC_TASKS_ID!r}).forEach(function (tasks) {{\n"
+    "        tasks.currentConfigGroup = ['General'];\n"
+    "        if (String(tasks.readConfig('showOnlyMinimized', false)) === 'true') return;\n"
+    "        var pins = tasks.readConfig('launchers', []);\n"
+    "        if (typeof pins === 'string') pins = pins ? pins.split(',') : [];\n"
+    f"        if (pins.indexOf({APPS_PIN!r}) !== -1) return;\n"
+    "        var at = 0;\n"
+    "        for (var i = 0; i < pins.length; i++) {\n"
+    f"            if (/{_FILE_MANAGER_PIN.pattern}/i.test(pins[i])) {{ at = i + 1; break; }}\n"
+    "        }\n"
+    f"        pins.splice(at, 0, {APPS_PIN!r});\n"
+    "        tasks.writeConfig('launchers', pins);\n"
+    "    });\n"
+    "});\n"
+)
+
+
+def ensure_apps_pin() -> None:
+    """Plasma drops a pin whose application its cache does not know, and the
+    install rebuilds that cache after the Dock is created: put the "Apps"
+    launcher back once the cache is fresh."""
+    from installer_choices import selected
+    choices = selected()
+    if choices and not choices["dock"]:
+        return
+    _evaluate_layout_script(_APPS_PIN_SCRIPT)
+
+
 def _with_apps_pin(pins: list[str]) -> list[str]:
     """The user's pins with the "Apps" launcher right after the file manager
     (first when there is none), like macOS' Finder, Apps, ... No pins keep
