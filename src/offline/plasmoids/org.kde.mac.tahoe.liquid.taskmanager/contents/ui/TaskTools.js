@@ -116,7 +116,18 @@ function groupTopTask(childTaskList, attribute, tasks) {
     return topTaskIndex;
 }
 
+// The Dock's Apps pin only asks the Launcher applet for its grid (see
+// org.kde.mac-tahoe-liquid-kde.apps.desktop).
+function isLaunchpadPin(launcherUrl) {
+    return !!launcherUrl && launcherUrl.toString().includes("org.kde.mac-tahoe-liquid-kde.apps");
+}
+
 function activateTask(index, model, modifiers, task, plasmoid, tasks, windowViewAvailable) {
+    if (model.IsLauncher && isLaunchpadPin(model.LauncherUrlWithoutIcon)) {
+        // Starting its desktop entry would show a second, starting icon.
+        tasks.openLaunchpad();
+        return;
+    }
     if (modifiers & Qt.ShiftModifier) {
         tasks.tasksModel.requestNewInstance(index);
         return;

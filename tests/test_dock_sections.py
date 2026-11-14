@@ -40,7 +40,7 @@ def test_dock_order_ends_with_stacks_minimized_windows_and_trash(offline, relati
 
 
 @pytest.mark.parametrize("relative", LAYOUTS)
-def test_fresh_dock_pins_apps_right_after_the_file_manager(offline, relative):
+def test_fresh_dock_starts_with_the_apps_pin(offline, relative):
     node = shutil.which("node")
     if not node:
         pytest.skip("Node.js required for Plasma layout script execution")
@@ -73,15 +73,14 @@ console.log(JSON.stringify(bottom.items.filter(w => w.type === "org.kde.mac.taho
                             capture_output=True, text=True, timeout=10)
     assert result.returncode == 0, result.stderr
     main, minimized = json.loads(result.stdout)
-    assert main == ["applications:org.kde.dolphin.desktop", APPS, "applications:firefox.desktop"]
+    assert main == [APPS, "applications:org.kde.dolphin.desktop", "applications:firefox.desktop"]
     assert minimized == ""
 
 
 def test_user_pins_get_the_apps_pin_and_the_minimized_section_none():
     assert layout._with_apps_pin([]) == []
-    assert layout._with_apps_pin(["applications:firefox.desktop", "preferred://filemanager"]) == [
-        "applications:firefox.desktop", "preferred://filemanager", APPS]
-    assert layout._with_apps_pin([APPS, "applications:a.desktop"]) == [APPS, "applications:a.desktop"]
+    assert layout._with_apps_pin(["applications:firefox.desktop", APPS, "preferred://filemanager"]) == [
+        APPS, "applications:firefox.desktop", "preferred://filemanager"]
     script = layout._append_launcher_restore("", ["applications:a.desktop"], layout.MAC_TASKS_ID)
     assert "if (String(w.readConfig('showOnlyMinimized', false)) === 'true') continue;" in script
 
@@ -182,3 +181,22 @@ def test_apps_pin_is_put_back_after_the_cache_rebuild(repo):
     apply_step = (repo / "src/scripts/steps/apply.py").read_text()
     assert apply_step.index("kbuildsycoca6") < apply_step.index("layout.ensure_apps_pin()")
     assert "showOnlyMinimized" in layout._APPS_PIN_SCRIPT and layout.APPS_PIN in layout._APPS_PIN_SCRIPT
+
+
+def test_apps_pin_opens_the_grid_without_starting_a_process(offline):
+    """Starting the pin's desktop entry showed a second, starting icon."""
+    ui = offline / "plasmoids/org.kde.mac.tahoe.liquid.taskmanager/contents/ui"
+    tools = (ui / "TaskTools.js").read_text()
+    activate = tools[tools.index("function activateTask("):]
+    assert activate.index("tasks.openLaunchpad();") < activate.index("requestNewInstance")
+    assert 'member: "activateLauncherMenu"' in (ui / "main.qml").read_text()
+
+
+def test_trash_growth_is_not_shared_between_dock_cells(offline):
+    """Counting it as Dock space resized every cell while the Dock
+    magnified: the Dock shook."""
+    launcher = offline / "plasmoids/org.kde.mac.tahoe.liquid.taskmanager/launcher"
+    assert "- cell.extra;" in (launcher / "DockMetrics.qml").read_text()
+    assert "property real extra: 0" in (launcher / "DockCell.qml").read_text()
+    trash = (offline / "plasmoids/org.kde.mac-tahoe-liquid-kde.trashcan/contents/ui/main.qml").read_text()
+    assert "extra: DockZoom.growthFor(root)" in trash

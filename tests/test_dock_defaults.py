@@ -67,11 +67,8 @@ JSON.stringify(created.filter(p => p.location === "bottom").map(p =>
 
 
 def _with_apps_pin(apps):
-    """The layouts pin the "Apps" launcher right after the file manager."""
-    pins = ['applications:' + app for app in apps]
-    files = apps[:1] and apps[0] in ('org.kde.dolphin.desktop', 'org.gnome.Nautilus.desktop',
-                                     'thunar.desktop', 'pcmanfm-qt.desktop')
-    return pins[:1] + [layout.APPS_PIN] + pins[1:] if files else [layout.APPS_PIN] + pins
+    """The layouts pin the "Apps" launcher first."""
+    return [layout.APPS_PIN] + ['applications:' + app for app in apps]
 
 
 @pytest.mark.parametrize('relative', LAYOUTS)

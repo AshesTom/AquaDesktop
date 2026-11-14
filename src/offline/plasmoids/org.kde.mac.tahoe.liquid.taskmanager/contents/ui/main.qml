@@ -134,6 +134,10 @@ PlasmoidItem {
         return DBus.SessionBus.asyncCall({service: "org.kde.KWin.HighlightWindow", path: "/org/kde/KWin/HighlightWindow", iface: "org.kde.KWin.HighlightWindow", member: "highlightWindows", arguments: [hovered ? winIds : []], signature: "(as)"});
     }
 
+    function openLaunchpad(): DBus.DBusPendingReply {
+        return DBus.SessionBus.asyncCall({service: "org.kde.plasmashell", path: "/PlasmaShell", iface: "org.kde.PlasmaShell", member: "activateLauncherMenu"});
+    }
+
     function cancelHighlightWindows(): DBus.DBusPendingReply {
         return DBus.SessionBus.asyncCall({service: "org.kde.KWin.HighlightWindow", path: "/org/kde/KWin/HighlightWindow", iface: "org.kde.KWin.HighlightWindow", member: "highlightWindows", arguments: [[]], signature: "(as)"});
     }

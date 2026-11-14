@@ -19,10 +19,9 @@ LAYOUT_SCRIPT = offline("layouts/mac-tahoe.js")
 LAYOUT_RESET = offline("layouts/default.js")
 DOCK_MIGRATION = offline("layouts/migrate-dock-preset.js")
 _DISCOVER_DESKTOP = "applications:org.kde.discover.desktop"
-# The "Apps" launcher (src/offline/applications): macOS pins it right after
-# Finder; it opens the Launcher applet's grid.
+# The "Apps" launcher (src/offline/applications) starts the Dock; it opens
+# the Launcher applet's grid.
 APPS_PIN = "applications:org.kde.mac-tahoe-liquid-kde.apps.desktop"
-_FILE_MANAGER_PIN = re.compile(r"filemanager|dolphin|nautilus|nemo|thunar|pcmanfm|caja", re.I)
 # The menu bar's Sound extra shows macOS Tahoe's volume HUD on the volume
 # and mute keys, so plasma-pa's own on-screen display for them goes off.
 VOLUME_OSD_KEYS = ("VolumeOsd", "MuteOsd")
@@ -154,8 +153,8 @@ def _index_apps_launcher() -> None:
             pass
 
 
-# Pins the "Apps" launcher after the file manager (first without one) on
-# every Dock that lost it; the minimized-windows section stays empty.
+# Pins the "Apps" launcher first on every Dock that lost it; the
+# minimized-windows section stays empty.
 _APPS_PIN_SCRIPT = (
     "panels().forEach(function (panel) {\n"
     f"    panel.widgets({MAC_TASKS_ID!r}).forEach(function (tasks) {{\n"
@@ -164,11 +163,7 @@ _APPS_PIN_SCRIPT = (
     "        var pins = tasks.readConfig('launchers', []);\n"
     "        if (typeof pins === 'string') pins = pins ? pins.split(',') : [];\n"
     f"        if (pins.indexOf({APPS_PIN!r}) !== -1) return;\n"
-    "        var at = 0;\n"
-    "        for (var i = 0; i < pins.length; i++) {\n"
-    f"            if (/{_FILE_MANAGER_PIN.pattern}/i.test(pins[i])) {{ at = i + 1; break; }}\n"
-    "        }\n"
-    f"        pins.splice(at, 0, {APPS_PIN!r});\n"
+    f"        pins.unshift({APPS_PIN!r});\n"
     "        tasks.writeConfig('launchers', pins);\n"
     "    });\n"
     "});\n"
@@ -187,16 +182,11 @@ def ensure_apps_pin() -> None:
 
 
 def _with_apps_pin(pins: list[str]) -> list[str]:
-    """The user's pins with the "Apps" launcher right after the file manager
-    (first when there is none), like macOS' Finder, Apps, ... No pins keep
-    the layout's own defaults, which already carry it."""
+    """The user's pins behind the "Apps" launcher, which starts the Dock. No
+    pins keep the layout's own defaults, which already carry it."""
     if not pins:
         return pins
-    pins = [pin for pin in pins if pin != APPS_PIN]
-    for index, pin in enumerate(pins):
-        if _FILE_MANAGER_PIN.search(pin):
-            return pins[:index + 1] + [APPS_PIN] + pins[index + 1:]
-    return [APPS_PIN] + pins
+    return [APPS_PIN] + [pin for pin in pins if pin != APPS_PIN]
 
 
 def _append_launcher_restore(

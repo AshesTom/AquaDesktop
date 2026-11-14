@@ -30,6 +30,7 @@ PlasmoidItem {
         active: Plasmoid.formFactor === PlasmaCore.Types.Horizontal
             || Plasmoid.formFactor === PlasmaCore.Types.Vertical
         vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
+        extra: DockZoom.growthFor(root)
     }
     Plasmoid.constraintHints: Plasmoid.CanFillArea
     Layout.fillWidth: dockCell.active

@@ -337,9 +337,9 @@ def test_install_always_rebuilds_layout_from_user_pins(monkeypatch, tmp_path):
     assert calls == [(
         layout.LAYOUT_SCRIPT,
         [
-            "preferred://filemanager",
-            # macOS: Finder, then Apps.
+            # The Apps launcher starts the Dock.
             layout.APPS_PIN,
+            "preferred://filemanager",
             "applications:steam.desktop",
             "preferred://browser",
         ],
@@ -363,8 +363,8 @@ def test_reinstall_applies_autohide_with_preserved_pins(monkeypatch, tmp_path):
     script = captured["script"]
     assert 'dock.hiding = "autohide";' in script
     assert 'bar.hiding = "none";' in script
-    # macOS: Finder, then Apps.
-    expected = json.dumps(["preferred://filemanager", layout.APPS_PIN,
+    # The Apps launcher starts the Dock.
+    expected = json.dumps([layout.APPS_PIN, "preferred://filemanager",
                            "applications:steam.desktop", "preferred://browser"])
     assert f"writeConfig('launchers', {expected})" in script
     assert marker.is_file()

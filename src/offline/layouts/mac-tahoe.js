@@ -194,10 +194,9 @@ for (var screen = 0; screen < screenCount; screen++) {
             }
         }
     }
-    // The "Apps" launcher (it opens the Launcher's grid) right after the
-    // file manager, as macOS keeps Finder first.
-    dockLaunchers.splice(resolvedDockCategories[0] === "files" ? 1 : 0, 0,
-        "applications:org.kde.mac-tahoe-liquid-kde.apps.desktop");
+    // The "Apps" launcher (it opens the Launcher\'s grid) starts the Dock,
+    // where macOS keeps Launchpad.
+    dockLaunchers.unshift("applications:org.kde.mac-tahoe-liquid-kde.apps.desktop");
     tasks.writeConfig("launchers", dockLaunchers);
     tasks.writeConfig("macOSDockIcons", dockIconChoices[dock.screen] || false);
     tasks.writeConfig("dockPresetRevision", dockPresetRevisions[dock.screen] || 0);

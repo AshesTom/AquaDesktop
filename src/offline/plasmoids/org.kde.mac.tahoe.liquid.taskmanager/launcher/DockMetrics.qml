@@ -40,7 +40,7 @@ QtObject {
             let available = 0;
             let count = 0;
             for (const cell of members) {
-                available += vertical ? cell.applet.height : cell.applet.width;
+                available += (vertical ? cell.applet.height : cell.applet.width) - cell.extra;
                 count += cell.count;
                 if (cell.taskManager) available -= Math.max(0, cell.count - 1) * cell.spacing;
             }
