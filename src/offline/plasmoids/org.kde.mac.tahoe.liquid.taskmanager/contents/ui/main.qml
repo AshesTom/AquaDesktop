@@ -61,10 +61,11 @@ PlasmoidItem {
         }
     }
 
+    // Only a vertical Dock shares compression between its cells; the
+    // horizontal Dock's cells are fixed (LayoutMetrics.preferredMaxWidth).
     NativeLauncher.DockCell {
         applet: tasks
-        active: iconsOnly && (Plasmoid.formFactor === PlasmaCore.Types.Horizontal
-            || Plasmoid.formFactor === PlasmaCore.Types.Vertical)
+        active: iconsOnly && Plasmoid.formFactor === PlasmaCore.Types.Vertical
         vertical: tasks.vertical
         taskManager: true
         count: tasks.vertical ? taskList.rows : taskList.columns

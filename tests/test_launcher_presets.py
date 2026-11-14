@@ -680,11 +680,13 @@ Item {
             root.phase++;
             if (root.phase === 9) { console.info("DOCK_COMPRESS_OK"); Qt.exit(0); return; }
             root.vertical = root.phase >= 3 && root.phase < 6;
-            panel.available = [1100, 650, 350][root.phase % 3];
+            // Only a vertical Dock shares compression between its cells: the
+            // horizontal one keeps fixed cells (they must not follow the
+            // widths the magnification changes), so it is checked with room.
+            panel.available = root.vertical ? [1100, 650, 350][root.phase % 3] : 1100;
             if (root.phase >= 6) {
                 root.taskCount = 3;
                 downloads.visible = root.phase !== 7;
-                panel.available = root.phase === 7 ? 180 : 350;
             }
         } catch(e) {
             if (++root.settling < 10) return;

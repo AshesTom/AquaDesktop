@@ -15,22 +15,23 @@ import org.kde.kirigami 2.20 as Kirigami
 PlasmoidItem {
     id: kicker
 
-    // Prefer a full-thickness cell, but share compression with task cells
-    // when the panel runs out of space.
+    // A vertical Dock shares compression with the task cells (DockCell). The
+    // horizontal Dock gives every widget a fixed cell from its thickness:
+    // the magnification resizes the Dock, and cells recomputed from the
+    // widths it changes made the whole Dock shake.
     NativeLauncher.DockCell {
         id: dockCell
         applet: kicker
         // A hidden button takes no part in the Dock's cell compression.
-        active: !kicker.hiddenInDock && (Plasmoid.formFactor === PlasmaCore.Types.Horizontal
-            || Plasmoid.formFactor === PlasmaCore.Types.Vertical)
-        vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
+        active: !kicker.hiddenInDock && Plasmoid.formFactor === PlasmaCore.Types.Vertical
+        vertical: true
     }
     Plasmoid.constraintHints: Plasmoid.CanFillArea
     Layout.fillWidth: dockCell.active
-    Layout.fillHeight: dockCell.active
-    Layout.minimumWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? Math.floor(dockCell.size) : 0
-    Layout.preferredWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? dockCell.size : -1
-    Layout.maximumWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? Math.ceil(dockCell.size) : Infinity
+    Layout.fillHeight: dockCell.active || Plasmoid.formFactor === PlasmaCore.Types.Horizontal
+    Layout.minimumWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? NativeLauncher.DockMetrics.preferredCellSize(height) : 0
+    Layout.preferredWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? NativeLauncher.DockMetrics.preferredCellSize(height) : -1
+    Layout.maximumWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? NativeLauncher.DockMetrics.preferredCellSize(height) : Infinity
     Layout.minimumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? Math.floor(dockCell.size) : 0
     Layout.preferredHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? dockCell.size : -1
     Layout.maximumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? Math.ceil(dockCell.size) : Infinity

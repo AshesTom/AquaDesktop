@@ -99,7 +99,7 @@ def test_apps_pin_opens_the_hidden_launcher_grid(offline):
     main = (launcher / "ui/main.qml").read_text()
     assert "Plasmoid.status: hiddenInDock ? PlasmaCore.Types.HiddenStatus" in main
     assert "function onActivated(): void {\n            kicker.toggleDash();" in main
-    assert "active: !kicker.hiddenInDock && (" in main
+    assert "active: !kicker.hiddenInDock && Plasmoid.formFactor === PlasmaCore.Types.Vertical" in main
     assert "onClicked: kicker.toggleDash()" in (launcher / "ui/CompactRepresentation.qml").read_text()
 
 
@@ -129,8 +129,8 @@ def test_trash_widens_the_glass_from_its_resting_cell(offline):
     """The Trash ends the Dock: it is DockZoom's trailing growth owner, grows
     its upstream cell on the outer side and keeps its icon in that cell."""
     main = (offline / "plasmoids/org.kde.mac-tahoe-liquid-kde.trashcan/contents/ui/main.qml").read_text()
-    assert "DockZoom.registerGrowthOwner(root, dockCell.size, false);" in main
-    assert "Math.ceil(dockCell.size) + DockZoom.growthFor(root)" in main
+    assert "DockZoom.registerGrowthOwner(root, NativeLauncher.DockMetrics.preferredCellSize(height), false);" in main
+    assert "NativeLauncher.DockMetrics.preferredCellSize(height) + DockZoom.growthFor(root)" in main
     assert "rightMargin: DockZoom.growthFor(root)" in main
     assert "hovered: mouseArea.containsMouse && !root.horizontalDock" in main
 
@@ -192,11 +192,17 @@ def test_apps_pin_opens_the_grid_without_starting_a_process(offline):
     assert 'member: "activateLauncherMenu"' in (ui / "main.qml").read_text()
 
 
-def test_trash_growth_is_not_shared_between_dock_cells(offline):
-    """Counting it as Dock space resized every cell while the Dock
-    magnified: the Dock shook."""
-    launcher = offline / "plasmoids/org.kde.mac.tahoe.liquid.taskmanager/launcher"
-    assert "- cell.extra;" in (launcher / "DockMetrics.qml").read_text()
-    assert "property real extra: 0" in (launcher / "DockCell.qml").read_text()
-    trash = (offline / "plasmoids/org.kde.mac-tahoe-liquid-kde.trashcan/contents/ui/main.qml").read_text()
-    assert "extra: DockZoom.growthFor(root)" in trash
+@pytest.mark.parametrize("widget", ("launcher", "trashcan", "downloads"))
+def test_horizontal_dock_cells_follow_only_the_thickness(offline, widget):
+    """The magnification resizes the Dock: a horizontal cell computed from
+    the panel's widths (DockCell) followed it and the whole Dock shook. Only
+    a vertical Dock shares compression between its cells."""
+    main = (offline / f"plasmoids/org.kde.mac-tahoe-liquid-kde.{widget}/contents/ui/main.qml").read_text()
+    cell = re.search(r"NativeLauncher\.DockCell \{.*?\n    \}", main, re.S).group(0)
+    assert re.search(r"active: .*Plasmoid\.formFactor === PlasmaCore\.Types\.Vertical$", cell, re.M)
+    assert "Horizontal" not in cell
+    for key in ("minimumWidth", "preferredWidth", "maximumWidth"):
+        hint = re.search(rf"^    Layout\.{key}: (.*)$", main, re.M).group(1)
+        assert "dockCell" not in hint and "NativeLauncher.DockMetrics.preferredCellSize(height)" in hint, hint
+    tasks = (offline / "plasmoids/org.kde.mac.tahoe.liquid.taskmanager/contents/ui/main.qml").read_text()
+    assert "active: iconsOnly && Plasmoid.formFactor === PlasmaCore.Types.Vertical" in tasks

@@ -12,10 +12,6 @@ QtObject {
     property bool taskManager: false
     property int count: 1
     property real spacing: 0
-    // Width the applet adds beside its cell (the Trash while the Dock
-    // magnifies): not space to share between the cells.
-    property real extra: 0
-    onExtraChanged: DockMetrics.schedule()
     property real size: DockMetrics.preferredCellSize(vertical ? applet.width : applet.height)
     readonly property var panelWindow: applet.Window.window
     onActiveChanged: DockMetrics.schedule()
