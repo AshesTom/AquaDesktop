@@ -13,7 +13,8 @@ import org.kde.plasma.plasmoid
 Item {
     id: root
 
-    readonly property int iconWidthDelta: (icon.width - icon.paintedWidth) / 2
+    // The icon may be rasterized larger and scaled down (Dock magnification).
+    readonly property int iconWidthDelta: (icon.width - icon.paintedWidth) * icon.scale / 2
     readonly property bool shiftBadgeDown: (Plasmoid.pluginName === "org.kde.mac.tahoe.liquid.icontasks") && task.audioStreamIcon !== null
     readonly property int offset: Math.round(Math.max(Kirigami.Units.smallSpacing / 2, badgeMask.width / 32))
 
@@ -25,7 +26,7 @@ Item {
 
             anchors.right: parent.right
             anchors.rightMargin: -root.offset
-            y: root.shiftBadgeDown ? (icon.height / 2) : 0
+            y: root.shiftBadgeDown ? (icon.height * icon.scale / 2) : 0
 
             Behavior on y {
                 NumberAnimation { duration: Kirigami.Units.longDuration }
@@ -71,7 +72,7 @@ Item {
         id: badgeRect
 
         anchors.right: parent.right
-        y: root.offset + (root.shiftBadgeDown ? (icon.height / 2) : 0)
+        y: root.offset + (root.shiftBadgeDown ? (icon.height * icon.scale / 2) : 0)
 
         Behavior on y {
             NumberAnimation { duration: Kirigami.Units.longDuration }
@@ -85,7 +86,7 @@ Item {
 
         readonly property int horizontalPadding: 7
         width: Math.max(height, Math.round(badgeLabel.implicitWidth + horizontalPadding * 2))
-        height: Math.max(14, Math.min(20, Math.round(icon.paintedHeight * 0.38)))
+        height: Math.max(14, Math.min(20, Math.round(icon.paintedHeight * icon.scale * 0.38)))
         radius: height / 2
         color: "#ff3b30"
         border.color: color

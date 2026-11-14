@@ -121,7 +121,10 @@ PlasmaCore.ToolTipArea {
     transformOrigin: Item.Bottom
 
     active: !inPopup && !tasksRoot.groupDialog && task.contextMenu?.status !== PlasmaExtras.Menu.Open
-    interactive: model.IsWindow || mainItem.playerData
+    // The horizontal Dock shows macOS' name label over the icon, not window
+    // thumbnails: popups over magnified icons hide the Dock.
+    readonly property bool dockLayout: !inPopup && tasksRoot.iconsOnly && !tasksRoot.vertical
+    interactive: !dockLayout && (model.IsWindow || mainItem.playerData)
     location: Plasmoid.location
     mainItem: !Plasmoid.configuration.showToolTips || !model.IsWindow ? pinnedAppToolTipDelegate : openWindowToolTipDelegate
 
