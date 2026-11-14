@@ -42,7 +42,10 @@ PlasmaCore.Dialog {
 		y = pos.y;
 	}
 
-	Plasmoid.status: root.visible ? PlasmaCore.Types.RequiresAttentionStatus : PlasmaCore.Types.PassiveStatus
+	// The Launcher hidden behind the Dock's Apps pin stays hidden: any other
+	// status made the panel show its button next to the pin.
+	Plasmoid.status: kicker.hiddenInDock ? PlasmaCore.Types.HiddenStatus
+		: root.visible ? PlasmaCore.Types.RequiresAttentionStatus : PlasmaCore.Types.PassiveStatus
 
 	readonly property int configuredIconSize: {
 		switch(Plasmoid.configuration.appsIconSize){

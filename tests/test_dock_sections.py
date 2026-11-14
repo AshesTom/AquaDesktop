@@ -229,3 +229,12 @@ def test_trash_base_is_its_measured_resting_width(offline):
     trash = (offline / "plasmoids/org.kde.mac-tahoe-liquid-kde.trashcan/contents/ui/main.qml").read_text()
     assert "DockZoom.registerGrowthOwner(root, width, false);" in trash
     assert "onWidthChanged: if (!DockZoom.grown) updateGrowthOwner()" in trash
+
+
+def test_apps_pin_does_not_unhide_the_launcher_button(offline):
+    """The open grid set the Launcher's status to RequiresAttention (then
+    Passive), which overrode its hidden status: the panel showed a second
+    Launchpad at the start of the Dock."""
+    ui = offline / "plasmoids/org.kde.mac-tahoe-liquid-kde.launcher/contents/ui"
+    menu = (ui / "MenuRepresentation.qml").read_text()
+    assert "Plasmoid.status: kicker.hiddenInDock ? PlasmaCore.Types.HiddenStatus" in menu
