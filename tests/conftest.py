@@ -61,6 +61,8 @@ def never_touch_live_plasma_layout(monkeypatch):
 
     monkeypatch.setattr(layout, "_evaluate_layout_script", lambda script: False)
     monkeypatch.setattr(layout, "_reset_layout_builtin", lambda: False)
+    # Rebuilds the developer's KDE application cache.
+    monkeypatch.setattr(layout, "_index_apps_launcher", lambda: None)
     # plasmaparc's OSD keys: tests reach them through fakes of kw_read and
     # kw_write, never the developer's real file.
     monkeypatch.setattr(layout, "kw_write", lambda *args: False)

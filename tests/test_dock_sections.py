@@ -158,3 +158,19 @@ def test_apps_launcher_is_installed_and_removed(tmp_path, monkeypatch):
     plasmoids._install_apps_launcher()
     dest = tmp_path / "share/applications/org.kde.mac-tahoe-liquid-kde.apps.desktop"
     assert dest.read_text() == plasmoids.APPS_DESKTOP.read_text()
+
+
+@pytest.mark.parametrize("widget", ("launcher", "trashcan", "downloads", "separator"))
+def test_dock_widgets_set_each_root_property_once(offline, widget):
+    """QML refuses an applet whose root sets a property twice ("Property
+    value set multiple times"): the widget then vanishes from the Dock."""
+    main = (offline / f"plasmoids/org.kde.mac-tahoe-liquid-kde.{widget}/contents/ui/main.qml").read_text()
+    root = re.findall(r"^    ((?:Plasmoid|Layout)\.\w+|preferredRepresentation):", main, re.M)
+    assert sorted(root) == sorted(set(root))
+
+
+def test_apps_entry_is_indexed_before_the_dock_is_created():
+    """Plasma drops a pin whose application is not in its cache yet."""
+    import inspect
+    source = inspect.getsource(layout.install)
+    assert source.index("_index_apps_launcher()") < source.index("_evaluate_layout_with_launchers(")

@@ -143,6 +143,17 @@ def _capture_pinned_launchers() -> list[str]:
     return seen
 
 
+def _index_apps_launcher() -> None:
+    """Plasma drops a pinned launcher whose application it does not know:
+    the freshly installed "Apps" entry must be in KDE's application cache
+    before the Dock is created."""
+    if have("kbuildsycoca6"):
+        try:
+            run_user(["kbuildsycoca6"], capture_output=True, timeout=60)
+        except (OSError, subprocess.SubprocessError):
+            pass
+
+
 def _with_apps_pin(pins: list[str]) -> list[str]:
     """The user's pins with the "Apps" launcher right after the file manager
     (first when there is none), like macOS' Finder, Apps, ... No pins keep
@@ -455,6 +466,7 @@ def install() -> None:
         warn(tr('Layout script not found — skipping'))
         return
     pins = _capture_pinned_launchers()
+    _index_apps_launcher()
     applied = _evaluate_layout_with_launchers(
         LAYOUT_SCRIPT, _with_apps_pin(pins), MAC_TASKS_ID,
     )

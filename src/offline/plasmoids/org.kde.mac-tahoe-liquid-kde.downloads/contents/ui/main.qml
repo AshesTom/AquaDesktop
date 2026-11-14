@@ -60,10 +60,6 @@ PlasmoidItem {
 
     preferredRepresentation: compactRepresentation
     Plasmoid.icon: "folder-download"
-    // Take the full Dock thickness so the icon can use the task icons'
-    // proportions instead of the panel's default icon size.
-    Plasmoid.constraintHints: Plasmoid.formFactor === PlasmaCore.Types.Horizontal
-        ? Plasmoid.CanFillArea : Plasmoid.NoHint
 
     toolTipMainText: fileItems.length > 0 ? fileItems[0].name : i18n("Downloads")
     toolTipSubText: (fileItems.length + extraCount) > 0
