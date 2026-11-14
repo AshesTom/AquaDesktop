@@ -15,9 +15,12 @@
     growth owners and widen on their outer side. Plasma resizes and
     re-centres a "fit" panel in two separate steps, so a glass that
     followed the cursor resized the Dock on every move and made it shake.
-    The glass therefore only depends on `level`: it widens symmetrically
-    by the bell's largest outward spread while the magnification eases in,
-    stays put while the cursor moves, and narrows smoothly as it eases out. Every applet
+    The glass therefore never follows the cursor, nor the ease either:
+    every intermediate width was another two-step resize, measured as
+    ~20 px jumps of every icon while the magnification eased in and out.
+    It widens by the bell's largest outward spread in one step when the
+    magnification starts (`grown`) and narrows in one step once it has
+    eased out. Every applet
     container moves with its icon (DockZoomTracker, containerShift), which keeps clicks on the icon drawn
     under the cursor. Positions are computed in the resting frame (as if
     the Dock had not grown), so the resize never feeds back into the
@@ -84,6 +87,11 @@ QtObject {
 
     // The bell's largest outward spread on each side, at full magnification.
     readonly property real fullSpread: Math.max(0, magnification - 1) * radius / 2
+
+    // True from the moment the magnification starts until it has fully eased
+    // out: the glass is widened (growthFor) and the Dock widgets keep their
+    // resting widths for that whole time.
+    readonly property bool grown: level > 0
 
     Behavior on level {
         NumberAnimation {
@@ -267,10 +275,10 @@ QtObject {
         return 2 * Math.round(value / 2);
     }
 
-    // Follows only `level`, never the cursor: the panel is resized while
-    // the magnification eases in and out, not while the cursor moves.
+    // One step each way (`grown`), never the cursor nor the ease: the panel
+    // is resized once when the magnification starts and once after it ends.
     function growthFor(item: Item): real {
-        const spread = fullSpread * level;
+        const spread = grown ? fullSpread : 0;
         if (spread <= 0) {
             return 0;
         }

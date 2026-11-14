@@ -44,16 +44,19 @@ PlasmoidItem {
 
     // The Trash ends the Dock: while the Dock magnifies (DockZoom), it
     // widens the glass on its outer side and its icon keeps its resting cell.
+    // Its base is the width Plasma actually gives it at rest (the applet
+    // container's margins included): a computed one left DockZoom thinking
+    // the Dock had grown, and the Dock moved after the first hover.
     readonly property bool horizontalDock: inPanel && Plasmoid.formFactor === PlasmaCore.Types.Horizontal
     function updateGrowthOwner(): void {
-        if (horizontalDock) {
-            DockZoom.registerGrowthOwner(root, NativeLauncher.DockMetrics.preferredCellSize(height), false);
+        if (horizontalDock && width > 0) {
+            DockZoom.registerGrowthOwner(root, width, false);
         } else {
             DockZoom.unregisterGrowthOwner(root);
         }
     }
     onHorizontalDockChanged: updateGrowthOwner()
-    onHeightChanged: updateGrowthOwner()
+    onWidthChanged: if (!DockZoom.grown) updateGrowthOwner()
     Component.onCompleted: updateGrowthOwner()
     Component.onDestruction: DockZoom.unregisterGrowthOwner(root)
 

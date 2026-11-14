@@ -74,11 +74,21 @@ PlasmoidItem {
 
     Layout.fillWidth: vertical ? true : Plasmoid.configuration.fill
     Layout.fillHeight: !vertical ? true : Plasmoid.configuration.fill
-    Layout.maximumWidth: iconsOnly && !vertical ? taskList.Layout.maximumWidth : Infinity
+    // While the Dock magnifies, Plasma resizes and re-centres the panel in
+    // two steps; a task manager free to shrink (fill) absorbed the
+    // difference and every task jumped. It keeps its resting width until the
+    // glass narrows again (DockZoom.grown).
+    property real restWidth: 0
+    onWidthChanged: if (!DockZoom.grown) restWidth = width
+    readonly property bool widthFrozen: iconsOnly && !vertical && DockZoom.grown && restWidth > 0
+    Layout.maximumWidth: iconsOnly && !vertical ? (tasks.widthFrozen ? tasks.restWidth : taskList.Layout.maximumWidth) : Infinity
     Layout.maximumHeight: iconsOnly && vertical ? taskList.Layout.maximumHeight : Infinity
     Layout.minimumWidth: {
         if (shouldShrinkToZero) {
             return Kirigami.Units.gridUnit; // For edit mode
+        }
+        if (tasks.widthFrozen) {
+            return tasks.restWidth;
         }
         if (iconsOnly && !vertical) {
             return taskList.columns * Kirigami.Units.iconSizes.small

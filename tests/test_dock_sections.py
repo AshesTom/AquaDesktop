@@ -129,7 +129,7 @@ def test_trash_widens_the_glass_from_its_resting_cell(offline):
     """The Trash ends the Dock: it is DockZoom's trailing growth owner, grows
     its upstream cell on the outer side and keeps its icon in that cell."""
     main = (offline / "plasmoids/org.kde.mac-tahoe-liquid-kde.trashcan/contents/ui/main.qml").read_text()
-    assert "DockZoom.registerGrowthOwner(root, NativeLauncher.DockMetrics.preferredCellSize(height), false);" in main
+    assert "DockZoom.registerGrowthOwner(root, width, false);" in main
     assert "NativeLauncher.DockMetrics.preferredCellSize(height) + DockZoom.growthFor(root)" in main
     assert "rightMargin: DockZoom.growthFor(root)" in main
     assert "hovered: mouseArea.containsMouse && !root.horizontalDock" in main
@@ -206,3 +206,26 @@ def test_horizontal_dock_cells_follow_only_the_thickness(offline, widget):
         assert "dockCell" not in hint and "NativeLauncher.DockMetrics.preferredCellSize(height)" in hint, hint
     tasks = (offline / "plasmoids/org.kde.mac.tahoe.liquid.taskmanager/contents/ui/main.qml").read_text()
     assert "active: iconsOnly && Plasmoid.formFactor === PlasmaCore.Types.Vertical" in tasks
+
+
+def test_glass_widens_in_one_step_and_the_tasks_keep_their_width(offline):
+    """Measured on a live Dock: a glass following the ease resized the panel
+    every frame, Plasma re-centred it in two steps, the task manager absorbed
+    each difference (535-556 px) and every icon jumped by ~20 px."""
+    zoom = (offline / "qml/org.kde.mac.tahoe.liquid.dockzoom/DockZoom.qml").read_text()
+    assert "readonly property bool grown: level > 0" in zoom
+    growth = zoom[zoom.index("function growthFor("):]
+    assert "const spread = grown ? fullSpread : 0;" in growth and "* level" not in growth
+    tasks = (offline / "plasmoids/org.kde.mac.tahoe.liquid.taskmanager/contents/ui/main.qml").read_text()
+    assert "onWidthChanged: if (!DockZoom.grown) restWidth = width" in tasks
+    assert "tasks.widthFrozen ? tasks.restWidth : taskList.Layout.maximumWidth" in tasks
+    minimum = tasks[tasks.index("    Layout.minimumWidth: {"):]
+    assert minimum.index("if (tasks.widthFrozen) {") < minimum.index("if (iconsOnly && !vertical) {")
+
+
+def test_trash_base_is_its_measured_resting_width(offline):
+    """A computed base (52 px) under a 60 px applet left DockZoom thinking
+    the Dock had grown: it moved 4 px after the first hover."""
+    trash = (offline / "plasmoids/org.kde.mac-tahoe-liquid-kde.trashcan/contents/ui/main.qml").read_text()
+    assert "DockZoom.registerGrowthOwner(root, width, false);" in trash
+    assert "onWidthChanged: if (!DockZoom.grown) updateGrowthOwner()" in trash
