@@ -2,203 +2,93 @@
 msgid ""
 msgstr "Project-Id-Version: MacTahoe Liquid KDE\nPO-Revision-Date: 2026-10-22 00:00-0600\nLast-Translator: MacTahoe Liquid KDE contributors\nLanguage-Team: fr\nLanguage: fr\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n > 1);\n"
 
-msgid "%1 — %2%"
-msgstr "%1 — %2 %"
-
-msgid "%1%"
-msgstr "%1 %"
-
-msgid "Audio outputs"
-msgstr "Sorties audio"
-
-msgid "Back"
-msgstr "Retour"
-
-msgid "Balanced"
-msgstr "Équilibré"
-
-msgid "Battery"
-msgstr "Batterie"
-
-msgid "Battery information will appear when a battery is available."
-msgstr "Les informations apparaîtront lorsqu’une batterie sera disponible."
-
-msgid "Bluetooth"
-msgstr "Bluetooth"
-
-msgid "Bluetooth Settings…"
-msgstr "Paramètres Bluetooth…"
-
-msgid "Brightness"
-msgstr "Luminosité"
-
-msgid "Brightness control unavailable"
-msgstr "Réglage de la luminosité indisponible"
-
-msgid "Cancel Job"
-msgstr "Annuler la tâche"
-
-msgid "Charging"
-msgstr "En charge"
-
-msgid "Clear History"
-msgstr "Effacer l’historique"
-
-msgid "Collapse"
-msgstr "Réduire"
-
-msgid "Connected"
-msgstr "Connecté"
-
-msgid "Connected to power"
-msgstr "Branché sur secteur"
-
 msgid "Control Center"
 msgstr "Centre de contrôle"
 
-msgid "Controlled by another application"
-msgstr "Contrôlé par une autre application"
+msgctxt "@action:button"
+msgid "AirDrop"
+msgstr "AirDrop"
 
+msgctxt "@action:button"
+msgid "Bluetooth"
+msgstr "Bluetooth"
+
+msgctxt "@action:button"
+msgid "Calculator"
+msgstr "Calculette"
+
+msgctxt "@action:button"
 msgid "Dark Mode"
 msgstr "Mode sombre"
 
-msgid "Dismiss"
-msgstr "Fermer"
-
-msgid "Display"
-msgstr "Écran"
-
-msgid "Display Settings…"
-msgstr "Réglages de l’écran…"
-
-msgid "Do Not Disturb"
-msgstr "Ne pas déranger"
-
+msgctxt "@action:button"
 msgid "Edit Controls"
 msgstr "Modifier les commandes"
 
-msgid "Energy Settings…"
-msgstr "Paramètres d’énergie…"
+msgctxt "@action:button"
+msgid "Other Status Items"
+msgstr "Autres éléments d'état"
 
-msgid "Energy mode"
-msgstr "Mode d’énergie"
-
-msgid "Expand"
-msgstr "Développer"
-
-msgid "File Sharing"
-msgstr "Partage de fichiers"
-
-msgid "Focus"
-msgstr "Concentration"
-
-msgid "Fully charged"
-msgstr "Charge complète"
-
-msgid "Mute sound"
-msgstr "Couper le son"
-
-msgid "Network"
-msgstr "Réseau"
-
-msgid "Network Settings…"
-msgstr "Paramètres réseau…"
-
-msgid "Next track"
-msgstr "Piste suivante"
-
-msgid "No Wi-Fi adapter"
-msgstr "Aucun adaptateur Wi-Fi"
-
-msgid "No audio output"
-msgstr "Aucune sortie audio"
-
-msgid "No internal battery"
-msgstr "Aucune batterie interne"
-
-msgid "No notifications"
-msgstr "Aucune notification"
-
-msgid "Not connected"
-msgstr "Non connecté"
-
-msgid "Nothing playing"
-msgstr "Aucune lecture en cours"
-
-msgid "Notification Settings…"
-msgstr "Paramètres des notifications…"
-
-msgid "Notifications"
-msgstr "Notifications"
-
-msgid "Now Playing"
-msgstr "Lecture en cours"
-
-msgid "Off"
-msgstr "Désactivé"
-
-msgid "On"
-msgstr "Activé"
-
-msgid "On battery power"
-msgstr "Sur batterie"
-
-msgid "Open"
-msgstr "Ouvrir"
-
-msgid "Overview"
-msgstr "Vue d’ensemble"
-
-msgid "Pause"
-msgstr "Pause"
-
-msgid "Pause notifications for one hour"
-msgstr "Suspendre les notifications pendant une heure"
-
-msgid "Performance"
-msgstr "Performances"
-
-msgid "Play or pause"
-msgstr "Lire ou mettre en pause"
-
-msgid "Power saver"
-msgstr "Économie d’énergie"
-
-msgid "Previous track"
-msgstr "Piste précédente"
-
-msgid "Reply…"
-msgstr "Répondre…"
-
-msgid "Resume"
-msgstr "Reprendre"
-
-msgid "Scan for Networks"
-msgstr "Rechercher des réseaux"
-
-msgid "Scanning…"
-msgstr "Recherche…"
-
+msgctxt "@action:button"
 msgid "Screen Mirroring"
 msgstr "Recopie de l’écran"
 
+msgctxt "@action:button"
 msgid "Screenshot"
 msgstr "Capture d’écran"
 
-msgid "Send"
-msgstr "Envoyer"
+msgctxt "@action:button"
+msgid "Sound Output"
+msgstr "Sortie audio"
 
+msgctxt "@action:button"
+msgid "Stage Manager"
+msgstr "Stage Manager"
+
+msgctxt "@action:button"
+msgid "Timer"
+msgstr "Minuteur"
+
+msgctxt "@info Airplane Mode state"
+msgid "Off"
+msgstr "Désactivé"
+
+msgctxt "@info Airplane Mode state"
+msgid "On"
+msgstr "Activé"
+
+msgctxt "@info Focus state"
+msgid "Do Not Disturb"
+msgstr "Ne pas déranger"
+
+msgctxt "@info Wi-Fi state"
+msgid "Not Connected"
+msgstr "Non connecté"
+
+msgctxt "@info Wi-Fi state"
+msgid "Off"
+msgstr "Désactivé"
+
+msgctxt "@title Control Center module"
+msgid "Airplane Mode"
+msgstr "Mode Avion"
+
+msgctxt "@title Control Center module"
+msgid "Display"
+msgstr "Écran"
+
+msgctxt "@title Control Center module"
+msgid "Focus"
+msgstr "Concentration"
+
+msgctxt "@title Control Center module"
+msgid "Not Playing"
+msgstr "Aucune lecture"
+
+msgctxt "@title Control Center module"
 msgid "Sound"
 msgstr "Son"
 
-msgid "Volume"
-msgstr "Volume"
-
+msgctxt "@title Control Center module"
 msgid "Wi-Fi"
 msgstr "Wi-Fi"
-
-msgid "Wi-Fi is blocked by the hardware switch"
-msgstr "Le Wi-Fi est bloqué par l’interrupteur matériel"
-
-msgid "Wi-Fi is off"
-msgstr "Le Wi-Fi est désactivé"

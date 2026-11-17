@@ -879,21 +879,20 @@ Preserve surface masks, shadows, highlights and solid fallbacks.
   (`org.kde.mac.tahoe.liquid.systemtray`, no overflow arrow, Plasma's tray
   as fallback) with its applets hidden, Input menu (`.keyboard`), Sound
   (`.volume`, its HUD replaces plasma-pa's OSD: `layout.py` turns
-  `VolumeOsd`/`MuteOsd` off and uninstall restores them), upstream's
-  Battery, Wi-Fi and Control Center, Spotlight (Meta+Space), upstream's
-  notification history button and the macOS Clock (Digital Clock as
-  fallback). Battery, Wi-Fi, Control Center and Notifications are
-  upstream's widgets as shipped; refresh them from upstream, not from the
-  AquaDesktop fork. The notifications fork
-  (`org.kde.mac.tahoe.liquid.notifications`) gives macOS banners. Both
-  forks and the `GlassBlur` QML module are compiled by `plasmoids.py`.
-- The AquaDesktop flyouts (Input, Sound, Spotlight, Clock) blur only their
-  glass shapes through `org.kde.mac.tahoe.liquid.glass`; `GlassSurface.qml`
-  reads `~/.config/mac-tahoe-liquid-kde/glass.ini` (tint, accent, level,
-  `glass-level`). Nothing runs `accent-sync` on palette changes any more
-  (upstream's Control Center does not): the tint follows a new accent on
-  the next style, tint or light/dark change. Keep the layouts and
-  `TOP_BAR_SCRIM` identical.
+  `VolumeOsd`/`MuteOsd` off and uninstall restores them), Battery, Wi-Fi,
+  Spotlight (Meta+Space), Control Center and the macOS Clock (Digital
+  Clock as fallback). Battery, Wi-Fi and Control Center are the AquaDesktop
+  widgets, not upstream's ones of the same IDs (keep them when merging
+  upstream); upstream's Notifications widget is not shipped. The
+  notifications fork (`org.kde.mac.tahoe.liquid.notifications`) gives
+  macOS banners. Both forks and the `GlassBlur` QML module are compiled by
+  `plasmoids.py`.
+- Flyouts blur only their glass shapes through
+  `org.kde.mac.tahoe.liquid.glass`; `GlassSurface.qml` reads
+  `~/.config/mac-tahoe-liquid-kde/glass.ini` (tint, accent, level,
+  `glass-level`). The Control Center runs `accent-sync` on every palette
+  change, so the Dock veil, the menu bar and the popovers follow the
+  accent. Keep the layouts and `TOP_BAR_SCRIM` identical.
 - The Dock is upstream's (shared `DockCell`/`DockMetrics` cells for vertical
   Docks, task frame margins) with the AquaDesktop sections added:
   Launcher (hidden in the horizontal Dock, `hiddenInDock`; the "Apps" pin

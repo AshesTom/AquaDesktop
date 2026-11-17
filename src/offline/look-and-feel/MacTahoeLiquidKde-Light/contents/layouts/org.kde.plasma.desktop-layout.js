@@ -104,8 +104,6 @@ if (spotlight && bar.screen === 0) {
 // Control Center: the two-toggle glyph between Spotlight and the clock.
 bar.addWidget("org.kde.mac-tahoe-liquid-kde.controlcenter");
 
-// Notification history, with the Control Center's glass.
-bar.addWidget("org.kde.mac-tahoe-liquid-kde.notifications");
 
 // macOS-style clock: locale-ordered "Mon 5 Oct  14:27"; the stock
 // Digital Clock when ours is not installed.

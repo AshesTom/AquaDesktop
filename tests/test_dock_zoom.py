@@ -199,7 +199,8 @@ def test_glass_leaves_frameless_applet_popups_clear(offline):
     update = update[:update.index("\n}\n")]
     # Frames are only synthesized for decorated, non-popup windows.
     assert ("!(w->isDock() || w->isTooltip() || w->isMenu() || w->isDropdownMenu() "
-            "|| w->isPopupMenu() || w->isPopupWindow() || w->isAppletPopup())") in update
+            "|| w->isPopupMenu() || w->isPopupWindow() || (w->isAppletPopup() "
+            "|| w->isNotification() || w->isCriticalNotification()))") in update
 
 
 def test_downloads_fan_matches_macos_tahoe(offline):

@@ -36,12 +36,6 @@ def widget_messages(widget: Path) -> dict[tuple[str | None, str], str | None]:
             if arguments:
                 plural = arguments[1] if function.endswith("p") and len(arguments) > 1 else None
                 messages[context, arguments[0]] = plural
-    if widget.name in (
-        "org.kde.mac-tahoe-liquid-kde.battery",
-        "org.kde.mac-tahoe-liquid-kde.wifi",
-        "org.kde.mac-tahoe-liquid-kde.notifications",
-    ):
-        messages.update(widget_messages(widget.parent / "org.kde.mac-tahoe-liquid-kde.controlcenter"))
     return messages
 
 
@@ -99,7 +93,7 @@ def main() -> None:
     # These original controls share translated views but keep independent applet
     # domains, so adding a satellite never depends on Control Center being loaded.
     import localization
-    for suffix in ("controlcenter", "battery", "wifi", "notifications"):
+    for suffix in ("controlcenter", "battery", "wifi"):
         widget = ROOT / "offline/plasmoids" / ("org.kde.mac-tahoe-liquid-kde." + suffix)
         messages = widget_messages(widget)
         for language in ("es", "zh_CN"):

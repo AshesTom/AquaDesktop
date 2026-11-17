@@ -309,3 +309,12 @@ def test_set_accent_writes_the_accent_key(monkeypatch):
     ts.set_accent("#ff8d28")
     assert ("--file", "kdeglobals", "--group", "General", "--key", "AccentColor",
             "255,141,40") in writes
+
+
+def test_control_center_runs_accent_sync_on_palette_changes(offline):
+    main = (offline / "plasmoids/org.kde.mac-tahoe-liquid-kde.controlcenter/contents/ui/main.qml").read_text()
+    assert "readonly property color paletteAccent: Kirigami.Theme.highlightColor" in main
+    assert 'mac-tahoe-theme-switch\\" accent-sync' in main
+    for widget in ("controlcenter", "keyboard", "spotlight", "wifi"):
+        accent = (offline / f"plasmoids/org.kde.mac-tahoe-liquid-kde.{widget}/contents/ui/AccentColor.qml").read_text()
+        assert 'kdeglobals.value("accentColorFromWallpaper", "false")' in accent, widget

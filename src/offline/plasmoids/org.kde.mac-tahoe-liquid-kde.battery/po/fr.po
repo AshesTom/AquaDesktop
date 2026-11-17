@@ -2,206 +2,90 @@
 msgid ""
 msgstr "Project-Id-Version: MacTahoe Liquid KDE\nPO-Revision-Date: 2026-10-22 00:00-0600\nLast-Translator: MacTahoe Liquid KDE contributors\nLanguage-Team: fr\nLanguage: fr\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n > 1);\n"
 
-msgid "%1 — %2%"
-msgstr "%1 — %2 %"
+msgctxt "@action"
+msgid "Battery Settings…"
+msgstr "Réglages de la batterie…"
 
-msgid "%1%"
-msgstr "%1 %"
+msgctxt "@info"
+msgid "%1 remaining"
+msgstr "%1 restantes"
 
-msgid "Audio outputs"
-msgstr "Sorties audio"
+msgctxt "@info"
+msgid "Charged to %1% Limit"
+msgstr "Chargée jusqu'à la limite de %1 %"
 
-msgid "Back"
-msgstr "Retour"
+msgctxt "@info"
+msgid "Charging to %1% Limit"
+msgstr "Recharge jusqu'à la limite de %1 %"
 
-msgid "Balanced"
-msgstr "Équilibré"
+msgctxt "@info"
+msgid "Charging to Full"
+msgstr "Recharge complète"
 
+msgctxt "@info"
+msgid "Fully Charged"
+msgstr "Chargée"
+
+msgctxt "@info"
+msgid "High Power is limited for now."
+msgstr "Haute performance limitée pour le moment."
+
+msgctxt "@info"
+msgid "High Power is limited: the computer is running hot."
+msgstr "Haute performance limitée : l'ordinateur chauffe."
+
+msgctxt "@info"
+msgid "High Power is limited: the computer may be on your lap."
+msgstr "Haute performance limitée : l'ordinateur est peut-être sur vos genoux."
+
+msgctxt "@info"
+msgid "High Power is unavailable for now."
+msgstr "Haute performance indisponible pour le moment."
+
+msgctxt "@info"
+msgid "Not Charging"
+msgstr "Pas en charge"
+
+msgctxt "@info"
+msgid "Power Source: %1"
+msgstr "Source d'alimentation : %1"
+
+msgctxt "@info hours and minutes"
+msgid "%1 h %2 min"
+msgstr "%1 h %2 min"
+
+msgctxt "@info minutes"
+msgid "%1 min"
+msgstr "%1 min"
+
+msgctxt "@info power source"
 msgid "Battery"
 msgstr "Batterie"
 
-msgid "Battery information will appear when a battery is available."
-msgstr "Les informations apparaîtront lorsqu’une batterie sera disponible."
+msgctxt "@info power source"
+msgid "Power Adapter"
+msgstr "Adaptateur secteur"
 
-msgid "Battery — %1%"
-msgstr "Batterie — %1 %"
+msgctxt "@option energy mode"
+msgid "Automatic"
+msgstr "Automatique"
 
-msgid "Bluetooth"
-msgstr "Bluetooth"
+msgctxt "@option energy mode"
+msgid "High Power"
+msgstr "Haute performance"
 
-msgid "Bluetooth Settings…"
-msgstr "Paramètres Bluetooth…"
+msgctxt "@option energy mode"
+msgid "Low Power"
+msgstr "Économie d'énergie"
 
-msgid "Brightness"
-msgstr "Luminosité"
+msgctxt "@title"
+msgid "Battery"
+msgstr "Batterie"
 
-msgid "Brightness control unavailable"
-msgstr "Réglage de la luminosité indisponible"
+msgctxt "@title Battery menu section"
+msgid "Energy Mode"
+msgstr "Mode d'énergie"
 
-msgid "Cancel Job"
-msgstr "Annuler la tâche"
-
-msgid "Charging"
-msgstr "En charge"
-
-msgid "Clear History"
-msgstr "Effacer l’historique"
-
-msgid "Collapse"
-msgstr "Réduire"
-
-msgid "Connected"
-msgstr "Connecté"
-
-msgid "Connected to power"
-msgstr "Branché sur secteur"
-
-msgid "Control Center"
-msgstr "Centre de contrôle"
-
-msgid "Controlled by another application"
-msgstr "Contrôlé par une autre application"
-
-msgid "Dark Mode"
-msgstr "Mode sombre"
-
-msgid "Dismiss"
-msgstr "Fermer"
-
-msgid "Display"
-msgstr "Écran"
-
-msgid "Display Settings…"
-msgstr "Réglages de l’écran…"
-
-msgid "Do Not Disturb"
-msgstr "Ne pas déranger"
-
-msgid "Edit Controls"
-msgstr "Modifier les commandes"
-
-msgid "Energy Settings…"
-msgstr "Paramètres d’énergie…"
-
-msgid "Energy mode"
-msgstr "Mode d’énergie"
-
-msgid "Expand"
-msgstr "Développer"
-
-msgid "File Sharing"
-msgstr "Partage de fichiers"
-
-msgid "Focus"
-msgstr "Concentration"
-
-msgid "Fully charged"
-msgstr "Charge complète"
-
-msgid "Mute sound"
-msgstr "Couper le son"
-
-msgid "Network"
-msgstr "Réseau"
-
-msgid "Network Settings…"
-msgstr "Paramètres réseau…"
-
-msgid "Next track"
-msgstr "Piste suivante"
-
-msgid "No Wi-Fi adapter"
-msgstr "Aucun adaptateur Wi-Fi"
-
-msgid "No audio output"
-msgstr "Aucune sortie audio"
-
-msgid "No internal battery"
-msgstr "Aucune batterie interne"
-
-msgid "No notifications"
-msgstr "Aucune notification"
-
-msgid "Not connected"
-msgstr "Non connecté"
-
-msgid "Nothing playing"
-msgstr "Aucune lecture en cours"
-
-msgid "Notification Settings…"
-msgstr "Paramètres des notifications…"
-
-msgid "Notifications"
-msgstr "Notifications"
-
-msgid "Now Playing"
-msgstr "Lecture en cours"
-
-msgid "Off"
-msgstr "Désactivé"
-
-msgid "On"
-msgstr "Activé"
-
-msgid "On battery power"
-msgstr "Sur batterie"
-
-msgid "Open"
-msgstr "Ouvrir"
-
-msgid "Overview"
-msgstr "Vue d’ensemble"
-
-msgid "Pause"
-msgstr "Pause"
-
-msgid "Pause notifications for one hour"
-msgstr "Suspendre les notifications pendant une heure"
-
-msgid "Performance"
-msgstr "Performances"
-
-msgid "Play or pause"
-msgstr "Lire ou mettre en pause"
-
-msgid "Power saver"
-msgstr "Économie d’énergie"
-
-msgid "Previous track"
-msgstr "Piste précédente"
-
-msgid "Reply…"
-msgstr "Répondre…"
-
-msgid "Resume"
-msgstr "Reprendre"
-
-msgid "Scan for Networks"
-msgstr "Rechercher des réseaux"
-
-msgid "Scanning…"
-msgstr "Recherche…"
-
-msgid "Screen Mirroring"
-msgstr "Recopie de l’écran"
-
-msgid "Screenshot"
-msgstr "Capture d’écran"
-
-msgid "Send"
-msgstr "Envoyer"
-
-msgid "Sound"
-msgstr "Son"
-
-msgid "Volume"
-msgstr "Volume"
-
-msgid "Wi-Fi"
-msgstr "Wi-Fi"
-
-msgid "Wi-Fi is blocked by the hardware switch"
-msgstr "Le Wi-Fi est bloqué par l’interrupteur matériel"
-
-msgid "Wi-Fi is off"
-msgstr "Le Wi-Fi est désactivé"
+msgctxt "@title Battery menu section"
+msgid "Using Significant Energy"
+msgstr "Consomme beaucoup d'énergie"
