@@ -34,13 +34,13 @@ def _stub_sudo_helpers(monkeypatch):
     helpers express (atomic copy + correct ownership at the destination)
     is real-system territory; in the test we just want to verify the
     install code targets the right paths and copies the right bytes."""
-    def fake_install_file(src: Path, dest: Path, label: str, *, user_owned=False) -> bool:
+    def fake_install_file(src: Path, dest: Path, label: str, *, user_owned=False, **kwargs) -> bool:
         assert user_owned == (dest.name == "mac-tahoe-gtk-appmenu.sh")
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(str(src), str(dest))
         return True
 
-    def fake_install_tree(src: Path, dest: Path, label: str | None = None) -> bool:
+    def fake_install_tree(src: Path, dest: Path, label: str | None = None, **kwargs) -> bool:
         if dest.exists():
             shutil.rmtree(dest)
         shutil.copytree(str(src), str(dest))
@@ -67,6 +67,10 @@ def test_install_copies_globalmenu_runtime_qml(tmp_path, monkeypatch):
     artifact = build / "bin/plasma/applets/org.kde.mac.tahoe.liquid.globalmenu.so"
     runtime_dir = build / "bin/plasma/applet/org/kde/mac/tahoe/liquid/globalmenu"
 
+    glass = build / "bin/org/kde/mac/tahoe/launcher"
+    glass.mkdir(parents=True)
+    (glass / "libmactahoelauncher.so").write_bytes(b"glass")
+    (glass / "qmldir").write_text("module org.kde.mac.tahoe.launcher\n")
     artifact.parent.mkdir(parents=True, exist_ok=True)
     artifact.write_bytes(b"so")
     runtime_dir.mkdir(parents=True, exist_ok=True)
@@ -109,7 +113,17 @@ def test_install_copies_globalmenu_runtime_qml(tmp_path, monkeypatch):
     gtk_environment = home / ".config/plasma-workspace/env/mac-tahoe-gtk-appmenu.sh"
     assert str(gtk_module) in gtk_environment.read_text()
 
+    installed_glass = fake_qml / "org/kde/mac/tahoe/launcher"
+    assert (installed_glass / "libmactahoelauncher.so").read_bytes() == b"glass"
+    # Removing either consumer must preserve the other's shared module.
+    taskmanager = fake_plugins / "plasma/applets/org.kde.mac.tahoe.liquid.taskmanager.so"
+    taskmanager.write_bytes(b"taskmanager")
     globalmenu.uninstall()
+    assert installed_glass.is_dir()
+    globalmenu.install()
+    taskmanager.unlink()
+    globalmenu.uninstall()
+    assert not installed_glass.exists()
 
     assert not gtk_environment.exists()
     assert not expected_so.exists()

@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Layouts
+import org.kde.mac.tahoe.launcher as NativeGlass
 import QtQml
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents
@@ -8,6 +8,8 @@ import org.kde.kirigami as Kirigami
 
 PlasmaCore.Dialog {
 	id: root
+	title: "mttkde-apps"
+	readonly property NativeGlass.GlassSettings glassSettings: NativeGlass.GlassSettings { component: "apps"; window: root }
 	readonly property bool goldenGate: kicker.launcherPreset === 2
 
 	objectName: "popupWindow"
@@ -31,6 +33,16 @@ PlasmaCore.Dialog {
 				root.visible = false;
 			}
 		}
+	}
+
+	function syncSize() {
+		// Dialog writes compositor geometry back into mainItem. Apply the
+		// requested size after the preset bindings have settled.
+		width = Math.round(fs.implicitWidth + margins.left + margins.right);
+		height = Math.round(fs.implicitHeight + margins.top + margins.bottom);
+		fs.width = fs.implicitWidth;
+		fs.height = fs.implicitHeight;
+		reposition();
 	}
 
 	function reposition() {
@@ -72,18 +84,30 @@ PlasmaCore.Dialog {
 	property int cellSizeWidth: goldenGate ? Math.round(configuredIconSize * 2.1875) : main.tahoeStyle ? Math.round(configuredIconSize * 1.84375) : cellSizeHeight
 	property int rows: plasmoid.configuration.numberOfRows
 	
+	property bool openingSearchFocus: false
+	onActiveChanged: {
+		if (active && openingSearchFocus) Qt.callLater(main.focusSearch);
+	}
 	onVisibleChanged: {
+		openingSearchFocus = visible;
 		if (!visible) {
+			main.closeSearchPopup();
 			reset();
 		} else {
-			reposition();
+			syncSize();
 			requestActivate();
 			Qt.callLater(main.focusSearch);
 		}
 	}
 
-	onHeightChanged: reposition()
-	onWidthChanged: reposition()
+	onHeightChanged: {
+		reposition();
+		if (height !== Math.round(fs.implicitHeight + margins.top + margins.bottom)) Qt.callLater(syncSize);
+	}
+	onWidthChanged: {
+		reposition();
+		if (width !== Math.round(fs.implicitWidth + margins.left + margins.right)) Qt.callLater(syncSize);
+	}
 
 	function toggle() {
 		root.visible = false;
@@ -159,27 +183,25 @@ PlasmaCore.Dialog {
 	FocusScope {
 		id: fs
 		focus: true
-		implicitWidth: root.cellSizeWidth * root.columns + innerPadding * 2
+		implicitWidth: main.clipboardMode ? Math.round(main.textSize * 60) : root.cellSizeWidth * root.columns + innerPadding * 2
 			- (root.goldenGate ? dialogSvg.margins.left + dialogSvg.margins.right : 0)
 		// Searchbar + separator + categories + grid
-		implicitHeight: root.goldenGate
+		implicitHeight: main.clipboardMode ? Math.round(main.inlineSearchHeight + 18 + Math.max(2, Math.min(6, main.clipboardList.entries.length)) * main.textSize * 5.2) : root.goldenGate
 			? innerPadding * 3 + main.categoryHeight + main.gridTopSpacing + root.cellSizeHeight * rows
 				- dialogSvg.margins.top - dialogSvg.margins.bottom
 			: main.inlineSearchHeight + 2 + 12 + main.categoryHeight + main.gridTopSpacing + root.cellSizeHeight * rows + innerPadding - (main.tahoeStyle ? 1 : 0)
-		// Dialog can write back the previous window size during a preset switch.
-		// Keep the requested size independent of that feedback and constrain the
-		// native window to the selected preset's dimensions.
+		// Let Dialog follow the content size. Equal, changing min/max hints
+		// can leave Wayland constrained to the previous preset's configure.
 		width: implicitWidth
 		height: implicitHeight
-		Layout.minimumWidth: implicitWidth
-		Layout.maximumWidth: implicitWidth
-		Layout.preferredWidth: implicitWidth
-		Layout.minimumHeight: implicitHeight
-		Layout.maximumHeight: implicitHeight
-		Layout.preferredHeight: implicitHeight
+		onWidthChanged: if (width !== implicitWidth) Qt.callLater(root.syncSize)
+		onHeightChanged: if (height !== implicitHeight) Qt.callLater(root.syncSize)
+		onImplicitWidthChanged: Qt.callLater(root.syncSize)
+		onImplicitHeightChanged: Qt.callLater(root.syncSize)
+		Component.onCompleted: Qt.callLater(root.syncSize)
 		
 		// We want the MainView to have an uniform margin through different plasma themes
-		property real innerPadding: root.goldenGate ? root.configuredIconSize * 0.375 : 15
+		property real innerPadding: main.clipboardMode ? 15 : root.goldenGate ? root.configuredIconSize * 0.375 : 15
 
 		Item {
 			id: mainItem
@@ -190,7 +212,7 @@ PlasmaCore.Dialog {
 
 			MainView {
 				id: main
-				width: mainItem.width - fs.innerPadding * (root.goldenGate ? 2 : 1)
+				width: mainItem.width - fs.innerPadding * (root.goldenGate && !main.clipboardMode ? 2 : 1)
 				height: mainItem.height - fs.innerPadding * (main.tahoeStyle ? 1 : 2)
 				x: fs.innerPadding
 				y: main.tahoeStyle ? 8 : fs.innerPadding

@@ -1,5 +1,4 @@
 #include "gradientcolors.h"
-#include "surfaceoptics.h"
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <QGuiApplication>
 #include <QFile>
@@ -131,6 +130,21 @@ int main(int argc, char **argv)
         image = render();
         require(qRed(image.pixel(96,12)) + 40 < qRed(image.pixel(96,115)), QStringLiteral("black gradient must start at the top"));
         require(qAlpha(image.pixel(96,12)) == 255 && qAlpha(image.pixel(96,115)) == 255, QStringLiteral("gradient must not reveal sharp background at the bottom"));
+        // Tint must retain fractional coverage, and excluded surfaces must
+        // match untinted glass even with an opaque colored preset selected.
+        int partialEdges = 0;
+        for (int y = 0; y < 20; ++y) for (int x = 0; x < 20; ++x) {
+            const int alpha = qAlpha(image.pixel(x,y));
+            if (alpha > 0 && alpha < 255) ++partialEdges;
+        }
+        require(partialEdges > 10, QStringLiteral("gradient lost antialiased edge coverage"));
+        for (bool enabled : {false, true}) {
+            require(!gradientEnabledForSurface(enabled, true, "plasmashell", "Dock"), QStringLiteral("Dock gradient enabled"));
+            for (const QString shell : {QStringLiteral("plasmashell"), QStringLiteral("org.kde.plasmashell")})
+                require(!gradientEnabledForSurface(enabled, false, shell, "mttkde-control-center"), QStringLiteral("Control Center gradient enabled"));
+            require(gradientEnabledForSurface(enabled, false, "plasmashell", "Launcher") == enabled, QStringLiteral("Launcher gradient changed"));
+            require(gradientEnabledForSurface(enabled, false, "application", "mttkde-control-center") == enabled, QStringLiteral("Unrelated application excluded"));
+        }
         shader.setUniformValue("gradientTop", QVector4D(0,0,1,0.8f));
         shader.setUniformValue("gradientBottom", QVector4D(1,0,0,0.6f));
         image = render();
@@ -225,8 +239,12 @@ int main(int argc, char **argv)
         backdrop.fill(QColor(160, 160, 160));
         texture.setData(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, backdrop.constBits());
         shader.setUniformValue("offset", 2.0f);
-        // A clear-centre factor must never leak sharp backdrop into an applet.
+        // Full coverage remains the default; the new control also works on applets.
         shader.setUniformValue("centerOpacity", 0.65f);
+        image = render();
+        require(std::abs(qAlpha(image.pixel(96,64)) - 166) <= 1,
+                QStringLiteral("Configured applet blur coverage was ignored"));
+        shader.setUniformValue("centerOpacity", 1.0f);
         image = render();
         require(qAlpha(image.pixel(96,64)) == 255,
                 QStringLiteral("Applet centre must retain full blur coverage"));
@@ -289,30 +307,14 @@ int main(int argc, char **argv)
         if (dockReference.isNull()) dockReference = bentDock;
         else require(dockReference == bentDock, QStringLiteral("Dock differs between shader profiles"));
 
-        // Exercise the same surface selection as the effect, on an asymmetric
-        // backdrop: extreme window tuning must leave every Dock pixel intact.
-        QImage fixedDock;
-        for (const auto configured : {SurfaceOptics{0, 0, 0, 0, 0},
-                                      SurfaceOptics{10, .02f, 38, 16, .1f},
-                                      SurfaceOptics{8, .032f, 64, 16, .1f},
-                                      SurfaceOptics{50, .2f, 100, 50, 1}}) {
-            const auto optics = opticsForSurface(true, configured);
-            shader.setUniformValue("rgbDriftStrength", optics.rgbDrift);
-            shader.setUniformValue("magnifyGlassStrength", optics.refraction);
-            shader.setUniformValue("refractionWidth", optics.refractionWidth);
-            shader.setUniformValue("highlightWidth", optics.highlightWidth);
-            shader.setUniformValue("highlightStrength", optics.highlightStrength);
-            const auto fixed = render();
-            if (fixedDock.isNull()) fixedDock = fixed;
-            else require(fixed == fixedDock, QStringLiteral("Window tuning changed Dock pixels"));
-            const auto windowOptics = opticsForSurface(false, configured);
-            require(windowOptics.refraction == configured.refraction
-                    && windowOptics.rgbDrift == configured.rgbDrift
-                    && windowOptics.refractionWidth == configured.refractionWidth
-                    && windowOptics.highlightWidth == configured.highlightWidth
-                    && windowOptics.highlightStrength == configured.highlightStrength,
-                    QStringLiteral("Dock isolation changed window tuning"));
-        }
+        // The Dock uses the same tunable shader, including optional gradient.
+        shader.setUniformValue("darkGradientOverlay", true);
+        shader.setUniformValue("gradientTop", QVector4D(1,0,0,1));
+        shader.setUniformValue("gradientCenter", QVector4D(0,0,0,0));
+        shader.setUniformValue("gradientBottom", QVector4D(0,0,0,0));
+        const auto gradientDock = render();
+        shader.setUniformValue("darkGradientOverlay", false);
+        require(gradientDock != render(), QStringLiteral("Dock gradient control was ignored"));
         shader.setUniformValue("rgbDriftStrength", 0.0f);
         shader.setUniformValue("magnifyGlassStrength", 0.02f);
 
@@ -395,7 +397,10 @@ int main(int argc, char **argv)
                 const auto tinted = render();
                 shader.setUniformValue("darkGradientOverlay", false);
                 const auto untinted = render();
-                require(std::abs(qRed(tinted.pixel(96, 0)) - (mode == "Light" ? 206 : 0)) <= 1,
+                const double topAlpha = golden["GradientTopOpacity"].toDouble();
+                const double expectedTop = (mode == "Light" ? 206 : 0) * topAlpha
+                    + qRed(untinted.pixel(96, 0)) * (1 - topAlpha);
+                require(std::abs(qRed(tinted.pixel(96, 0)) - expectedTop) <= 2,
                         QStringLiteral("Golden Gate top tint does not follow appearance"));
                 require(std::abs(qRed(tinted.pixel(96, 127)) - qRed(untinted.pixel(96, 127))) <= 1,
                         QStringLiteral("Golden Gate bottom must remain untinted"));

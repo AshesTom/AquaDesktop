@@ -5,7 +5,7 @@ let
   version = lib.strings.trim (builtins.readFile ../VERSION);
   offline = ../src/offline;
   locale = if lib.hasPrefix "pt_BR" language then "pt_BR"
-    else if lib.hasPrefix "de" language then "de" else "en";
+    else if lib.hasPrefix "de" language then "de" else if lib.hasPrefix "fr" language then "fr" else "en";
   passwordPrompt = if locale == "en" then "Password:"
     else (builtins.fromJSON (builtins.readFile (../src/scripts/locales + "/${locale}.json")))."Password:";
   meta = {
@@ -56,7 +56,10 @@ in rec {
     cmakeFlags = [ "-DCMAKE_BUILD_TYPE=Release"
       "-DMENU_STYLE_PLUGIN_DIR=${placeholder "out"}/${kde.qtbase.qtPluginPrefix}/styles" ];
   };
-  global-menu = buildPlugin "global-menu" (offline + "/plasmoids/org.kde.mac.tahoe.liquid.globalmenu") {};
+  global-menu = buildPlugin "global-menu" (offline + "/plasmoids/org.kde.mac.tahoe.liquid.globalmenu") {
+    cmakeFlags = [ "-DCMAKE_BUILD_TYPE=Release" "-DTAHOE_BUILD_LAUNCHER_MODULE=OFF" ];
+    propagatedBuildInputs = [ task-manager ];
+  };
   task-manager = buildPlugin "task-manager" (offline + "/plasmoids/org.kde.mac.tahoe.liquid.taskmanager") {};
   acrylic-glass = buildPlugin "acrylic-glass" (offline + "/kwin-effects/acrylic-glass") {};
   rounded-corners = buildPlugin "rounded-corners" (pkgs.fetchurl {
@@ -82,6 +85,8 @@ in rec {
       cp -r ${../src/scripts/locales} "$out/libexec/locales"
       cp ${../src/scripts/defaults.json} "$out/libexec/defaults.json"
       cp ${../src/scripts/oled_care.py} "$out/libexec/oled_care.py"
+      cp ${../src/scripts/glass_surface_settings.py} "$out/libexec/glass_surface_settings.py"
+      makeWrapper ${pkgs.python3}/bin/python "$out/bin/mac-tahoe-glass-surfaces" --add-flags "$out/libexec/glass_surface_settings.py"
       for tool in theme-switch oled-care; do
         script="$(echo "$tool" | tr - _)"
         makeWrapper ${pkgs.python3}/bin/python "$out/bin/mac-tahoe-$tool" \
@@ -123,7 +128,8 @@ in rec {
   };
   default = pkgs.symlinkJoin {
     name = "mac-tahoe-liquid-kde-${version}";
-    paths = [ theme-assets menu-style global-menu task-manager acrylic-glass rounded-corners tools kde.plasma5support kde.kitemmodels ];
+    paths = [ theme-assets menu-style global-menu task-manager acrylic-glass rounded-corners tools kde.plasma5support kde.kitemmodels
+      kde.plasma-nm kde.plasma-pa kde.powerdevil kde.bluez-qt ];
     inherit meta;
   };
 }

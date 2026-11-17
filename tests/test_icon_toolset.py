@@ -157,6 +157,14 @@ def test_installer_glass_tint_changes_artwork_and_preserves_aliases(source, tmp_
     staging = tmp_path / "source"
     unpack(source, staging)
     (staging / BASE / "apps/scalable/system-file-manager.svg").symlink_to("demo.svg")
+    (staging / BASE / "apps/scalable/view-app-grid.svg").symlink_to("demo.svg")
+    places = staging / BASE / "places/scalable"
+    places.mkdir(parents=True)
+    for name, shape in (("user-trash", '<rect x="30" y="20" width="60" height="90"/>'),
+                        ("user-trash-full", '<circle cx="64" cy="64" r="45"/>')):
+        (places / (name + ".svg")).write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">'
+            + shape + '</svg>')
     blue, green = tmp_path / "blue", tmp_path / "green"
     names = installer_themes(staging, blue, "glass", "#007aff")
     installer_themes(staging, green, "glass", "#28cd41")
@@ -169,7 +177,13 @@ def test_installer_glass_tint_changes_artwork_and_preserves_aliases(source, tmp_
         assert json.loads((blue / name / "generation.json").read_text())["tint"] == "#007aff"
         image = Image.open(first).convert("RGBA")
         assert image.getpixel((0, 0))[3] < 8
-        assert 0 < image.getpixel((128, 36))[3] < 255
+        assert image.getpixel((128, 36))[3] == 255  # Tinted preserves original coverage.
+        for icon in ("view-app-grid", "user-trash", "user-trash-full"):
+            rendered = blue / name / "apps/256" / (icon + ".png")
+            assert Image.open(rendered).getbbox()
+            assert digest(rendered) != digest(green / name / "apps/256" / rendered.name)
+        assert digest(blue / name / "apps/256/user-trash.png") != digest(
+            blue / name / "apps/256/user-trash-full.png")
 
 
 @pytest.mark.parametrize("style", ["regular", "glass"])
@@ -243,9 +257,9 @@ def test_verify_rejects_changes_extra_files_and_escaping_links(built, tmp_path):
         verify(built)
 
 
-def test_reviewed_dark_artwork_is_used_for_every_alias_and_light_is_preserved(tmp_path):
+def test_every_alias_uses_original_geometry_in_both_regular_modes(tmp_path):
     from icon_materials import raster
-    from icon_toolset import ROOT, installer_dark_sources, installer_themes
+    from icon_toolset import ROOT, installer_themes
     manifest = json.loads((ROOT / 'src/offline/icons/overrides/sources.json').read_text())
     extracted = tmp_path / 'archive'
     unpack(ROOT / 'src/offline/icons/MacTahoeLiquidKde-Icons.tar.zst', extracted)
@@ -257,15 +271,17 @@ def test_reviewed_dark_artwork_is_used_for_every_alias_and_light_is_preserved(tm
         assert digest(original) == entry['source_sha256']
         (apps / f'app-{index}.svg').write_bytes(original.read_bytes())
         (apps / f'alias-{index}.svg').symlink_to(f'app-{index}.svg')
-    overrides = installer_dark_sources()
     names = installer_themes(source, tmp_path / 'generated', 'regular', '#007aff')
     for index in range(len(manifest)):
         original = apps / f'app-{index}.svg'
-        for name, artwork in zip(names, (original, overrides[digest(original)])):
+        for name in names:
             generated = tmp_path / 'generated' / name / 'apps/256'
             assert (generated / f'alias-{index}.png').resolve() == (generated / f'app-{index}.png').resolve()
-            expected = raster(artwork, 512).resize((256, 256), Image.Resampling.LANCZOS)
-            assert Image.open(generated / f'app-{index}.png').convert('RGBA').tobytes() == expected.tobytes()
+            expected = raster(original, 512).resize((256, 256), Image.Resampling.LANCZOS)
+            actual = Image.open(generated / f'app-{index}.png').convert('RGBA')
+            assert actual.getchannel('A').tobytes() == expected.getchannel('A').tobytes()
+            if name.endswith('-Light'):
+                assert actual.tobytes() == expected.tobytes()
 
 
 def test_regular_dark_removes_partial_colored_rim_without_losing_foreground(tmp_path):
@@ -363,7 +379,7 @@ def test_override_adds_missing_glyph_and_carries_notice(source, tmp_path):
 
 
 @pytest.mark.parametrize("tint", ["#000000", "#ffffff", "#ff0000", "#00ff00", "#0000ff", "#fF7a18", "#123456"])
-def test_arbitrary_rgb_tints_preserve_glyph_and_translucency(tmp_path, tint):
+def test_arbitrary_rgb_tints_preserve_glyph_and_original_coverage(tmp_path, tint):
     if not shutil.which("rsvg-convert"):
         pytest.skip("rsvg-convert required")
     path = tmp_path / "demo.svg"
@@ -371,7 +387,7 @@ def test_arbitrary_rgb_tints_preserve_glyph_and_translucency(tmp_path, tint):
     prepared = prepare_source(path, 64)
     for variant in ("tinted-light", "tinted-dark"):
         image = render(prepared, variant, color(tint))
-        assert 0 < image.getpixel((32, 9))[3] < 180
+        assert image.getchannel("A").tobytes() == prepared[0].getchannel("A").tobytes()
         assert image.getpixel((32, 24))[3] > 240
         assert image.getpixel((32, 9))[:3] != image.getpixel((32, 24))[:3]
 
@@ -407,3 +423,151 @@ def test_manifest_source_provenance_and_output_boundaries(built):
     path.write_text(json.dumps(manifest))
     with pytest.raises(ValueError, match="provenance"):
         verify(built)
+
+
+def test_glass_finder_eyes_and_calendar_text_remain_legible_on_both_wallpapers(tmp_path):
+    """Use the shipped artwork at Dock size, not synthetic replacement glyphs."""
+    from statistics import median
+    from icon_materials import render_installer
+    from icon_toolset import ROOT
+    from installer_choices import COLORS
+    unpack(ROOT / 'src/offline/icons/MacTahoeLiquidKde-Icons.tar.zst', tmp_path / 'original')
+    base = tmp_path / 'original' / BASE / 'apps/scalable'
+    prepared = {name: prepare_source(base / (name + '.svg'), 512)
+                for name in ('system-file-manager', 'calendar')}
+    original = prepared['calendar'][0].resize((64, 64), Image.Resampling.LANCZOS)
+    letters = [(x, y) for y in range(12, 22) for x in range(20, 47)
+               if (lambda p: p[0] > 210 and p[1] < 130 and p[2] < 130 and p[3] > 240)(original.getpixel((x, y)))]
+    assert letters
+    def luminance(rgb):
+        return sum((v/255/12.92 if v/255 <= .04045 else ((v/255+.055)/1.055)**2.4)*w
+                   for v, w in zip(rgb, (.2126, .7152, .0722)))
+    def contrast(a, b):
+        low, high = sorted((luminance(a), luminance(b)))
+        return (high + .05) / (low + .05)
+    for tint in COLORS.values():
+        rgb = tuple(bytes.fromhex(tint[1:]))
+        for mode in ('light', 'dark'):
+            icons = {name: render_installer(source, 'glass', mode, rgb)
+                     .resize((256, 256), Image.Resampling.LANCZOS)
+                     .resize((64, 64), Image.Resampling.LANCZOS)
+                     for name, source in prepared.items()}
+            for background in ('#101010', '#eeeeee'):
+                images = {name: Image.alpha_composite(Image.new('RGBA', im.size, background), im).convert('RGB')
+                          for name, im in icons.items()}
+                finder = images['system-file-manager']
+                assert contrast(finder.getpixel((20, 23)), finder.getpixel((17, 23))) >= 3, (tint, mode, background, 'eye')
+                calendar = images['calendar']
+                assert median(contrast(calendar.getpixel(pt), calendar.getpixel((12, 17)))
+                              for pt in letters) >= 3, (tint, mode, background, 'letters')
+
+
+def test_small_kernel_erosion_is_pixel_identical():
+    from PIL import ImageFilter, ImageChops
+    from icon_materials import minimum_filter
+    image = Image.frombytes('L', (37, 29), bytes((i * 53 + i // 37 * 17) % 256 for i in range(37 * 29)))
+    for width in (3, 7, 19):
+        assert ImageChops.difference(minimum_filter(image, width),
+                                    image.filter(ImageFilter.MinFilter(width))).getbbox() is None
+
+
+def test_installer_recipe_is_reproducible_and_parameters_change_pixels(source, tmp_path, monkeypatch):
+    import icon_toolset
+    from icon_sources import inventory
+    staging = tmp_path / 'recipe-source'
+    unpack(source, staging)
+    (staging / BASE / 'apps/scalable/second.svg').write_bytes(ARTWORK.replace(b'#f05020', b'#20a060'))
+    archive = tmp_path / 'recipe.tar.gz'
+    with tarfile.open(archive, 'w:gz') as tar:
+        for child in sorted(staging.iterdir()):
+            tar.add(child, arcname=child.name)
+    source = archive
+    calls = []
+    original = icon_toolset.render_installer
+    def counted(*args, **kwargs):
+        calls.append(args[2])
+        return original(*args, **kwargs)
+    monkeypatch.setattr(icon_toolset, 'render_installer', counted)
+    recipe = tmp_path / 'material.json'
+    recipe.write_text('{"relief_tint": 0.4}')
+    outputs = [tmp_path / name for name in ('first', 'repeat', 'default')]
+    for output in outputs:
+        args = ['installer-build', '--source', str(source), '--output', str(output),
+                '--tint', '#ff7a18', '--jobs', '1' if output == outputs[0] else '4',
+                '--icons', 'demo', 'org.example.Demo', 'second']
+        if output != outputs[-1]:
+            args += ['--material', str(recipe)]
+        assert main(args) == 0
+    assert calls.count('light') == calls.count('dark') == 6  # aliases share each mode's output
+    assert inventory(outputs[0]) == inventory(outputs[1])
+    theme = BASE + '-Glass-Light'
+    icon = Path(theme) / 'apps/256/demo.png'
+    assert (outputs[0] / icon).read_bytes() != (outputs[-1] / icon).read_bytes()
+    assert (outputs[0] / icon).read_bytes() != (outputs[0] / (BASE + '-Glass-Dark') / 'apps/256/demo.png').read_bytes()
+    metadata = json.loads((outputs[0] / theme / 'generation.json').read_text())
+    assert metadata['partial'] and metadata['material']['relief_tint'] == .4
+    assert metadata['renderer']['pillow'] and metadata['generator']['icon_materials.py']
+    for invalid in ('{"unknown": 1}', '{"sparse_gamma": 0}', '{"shadow_tint": NaN}', '{"ink_blackpoint": 2.5}'):
+        recipe.write_text(invalid)
+        output = tmp_path / 'invalid'
+        assert main(['installer-build', '--source', str(source), '--output', str(output), '--material', str(recipe)]) == 1
+        assert not output.exists()
+
+
+def test_installer_worker_failure_never_publishes_partial_output(source, tmp_path, monkeypatch):
+    import icon_toolset
+    def fail(*args, **kwargs):
+        raise ValueError("render failed")
+    monkeypatch.setattr(icon_toolset, 'render_installer', fail)
+    output = tmp_path / 'failed'
+    assert main(['installer-build', '--source', str(source), '--output', str(output)]) == 1
+    assert not output.exists()
+    assert not list(tmp_path.glob('icon-installer-*'))
+
+
+def test_variants_preserve_original_geometry_including_unplated_icons(tmp_path):
+    """Every mode keeps the source contour, interior cutouts and existing rim."""
+    from icon_materials import VARIANTS
+    from PIL import ImageChops
+    for name, svg in {
+        "layered": ARTWORK,
+        "unplated": b'<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><path fill="#aaa" fill-rule="evenodd" d="M18 10H46L42 55H22Z M27 20H37V38H27Z"/><path d="M16 10H48" stroke="white" stroke-width="2"/></svg>',
+    }.items():
+        path = tmp_path / (name + ".svg")
+        path.write_bytes(svg)
+        source = prepare_source(path, 128)
+        alpha = source[0].getchannel("A")
+        mask = alpha.point(lambda v: 255 if v else 0)
+        for tint in ((255, 59, 48), (0, 122, 255)):
+            for variant in VARIANTS:
+                result = render(source, variant, tint)
+                coverage = result.getchannel("A")
+                assert ImageChops.subtract(coverage.point(lambda v: 255 if v else 0), mask).getbbox() is None, (name, variant)
+                if not variant.startswith("clear-"):
+                    assert coverage.tobytes() == alpha.tobytes(), (name, variant)
+                else:
+                    assert coverage.getbbox() == alpha.getbbox(), (name, variant)
+            assert render(source, "tinted-light", tint).tobytes() != render(source, "tinted-dark", tint).tobytes()
+
+
+@pytest.mark.parametrize("style", ["dark", "clear"])
+def test_installer_selector_styles_generate_matching_overlays(source, tmp_path, style):
+    from icon_toolset import installer_themes
+    staging = tmp_path / "source"
+    unpack(source, staging)
+    blue, red = tmp_path / "blue", tmp_path / "red"
+    names = installer_themes(staging, blue, style, "#007aff")
+    installer_themes(staging, red, style, "#ff3b30")
+    images = []
+    for name in names:
+        icon = blue / name / "apps/256/demo.png"
+        assert digest(icon) == digest(red / name / "apps/256/demo.png")
+        assert (blue / name / "apps/256/org.example.Demo.png").resolve() == icon
+        image = Image.open(icon).convert("RGBA")
+        assert image.getpixel((0, 0))[3] == 0
+        images.append(image.tobytes())
+    if style == "dark":
+        assert images[0] == images[1]  # Dark remains dark in a light desktop.
+    else:
+        assert images[0] != images[1]  # Clear follows the desktop appearance.
+        assert 0 < Image.open(blue / names[0] / "apps/256/demo.png").getpixel((128, 36))[3] < 255

@@ -3,7 +3,11 @@
 from localization import effective_language, translate
 
 # English | Spanish | Simplified Chinese | Brazilian Portuguese | German
-_ROWS = '''Estimating time remaining…|Calculando el tiempo restante…|正在估算剩余时间…|Calculando o tempo restante…|Verbleibende Zeit wird geschätzt…
+_ROWS = '''Enable clipboard history?|¿Activar el historial del portapapeles?|启用剪贴板历史记录？|Ativar o histórico da área de transferência?|Zwischenablageverlauf aktivieren?
+Enable clipboard history|Activar el historial del portapapeles|启用剪贴板历史记录|Ativar o histórico da área de transferência|Zwischenablageverlauf aktivieren
+Clipboard history|Historial del portapapeles|剪贴板历史记录|Histórico da área de transferência|Zwischenablageverlauf
+Copied text and images are saved unencrypted on this computer. Uninstall deletes this history.|El texto y las imágenes copiados se guardan sin cifrar en este equipo. La desinstalación elimina este historial.|复制的文本和图像将以未加密形式保存在此计算机上。卸载会删除此历史记录。|O texto e as imagens copiados são salvos sem criptografia neste computador. A desinstalação apaga esse histórico.|Kopierte Texte und Bilder werden unverschlüsselt auf diesem Computer gespeichert. Die Deinstallation löscht diesen Verlauf.
+Estimating time remaining…|Calculando el tiempo restante…|正在估算剩余时间…|Calculando o tempo restante…|Verbleibende Zeit wird geschätzt…
 About {minutes} minutes remaining|Faltan unos {minutes} minutos|大约还剩 {minutes} 分钟|Faltam cerca de {minutes} minutos|Noch etwa {minutes} Minuten
 About a minute remaining|Falta aproximadamente un minuto|大约还剩 1 分钟|Falta cerca de um minuto|Noch etwa eine Minute
 Less than a minute remaining|Falta menos de un minuto|剩余不到一分钟|Falta menos de um minuto|Noch weniger als eine Minute
@@ -18,6 +22,8 @@ Only Dock icons change. Your apps, pin order and desktop icon theme stay the sam
 Which window glass would you like?|¿Qué cristal prefieres para las ventanas?|你想使用哪种窗口玻璃效果？|Qual vidro você prefere nas janelas?|Welches Fensterglas möchtest du verwenden?
 Window glass|Cristal de las ventanas|窗口玻璃|Vidro das janelas|Fensterglas
 Classic|Clásico|经典|Clássico|Klassisch
+Default|Predeterminado|默认|Padrão|Standard
+Clear|Transparente|透明|Transparente|Transparent
 Tinted|Tintado|着色|Tingido|Getönt
 Classic keeps the original glass. Tinted adds a white backing in light mode and a dark backing in dark mode.|Clásico conserva el cristal original. Tintado añade un fondo blanco en modo claro y oscuro en modo oscuro.|经典保留原始玻璃效果。着色在浅色模式下添加白色底层，在深色模式下添加深色底层。|Clássico mantém o vidro original. Tingido adiciona um fundo branco no modo claro e escuro no modo escuro.|Klassisch behält das ursprüngliche Glas bei. Getönt fügt im hellen Modus einen weißen und im dunklen Modus einen dunklen Hintergrund hinzu.
 Both use the same blur, refraction and highlights. Applies to application windows; panels and menus keep their own materials.|Ambos usan el mismo desenfoque, refracción y reflejos. Se aplica a ventanas de aplicaciones; los paneles y menús conservan sus materiales.|两者使用相同的模糊、折射和高光。仅应用于应用窗口；面板和菜单保留各自的材质。|Ambos usam o mesmo desfoque, refração e reflexos. Aplica-se às janelas dos aplicativos; painéis e menus mantêm seus materiais.|Beide verwenden dieselbe Unschärfe, Brechung und dieselben Lichtreflexe. Gilt für Anwendungsfenster; Panels und Menüs behalten ihre Materialien.
@@ -67,6 +73,7 @@ Use the defaults and review before installing.|Usa los valores predeterminados y
 Selections, top bar and Dock.|Selecciones, barra superior y Dock.|选中项、顶栏和程序坞。|Seleções, barra superior e Dock.|Auswahl, obere Leiste und Dock.
 Icons, selections, top bar and Dock.|Iconos, selecciones, barra superior y Dock.|图标、选中项、顶栏和程序坞。|Ícones, seleções, barra superior e Dock.|Symbole, Auswahl, obere Leiste und Dock.
 Everything in its place.|Todo en su lugar.|一切井然有序。|Tudo em seu lugar.|Alles an seinem Platz.
+Theme|Tema|主题|Tema|Design
 Color|Color|颜色|Cor|Farbe
 Background|Fondo|壁纸|Fundo|Hintergrund
 Boot|Arranque|启动|Inicialização|Systemstart
@@ -184,6 +191,9 @@ for row in _ROWS.splitlines():
     for code, text in zip(CATALOGS, translations):
         CATALOGS[code][source] = text
 
+
+# French shares the complete JSON catalog with installed tools and KDE widgets.
+CATALOGS["fr"] = {source: translate(source, "fr") for source in CATALOGS["de"]}
 
 def wizard_translate(message, language):
     return CATALOGS.get(effective_language(language), {}).get(message, translate(message, language))

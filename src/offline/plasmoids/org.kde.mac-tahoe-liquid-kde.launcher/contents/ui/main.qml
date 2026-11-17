@@ -34,7 +34,7 @@ PlasmoidItem {
     Layout.maximumWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? NativeLauncher.DockMetrics.preferredCellSize(height) : Infinity
     Layout.minimumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? Math.floor(dockCell.size) : 0
     Layout.preferredHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? dockCell.size : -1
-    Layout.maximumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? Math.ceil(dockCell.size) : Infinity
+    Layout.maximumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? dockCell.preferredSize : Infinity
 
     anchors.fill: parent
 

@@ -54,6 +54,14 @@ Item {
 		width: root.iconSize
 		height: width
 		source: model.decoration
+        Connections {
+            target: main.iconThemeWatcher
+            function onChanged() {
+                // The model's icon name stays unchanged across theme switches.
+                appicon.source = "";
+                appicon.source = Qt.binding(() => model.decoration);
+            }
+        }
 	}
 
     // Follow the icon's alpha silhouette, including non-square third-party icons.
@@ -165,7 +173,7 @@ Item {
 
 			// forceActiveFocus() touches multiple items, so check for
 			// activeFocus first to be more efficient.
-			if (!view.activeFocus) {
+			if (!view.activeFocus && !main.searchBar.textField.activeFocus) {
 				view.forceActiveFocus(Qt.MouseFocusReason);
 			}
 			// No need to check currentIndex first because it's

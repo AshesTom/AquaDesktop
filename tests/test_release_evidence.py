@@ -76,3 +76,37 @@ def test_historical_gallery_is_preserved_byte_for_byte(evidence_repo, changed):
     (image if changed == 'image' else manifest).write_bytes(b'changed')
     with pytest.raises(ValueError, match='Historical gallery'):
         module.verify(root)
+
+
+@pytest.mark.parametrize('annotated', [False, True])
+def test_shallow_release_fetch_preserves_gallery_and_rejects_wrong_tag(evidence_repo, tmp_path, annotated):
+    module, root, data = evidence_repo
+    def git(*args):
+        return subprocess.check_output(['git', '-C', str(root), *args], text=True).strip()
+    git('config', 'user.name', 'Test')
+    git('config', 'user.email', 'test@example.invalid')
+    gallery = root / 'src/screenshots'
+    gallery.mkdir(parents=True)
+    (gallery / 'release-capture.json').write_text('{"images": {}}')
+    git('add', '.')
+    git('commit', '-qm', 'Gallery')
+    data['gallery_commit'] = git('rev-parse', 'HEAD')
+    (root / 'release-evidence.json').write_text(json.dumps(data))
+    git('add', '.')
+    git('commit', '-qm', 'Release')
+    git('-c', 'tag.gpgSign=false', 'tag', *(['-a', '-m', 'Release'] if annotated else []), 'v1.2.3')
+    clone = root / 'shallow'
+    subprocess.run(['git', 'clone', '-q', '--depth=1', '--no-tags', root.as_uri(), str(clone)], check=True)
+    if annotated:
+        # actions/checkout can represent an annotated remote tag locally as
+        # a lightweight ref to the peeled commit in its shallow checkout.
+        subprocess.run(['git', '-C', str(clone), '-c', 'tag.gpgSign=false',
+                        'tag', 'v1.2.3'], check=True)
+    module.fetch_release_refs(clone)
+    module.verify(clone)
+    git('tag', '-f', 'v1.2.3', data['gallery_commit'])
+    # Fresh shallow checkout has no stale local tag to hide a mismatched remote tag.
+    other = root / 'mismatch'
+    subprocess.run(['git', 'clone', '-q', '--depth=1', '--no-tags', root.as_uri(), str(other)], check=True)
+    with pytest.raises(ValueError, match='tag does not match'):
+        module.fetch_release_refs(other)

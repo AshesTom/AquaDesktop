@@ -22,11 +22,79 @@ LANGUAGES = (
     {"code": "zh_CN", "label": "简体中文"},
     {"code": "pt_BR", "label": "Português (Brasil)"},
     {"code": "de", "label": "Deutsch"},
+    {"code": "fr", "label": "Français"},
 )
 LANGUAGE_CODES = tuple(item["code"] for item in LANGUAGES)
 
 
 _ES = {
+    "On": "Activado",
+    "Off": "Desactivado",
+    "Audio outputs": "Salidas de audio",
+    "File Sharing": "Compartir archivos",
+    "Overview": "Vista general",
+    "Screen Mirroring": "Duplicar pantalla",
+    "Dark Mode": "Modo oscuro",
+    "Screenshot": "Captura de pantalla",
+    "Display Settings…": "Configuración de pantalla…",
+    "Connected": "Conectado",
+
+    "Edit Controls": "Editar controles",
+    "Focus": "Concentración",
+    "%1 — %2%": "%1 — %2%",
+    "%1%": "%1%",
+    "Balanced": "Equilibrado",
+    "Battery": "Batería",
+    "Battery information will appear when a battery is available.": "La información aparecerá cuando haya una batería disponible.",
+    "Battery — %1%": "Batería — %1%",
+    "Bluetooth": "Bluetooth",
+    "Bluetooth Settings…": "Ajustes de Bluetooth…",
+    "Brightness control unavailable": "Control de brillo no disponible",
+    "Cancel Job": "Cancelar tarea",
+    "Charging": "Cargando",
+    "Clear History": "Borrar historial",
+    "Collapse": "Contraer",
+    "Connected to power": "Conectado a la corriente",
+    "Control Center": "Centro de control",
+    "Controlled by another application": "Controlado por otra aplicación",
+    "Dismiss": "Descartar",
+    "Display": "Pantalla",
+    "Do Not Disturb": "No molestar",
+    "Energy Settings…": "Ajustes de energía…",
+    "Energy mode": "Modo de energía",
+    "Expand": "Expandir",
+    "Fully charged": "Carga completa",
+    "Mute sound": "Silenciar sonido",
+    "Network": "Red",
+    "Network Settings…": "Ajustes de red…",
+    "Next track": "Pista siguiente",
+    "No Wi-Fi adapter": "No hay adaptador Wi-Fi",
+    "No audio output": "No hay salida de audio",
+    "No internal battery": "No hay batería interna",
+    "No notifications": "No hay notificaciones",
+    "Not connected": "Sin conexión",
+    "Nothing playing": "No se está reproduciendo nada",
+    "Notification Settings…": "Ajustes de notificaciones…",
+    "Notifications": "Notificaciones",
+    "Now Playing": "En reproducción",
+    "On battery power": "Usando la batería",
+    "Pause": "Pausar",
+    "Pause notifications for one hour": "Pausar las notificaciones durante una hora",
+    "Performance": "Rendimiento",
+    "Play or pause": "Reproducir o pausar",
+    "Power saver": "Ahorro de energía",
+    "Previous track": "Pista anterior",
+    "Reply…": "Responder…",
+    "Resume": "Reanudar",
+    "Scan for Networks": "Buscar redes",
+    "Scanning…": "Buscando…",
+    "Send": "Enviar",
+    "Sound": "Sonido",
+    "Volume": "Volumen",
+    "Wi-Fi": "Wi-Fi",
+    "Wi-Fi is blocked by the hardware switch": "El interruptor físico bloquea el Wi-Fi",
+    "Wi-Fi is off": "El Wi-Fi está desactivado",
+
     "Icons unchanged — skipping generation and installation": "Iconos sin cambios — se omiten la generación y la instalación",
     "{label} (unchanged)": "{label} (sin cambios)",
     'Dock preset update failed': 'No se pudo actualizar el preset del Dock',
@@ -98,6 +166,73 @@ _ES = {
 }
 
 _ZH_CN = {
+    "On": "开启",
+    "Off": "关闭",
+    "Audio outputs": "音频输出",
+    "File Sharing": "文件共享",
+    "Overview": "概览",
+    "Screen Mirroring": "屏幕镜像",
+    "Dark Mode": "深色模式",
+    "Screenshot": "截屏",
+    "Display Settings…": "显示设置…",
+    "Connected": "已连接",
+
+    "Edit Controls": "编辑控制",
+    "Focus": "专注模式",
+    "%1 — %2%": "%1 — %2%",
+    "%1%": "%1%",
+    "Balanced": "平衡",
+    "Battery": "电池",
+    "Battery information will appear when a battery is available.": "电池可用时将显示电池信息。",
+    "Battery — %1%": "电池 — %1%",
+    "Bluetooth": "蓝牙",
+    "Bluetooth Settings…": "蓝牙设置…",
+    "Brightness control unavailable": "亮度控制不可用",
+    "Cancel Job": "取消任务",
+    "Charging": "正在充电",
+    "Clear History": "清除历史记录",
+    "Collapse": "收起",
+    "Connected to power": "已连接电源",
+    "Control Center": "控制中心",
+    "Controlled by another application": "由其他应用控制",
+    "Dismiss": "关闭",
+    "Display": "显示器",
+    "Do Not Disturb": "勿扰模式",
+    "Energy Settings…": "电源设置…",
+    "Energy mode": "电源模式",
+    "Expand": "展开",
+    "Fully charged": "已充满",
+    "Mute sound": "静音",
+    "Network": "网络",
+    "Network Settings…": "网络设置…",
+    "Next track": "下一首",
+    "No Wi-Fi adapter": "没有无线网卡",
+    "No audio output": "没有音频输出",
+    "No internal battery": "没有内置电池",
+    "No notifications": "没有通知",
+    "Not connected": "未连接",
+    "Nothing playing": "未在播放",
+    "Notification Settings…": "通知设置…",
+    "Notifications": "通知",
+    "Now Playing": "正在播放",
+    "On battery power": "使用电池供电",
+    "Pause": "暂停",
+    "Pause notifications for one hour": "暂停通知一小时",
+    "Performance": "性能",
+    "Play or pause": "播放或暂停",
+    "Power saver": "节能",
+    "Previous track": "上一首",
+    "Reply…": "回复…",
+    "Resume": "继续",
+    "Scan for Networks": "扫描网络",
+    "Scanning…": "正在扫描…",
+    "Send": "发送",
+    "Sound": "声音",
+    "Volume": "音量",
+    "Wi-Fi": "无线网络",
+    "Wi-Fi is blocked by the hardware switch": "无线网络已被硬件开关禁用",
+    "Wi-Fi is off": "无线网络已关闭",
+
     "Icons unchanged — skipping generation and installation": "图标未更改 — 跳过生成和安装",
     "{label} (unchanged)": "{label}（未更改）",
     'Dock preset update failed': 'Dock 预设更新失败',
@@ -324,6 +459,8 @@ _ZH_CN.update({'Dock apps': 'Dock 应用',
  'Music': '音乐',
  'Video': '视频'})
 
+_ES["Removed {size} MiB of temporary compiler objects."] = "Se eliminaron {size} MiB de archivos objeto temporales del compilador."
+_ZH_CN["Removed {size} MiB of temporary compiler objects."] = "已删除 {size} MiB 的临时编译目标文件。"
 _TRANSLATIONS = {"es": _ES, "zh_CN": _ZH_CN}
 
 
@@ -335,7 +472,7 @@ def _load_catalog(code: str) -> dict[str, str]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-for _code in ("pt_BR", "de"):
+for _code in ("pt_BR", "de", "fr"):
     _TRANSLATIONS[_code] = _load_catalog(_code)
 
 
@@ -347,6 +484,8 @@ def normalize_language(value: str | None) -> str:
         return "zh_CN"
     if low == "pt" or low == "pt_br":
         return "pt_BR"
+    if low == "fr" or low.startswith("fr_"):
+        return "fr"
     if low == "de" or low.startswith("de_"):
         return "de"
     if low == "es" or low.startswith("es_"):

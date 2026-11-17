@@ -19,7 +19,7 @@ from paths import (
     read_version,
 )
 from log import (
-    banner, errors, fail, note, ok, progress_done, progress_reset, step, warn,
+    banner, errors, fail, note, ok, progress_done, progress_reset, progress_event, step, warn,
 )
 from launcher_defaults import edition_name
 from preflight import run_preflight
@@ -62,7 +62,7 @@ ALL_FEATURES = [
     "kvantum", "color_schemes", "icons", "plasmoids", "globalmenu", "acrylic_glass",
     "rounded_corners",
     "global_theme", "layout", "sounds", "gtk", "firefox", "sddm", "plymouth", "apps",
-    "nautilus", "nautilus_bookmarks", "portals", "oled_care", "apply_theme",
+    "nautilus", "nautilus_bookmarks", "portals", "oled_care", "clipboard", "apply_theme",
     "kconf_update",
 ]
 
@@ -74,7 +74,7 @@ INSTALL_ORDER = [
     "sounds",
     "kconf_update",
     "plasmoids", "globalmenu", "acrylic_glass", "rounded_corners",
-    "layout", "nautilus", "apps", "portals", "plymouth",
+    "layout", "nautilus", "apps", "portals", "plymouth", "clipboard",
 ]
 
 FEATURE_DESC = {
@@ -102,6 +102,7 @@ FEATURE_DESC = {
     "nautilus_bookmarks": "Sidebar shortcuts",
     "portals": "KDE file dialogs",
     "oled_care": "Panel pixel shift",
+    "clipboard": "Clipboard history (Meta+V)",
     "apply_theme": "Activate after install",
     "kconf_update": "Settings migrations",
 }
@@ -144,6 +145,9 @@ Options:
     --nautilus-bookmarks  macOS-style sidebar bookmarks (backs up the
                        existing bookmarks; uninstall restores them)
     --portals          Route FileChooser/AppChooser to KDE (fixes stale dialogs)
+    --clipboard        Clipboard history popup on Meta+V (text and images,
+                       pinning, search). Builds a small background service;
+                       history stays private on this machine. Default: off
     --oled-care        OLED burn-in care: pixel-shift the panels every
                        5 minutes (top bar height, dock offset). Default: off
     --oled-interval=N  Minutes between pixel shifts (1-59, default 5)
@@ -214,6 +218,8 @@ Examples:
 DEFAULT_FEATURES: dict[str, object] = {f: True for f in ALL_FEATURES}
 # Opt-in: shifts panel geometry on a timer — only wanted on OLED monitors.
 DEFAULT_FEATURES["oled_care"] = False
+# Opt-in: records everything copied to the clipboard, so it must be chosen.
+DEFAULT_FEATURES["clipboard"] = False
 DEFAULT_FEATURES["oled_interval"] = 5   # minutes between shifts (1-59)
 DEFAULT_FEATURES["oled_max_shift"] = 8  # max shift distance in px (1-16)
 DEFAULT_FEATURES["theme_mode"] = "auto"
@@ -637,6 +643,8 @@ def verify_plasma() -> bool:
 
 
 def confirm(msg: str) -> bool:
+    if os.environ.get("MTTKDE_NO_CONFIRM") == "1" and os.environ.get("MTTKDE_PROGRESS_FILE"):
+        return True
     print()
     print(f"  \033[0;31m\033[1m{msg}\033[0m")
     print()
@@ -912,6 +920,8 @@ def _run_builds_or_abort(feat: dict[str, object]) -> bool:
     artefact is missing. Runs before the install loop so a half-built desktop
     never ships. Steps may expose build_artifacts() for the post-build check."""
     builds = _build_features(feat)
+    for feature in builds:
+        progress_event("build", id=feature, state="pending")
     if not builds:
         ok(tr('no compiled components selected — skipping build phase'))
         return True
@@ -924,19 +934,23 @@ def _run_builds_or_abort(feat: dict[str, object]) -> bool:
         if i:
             print()
         print(tr('  \x1b[1mBuilding {label}\x1b[0m', label=label))
+        progress_event("build", id=feature, state="running")
         if not run_phase(feature, "build"):
+            progress_event("build", id=feature, state="failed")
             failed.append(feature)
             continue
 
         mod = step_module(feature)
         artifacts = getattr(mod, "build_artifacts", None) if mod else None
         if not callable(artifacts):
+            progress_event("build", id=feature, state="done")
             continue
         missing = [p for p in artifacts() if not p.exists()]
         if missing:
             for p in missing:
                 fail(tr('{label}: build artefact missing: {p}', label=label, p=p))
             failed.append(feature)
+        progress_event("build", id=feature, state="failed" if missing else "done")
 
     if failed:
         print()
@@ -1050,13 +1064,22 @@ def _print_done(verb: str) -> None:
 def _run_install_body(feat: dict[str, object]) -> int:
     from theme_switch import button_position, preserve_button_layout
 
-    with preserve_button_layout(button_position() == "keep"):
-        return _run_install_steps(feat)
+    from steps._native_build import installation_build_cleanup
+
+    with installation_build_cleanup() as cleanup, preserve_button_layout(button_position() == "keep"):
+        result = _run_install_steps(feat)
+        if result == 0:
+            reclaimed = cleanup()
+            if reclaimed:
+                note(tr("Removed {size} MiB of temporary compiler objects.",
+                        size=f"{reclaimed / 1024**2:.1f}"))
+        return result
 
 
 def _run_install_steps(feat: dict[str, object]) -> int:
     """The actual install sequence — no banner, confirm, or progress UI.
     Runs under the graphical supervisor or isolated qualification tools."""
+    progress_event("phase", id="system", state="running")
     check_cancelled()
     preflight_ok = run_preflight("install")
     check_cancelled()
@@ -1071,6 +1094,8 @@ def _run_install_steps(feat: dict[str, object]) -> int:
     if not plasma_ok:
         return 1
 
+    progress_event('phase', id='system', state='done')
+    progress_event('phase', id='dependencies', state='running')
     step('Dependencies')
     note(tr('Checking and installing required tools'))
     deps_ok = _check_deps(feat)
@@ -1078,11 +1103,16 @@ def _run_install_steps(feat: dict[str, object]) -> int:
     if not deps_ok:
         return 1
 
+    progress_event('phase', id='dependencies', state='done')
+    progress_event('phase', id='downloads', state='running')
     step('Downloading Online Components')
     note(tr('Fetches the pinned KDE Rounded Corners source and verifies SHA-256'))
+    selected_downloads = _download_features(feat)
     _run_optional_downloads(feat)
     check_cancelled()
 
+    progress_event('phase', id='downloads', state='done' if any(feat.get(f, True) for f in selected_downloads) else 'skipped')
+    progress_event('phase', id='build', state='running')
     step('Building Compiled Components')
     note(tr('Builds C++ plasmoids and KWin effects — must succeed before install'))
     builds_ok = _run_builds_or_abort(feat)
@@ -1090,6 +1120,8 @@ def _run_install_steps(feat: dict[str, object]) -> int:
     if not builds_ok:
         return 1
 
+    progress_event('phase', id='build', state='done' if _build_features(feat) else 'skipped')
+    progress_event('phase', id='install', state='running')
     for feature in INSTALL_ORDER:
         check_cancelled()
         if feature == "layout":
@@ -1106,8 +1138,8 @@ def _run_install_steps(feat: dict[str, object]) -> int:
         if not installed and feature in CRITICAL_INSTALL_FEATURES:
             fail(tr('{label} install failed — aborting (critical compiled component)', label=label))
             return 1
-        if not installed and feature == "icons":
-            # Never activate a generated icon name whose staging failed.
+        if not installed and feature in {"icons", "fonts", "wallpapers"}:
+            # Never activate assets whose safe staging or ownership recording failed.
             return 1
 
     step('Installing Theme Switcher')
@@ -1123,7 +1155,9 @@ def _run_install_steps(feat: dict[str, object]) -> int:
     note(tr('Opt-in pixel shift that guards OLED panels against burn-in'))
     run_phase("oled_care", "install")
 
+    progress_event('phase', id='install', state='failed' if errors else 'done')
     if feat.get("apply_theme", True):
+        progress_event('phase', id='apply', state='running')
         step('Applying Changes')
         note(tr('Applies settings, flushes caches, restarts KWin'))
         run_phase("apply", "install")
@@ -1137,6 +1171,8 @@ def _run_install_steps(feat: dict[str, object]) -> int:
 
         _flush_icon_cache_signal()
 
+        progress_event('phase', id='apply', state='failed' if errors else 'done')
+        progress_event('phase', id='verify', state='running')
         step('Verification')
         note(tr('Checking theme configuration was applied'))
         verify_config(feat)
@@ -1152,7 +1188,10 @@ def _run_install_steps(feat: dict[str, object]) -> int:
         if not feat.get("layout", True) and step_exists("layout"):
             run_phase("layout", "migrate_dock_preset")
         run_phase("theme_switch", "start_schedule")
+        progress_event("phase", id="verify", state="failed" if errors else "done")
     else:
+        progress_event('phase', id='apply', state='skipped')
+        progress_event('phase', id='verify', state='skipped')
         step('Skipping Activation')
         note(tr('--no-apply-theme: files installed but Plasma left untouched. Re-run with --apply-theme to switch over.'))
 
@@ -1174,6 +1213,7 @@ def _run_uninstall_body(feat: dict[str, object]) -> int:
 def _run_uninstall_steps(feat: dict[str, object]) -> int:
     """The actual uninstall sequence — same split as _run_install_body."""
     check_cancelled()
+    progress_event("phase", id="system", state="running")
     preflight_ok = run_preflight("uninstall")
     check_cancelled()
     if not preflight_ok:
@@ -1189,6 +1229,8 @@ def _run_uninstall_steps(feat: dict[str, object]) -> int:
 
     # Two-stage: restore a working Breeze state while our assets still
     # exist on disk, then remove the payload.
+    progress_event('phase', id='system', state='done')
+    progress_event('phase', id='restore', state='running')
     step('Removing Theme Switcher')
     note(tr('Stops and removes the auto light/dark theme switcher'))
     run_phase("theme_switch", "uninstall")
@@ -1196,6 +1238,10 @@ def _run_uninstall_steps(feat: dict[str, object]) -> int:
     step('Removing OLED Care')
     note(tr('Stops the pixel shift and restores panel geometry'))
     run_phase("oled_care", "uninstall")
+
+    step('Removing Clipboard')
+    note(tr('Stops the clipboard service, returns Meta+V to Plasma and deletes its history'))
+    run_phase("clipboard", "uninstall")
 
     # Always remove MacTahoe's top bar/Dock, even when the saved feature
     # selection has since disabled layout.
@@ -1206,11 +1252,16 @@ def _run_uninstall_steps(feat: dict[str, object]) -> int:
 
     step('Applying Changes')
     note(tr('Resets to Breeze defaults before removing theme assets'))
-    run_phase("apply", "uninstall")
+    restored = run_phase("apply", "uninstall")
+    if not restored or errors:
+        progress_event("phase", id="restore", state="failed")
+        return 1
 
+    progress_event('phase', id='restore', state='failed' if errors else 'done')
+    progress_event('phase', id='remove', state='running')
     for feature in INSTALL_ORDER:
         check_cancelled()
-        if feature == "layout":
+        if feature in ("layout", "clipboard"):   # both are removed explicitly above
             continue
         if not should_process(feature, feat):
             continue
@@ -1225,6 +1276,7 @@ def _run_uninstall_steps(feat: dict[str, object]) -> int:
     note(tr('Restarts Plasma shell to finalize changes'))
     run_phase("apply", "restart_plasma")
 
+    progress_event("phase", id="remove", state="failed" if errors else "done")
     _print_done("uninstalled")
     return 1 if errors else 0
 
@@ -1311,7 +1363,7 @@ def run_install(argv: list[str],
     tracker = RunTracker("install", argv, str(feat.get("theme_mode", "auto")))
     tracker.start()
     progress_reset()
-    rc = 0
+    rc = 1
     try:
         check_cancelled()
         if not SRC_DIR.is_dir():
@@ -1322,7 +1374,8 @@ def run_install(argv: list[str],
         banner(read_version())
         if not confirm(tr('In development — Install at your own risk.\n  Do not install on production / work systems.')):
             tracker.mark_aborted()
-            return 0
+            rc = 130
+            return rc
         # The GUI confirms an exact source and choice snapshot. Do not replace
         # the running backend underneath that transaction.
         if parsed.wizard_options is None and check_for_updates(inline=True):
@@ -1365,7 +1418,7 @@ def run_uninstall(argv: list[str],
     tracker = RunTracker("uninstall", argv, str(feat.get("theme_mode", "auto")))
     tracker.start()
     progress_reset()
-    rc = 0
+    rc = 1
     try:
         check_cancelled()
         if not SRC_DIR.is_dir():
@@ -1376,7 +1429,8 @@ def run_uninstall(argv: list[str],
         banner(read_version())
         if not confirm(tr('This will reset your desktop to Breeze defaults.')):
             tracker.mark_aborted()
-            return 0
+            rc = 130
+            return rc
         rc = _run_uninstall_body(feat)
 
         check_cancelled()

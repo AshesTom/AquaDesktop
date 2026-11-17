@@ -105,6 +105,10 @@ def deps():
         "qt6-dbus-cmake:qt6-base",
         "qt6-qml-cmake:qt6-declarative",
         "plasma5support-qml:plasma5support",
+        "plasma-network-qml:plasma-nm",
+        "plasma-audio-qml:plasma-pa",
+        "plasma-power-qml:powerdevil",
+        "bluez-qml:bluez-qt",
         "kf6-itemmodels-qml:kitemmodels",
         "qt6-wayland-cmake:qt6-wayland",
         "wayland-cmake:wayland",
@@ -201,6 +205,7 @@ def _install_taskmanager_qml() -> bool:
     return sudo_install_tree(
         module_src, qt6_qml_dir() / _TASKMANAGER_QML_RELPATH,
         tr('org.kde.mac.tahoe.liquid.taskmanager (installed runtime QML)'),
+        directory_root=qt6_qml_dir(),
     )
 
 
@@ -321,6 +326,7 @@ def install() -> None:
         if sudo_install_file(
             artifact, qt6_plugins_dir() / _TASKMANAGER_SO_RELPATH,
             tr('org.kde.mac.tahoe.liquid.taskmanager (installed compiled dock base)'),
+            directory_root=qt6_plugins_dir(),
         ):
             _install_taskmanager_package()
             _install_taskmanager_qml()
@@ -333,7 +339,7 @@ def install() -> None:
     launcher_module = TASKMANAGER_BUILD / "bin" / _LAUNCHER_QML_RELPATH
     if (launcher_module / "libmactahoelauncher.so").is_file():
         sudo_install_tree(launcher_module, qt6_qml_dir() / _LAUNCHER_QML_RELPATH,
-                          tr('Launcher (installed native search popup)'))
+                          tr('Launcher (installed native search popup)'), directory_root=qt6_qml_dir())
     else:
         fail(tr('Launcher (missing native search popup build artifact)'))
 
@@ -388,8 +394,9 @@ def uninstall() -> None:
                  qt6_qml_dir() / _SYSTEMTRAY_QML_RELPATH):
         if sudo_remove(dest, dest.name):
             n += 1
-    if sudo_remove(qt6_qml_dir() / _LAUNCHER_QML_RELPATH, tr('Launcher native search popup')):
-        n += 1
+    if not (qt6_plugins_dir() / "plasma/applets/org.kde.mac.tahoe.liquid.globalmenu.so").is_file():
+        if sudo_remove(qt6_qml_dir() / _LAUNCHER_QML_RELPATH, tr('Launcher native search popup')):
+            n += 1
     if LEGACY_TASKMANAGER_USER_SO.is_file():
         try:
             LEGACY_TASKMANAGER_USER_SO.unlink()

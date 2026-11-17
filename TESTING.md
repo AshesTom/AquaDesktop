@@ -1,22 +1,8 @@
 # Installer testing
 
-Tahoe **v0.71.6** fixes preset 1 showing the old launcher when installed
-from Golden Gate. The current Tahoe layout follows the selected preset while
-materials continue to follow the installed edition.
+Tahoe **v0.73.4** corrects the icon lifecycle regression test to expect restoration of a backed-up user edit; installed behavior is unchanged from v0.73.3. All 13 focused icon lifecycle and asset ownership checks passed in isolated temporary directories. Prior selected VM lifecycle qualification is retained in the [safety evidence](docs/evidence/uninstall-safety-0733.json); current checks and coverage limits are in [release evidence](release-evidence.json). Full remote CI runs asynchronously; existing photographs retain their original provenance.
 
-Focused launcher, edition-transition and Nix checks passed. Native popup checks
-cover both presets, editions and modes; installation/reinstallation was checked
-in a disposable Plasma VM. Photographs retain their original capture provenance.
-See [commands and coverage limits](release-evidence.json).
-
-[Light menu](src/screenshots/menu_v4-0343811e426d.webp) · [Dark menu](src/screenshots/menu_dark_v4-171bb0e051ff.webp) · [Capture provenance](src/screenshots/previews/system-menu-tahoe-069-provenance-9c458fcf42db.json)
-
-The README About, Finder and top bar photographs retain their v0.67.0 source from a
-disposable VM. Other desktop images and the installer gallery retain their original
-reviewed provenance ([capture records](src/screenshots/release-capture.json)). The retained v0.66.2 About previews show the corrected labels
-in both modes ([provenance](src/screenshots/previews/about-buttons-provenance.json)).
-
-[Light preview](src/screenshots/previews/about-buttons-light-eaebe82caa18.png) · [Dark preview](src/screenshots/previews/about-buttons-dark-57536aa93c40.png)
+Approved installer previews: [Light](src/screenshots/previews/installer-tahoe-light-icons-805970eab6b7.png) · [Dark](src/screenshots/previews/installer-tahoe-dark-icons-dbc66adc81c4.png). The gallery below is historical and predates these installer changes; its original [provenance](src/screenshots/release-capture.json) is retained.
 
 ## Installation steps
 

@@ -63,6 +63,14 @@ T.ItemDelegate {
 			Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
 			
 			source: model.decoration // || root.icon.name || root.icon.source
+        Connections {
+            target: main.iconThemeWatcher
+            function onChanged() {
+                // The model's icon name stays unchanged across theme switches.
+                icon.source = "";
+                icon.source = Qt.binding(() => model.decoration);
+            }
+        }
 		}
 
 		GridLayout {
@@ -137,7 +145,7 @@ T.ItemDelegate {
 
 			// forceActiveFocus() touches multiple items, so check for
 			// activeFocus first to be more efficient.
-			if (!listView.activeFocus) {
+			if (!listView.activeFocus && !main.searchBar.textField.activeFocus) {
 				listView.forceActiveFocus(Qt.MouseFocusReason)
 			}
 			// No need to check currentIndex first because it's

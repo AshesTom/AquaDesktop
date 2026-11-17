@@ -134,7 +134,7 @@ def test_accent_changes_blue_selection_but_preserves_status_and_alpha():
     config = '[Colors:Selection]\nBackgroundNormal=0,122,255\nForegroundNormal=255,255,255\n'
     tinted = recolor(config, "#28cd41")
     assert 'BackgroundNormal=0,122,255' not in tinted
-    assert 'ForegroundNormal=255,255,255' in tinted
+    assert 'ForegroundNormal=0,0,0' in tinted
 
 
 def test_all_accent_colors_preserve_bundled_svg_geometry(repo):
@@ -175,12 +175,13 @@ def test_layout_uses_explicit_launcher_and_independent_panels(monkeypatch, tmp_p
 
 
 @pytest.mark.parametrize("pack", ["landscape", "prism", "macos"])
-def test_installed_switcher_uses_selected_wallpaper_pair_and_icon_mode(monkeypatch, tmp_path, pack):
+@pytest.mark.parametrize("style", ["regular", "dark", "clear", "glass"])
+def test_installed_switcher_uses_selected_wallpaper_pair_and_icon_mode(monkeypatch, tmp_path, pack, style):
     import theme_switch as switch
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
     for name in set(choices.WALLPAPERS[pack]):
         (tmp_path / "wallpapers" / name).mkdir(parents=True)
-    monkeypatch.setattr(switch, "INSTALLER_OPTIONS", choices.defaults() | {"wallpaper": pack, "icons": "glass"})
+    monkeypatch.setattr(switch, "INSTALLER_OPTIONS", choices.defaults() | {"wallpaper": pack, "icons": style})
     assert switch._wallpaper_path("light").name == choices.WALLPAPERS[pack][0]
     assert switch._wallpaper_path("dark").name == choices.WALLPAPERS[pack][1]
     writes = []
@@ -188,10 +189,10 @@ def test_installed_switcher_uses_selected_wallpaper_pair_and_icon_mode(monkeypat
     monkeypatch.setattr(switch, "_kwrite", lambda *args: writes.append(args) or True)
     monkeypatch.setattr(switch, "apply_color_scheme", lambda _: True)
     assert switch.write_kde_theme_config("dark")
-    assert any(args[-1] == "MacTahoeLiquidKde-Icons-Glass-Dark" for args in writes)
+    assert any(args[-1] == f"MacTahoeLiquidKde-Icons-{style.capitalize()}-Dark" for args in writes)
     writes.clear()
     assert switch.write_kde_theme_config("light")
-    assert any(args[-1] == "MacTahoeLiquidKde-Icons-Glass-Light" for args in writes)
+    assert any(args[-1] == f"MacTahoeLiquidKde-Icons-{style.capitalize()}-Light" for args in writes)
 
 
 @pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate"])
@@ -244,6 +245,14 @@ assert all(not pixmap.isNull() for light in lights for pixmap in light._pixmaps.
 assert abs(window.welcome_actions.mapTo(window, window.welcome_actions.rect().center()).x() - window.width()/2) <= 2
 window.language.setCurrentIndex(window.language.findData('de')); app.processEvents()
 assert bridge.language == 'de'
+window.language.setCurrentIndex(window.language.findData('fr')); app.processEvents()
+assert bridge.language == 'fr'
+assert window.t('Next') == 'Suivant'
+assert window.t('Enable clipboard history?') == 'Activer l’historique du presse-papiers ?'
+for page, _ in STEPS:
+    window.page = page; window.render(); app.processEvents(); app.processEvents()
+    assert window.scroll.horizontalScrollBar().maximum() == 0, page
+    assert window.scroll.verticalScrollBar().maximum() == 0, page
 window.language.setCurrentIndex(window.language.findData('es')); app.processEvents()
 assert bridge.language == 'es'
 for page, _ in STEPS:
@@ -251,6 +260,12 @@ for page, _ in STEPS:
     assert window.scroll.horizontalScrollBar().maximum() == 0, page
     assert window.scroll.verticalScrollBar().maximum() == 0, page
     assert window.content.findChild(type(window.label('')), 'pageTitle') is not None or page == 'welcome'
+    from PyQt6.QtGui import QFontInfo
+    from PyQt6.QtWidgets import QWidget
+    for widget in window.content.findChildren(QWidget):
+        if widget.isVisible() and isinstance(widget, (QLabel, QPushButton)):
+            expected = 'SF Pro Display' if widget.objectName() == 'pageTitle' else 'SF Pro Text'
+            assert QFontInfo(widget.font()).family() == expected, (page, widget.objectName())
     cards = window.content.findChildren(ChoiceCard)
     if page in ('appearance', 'icons', 'wallpaper', 'launcher', 'window_controls', 'button_position', 'shadows', 'fonts', 'files'):
         assert cards and cards[0].isChecked(), page
@@ -351,6 +366,7 @@ for completed in (0, 100, 6366):
     bridge._handle_record('__STATUS__\t' + message)
     app.processEvents()
     assert window.progress.accessibleDescription() == message
+    assert window.operation_detail.text() == "Preparing…"
     assert message in window.log.toPlainText()
     assert bridge._step_index == step_index and bridge.progress == progress
     assert bridge.running and window.page == 'progress'
@@ -358,18 +374,22 @@ bridge._handle_record('14\tInstalling fonts\tInstalling fonts')
 assert bridge._step_index == step_index + 1
 assert window.progress.accessibleDescription() == 'Installing fonts'
 assert calls[-1][1]['icons'] == 'glass'
-# Progress remains compact; elapsed-time estimates and details are localized.
+# The operation view is English and reports elapsed time, not a misleading phase-count ETA.
 import wizard_window
 from types import SimpleNamespace
 wizard_window.time = SimpleNamespace(monotonic=lambda: 1200.)
 window._operation_started = 600.
 bridge._progress = .5
 window.refresh_progress()
-assert window.remaining_label.text() == 'Faltan unos 10 minutos'
+assert window.remaining_label.text() == 'Elapsed 10 min 00 sec'
 assert window.log.isHidden() and not window.details_toggle.isChecked()
 window.details_toggle.click(); app.processEvents()
 assert window.log.isVisible() and window.details_toggle.isChecked()
-assert window.details_toggle.accessibleName() == 'Ocultar detalles de instalación'
+assert window.details_toggle.accessibleName() == 'Hide details'
+assert 'Installing ' in window.log.toPlainText()
+assert 'System checks' in window.log.toPlainText()
+assert not window.findChildren(QLabel, 'phase-system')
+window.full_output_toggle.click(); app.processEvents()
 frozen_font = window.log.font().toString()
 frozen_document_font = window.log.document().defaultFont().toString()
 changed_font = app.font(); changed_font.setPointSizeF(changed_font.pointSizeF() + 3)
@@ -380,12 +400,12 @@ assert window.log.document().defaultFont().toString() == frozen_document_font
 assert window.log.palette().base().color().name() == '#191b20'
 assert 'New output after the desktop font changed' in window.log.toPlainText()
 window.details_toggle.click(); app.processEvents()
-assert window.log.isHidden() and window.details_toggle.accessibleName() == 'Mostrar detalles de instalación'
-for fraction, expected in [(0, 'Calculando el tiempo restante…'), (.99, 'Falta menos de un minuto'), (1, 'Finalizando…')]:
+assert window.log.isHidden() and window.details_toggle.accessibleName() == 'Show details'
+for fraction, expected in [(0, 'Elapsed 10 min 00 sec'), (.99, 'Elapsed 10 min 00 sec'), (1, 'Elapsed 10 min 00 sec')]:
     bridge._progress = fraction; window.refresh_progress()
     assert window.remaining_label.text() == expected
 bridge._language = 'de'; bridge._progress = .5; window.refresh_progress()
-assert window.remaining_label.text() == 'Noch etwa 10 Minuten'
+assert window.remaining_label.text() == 'Elapsed 10 min 00 sec'
 bridge._language = 'es'
 
 bridge._running = False; bridge.finished.emit(0)
@@ -446,10 +466,10 @@ photo = window.glass_preview
 regular = window.content.findChild(ChoiceCard, 'choice-icons-regular').photo
 regular_image = regular.pixmap.toImage()
 window.select('color', 'blue')
-before = photo.pixmap.toImage(); before_accent = window.accent_preview.pixmap().toImage()
+before = photo.pixmap.toImage(); before_swatch = window.color_buttons['green'].grab().toImage()
 window.select('color', 'green'); app.processEvents()
 assert photo is window.glass_preview and photo.pixmap.toImage() != before
-assert window.accent_preview.pixmap().toImage() != before_accent
+assert window.color_buttons['green'].grab().toImage() != before_swatch
 assert regular.pixmap.toImage() == regular_image
 assert window.color_buttons['green'].isChecked() and not window.color_buttons['blue'].isChecked()
 window.select('icons', 'glass')
@@ -626,7 +646,9 @@ for dark in (False, True):
         QTest.qWait(30)
         assert app.style().objectName().lower() == 'fusion'
         assert app.palette() == window.palette()
-        assert window.font().family() == font.family()
+        assert window.font().family() == 'SF Pro Text'
+        assert window._desktop_font.family() == font.family()
+        assert abs(window.font().pointSizeF() - font.pointSizeF() * 7/6) < .01
         assert window.palette().highlight().color().name() == '#007aff'
         capture = window.grab().toImage()
         if baseline is None:
@@ -652,3 +674,21 @@ print('Compared light/dark renders:', ', '.join(styles))
                                      XDG_CACHE_HOME=str(tmp_path / 'cache')),
                             capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_accent_preserves_requested_brightness_and_selection_contrast():
+    import re
+    from theme_accent import recolor
+    from installer_choices import COLORS
+    def luminance(rgb):
+        values=[v/255 for v in rgb]
+        return sum((v/12.92 if v <= .04045 else ((v+.055)/1.055)**2.4)*w
+                   for v,w in zip(values,(.2126,.7152,.0722)))
+    source='@define-color accent_bg_color #0088ff; row:selected { background-color: @accent_bg_color; color: #ffffff; }'
+    for name,color in COLORS.items():
+        css=recolor(source,color)
+        background=tuple(int(v,16) for v in re.findall(r'@define-color accent_bg_color #(..)(..)(..)',css)[0])
+        foreground=tuple(int(v,16) for v in re.findall(r'(?<![-\w])color: #(..)(..)(..)',css)[0])
+        assert max(background)==max(int(color[i:i+2],16) for i in (1,3,5)), name
+        a,b=sorted((luminance(background),luminance(foreground)))
+        assert (b+.05)/(a+.05) >= 4.5, (name,css)

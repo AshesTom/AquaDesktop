@@ -9,3 +9,11 @@ inline const QVector4D &gradientColorForPalette(const QVector4D &light, const QV
 {
     return palette.color(QPalette::Window).lightnessF() < 0.5 ? dark : light;
 }
+
+inline bool gradientEnabledForSurface(bool enabled, bool dock, const QString &resourceClass,
+                                      const QString &caption)
+{
+    return enabled && !dock && !((resourceClass == QStringLiteral("plasmashell")
+        || resourceClass == QStringLiteral("org.kde.plasmashell"))
+        && caption == QStringLiteral("mttkde-control-center"));
+}

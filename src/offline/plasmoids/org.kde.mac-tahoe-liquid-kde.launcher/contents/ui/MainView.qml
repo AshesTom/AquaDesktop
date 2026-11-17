@@ -13,13 +13,27 @@ import "js/colorType.js" as ColorType
 
 Item {
 	id: main
+	readonly property QtObject iconThemeWatcher: Tahoe.IconThemeWatcher {}
 	readonly property bool goldenGateEdition: false
 	readonly property bool goldenGateLight: goldenGateEdition && !isDarkTheme
-	property string searchText: ""
+	property bool clipboardMode: false
+    readonly property var clipboard: clipboardModel
+    readonly property var clipboardList: clipboardView
+    Tahoe.ClipboardModel {
+        id: clipboardModel
+        active: main.clipboardMode && root.visible
+        onCopied: root.visible = false
+    }
+    function showClipboard(value) {
+        clipboardMode = value;
+        searchText = "";
+        focusSearch();
+    }
+    property string searchText: ""
 	readonly property bool searching: searchText !== ""
 	readonly property var searchBar: detachedSearch ? detachedSearchBar : inlineSearchBar
-	onSearchTextChanged: runnerModel.query = searchText
-	readonly property bool detachedSearch: kicker.launcherPreset === 2
+	onSearchTextChanged: runnerModel.query = clipboardMode ? "" : searchText
+	readonly property bool detachedSearch: kicker.launcherPreset === 2 && !clipboardMode
 	readonly property bool tahoeStyle: !detachedSearch
 	readonly property real inlineSearchHeight: 40
 	readonly property real searchPopupHeight: searchPopup.height
@@ -39,18 +53,28 @@ Item {
 		return false;
 	}
 	onPopupHasFocusChanged: root.checkDismissal()
-	readonly property bool menuOpen: searchBar.menuOpen
+	readonly property bool menuOpen: searchBar.menuOpen || clipboardView.menuOpen
 
 	function focusSearch() {
+		if (!root.visible) return;
 		if (detachedSearch) {
+			// Map the child only after the app panel has opened. Native parent
+			// visibility changes can otherwise hide it during a rapid reopen.
+			searchPopup.visible = true;
 			searchPopup.activate();
 		} else {
 			root.requestActivate();
 		}
 		searchBar.textField.forceActiveFocus(Qt.PopupFocusReason);
+		if (!detachedSearch) root.openingSearchFocus = false;
+	}
+
+	function closeSearchPopup() {
+		searchPopup.visible = false;
 	}
 
 	onDetachedSearchChanged: {
+		if (!detachedSearch) closeSearchPopup();
 		inlineSearchBar.closeMenu();
 		detachedSearchBar.closeMenu();
 		Qt.callLater(function() {
@@ -74,20 +98,35 @@ Item {
 		popupDirection: Qt.TopEdge
 		margin: main.searchPopupGap
 		transientParent: root
-		visible: root.visible && main.detachedSearch
+		visible: false
+		onFocusWindowChanged: {
+			if (focusWindow === searchPopup && root.openingSearchFocus) {
+				detachedSearchBar.textField.forceActiveFocus(Qt.PopupFocusReason);
+				root.openingSearchFocus = false;
+			}
+		}
 		// PopupPlasmaWindow stays open by default. Its hideOnWindowDeactivate
 		// property only exists in Plasma 6.7+; our focus group handles dismissal.
-		width: root.width * 0.617
-		height: Kirigami.Units.iconSizes.huge * 1.625
+		readonly property int requestedWidth: Math.round(root.width * 0.617)
+		readonly property int requestedHeight: Math.round(Kirigami.Units.iconSizes.huge * 1.625)
+		function syncSize() {
+			width = requestedWidth;
+			height = requestedHeight;
+		}
+		width: requestedWidth
+		height: requestedHeight
+		onRequestedWidthChanged: Qt.callLater(syncSize)
+		onWidthChanged: if (width !== requestedWidth) Qt.callLater(syncSize)
+		onHeightChanged: if (height !== requestedHeight) Qt.callLater(syncSize)
 
 		mainItem: FocusScope {
 			id: detachedSearchSlot
 			SearchBar {
 				id: detachedSearchBar
 				anchors.fill: parent
-				showMenuButton: true
+				showMenuButton: !main.clipboardMode
 				Keys.priority: Keys.AfterItem
-				Keys.forwardTo: searching ? searchList : appList.viewItem
+				Keys.forwardTo: clipboardMode ? clipboardView : searching ? searchList : appList.viewItem
 			}
 		}
 	}
@@ -139,9 +178,9 @@ Item {
 			SearchBar {
 				id: inlineSearchBar
 				anchors.fill: parent
-				showMenuButton: true
+				showMenuButton: !main.clipboardMode
 				Keys.priority: Keys.AfterItem
-				Keys.forwardTo: searching ? searchList : appList.viewItem
+				Keys.forwardTo: clipboardMode ? clipboardView : searching ? searchList : appList.viewItem
 			}
 		}
 
@@ -164,14 +203,14 @@ Item {
 			Keys.priority: Keys.AfterItem
 			Keys.forwardTo: searchBar.textField
 
-			visible: opacity > 0
+			visible: !main.clipboardMode && opacity > 0
 			states: [
 				State {
-					name: "visible"; when: (!searching)
+					name: "visible"; when: (!searching && !clipboardMode)
 					PropertyChanges { target: appList; opacity: 1.0 }
 				},
 				State {
-					name: "hidden"; when: (searching)
+					name: "hidden"; when: (searching || clipboardMode)
 					PropertyChanges { target: appList; opacity: 0.0}
 				}
 			]
@@ -187,21 +226,28 @@ Item {
 			]
 		}
 
+        ClipboardView {
+            id: clipboardView
+            visible: main.clipboardMode
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
+
 		SearchList {
 			id: searchList
 			state: "hidden"
-			visible: opacity > 0
+			visible: !main.clipboardMode && opacity > 0
 
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
 			states: [
 				State {
-					name: "visible"; when: (searching)
+					name: "visible"; when: (searching && !clipboardMode)
 					PropertyChanges { target: searchList; opacity: 1.0 }
 				},
 				State {
-					name: "hidden"; when: (!searching)
+					name: "hidden"; when: (!searching || clipboardMode)
 					PropertyChanges { target: searchList; opacity: 0.0}
 				}
 			]

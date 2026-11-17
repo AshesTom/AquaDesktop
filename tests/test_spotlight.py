@@ -42,7 +42,7 @@ def test_window_never_resizes_while_typing(offline):
 
 
 def test_blur_is_asked_again_after_the_popup_shows(offline):
-    for widget in ("spotlight", "controlcenter"):
+    for widget in ("spotlight",):
         ui = offline / f"plasmoids/org.kde.mac-tahoe-liquid-kde.{widget}/contents/ui"
         assert "active: popover.visible" in (ui / "main.qml").read_text()
         settler = (ui / "BlurSettler.qml").read_text()

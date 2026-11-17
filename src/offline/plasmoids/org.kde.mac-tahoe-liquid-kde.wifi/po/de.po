@@ -2,50 +2,203 @@
 msgid ""
 msgstr "Project-Id-Version: MacTahoe Liquid KDE\nPO-Revision-Date: 2026-10-22 00:00-0600\nLast-Translator: MacTahoe Liquid KDE contributors\nLanguage-Team: de\nLanguage: de\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgctxt "@action:button"
-msgid "Wi-Fi Settings…"
-msgstr "WLAN-Einstellungen …"
+msgid "%1 — %2%"
+msgstr "%1 — %2%"
 
-msgctxt "@info"
-msgid "No Wi-Fi hardware or service (NetworkManager)"
-msgstr "Keine WLAN-Hardware oder kein WLAN-Dienst (NetworkManager)"
+msgid "%1%"
+msgstr "%1%"
 
-msgctxt "@info"
-msgid "No networks found"
-msgstr "Keine Netzwerke gefunden"
+msgid "Audio outputs"
+msgstr "Audioausgänge"
 
-msgctxt "@info Wi-Fi state"
-msgid "Not Connected"
-msgstr "Nicht verbunden"
+msgid "Back"
+msgstr "Zurück"
 
-msgctxt "@info connection type"
+msgid "Balanced"
+msgstr "Ausgeglichen"
+
+msgid "Battery"
+msgstr "Akku"
+
+msgid "Battery information will appear when a battery is available."
+msgstr "Akkuinformationen werden angezeigt, sobald ein Akku verfügbar ist."
+
 msgid "Bluetooth"
 msgstr "Bluetooth"
 
-msgctxt "@info connection type"
-msgid "Ethernet"
-msgstr "Ethernet"
+msgid "Bluetooth Settings…"
+msgstr "Bluetooth-Einstellungen…"
 
-msgctxt "@info connection type"
-msgid "Mobile"
-msgstr "Mobilfunk"
+msgid "Brightness"
+msgstr "Helligkeit"
 
-msgctxt "@info connection type"
-msgid "VPN"
-msgstr "VPN"
+msgid "Brightness control unavailable"
+msgstr "Helligkeitsregelung nicht verfügbar"
 
-msgctxt "@info:placeholder"
-msgid "Password"
-msgstr "Passwort"
+msgid "Cancel Job"
+msgstr "Auftrag abbrechen"
 
-msgctxt "@title"
+msgid "Charging"
+msgstr "Wird geladen"
+
+msgid "Clear History"
+msgstr "Verlauf löschen"
+
+msgid "Collapse"
+msgstr "Einklappen"
+
+msgid "Connected"
+msgstr "Verbunden"
+
+msgid "Connected to power"
+msgstr "Am Stromnetz"
+
+msgid "Control Center"
+msgstr "Kontrollzentrum"
+
+msgid "Controlled by another application"
+msgstr "Von einer anderen Anwendung gesteuert"
+
+msgid "Dark Mode"
+msgstr "Dunkler Modus"
+
+msgid "Dismiss"
+msgstr "Schließen"
+
+msgid "Display"
+msgstr "Bildschirm"
+
+msgid "Display Settings…"
+msgstr "Anzeigeeinstellungen…"
+
+msgid "Do Not Disturb"
+msgstr "Nicht stören"
+
+msgid "Edit Controls"
+msgstr "Steuerelemente bearbeiten"
+
+msgid "Energy Settings…"
+msgstr "Energieeinstellungen…"
+
+msgid "Energy mode"
+msgstr "Energiemodus"
+
+msgid "Expand"
+msgstr "Ausklappen"
+
+msgid "File Sharing"
+msgstr "Dateifreigabe"
+
+msgid "Focus"
+msgstr "Fokus"
+
+msgid "Fully charged"
+msgstr "Vollständig geladen"
+
+msgid "Mute sound"
+msgstr "Ton stummschalten"
+
+msgid "Network"
+msgstr "Netzwerk"
+
+msgid "Network Settings…"
+msgstr "Netzwerkeinstellungen…"
+
+msgid "Next track"
+msgstr "Nächster Titel"
+
+msgid "No Wi-Fi adapter"
+msgstr "Kein WLAN-Adapter"
+
+msgid "No audio output"
+msgstr "Keine Audioausgabe"
+
+msgid "No internal battery"
+msgstr "Kein interner Akku"
+
+msgid "No notifications"
+msgstr "Keine Benachrichtigungen"
+
+msgid "Not connected"
+msgstr "Nicht verbunden"
+
+msgid "Nothing playing"
+msgstr "Keine Wiedergabe"
+
+msgid "Notification Settings…"
+msgstr "Benachrichtigungseinstellungen…"
+
+msgid "Notifications"
+msgstr "Benachrichtigungen"
+
+msgid "Now Playing"
+msgstr "Aktuelle Wiedergabe"
+
+msgid "Off"
+msgstr "Aus"
+
+msgid "On"
+msgstr "Ein"
+
+msgid "On battery power"
+msgstr "Im Akkubetrieb"
+
+msgid "Open"
+msgstr "Öffnen"
+
+msgid "Overview"
+msgstr "Übersicht"
+
+msgid "Pause"
+msgstr "Anhalten"
+
+msgid "Pause notifications for one hour"
+msgstr "Benachrichtigungen für eine Stunde anhalten"
+
+msgid "Performance"
+msgstr "Leistung"
+
+msgid "Play or pause"
+msgstr "Wiedergeben oder anhalten"
+
+msgid "Power saver"
+msgstr "Energiesparen"
+
+msgid "Previous track"
+msgstr "Vorheriger Titel"
+
+msgid "Reply…"
+msgstr "Antworten…"
+
+msgid "Resume"
+msgstr "Fortsetzen"
+
+msgid "Scan for Networks"
+msgstr "Nach Netzwerken suchen"
+
+msgid "Scanning…"
+msgstr "Suche läuft…"
+
+msgid "Screen Mirroring"
+msgstr "Bildschirmspiegelung"
+
+msgid "Screenshot"
+msgstr "Bildschirmfoto"
+
+msgid "Send"
+msgstr "Senden"
+
+msgid "Sound"
+msgstr "Ton"
+
+msgid "Volume"
+msgstr "Lautstärke"
+
 msgid "Wi-Fi"
 msgstr "WLAN"
 
-msgctxt "@title Wi-Fi menu section"
-msgid "Known Networks"
-msgstr "Bekannte Netzwerke"
+msgid "Wi-Fi is blocked by the hardware switch"
+msgstr "WLAN ist durch den Hardwareschalter gesperrt"
 
-msgctxt "@title Wi-Fi menu section"
-msgid "Other Networks"
-msgstr "Andere Netzwerke"
+msgid "Wi-Fi is off"
+msgstr "WLAN ist ausgeschaltet"

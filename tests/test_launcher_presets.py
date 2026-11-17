@@ -1,12 +1,15 @@
 """Edition defaults and preset preservation when Plasma rebuilds panels."""
 
 import json
+from pathlib import Path
 import os
+import sys
 import re
 import select
 import shutil
 import signal
 import subprocess
+import sys
 import tempfile
 import time
 import xml.etree.ElementTree as ET
@@ -110,31 +113,147 @@ for (const dock of docks) {
     assert result.returncode == 0, result.stderr
 
 
-@pytest.fixture(scope="session")
-def launcher_popup_module(repo, tmp_path_factory):
-    if not shutil.which("cmake") or not shutil.which("c++"):
-        pytest.skip("CMake and a C++ compiler required for the native popup")
-    build = tmp_path_factory.mktemp("launcher-popup-native")
-    source = repo / "src/offline/plasmoids/org.kde.mac.tahoe.liquid.taskmanager"
-    result = subprocess.run(
-        ["cmake", "-S", str(repo / "tests/qml"), "-B", str(build),
-         f"-DLAUNCHER_NATIVE_SOURCE={source}"], capture_output=True, text=True, timeout=60)
-    if "LAUNCHER_POPUP_SDK_MISSING" in result.stdout:
-        pytest.skip("Plasma Quick development SDK required for the native popup")
-    assert result.returncode == 0, result.stdout + result.stderr
-    result = subprocess.run(["cmake", "--build", str(build), "-j", "2"],
-                            capture_output=True, text=True, timeout=120)
-    assert result.returncode == 0, result.stdout + result.stderr
-    # The Dock widgets import the QML-only magnification module.
-    shutil.copytree(repo / "src/offline/qml/org.kde.mac.tahoe.liquid.dockzoom",
-                    build / "bin/org/kde/mac/tahoe/liquid/dockzoom", dirs_exist_ok=True)
-    return build / "bin"
 
+def test_native_launcher_anchor_geometry(repo, tmp_path, launcher_popup_module):
+    """Late item layout must recenter the popup without a window resize."""
+    if not shutil.which("Xvfb"):
+        pytest.skip("Xvfb required for isolated native window positioning")
+    with tempfile.TemporaryDirectory(prefix="launcher-anchor-") as runtime:
+        env = os.environ | {
+            "HOME": str(tmp_path), "XDG_CONFIG_HOME": str(tmp_path / "config"),
+            "XDG_DATA_HOME": str(tmp_path / "data"), "XDG_CACHE_HOME": str(tmp_path / "cache"),
+            "XDG_STATE_HOME": str(tmp_path / "state"), "XDG_RUNTIME_DIR": runtime,
+            "XDG_CONFIG_DIRS": "/etc/xdg", "XDG_DATA_DIRS": "/usr/local/share:/usr/share",
+            "DBUS_SESSION_BUS_ADDRESS": "unix:path=" + runtime + "/no-host-bus",
+            "QT_QPA_PLATFORM": "xcb", "QT_QPA_PLATFORMTHEME": "generic",
+            "QT_QUICK_BACKEND": "software", "QT_FORCE_STDERR_LOGGING": "1",
+            "QML_IMPORT_PATH": str(launcher_popup_module), "QT_SCALE_FACTOR": "1",
+        }
+        env.pop("WAYLAND_DISPLAY", None)
+        read_fd, write_fd = os.pipe()
+        server = subprocess.Popen(
+            ["Xvfb", "-displayfd", str(write_fd), "-screen", "0", "1280x1024x24", "-nolisten", "tcp"],
+            pass_fds=(write_fd,), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        os.close(write_fd)
+        try:
+            assert select.select([read_fd], [], [], 10)[0], "Xvfb did not start"
+            env["DISPLAY"] = ":" + os.read(read_fd, 32).decode().strip()
+            result = subprocess.run(
+                [str(launcher_popup_module.parent / "dockgeometryprobe"),
+                 str(repo / "tests/qml/LauncherAnchorProbe.qml")],
+                env=env, capture_output=True, text=True, timeout=15,
+            )
+            assert result.returncode == 0, result.stdout + result.stderr
+            assert "ANCHOR_OK" in result.stdout + result.stderr
+        finally:
+            os.close(read_fd)
+            server.terminate()
+            server.wait(timeout=5)
+
+
+
+@pytest.mark.parametrize("scale", [1, 1.5])
+def test_native_launcher_multiscreen_geometry(repo, tmp_path, launcher_popup_module, scale):
+    """Exercise the native placement path without requiring a GPU/compositor."""
+    screens = tmp_path / "screens.json"
+    screens.write_text(json.dumps({"windowFrameMargins": False, "screens": [
+        {"name": "first", "x": 0, "y": 0, "width": 1920, "height": 1440, "dpr": scale},
+        {"name": "second", "x": 1920, "y": 0, "width": 1920, "height": 1440, "dpr": scale},
+    ]}))
+    with tempfile.TemporaryDirectory(prefix="launcher-geometry-") as runtime:
+        env = os.environ | {
+            "HOME": str(tmp_path), "XDG_CONFIG_HOME": str(tmp_path / "config"),
+            "XDG_DATA_HOME": str(tmp_path / "data"), "XDG_CACHE_HOME": str(tmp_path / "cache"),
+            "XDG_STATE_HOME": str(tmp_path / "state"), "XDG_RUNTIME_DIR": runtime,
+            "XDG_CONFIG_DIRS": "/etc/xdg", "XDG_DATA_DIRS": "/usr/local/share:/usr/share",
+            "DBUS_SESSION_BUS_ADDRESS": "unix:path=" + runtime + "/no-host-bus",
+            "QT_QPA_PLATFORM": "offscreen:configfile=" + str(screens),
+            "QT_QPA_OFFSCREEN_NO_GLX": "1", "QT_QPA_PLATFORMTHEME": "generic",
+            "QT_QUICK_BACKEND": "software", "QT_FORCE_STDERR_LOGGING": "1",
+            "QML_IMPORT_PATH": str(launcher_popup_module), "QT_SCALE_FACTOR": "1",
+        }
+        for key in ("DISPLAY", "WAYLAND_DISPLAY"):
+            env.pop(key, None)
+        result = subprocess.run([
+            str(launcher_popup_module.parent / "dockgeometryprobe"),
+            str(repo / "tests/qml/LauncherScreensProbe.qml")],
+            env=env, capture_output=True, text=True, timeout=30)
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert "LAUNCHER_SCREENS_OK" in result.stderr
+
+
+@pytest.mark.parametrize("scale", [1, 1.5])
+def test_native_launcher_reopens_on_another_screen(repo, tmp_path, launcher_popup_module, scale):
+    """The cached parent still has its old QScreen when the capsule opens."""
+    # KWin's virtual backend requires a DRM device; normal CI containers have
+    # none. Keep the same native scenario mandatory through Qt's offscreen QPA
+    # below, and qualify actual Wayland rendering in the disposable Plasma VM.
+    if not any(os.access(node, os.R_OK | os.W_OK) for node in Path("/dev/dri").glob("renderD*")):
+        pytest.skip("Live Wayland requires a DRM render node; native offscreen geometry remains covered")
+    for tool in ("kwin_wayland", "dbus-run-session"):
+        if not shutil.which(tool):
+            pytest.skip(f"{tool} required for isolated multi-output Wayland")
+    with tempfile.TemporaryDirectory(prefix="launcher-screens-") as runtime:
+        env = os.environ | {
+            "HOME": str(tmp_path), "XDG_CONFIG_HOME": str(tmp_path / "config"),
+            "XDG_DATA_HOME": str(tmp_path / "data"), "XDG_CACHE_HOME": str(tmp_path / "cache"),
+            "XDG_STATE_HOME": str(tmp_path / "state"), "XDG_RUNTIME_DIR": runtime,
+            "XDG_CONFIG_DIRS": "/etc/xdg", "XDG_DATA_DIRS": "/usr/local/share:/usr/share",
+            "QT_QPA_PLATFORM": "offscreen", "QT_QPA_PLATFORMTHEME": "generic",
+            "QT_QUICK_BACKEND": "software", "QT_FORCE_STDERR_LOGGING": "1",
+            "QT_LOGGING_RULES": "*.debug=false;*.warning=true;*.critical=true",
+            "QML_IMPORT_PATH": str(launcher_popup_module), "QT_SCALE_FACTOR": "1",
+            "LIBGL_ALWAYS_SOFTWARE": "1", "KWIN_COMPOSE": "O2",
+            # Match plasmashell's setup: Plasma owns absolute window placement.
+            "QT_WAYLAND_DISABLE_FIXED_POSITIONS": "1",
+        }
+        for key in ("DISPLAY", "WAYLAND_DISPLAY", "DBUS_SESSION_BUS_ADDRESS"):
+            env.pop(key, None)
+        bus = tmp_path / "screens-bus.conf"
+        bus.write_text('<busconfig><type>session</type><listen>unix:tmpdir=/tmp</listen>'
+                       '<policy context="default"><allow user="*"/><allow send_destination="*"/>'
+                       '<allow receive_sender="*"/><allow own="*"/></policy></busconfig>')
+        # copyfile omits system CAP_SYS_NICE xattrs rejected by containers.
+        compositor = tmp_path / "kwin_wayland"
+        shutil.copyfile(shutil.which("kwin_wayland"), compositor)
+        compositor.chmod(0o755)
+        client = tmp_path / "screens-client.sh"
+        import shlex
+        client.write_text("#!/bin/sh\nexport QT_QPA_PLATFORM=wayland\nexec " + shlex.join([
+            str(launcher_popup_module.parent / "dockgeometryprobe"),
+            str(repo / "tests/qml/LauncherScreensProbe.qml")]) + "\n")
+        client.chmod(0o700)
+        log_path = tmp_path / "screens.log"
+        with log_path.open("w") as log:
+            process = subprocess.Popen([
+                "dbus-run-session", "--config-file", str(bus), "--", str(compositor),
+                "--virtual", "--socket", "launcher-screens", "--width", "1920", "--height", "1440",
+                "--scale", str(scale), "--output-count", "2", "--no-lockscreen",
+                "--no-global-shortcuts", "--exit-with-session", str(client)],
+                env=env, stdout=log, stderr=log, start_new_session=True)
+            try:
+                process.wait(timeout=30)
+            finally:
+                # KWin may leave a session helper alive after the client exits.
+                try:
+                    os.killpg(process.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    os.killpg(process.pid, signal.SIGKILL)
+                    process.wait(timeout=5)
+        output = log_path.read_text()
+        assert process.returncode == 0, output[-6000:]
+        assert "LAUNCHER_SCREENS_OK" in output, output[-6000:]
+        assert "LAUNCHER_SCREENS_FAILED" not in output, output[-6000:]
 
 @pytest.mark.parametrize("preset", [1, 2])
 @pytest.mark.parametrize("mode", ["Light", "Dark"])
 @pytest.mark.parametrize("edition", ["MacTahoe", "MacGoldenGate"])
-def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_popup_module, preset, mode, edition):
+def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_popup_module, preset, mode, edition, clipboard_daemon=None):
     for tool in ("plasmoidviewer", "Xvfb", "dbus-run-session", "xprop"):
         if not shutil.which(tool):
             pytest.skip(f"{tool} required for the isolated launcher preview")
@@ -175,14 +294,18 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
         'property QtObject globalFavorites: ListModel { '
         'property var favorites: []; function trigger(index, action, argument) {}\n'
         + favorites + '\n}', 1))
-    shutil.copy2(repo / "tests/qml/LauncherPresetProbe.qml", ui)
+    shutil.copy2(repo / ("tests/qml/ClipboardLauncherProbe.qml" if clipboard_daemon else "tests/qml/LauncherPresetProbe.qml"), ui)
     main = ui / "MainView.qml"
     source = main.read_text()
     end = source.rfind("}")
     golden_gate = str(edition == "MacGoldenGate").lower()
     dark = str(mode == "Dark").lower()
-    main.write_text(source[:end] + f"LauncherPresetProbe {{ expectedPreset: {preset}; "
-                    f"expectedGoldenGate: {golden_gate}; expectedDark: {dark} }}\n" + source[end:])
+    event_loop_delay = 450 if os.environ.get("MTTKDE_TEST_LAUNCHER_SCALE") else 0
+    if clipboard_daemon:
+        main.write_text(source[:end] + "ClipboardLauncherProbe {}\n" + source[end:])
+    else:
+        main.write_text(source[:end] + f"LauncherPresetProbe {{ expectedPreset: {preset}; "
+                        f"expectedGoldenGate: {golden_gate}; expectedDark: {dark}; eventLoopDelay: {event_loop_delay} }}\n" + source[end:])
     for name, original, replacement in (
         ("AllAppsList.qml", "ColumnLayout {", "ColumnLayout { property alias testCategories: categorySwitcher"),
         ("AppCategorySwitcher.qml", "Item {", "Item { property alias testView: categorySwitcher"),
@@ -211,6 +334,7 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
         "XDG_MENU_PREFIX": "plasma-",
         "QT_QPA_PLATFORM": "xcb", "QT_QPA_PLATFORMTHEME": "generic",
         "QT_QUICK_BACKEND": "software", "QT_FORCE_STDERR_LOGGING": "1",
+        "QT_SCALE_FACTOR": os.environ.get("MTTKDE_TEST_LAUNCHER_SCALE", "1"),
         "QML_IMPORT_PATH": str(launcher_popup_module),
         "QT_LOGGING_RULES": "*.warning=true;*.critical=true",
         "XDG_SESSION_TYPE": "x11", "XDG_CURRENT_DESKTOP": "",
@@ -218,8 +342,10 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
     for key in ("DBUS_SESSION_BUS_ADDRESS", "WAYLAND_DISPLAY"):
         env.pop(key, None)
     read_fd, write_fd = os.pipe()
+    scale = float(env["QT_SCALE_FACTOR"])
+    screen_size = f"{round(1280 * scale)}x{round(1024 * scale)}x24"
     server = subprocess.Popen(
-        ["Xvfb", "-displayfd", str(write_fd), "-screen", "0", "1280x1024x24", "-nolisten", "tcp"],
+        ["Xvfb", "-displayfd", str(write_fd), "-screen", "0", screen_size, "-nolisten", "tcp"],
         pass_fds=(write_fd,), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
     os.close(write_fd)
@@ -231,6 +357,7 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
         with log_path.open("w") as log:
             process = subprocess.Popen(
                 ["dbus-run-session", "--config-file", str(bus_config), "--",
+                 *([sys.executable, str(repo / "tests/native/clipboard_launcher_session.py"), str(clipboard_daemon)] if clipboard_daemon else []),
                  "plasmoidviewer", "-a", str(package), "-f", "horizontal", "-l", "bottomedge",
                  "--size", "1280x1024"],
                 env=env, stdout=log, stderr=log, start_new_session=True,
@@ -247,10 +374,14 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
                                 env=env, capture_output=True, text=True, timeout=5)
                             if role.returncode == 0:
                                 popup_roles[name] = role.stdout
-                if "LAUNCHER_PROBE_" in output or process.poll() is not None:
+                if "LAUNCHER_PROBE_" in output or "CLIPBOARD_LAUNCHER_" in output or process.poll() is not None:
                     break
                 time.sleep(0.05)
         output = log_path.read_text()
+        if clipboard_daemon:
+            assert "CLIPBOARD_LAUNCHER_OK" in output, output
+            assert "CLIPBOARD_LAUNCHER_FAILED" not in output, output
+            return
         assert "LAUNCHER_PROBE_OK" in output, output
         assert "LAUNCHER_PROBE_FAILED" not in output, output
         assert "_KDE_NET_WM_WINDOW_TYPE_APPLET_POPUP" in popup_roles.get("search", ""), popup_roles
@@ -268,6 +399,14 @@ def test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_pop
         server.terminate()
         server.wait(timeout=5)
         runtime.cleanup()
+
+
+@pytest.mark.parametrize("edition,mode,preset", [("MacTahoe", "Light", 1), ("MacGoldenGate", "Dark", 2)])
+def test_native_launcher_fractional_scale(repo, tmp_path, monkeypatch, launcher_popup_module,
+                                        edition, mode, preset):
+    monkeypatch.setenv("MTTKDE_TEST_LAUNCHER_SCALE", "1.5")
+    test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_popup_module,
+                                      preset, mode, edition)
 
 
 def test_dock_applets_follow_panel_thickness(repo, tmp_path, launcher_popup_module):
@@ -608,6 +747,7 @@ Item {
     property int phase: 0
     property int taskCount: 10
     property int settling: 0
+    property bool fit: false
     KSvg.FrameSvgItem { id: taskFrame; imagePath: "widgets/tasks"; prefix: ["south-normal", "normal"]; visible: false }
     QtObject { id: plasmoid; property int formFactor: root.vertical ? PlasmaCore.Types.Vertical : PlasmaCore.Types.Horizontal }
     component DockApplet: Item {
@@ -618,7 +758,7 @@ Item {
     }
     GridLayout {
         id: panel
-        width: root.vertical ? 68 : available
+        width: root.vertical ? 68 : root.fit ? Layout.maximumWidth : available
         height: root.vertical ? available : 68
         property real available: 1100
         columns: root.vertical ? 1 : 5; rows: root.vertical ? 5 : 1
@@ -659,7 +799,7 @@ Item {
         }
         DockApplet { id: downloads }
         DockApplet { id: trash }
-        Item { Layout.fillWidth: true; Layout.fillHeight: true }
+        Item { visible: !root.fit; Layout.fillWidth: true; Layout.fillHeight: true }
     }
     function compare(a,b) { if (Math.abs(a-b)>1.1) throw new Error(a+" != "+b); }
     Timer { interval: 30; repeat: true; running: true; onTriggered: {
@@ -667,8 +807,13 @@ Item {
             const cells = taskList.children.filter(c => c.width>0 && c.height>0);
             if (cells.length !== root.taskCount) throw new Error("Task delegates are still updating");
             const pos = root.vertical ? "y" : "x", length = root.vertical ? "height" : "width";
-            const pitch = cells[1][pos] + cells[1][length]/2 - cells[0][pos] - cells[0][length]/2;
+            const pitch = cells.length > 1
+                ? cells[1][pos] + cells[1][length]/2 - cells[0][pos] - cells[0][length]/2
+                : cells[0][length] + Kirigami.Units.smallSpacing;
             compare(launcher[length], cells[0][length]);
+            // A fit-content panel must recover its natural pitch after being
+            // compressed or receiving a new SVG's geometry notification.
+            if (root.fit) compare(cells[0][length], NativeLauncher.DockMetrics.preferredCellSize(68));
             if (downloads.visible) compare(downloads[length], cells[0][length]);
             compare(trash[length], cells[0][length]);
             compare(tasks[pos] + cells[0][pos] + cells[0][length]/2 - launcher[pos] - launcher[length]/2, pitch);
@@ -678,15 +823,20 @@ Item {
             if (downloads.visible) compare(trash[pos] + trash[length]/2 - downloads[pos] - downloads[length]/2, pitch);
             root.settling = 0;
             root.phase++;
-            if (root.phase === 9) { console.info("DOCK_COMPRESS_OK"); Qt.exit(0); return; }
+            if (root.phase === 13) { console.info("DOCK_COMPRESS_OK"); Qt.exit(0); return; }
             root.vertical = root.phase >= 3 && root.phase < 6;
             // Only a vertical Dock shares compression between its cells: the
             // horizontal one keeps fixed cells (they must not follow the
             // widths the magnification changes), so it is checked with room.
             panel.available = root.vertical ? [1100, 650, 350][root.phase % 3] : 1100;
-            if (root.phase >= 6) {
+            if (root.phase >= 6 && root.phase < 9) {
                 root.taskCount = 3;
                 downloads.visible = root.phase !== 7;
+            }
+            if (root.phase >= 9) {
+                root.fit = true;
+                root.taskCount = [14, 1, 20, 14][root.phase - 9];
+                downloads.visible = root.phase !== 11;
             }
         } catch(e) {
             if (++root.settling < 10) return;
@@ -710,3 +860,133 @@ def test_dock_spacing_is_not_configurable(repo):
     for relative in ('contents/config/main.xml', 'contents/ui/ConfigAppearance.qml',
                      'contents/ui/LayoutMetrics.js'):
         assert 'iconSpacing' not in (package / relative).read_text()
+
+
+@pytest.mark.parametrize("delegate", ["AppGridViewDelegate.qml", "AppListViewDelegate.qml"])
+def test_launcher_icons_repaint_after_theme_change(repo, tmp_path, launcher_popup_module, delegate):
+    for name, color in (("probe-light", "#ff0000"), ("probe-dark", "#0000ff")):
+        directory = tmp_path / name / "32x32/apps"
+        directory.mkdir(parents=True)
+        (directory.parent.parent / "index.theme").write_text(
+            f"[Icon Theme]\nName={name}\nDirectories=32x32/apps\n"
+            "[32x32/apps]\nSize=32\nType=Fixed\nContext=Applications\n")
+        (directory / "launcher-test.svg").write_text(
+            f'<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">'
+            f'<rect width="32" height="32" fill="{color}"/></svg>')
+    source = (repo / "src/offline/plasmoids" / launcher_defaults.LAUNCHER_ID / "contents/ui" / delegate).read_text()
+    start = source.index("Kirigami.Icon {")
+    end = start + len("Kirigami.Icon {")
+    depth = 1
+    while depth:
+        depth += (source[end] == "{") - (source[end] == "}")
+        end += 1
+    icon_id = "appicon" if delegate.startswith("AppGrid") else "icon"
+    qml = tmp_path / "icon-theme.qml"
+    qml.write_text('''import QtQuick
+import QtQuick.Layouts
+import org.kde.kirigami as Kirigami
+import org.kde.mac.tahoe.launcher as NativeLauncher
+import LauncherInteraction 1.0
+Item {
+    id: root
+    width: 100; height: 100
+    property int iconSize: 32
+    property bool compact: false
+    QtObject { id: model; property string decoration: "launcher-test" }
+    QtObject {
+        id: main
+        property bool detachedSearch: true
+        property bool tahoeStyle: false
+        property QtObject iconThemeWatcher: NativeLauncher.IconThemeWatcher {}
+    }
+    ICON_BODY
+    Timer {
+        interval: 100; running: true; repeat: true
+        property int phase: 0
+        onTriggered: {
+            const directory = DIRECTORY;
+            if (phase > 0) {
+                const actual = LauncherInteraction.pixel(ICON_ID);
+                const expected = phase === 2 ? "#0000ff" : "#ff0000";
+                if (actual.toString() !== expected) {
+                    console.error("ICON_REPAINT_FAILED", phase, actual); Qt.exit(1); return;
+                }
+            }
+            if (phase === 3) { console.info("ICON_REPAINT_OK"); Qt.exit(0); return; }
+            LauncherInteraction.setIconTheme(directory, phase === 1 ? "probe-dark" : "probe-light");
+            main.iconThemeWatcher.changed();
+            phase++;
+        }
+    }
+}
+'''.replace("ICON_BODY", source[start:end]).replace("ICON_ID", icon_id)
+        .replace("DIRECTORY", json.dumps(str(tmp_path))))
+    result = subprocess.run([str(launcher_popup_module.parent / "dockgeometryprobe"), str(qml)],
+        env=dict(os.environ, QML_IMPORT_PATH=str(launcher_popup_module), QT_QPA_PLATFORM="offscreen",
+                 QT_QPA_PLATFORMTHEME="generic", QT_QUICK_BACKEND="software", QT_FORCE_STDERR_LOGGING="1"),
+        capture_output=True, text=True, timeout=15)
+    assert result.returncode == 0 and "ICON_REPAINT_OK" in result.stderr, result.stdout + result.stderr
+
+
+@pytest.fixture(scope="session")
+def clipboard_launcher_daemon(repo, tmp_path_factory):
+    build = tmp_path_factory.mktemp("clipboard-launcher-daemon")
+    for command in (["cmake", "-S", str(repo / "src/offline/clipboard/clipd"), "-B", str(build)],
+                    ["cmake", "--build", str(build), "-j2"]):
+        result = subprocess.run(command, capture_output=True, text=True, timeout=120)
+        assert result.returncode == 0, result.stdout + result.stderr
+    return build / "mac-tahoe-clipd"
+
+
+@pytest.mark.parametrize("edition,mode,preset", [("MacTahoe", "Light", 1), ("MacGoldenGate", "Dark", 2)])
+def test_clipboard_launcher_integration(repo, tmp_path, monkeypatch, launcher_popup_module,
+                                       clipboard_launcher_daemon, edition, mode, preset):
+    pytest.importorskip("PyQt6.QtDBus")
+    test_native_launcher_popup_presets(repo, tmp_path, monkeypatch, launcher_popup_module,
+                                      preset, mode, edition, clipboard_launcher_daemon)
+def test_control_center_glass_regions(launcher_popup_module):
+    """Floating controls blur and receive input only inside their rounded islands."""
+    result = subprocess.run(
+        [str(launcher_popup_module.parent / 'controlglassprobe')],
+        env=dict(os.environ, QT_QPA_PLATFORM='offscreen',
+                 DBUS_SESSION_BUS_ADDRESS='unix:path=/tmp/no-control-glass-test-bus'),
+        capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert 'CONTROL_GLASS_REGIONS_OK' in result.stdout
+
+
+def test_control_center_native_x11_render(repo, tmp_path, launcher_popup_module):
+    """The original QML layout and native input mask agree on an isolated display."""
+    if not shutil.which('Xvfb'):
+        pytest.skip('Xvfb required for native Control Center rendering')
+    runtime = tmp_path / 'runtime'; runtime.mkdir(mode=0o700)
+    bus_config = runtime / 'bus.conf'
+    bus_config.write_text('<busconfig><type>session</type><listen>unix:tmpdir=' + str(runtime)
+                         + '</listen><auth>EXTERNAL</auth><policy context="default">'
+                         + '<allow send_destination="*"/><allow receive_sender="*"/><allow own="*"/></policy></busconfig>')
+    env = os.environ | {
+        'HOME': str(tmp_path), 'XDG_RUNTIME_DIR': str(runtime),
+        'XDG_CONFIG_HOME': str(tmp_path / 'config'), 'XDG_DATA_HOME': str(tmp_path / 'data'),
+        'XDG_CACHE_HOME': str(tmp_path / 'cache'), 'QT_QPA_PLATFORM': 'xcb',
+        'QT_QPA_PLATFORMTHEME': 'generic', 'QT_QUICK_BACKEND': 'software',
+        'DBUS_SYSTEM_BUS_ADDRESS': 'unix:path=' + str(runtime / 'no-system-bus'),
+        'PULSE_SERVER': 'unix:' + str(runtime / 'no-audio'),
+        'QML_IMPORT_PATH': str(launcher_popup_module),
+    }
+    env.pop('WAYLAND_DISPLAY', None)
+    read_fd, write_fd = os.pipe()
+    server = subprocess.Popen(
+        ['Xvfb', '-displayfd', str(write_fd), '-screen', '0', '1280x1024x24', '-nolisten', 'tcp'],
+        pass_fds=(write_fd,), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    os.close(write_fd)
+    try:
+        assert select.select([read_fd], [], [], 10)[0], 'Xvfb did not start'
+        env['DISPLAY'] = ':' + os.read(read_fd,32).decode().strip()
+        result = subprocess.run(
+            ['dbus-run-session', '--config-file', str(bus_config), '--', sys.executable, str(repo / 'tests/desktop_controls_render.py'),
+             str(repo), str(tmp_path / 'control-center.png')],
+            env=env, capture_output=True, text=True, timeout=30)
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert 'CONTROL_CENTER_X11_RENDER_OK' in result.stdout
+    finally:
+        os.close(read_fd);server.terminate();server.wait(timeout=5)

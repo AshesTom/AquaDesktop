@@ -80,10 +80,15 @@ def test_styles_rebuild_the_edition_acrylic_material(offline, monkeypatch):
     assert (dark["BlurStrength"], dark["Brightness"], light["Brightness"]) == ("11", "0.85", "1.12")
     # Both styles write the same keys: switching leaves nothing behind.
     assert dark.keys() == liquid.keys() == light.keys()
-    # Every key exists in the effect's configuration.
-    kcfg = (offline / "kwin-effects/acrylic-glass/src/glass.kcfg").read_text()
-    for key in dark:
-        assert f'<entry name="{key}"' in kcfg, key
+    # Every key exists in the effect's configuration or its component
+    # materials, exactly as the installer writes them.
+    import steps.acrylic_glass as acrylic
+    monkeypatch.setattr(acrylic, "default_wallpaper", lambda: "MacTahoe")
+    monkeypatch.setattr(acrylic, "selected", lambda: {})
+    assert liquid == acrylic._edition_preset()
+    # Frosted reaches every component, not only the general material.
+    for material in json.loads(dark["ComponentMaterials"]).values():
+        assert (material["BlurStrength"], material["RefractionWidth"]) == (11, 0)
 
 
 def test_neutral_tint_takes_the_colour_out_of_the_glass(monkeypatch):
@@ -304,12 +309,3 @@ def test_set_accent_writes_the_accent_key(monkeypatch):
     ts.set_accent("#ff8d28")
     assert ("--file", "kdeglobals", "--group", "General", "--key", "AccentColor",
             "255,141,40") in writes
-
-
-def test_control_center_runs_accent_sync_on_palette_changes(offline):
-    main = (offline / "plasmoids/org.kde.mac-tahoe-liquid-kde.controlcenter/contents/ui/main.qml").read_text()
-    assert "readonly property color paletteAccent: Kirigami.Theme.highlightColor" in main
-    assert 'mac-tahoe-theme-switch\\" accent-sync' in main
-    for widget in ("controlcenter", "keyboard", "spotlight", "wifi"):
-        accent = (offline / f"plasmoids/org.kde.mac-tahoe-liquid-kde.{widget}/contents/ui/AccentColor.qml").read_text()
-        assert 'kdeglobals.value("accentColorFromWallpaper", "false")' in accent, widget

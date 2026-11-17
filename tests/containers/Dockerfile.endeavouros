@@ -2,7 +2,7 @@
 # layout and pacman. No official Docker image, so use Arch base which
 # is the same userspace (EndeavourOS adds graphical installers, not a
 # distinct package set).
-FROM archlinux:latest
+FROM archlinux:latest AS sdk
 
 # Add the EndeavourOS /etc/os-release so distro.current_distro() picks
 # the right row in _QT6_LIBDIR_FALLBACK + _PACKAGE_MAP. Real EndeavourOS
@@ -22,12 +22,14 @@ RUN pacman -Sy --noconfirm --needed archlinux-keyring && \
     ki18n kio kcmutils knotifications kservice kwidgetsaddons \
     kwindowsystem kitemmodels \
     libplasma plasma-activities plasma-activities-stats libksysguard \
-    plasma-workspace \
+    plasma-workspace plasma-nm plasma-pa powerdevil bluez-qt \
     kwin kdecoration vulkan-headers \
     libepoxy libx11 libxcb libxtst \
     && pacman -Scc --noconfirm
 
 WORKDIR /repo
+
+FROM sdk AS test
 COPY . /repo
 
 CMD ["python3", "tests/containers/run_in_container.py"]

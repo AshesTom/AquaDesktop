@@ -40,7 +40,7 @@ PlasmoidItem {
     Layout.maximumWidth: Plasmoid.formFactor === PlasmaCore.Types.Horizontal ? NativeLauncher.DockMetrics.preferredCellSize(height) + DockZoom.growthFor(root) : Infinity
     Layout.minimumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? Math.floor(dockCell.size) : 0
     Layout.preferredHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? dockCell.size : -1
-    Layout.maximumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? Math.ceil(dockCell.size) : Infinity
+    Layout.maximumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? dockCell.preferredSize : Infinity
 
     // The Trash ends the Dock: while the Dock magnifies (DockZoom), it
     // widens the glass on its outer side and its icon keeps its resting cell.

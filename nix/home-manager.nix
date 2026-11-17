@@ -46,7 +46,6 @@ in {
       value.source = "${assets}/share/themes/${name}";
     }) names);
     xdg.dataFile = {
-      "plasma/desktoptheme" = { source = "${assets}/share/plasma/desktoptheme"; recursive = true; };
       "plasma/look-and-feel" = { source = "${assets}/share/plasma/look-and-feel"; recursive = true; };
       "plasma/plasmoids" = { source = "${assets}/share/plasma/plasmoids"; recursive = true; };
       "aurorae/themes" = { source = "${assets}/share/aurorae/themes"; recursive = true; };
@@ -55,10 +54,27 @@ in {
     } // lib.optionalAttrs cfg.appleAssets {
       "wallpapers" = { source = "${packages.apple-assets}/share/wallpapers"; recursive = true; };
     };
-    xdg.configFile = lib.listToAttrs (map (name: {
-      name = "Kvantum/${name}";
-      value.source = "${assets}/share/Kvantum/${name}";
-    }) kvNames) // {
+    # Acrylic Glass edits background fills on Apply. Keep these two owned
+    # theme families writable while leaving the store inputs immutable.
+    home.activation.macTahoeGlassSurfaces = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      for name in MacTahoeLiquidKde-Light MacTahoeLiquidKde-Dark; do
+        target="${config.xdg.dataHome}/plasma/desktoptheme/$name"
+        if [ -L "$target" ]; then rm "$target"; fi
+        mkdir -p "$target"
+        cp -rL --remove-destination --no-preserve=mode "${assets}/share/plasma/desktoptheme/$name/." "$target/"
+      done
+      for name in mac-tahoe-liquid-kde mac-tahoe-liquid-kdeDark; do
+        target="${config.xdg.configHome}/Kvantum/$name"
+        if [ -L "$target" ]; then rm "$target"; fi
+        mkdir -p "$target"
+        cp -rL --remove-destination --no-preserve=mode "${assets}/share/Kvantum/$name/." "$target/"
+      done
+      material="$(${pkgs.kdePackages.kconfig}/bin/kreadconfig6 --file kwinrc --group Effect-liquidglass --key ComponentMaterials)"
+      if [ -n "$material" ]; then
+        printf '%s' "$material" | ${packages.tools}/bin/mac-tahoe-glass-surfaces --apply
+      fi
+    '';
+    xdg.configFile = {
       "plasma-workspace/env/mac-tahoe-plugin-paths.sh".text = ''
         # Plasma sources this before launching KWin and plasmashell.
         # Extend the inherited paths here; home.sessionVariables would replace them.
@@ -85,13 +101,31 @@ in {
       Service = {
         Type = "oneshot";
         ExecStartPre = "${initEffects}";
-        ExecStart = "${packages.tools}/bin/mac-tahoe-theme-switch ${cfg.mode}";
+        ExecStart = "${packages.tools}/bin/mac-tahoe-theme-switch session ${cfg.mode}";
       };
       Install.WantedBy = [ "plasma-plasmashell.service" ];
     };
+    systemd.user.services.mac-tahoe-appearance-sync = {
+      Unit = {
+        Description = "Synchronize desktop appearance";
+        After = [ "mac-tahoe-theme.service" ];
+        PartOf = [ "graphical-session.target" ];
+      };
+      Service = {
+        ExecStart = "${packages.tools}/bin/mac-tahoe-theme-switch watch-system";
+        Restart = "on-failure";
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
+    };
+    systemd.user.services.mac-tahoe-scheduled = lib.mkIf (cfg.mode == "auto") {
+      Service = {
+        Type = "oneshot";
+        ExecStart = "${packages.tools}/bin/mac-tahoe-theme-switch scheduled";
+      };
+    };
     systemd.user.timers.mac-tahoe-theme = lib.mkIf (cfg.mode == "auto") {
       Unit.Description = "Switch MacTahoe at 06:00 and 18:00";
-      Timer = { OnCalendar = [ "*-*-* 06:00:00" "*-*-* 18:00:00" ]; Persistent = true; };
+      Timer = { OnCalendar = [ "*-*-* 06:00:00" "*-*-* 18:00:00" ]; Persistent = true; Unit = "mac-tahoe-scheduled.service"; };
       Install.WantedBy = [ "timers.target" ];
     };
     systemd.user.services.mac-tahoe-oled = lib.mkIf cfg.oledCare.enable {

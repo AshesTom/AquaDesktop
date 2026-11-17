@@ -2,93 +2,203 @@
 msgid ""
 msgstr "Project-Id-Version: MacTahoe Liquid KDE\nPO-Revision-Date: 2026-10-22 00:00-0600\nLast-Translator: MacTahoe Liquid KDE contributors\nLanguage-Team: de\nLanguage: de\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "Control Center"
-msgstr "Kontrollzentrum"
+msgid "%1 — %2%"
+msgstr "%1 — %2%"
 
-msgctxt "@action:button"
-msgid "AirDrop"
-msgstr "AirDrop"
+msgid "%1%"
+msgstr "%1%"
 
-msgctxt "@action:button"
+msgid "Audio outputs"
+msgstr "Audioausgänge"
+
+msgid "Back"
+msgstr "Zurück"
+
+msgid "Balanced"
+msgstr "Ausgeglichen"
+
+msgid "Battery"
+msgstr "Akku"
+
+msgid "Battery information will appear when a battery is available."
+msgstr "Akkuinformationen werden angezeigt, sobald ein Akku verfügbar ist."
+
 msgid "Bluetooth"
 msgstr "Bluetooth"
 
-msgctxt "@action:button"
-msgid "Calculator"
-msgstr "Rechner"
+msgid "Bluetooth Settings…"
+msgstr "Bluetooth-Einstellungen…"
 
-msgctxt "@action:button"
+msgid "Brightness"
+msgstr "Helligkeit"
+
+msgid "Brightness control unavailable"
+msgstr "Helligkeitsregelung nicht verfügbar"
+
+msgid "Cancel Job"
+msgstr "Auftrag abbrechen"
+
+msgid "Charging"
+msgstr "Wird geladen"
+
+msgid "Clear History"
+msgstr "Verlauf löschen"
+
+msgid "Collapse"
+msgstr "Einklappen"
+
+msgid "Connected"
+msgstr "Verbunden"
+
+msgid "Connected to power"
+msgstr "Am Stromnetz"
+
+msgid "Control Center"
+msgstr "Kontrollzentrum"
+
+msgid "Controlled by another application"
+msgstr "Von einer anderen Anwendung gesteuert"
+
 msgid "Dark Mode"
-msgstr "Dunkelmodus"
+msgstr "Dunkler Modus"
 
-msgctxt "@action:button"
-msgid "Edit Controls"
-msgstr "Steuerelemente bearbeiten"
+msgid "Dismiss"
+msgstr "Schließen"
 
-msgctxt "@action:button"
-msgid "Other Status Items"
-msgstr "Andere Statusobjekte"
+msgid "Display"
+msgstr "Bildschirm"
 
-msgctxt "@action:button"
-msgid "Screen Mirroring"
-msgstr "Bildschirmsynchronisierung"
+msgid "Display Settings…"
+msgstr "Anzeigeeinstellungen…"
 
-msgctxt "@action:button"
-msgid "Screenshot"
-msgstr "Bildschirmfoto"
-
-msgctxt "@action:button"
-msgid "Sound Output"
-msgstr "Tonausgabe"
-
-msgctxt "@action:button"
-msgid "Stage Manager"
-msgstr "Stage Manager"
-
-msgctxt "@action:button"
-msgid "Timer"
-msgstr "Timer"
-
-msgctxt "@info Airplane Mode state"
-msgid "Off"
-msgstr "Aus"
-
-msgctxt "@info Airplane Mode state"
-msgid "On"
-msgstr "Ein"
-
-msgctxt "@info Focus state"
 msgid "Do Not Disturb"
 msgstr "Nicht stören"
 
-msgctxt "@info Wi-Fi state"
-msgid "Not Connected"
-msgstr "Nicht verbunden"
+msgid "Edit Controls"
+msgstr "Steuerelemente bearbeiten"
 
-msgctxt "@info Wi-Fi state"
-msgid "Off"
-msgstr "Aus"
+msgid "Energy Settings…"
+msgstr "Energieeinstellungen…"
 
-msgctxt "@title Control Center module"
-msgid "Airplane Mode"
-msgstr "Flugmodus"
+msgid "Energy mode"
+msgstr "Energiemodus"
 
-msgctxt "@title Control Center module"
-msgid "Display"
-msgstr "Display"
+msgid "Expand"
+msgstr "Ausklappen"
 
-msgctxt "@title Control Center module"
+msgid "File Sharing"
+msgstr "Dateifreigabe"
+
 msgid "Focus"
 msgstr "Fokus"
 
-msgctxt "@title Control Center module"
-msgid "Not Playing"
+msgid "Fully charged"
+msgstr "Vollständig geladen"
+
+msgid "Mute sound"
+msgstr "Ton stummschalten"
+
+msgid "Network"
+msgstr "Netzwerk"
+
+msgid "Network Settings…"
+msgstr "Netzwerkeinstellungen…"
+
+msgid "Next track"
+msgstr "Nächster Titel"
+
+msgid "No Wi-Fi adapter"
+msgstr "Kein WLAN-Adapter"
+
+msgid "No audio output"
+msgstr "Keine Audioausgabe"
+
+msgid "No internal battery"
+msgstr "Kein interner Akku"
+
+msgid "No notifications"
+msgstr "Keine Benachrichtigungen"
+
+msgid "Not connected"
+msgstr "Nicht verbunden"
+
+msgid "Nothing playing"
 msgstr "Keine Wiedergabe"
 
-msgctxt "@title Control Center module"
+msgid "Notification Settings…"
+msgstr "Benachrichtigungseinstellungen…"
+
+msgid "Notifications"
+msgstr "Benachrichtigungen"
+
+msgid "Now Playing"
+msgstr "Aktuelle Wiedergabe"
+
+msgid "Off"
+msgstr "Aus"
+
+msgid "On"
+msgstr "Ein"
+
+msgid "On battery power"
+msgstr "Im Akkubetrieb"
+
+msgid "Open"
+msgstr "Öffnen"
+
+msgid "Overview"
+msgstr "Übersicht"
+
+msgid "Pause"
+msgstr "Anhalten"
+
+msgid "Pause notifications for one hour"
+msgstr "Benachrichtigungen für eine Stunde anhalten"
+
+msgid "Performance"
+msgstr "Leistung"
+
+msgid "Play or pause"
+msgstr "Wiedergeben oder anhalten"
+
+msgid "Power saver"
+msgstr "Energiesparen"
+
+msgid "Previous track"
+msgstr "Vorheriger Titel"
+
+msgid "Reply…"
+msgstr "Antworten…"
+
+msgid "Resume"
+msgstr "Fortsetzen"
+
+msgid "Scan for Networks"
+msgstr "Nach Netzwerken suchen"
+
+msgid "Scanning…"
+msgstr "Suche läuft…"
+
+msgid "Screen Mirroring"
+msgstr "Bildschirmspiegelung"
+
+msgid "Screenshot"
+msgstr "Bildschirmfoto"
+
+msgid "Send"
+msgstr "Senden"
+
 msgid "Sound"
 msgstr "Ton"
 
-msgctxt "@title Control Center module"
+msgid "Volume"
+msgstr "Lautstärke"
+
 msgid "Wi-Fi"
 msgstr "WLAN"
+
+msgid "Wi-Fi is blocked by the hardware switch"
+msgstr "WLAN ist durch den Hardwareschalter gesperrt"
+
+msgid "Wi-Fi is off"
+msgstr "WLAN ist ausgeschaltet"

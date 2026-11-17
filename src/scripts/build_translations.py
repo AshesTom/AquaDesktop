@@ -1,4 +1,4 @@
-"""Rebuild the bundled German and Brazilian Portuguese KDE catalogs.
+"""Rebuild the bundled German, Brazilian Portuguese and French KDE catalogs.
 
 Run with Python from any directory; gettext's msgfmt must be on PATH.
 The JSON catalogs are the editable source shared with the installer.
@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
-LANGUAGES = ("pt_BR", "de")
+LANGUAGES = ("pt_BR", "de", "fr")
 KCM_DOMAIN = "kwin_effect_liquidglass"
 _STRING = r'"(?:[^"\\]|\\.)*"'
 _CALL = re.compile(
@@ -36,19 +36,25 @@ def widget_messages(widget: Path) -> dict[tuple[str | None, str], str | None]:
             if arguments:
                 plural = arguments[1] if function.endswith("p") and len(arguments) > 1 else None
                 messages[context, arguments[0]] = plural
+    if widget.name in (
+        "org.kde.mac-tahoe-liquid-kde.battery",
+        "org.kde.mac-tahoe-liquid-kde.wifi",
+        "org.kde.mac-tahoe-liquid-kde.notifications",
+    ):
+        messages.update(widget_messages(widget.parent / "org.kde.mac-tahoe-liquid-kde.controlcenter"))
     return messages
 
 
 def kcm_messages() -> dict[tuple[None, str], None]:
     ui = ROOT / "offline/kwin-effects/acrylic-glass/src/kcm/config.ui"
     return {(None, node.text): None for node in ET.parse(ui).iter("string")
-            if node.text and node.get("notr") != "true"}
+            if node.text and node.get("notr") != "true"} | widget_messages(ui.parent)
 
 
 def write_catalog(base: Path, domain: str, messages: dict,
                   language: str, catalog: dict[str, str], locale_dir: Path) -> None:
     quote = lambda value: json.dumps(value, ensure_ascii=False)
-    plural_rule = "n > 1" if language == "pt_BR" else "n != 1"
+    plural_rule = "n > 1" if language in ("pt_BR", "fr") else "n != 1"
     header = (
         "Project-Id-Version: MacTahoe Liquid KDE\n"
         "PO-Revision-Date: 2026-10-22 00:00-0600\n"
@@ -89,6 +95,17 @@ def main() -> None:
             write_catalog(widget, f"plasma_applet_{widget.name}", messages, language, catalog, locales)
         effect = ROOT / "offline/kwin-effects/acrylic-glass"
         write_catalog(effect, KCM_DOMAIN, kcm_messages(), language, catalog, effect / "locale")
+
+    # These original controls share translated views but keep independent applet
+    # domains, so adding a satellite never depends on Control Center being loaded.
+    import localization
+    for suffix in ("controlcenter", "battery", "wifi", "notifications"):
+        widget = ROOT / "offline/plasmoids" / ("org.kde.mac-tahoe-liquid-kde." + suffix)
+        messages = widget_messages(widget)
+        for language in ("es", "zh_CN"):
+            catalog = {message: localization.translate(message, language) for _, message in messages}
+            write_catalog(widget, f"plasma_applet_{widget.name}", messages, language, catalog,
+                          widget / "contents/locale")
 
 
 if __name__ == "__main__":

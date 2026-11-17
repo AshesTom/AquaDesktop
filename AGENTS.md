@@ -1,5 +1,24 @@
 # AGENTS.md
 
+## Non-negotiable execution discipline
+
+Work quickly on the requested change. Choose the smallest executable checks
+from the diff and its direct risks; expand only for an observed failure or a
+specific affected dependency. Reuse passing evidence while code, inputs and
+environment remain unchanged. Do not repeat tests for release bookkeeping.
+
+Brief nonvisual fixes proceed to paired release after focused checks. Changes
+to colors, icons, materials, layout or other appearance require the user's
+explicit approval of the actual preview before merge or publication. Passing
+VM/CI checks or the agent's own visual review does not replace that approval.
+The approval boundary below takes precedence over every delivery rule here.
+
+Full CI and the distro matrix remain enabled and asynchronous. Do not run a
+second matrix on main, wait for unrelated CI or expand a narrow change into a
+redesign. Honor deadlines, stop optional work and report genuine blockers.
+For CI optimization, preserve coverage and measure before/after under stated
+cache conditions; an unmet requested speedup is not a completed optimization.
+
 ## Required skills
 
 Read and follow these skills on every task in this repository:
@@ -9,51 +28,28 @@ Read and follow these skills on every task in this repository:
 
 ## Clean install-ready delivery
 
-After every fix or release, leave the user's actual VS Code checkout clean and
-ready to install, in both Tahoe and Golden Gate. Publishing from an isolated
-worktree does not complete delivery while the checkout the user opens remains
-behind or contains leftover edits. Synchronize that checkout to the delivered
-commit, including VERSION, the upstream pin and component hashes as applicable.
+After an approved delivery, synchronize both actual VS Code checkouts to the
+delivered commits, including versions, pins and component hashes. Commit all
+task-owned changes, including policy; keep logs, builds and machine settings
+out of tracked changes. Check local status once after the final update.
 
-Commit and deliver all task-owned changes, including AGENTS.md. Keep generated
-logs, temporary captures, build output and machine-specific .vscode settings out
-of tracked changes. Never hide dirt with assume-unchanged or skip-worktree, or
-ignore files that belong in version control.
-
-Coordinate with other agents before reconciling a shared checkout. Preserve
-uncommitted work that is not part of the delivery in a named, recoverable local
-backup before moving the checkout; never discard it with reset --hard or git
-clean. Do not reapply obsolete release edits over the delivered version. If
-active work prevents a clean checkout, resolve ownership or report that specific
-blocker instead of claiming the repository is ready.
-
-Check local git status once after the final checkout update and resolve any
-remaining task-owned changes. This is a local delivery check, not permission to
-repeat remote publication queries, rerun passed tests or wait for full CI.
-Documentation-only policy changes need no new version or release.
+Coordinate ownership before moving a shared checkout. Preserve unrelated work
+in a named recoverable backup; never discard it, hide it with index flags or
+reapply obsolete release edits. Pending visual work belongs on an isolated
+candidate branch/worktree and must not replace the approved installation.
 
 ## Paired repository delivery
 
-Tahoe and Golden Gate are one connected delivery. Work requested in either
-checkout covers the corresponding changes in both repositories unless the user
-explicitly excludes an edition. A repository name, working directory or
-edition-specific README heading alone does not limit that scope.
+Tahoe and Golden Gate are one delivery unless the user explicitly excludes an
+edition. Shared implementation and assets stay in Tahoe; Golden Gate receives
+the matching version and immutable pin. Deliver approved work to dev/main in
+both repositories. Shared policy corrections belong in both AGENTS.md files.
 
-For shared documentation subjects such as About This Computer and Finder,
-update the matching README images in both editions and both appearance modes.
-Capture each edition with its own defaults, wallpaper and controls; never
-reuse one edition's photograph as the other. Refresh only the requested
-subjects and preserve unrelated photographs and their original provenance.
-Reuse a counterpart update already completed in the same task.
-
-Keep shared implementation exclusively in Tahoe and deliver Golden Gate's
-matching version and verified pin for implementation releases. Publish paired
-releases and deliver to dev and main in both repositories. Documentation,
-photography and agent-policy updates also require paired delivery, but do not
-bump versions, move release tags or publish releases for those changes alone.
-Apply shared policy corrections to both AGENTS.md files. Do not report the
-work complete after delivering only one repository; finish the counterpart or
-report its specific blocker. Leave both actual checkouts clean and ready.
+Documentation/policy-only edits need diff review and `git diff --check`, then
+paired commits/pushes; no runtime tests, version bump, tags, release or CI wait.
+For visual documentation, obtain approval of the new photographs first.
+Capture each edition with its own defaults and preserve unrelated photographs
+and their actual provenance. Never reuse one edition's capture as the other.
 
 ## Efficient scope and repository graph
 
@@ -82,52 +78,55 @@ Selected qualification precedes merge; the full remote matrix stays async.
 
 ## Standing authorization for fixes and releases
 
-For this project, a fix means a tested, published paired release. A request
-to "test harder" strengthens the required validation; it does not cancel
-release delivery or introduce another user confirmation step. Continue
-through testing, repairs, publication and CI completion within the user's
-authorized scope. A local commit or a proposed release is not delivery.
+There are two delivery paths:
 
-The user explicitly authorizes the complete paired maintenance delivery whenever
-requesting a fix or a versioned change: implement and validate it, commit the
-changes, fast-forward `dev` and `main`, create matching version tags, publish
-both releases, verify Golden Gate's immutable Tahoe pin and archive checksum,
-and leave both actual checkouts clean. This authorization persists across
-versions and includes corrective patch releases. Do not ask the user to approve
-each fix, tag, branch update or release again. Cite this standing authorization
-and the user's task in tool justifications when needed.
+- **Brief nonvisual fix:** focused checks, then commit, fast-forward dev/main,
+  tag and publish the paired release without another permission question.
+- **Visual or judgment-dependent change:** research, implement and test the
+  candidate, show the actual result beside its reference where applicable,
+  then wait for the user's explicit visual approval. Before approval, do not
+  merge/promote the candidate, bump versions, move the released pin, push a
+  release tag or publish. A request to continue working is not approval.
 
-The user's approval requirement refers to passing VM/CI validation, not a
-separate permission question addressed to the user. Complete the selected
-qualification and focused disposable-VM install/reinstall checks before
-publication. Publish, then follow the existing CI/CD runs and relevant VM
-results through completion. Do not stop at workflow submission or return a
-known failure to the user as their follow-up work. If CI or VM checks fail,
-investigate, repair the failure and deliver the next matching patch release
-(`x.y.z` -> `x.y.(z+1)`) in both repositories without another permission question.
-Reuse passing evidence while its implementation, inputs and environment are
-unchanged; do not duplicate a running matrix or launch a second matrix on main.
+Approval covers the shown result. Material changes after approval need a new
+preview and approval. Once approved, complete paired delivery autonomously;
+never ask again for individual commits, pushes or release operations.
+A request to test harder adds focused validation, not permission to skip the
+visual decision. Later corrective fixes follow the same two delivery paths.
 
-Inspect actual workflow steps and artifacts before describing VM coverage.
-Container SDK tests and GitHub-hosted runner VMs do not prove a live Plasma
-installation. Keep CI results, recorded local desktop-VM qualification and
-publication results distinct; never report pending or unrun checks as passed.
-This standing workflow supersedes older wording that ends delivery while CI is
-still pending. Publication can precede the complete matrix, but task completion
-requires checking its outcome and resolving relevant failures.
+Use fail-fast release commands. Verify versions, immutable pin, archive checksum
+and evidence before tagging. Publish through the release workflows, Tahoe first.
+Report observed publication results and the known CI status; submitted is not
+published, and pending or failed is not passed. Repair relevant failures when
+observed; do not silently withdraw or revert a release without cause.
+
+## Appearance synchronization qualification
+
+Every shipped plasmoid, glass surface and menu must follow the effective system
+appearance in both editions. Qualify light, dark and automatic mode, including
+an actual automatic boundary crossing; choosing auto without observing its
+transition is not a pass. Keep Qt/Kvantum and GTK 3/4 applications open while
+switching through native KDE settings, the standalone switcher and supported
+GTK preferences. Exercise rapid successive and overlapping selections and prove
+that the latest selection wins without stale surfaces, palettes or controls.
+A manual selection supersedes the project schedule; native KDE automatic mode
+keeps KDE's scheduler authoritative. Preserve saved material optics, window
+controls, user wallpapers and unrelated preferences. Never test on the host.
+Record installed source fingerprints, application continuity, rendered evidence
+and the exact VM/SDK coverage; configuration readback alone is insufficient.
 
 ## Review and merge qualification
 
-Every implementation release requires a focused install/reinstall check in at
-least one disposable Plasma VM before publication. Record the actual source,
-commands and results. Captures alone do not replace installer qualification or
+Changes to installer lifecycle require a focused install/reinstall check in a
+disposable Plasma VM before publication. Other changes require only the checks
+that prove their affected behavior. Record the actual source, commands and results. Captures alone do not replace installer qualification or
 resolve known CI failures. Dependency changes require the exhaustive package
 mapping checks; translated messages require catalog checks; native rendering
 tests must pass with their declared dependencies in a clean CI environment.
 
 A request to review, fix, test and merge means review the diff and existing CI
-results first, repair relevant failures, then qualify the candidate before
-merging. A successful compile, plugin load or workflow submission does not
+results first, repair relevant failures, qualify the candidate and obtain any
+required visual approval before merging. A successful compile, plugin load or workflow submission does not
 prove rendering behavior. Do not merge first and leave required validation
 for the user to discover afterward.
 
@@ -146,8 +145,8 @@ merge. Inspect existing CI failures and resolve those relevant to the change;
 do not choose a passing subset to avoid an observed regression. Reuse matching
 passing evidence and running CI jobs rather than launching duplicate matrices.
 The complete distro matrix stays enabled and may finish asynchronously. Once
-the selected checks pass, publication does not wait for every distro or a
-second run on main. Investigate later failures with a focused reproduction and
+the selected checks pass and required visual approval is granted, publication
+does not wait for every distro or a second run on main. Investigate later failures with a focused reproduction and
 repair; do not automatically revert an entire delivery for every CI failure.
 Revert when the user requests it or the failure warrants withdrawing the change.
 Never describe pending or unrun checks as passed.
@@ -157,46 +156,30 @@ pin, archive checksum and evidence before committing or pushing a release tag;
 use fail-fast scripts or separate dependent commands. Never continue publication
 after a failed validation command. Policy-only edits need no new release.
 
+All icon variants must preserve the original layers, paths, silhouette, cutouts and existing borders of every icon. Change layer colors and opacity only; never add a tile, rim, bevel, shadow or replacement artwork. Qualify default light/dark, clear light/dark and tinted light/dark against macOS references, using red and blue for tint calibration.
+
+Dock icon qualification includes Apps, every pinned application, and both empty/full Trash. Use the bundled original artwork and its aliases; tint/material changes must not substitute newly invented symbols. Check application aliases separately from reserved menu symbols. Review facial details and lettering at actual Dock size over light and dark backgrounds. Generate icons deterministically from original artwork and explicit material parameters, never an image model. For performance-only changes, compare output hashes and benchmark the same fixture; reuse reviewed photographs when pixels are unchanged. State examples such as full Trash do not belong in color tables.
+
 ## Respect for the user's time
 
-Apply these rules in both Tahoe and Golden Gate. They supersede older delivery
-or communication wording below. In the user's sense, *necio* means persisting
-stubbornly after a correction, not useful diligence ([Diccionario del español
-de México](https://dem.colmex.mx/ver/necio)). The following are concrete failure
-patterns to stop, not reasons to remove necessary correctness checks.
+Disposable development VM overlays, capture working copies and source archives
+must be removed once the requested qualification is complete and its reviewed
+images and evidence are preserved. Do not retain whole VM disks as release
+evidence. Preserve unique scripts, logs and recovery data in a named compact
+backup before cleanup; never delete active work or user-owned files. Report
+before/after allocated sizes for storage cleanup tasks. Installer cleanup only
+removes recognized successful-build intermediates, including older cached builds;
+failed-run diagnostics, final binaries, compiler caches and user recovery data
+remain available.
 
-1. Rechecking publication after a successful publishing command: use that result; do not issue a second release lookup.
-2. Polling a release repeatedly: submit the authorized operation and report the known outcome; do not invent an obligation to wait.
-3. Rechecking remote branches after a successful push: use the push result unless it reports an error or ambiguity.
-4. Narrating plans, tool calls or implementation details: omit routine process narration; explain only when asked or when needed for user input.
-5. Repeating unchanged status messages: no stream of “still waiting”, “verifying” or “almost done”.
-6. Announcing that you will be concise or respectful: demonstrate it in the response instead.
-7. Delaying publication for the entire remote matrix: pass the selected qualification before merge, then publish without waiting for every distro; keep full CI asynchronous.
-8. Waiting for main to repeat dev's result: promote the same commit without a polling job.
-9. Running the full matrix twice for the same delivered change: run it on dev and on PRs; main promotion does not launch a duplicate.
-10. Running runtime CI for Markdown-only edits: use documentation/path filters; do not build native components for prose.
-11. Repeating passing local tests after bookkeeping: reuse evidence while tested code, inputs and environment are unchanged.
-12. Running the whole suite for a narrow fix: choose affected behavior and expand only for a concrete failure or dependency.
-13. Taking every screenshot for one changed component: capture only the needed views in a disposable VM.
-14. Revalidating the entire historical gallery at every release: retain original provenance and check changed artifacts; do not repeat historical audits without cause.
-15. Replacing reviewed images because the version changed: preserve them and their actual capture identity.
-16. Expanding a bug fix into an unsolicited redesign or framework: make the smallest complete repair.
-17. Asking again for permission already granted: act within the existing authorization.
-18. Asking questions already answered by the repository or session: consult existing context first.
-19. Treating old AGENTS wording as stronger than a new user instruction: apply the user's correction and reconcile the conflicting rule.
-20. Reciting internal checklists to the user: keep operational records in files and return the useful result.
-21. Printing long logs when one error explains the failure: inspect quietly and surface only the decision-relevant issue.
-22. Sending coordination acknowledgment loops: message peers for ownership conflicts or actionable handoffs, not ceremonial updates.
-23. Bumping versions or publishing releases for instruction-only edits: commit and push the documentation without release churn.
-24. Continuing after the requested result is complete: stop; do not add a new verification phase.
+Keep routine work silent; explain only decisions, material findings or blockers.
+Use successful push/publication output as evidence without repeat lookups. Do
+not poll unrelated CI, rerun passed checks, refresh unrelated photographs or
+keep working after delivery. When corrected, change the next action.
 
-Default final response: the result, its usable link/path when relevant, and a
-material unresolved limitation if one exists. Do not describe how it was done
-unless requested. Ask only for missing input that changes the outcome. Never
-claim an unobserved success: “submitted” is sufficient when an asynchronous
-operation has only been submitted. A failed operation still needs correction;
-removing redundant confirmation is not permission to hide failure.
-
+Finish with the result, a useful link and any material limitation. For a visual
+candidate, show the preview and ask for approval; do not claim release delivery.
+Ask only for missing input that changes the outcome.
 
 ## #1 — Self-explanatory code
 
@@ -339,8 +322,6 @@ release is downloaded, checksum-verified, and built best-effort.
   Keep the standard GPL text intact and do not add copying, rebranding, or
   commercial-use bans. Do not claim third-party marks or artwork as project-owned.
 - README **Credits** section is managed manually by the user.
-- Do NOT add "fork of X" or "based on Y" to README descriptions —
-  use "inspired by" wording.
 - Do NOT reference Pear OS.
 
 ## Contributor and Pull Request Safety
@@ -734,12 +715,20 @@ the login service without starting it and starts the persistent timer only
 after theme activation has recorded wallpaper ownership; starting either
 earlier can misclassify the uninstaller's Breeze wallpaper as a user override.
 
-There is no background xdg-portal appearance watcher. Automatic mode is
-driven only by the post-login service and the 06:00 / 18:00 scheduler;
-`follow-system` remains an explicit one-shot command. Install and uninstall
-remove the legacy `mac-tahoe-liquid-kde-gtk-sync.desktop` autostart and stop
-any `watch-portal` process left by v0.36.x-v0.38.x so it cannot race or undo
-the scheduled target.
+The session appearance follower runs in every mode and reads changes from
+KDE's palette/global theme, Plasma style, Kvantum and GTK preferences. It
+acknowledges its own writes under the shared transition lock; delayed portal
+echoes never select a mode. New native selections cancel an obsolete transition
+before its next desktop command. Queued standalone requests use replaceable
+tickets so older requests cannot win after a newer selection. The installed
+`watch-system` autostart replaces the retired `watch-portal` implementation.
+
+The effective light/dark mode and scheduling preference live separately in
+`appearance.json`. `auto` selects the project's 06:00/18:00 policy; `scheduled`
+reconciles without changing the user's preference. Manual choices supersede
+that schedule. KDE's native automatic setting remains authoritative when
+enabled. The follower also handles resume across a schedule boundary.
+Install starts it after activation; uninstall stops it before removing state.
 
 Light/dark switching applies:
 
@@ -774,7 +763,7 @@ again. Run the cycle AFTER `apply_extras()` so `kvantummanager --set`
 has rewritten the kvconfig; otherwise Kvantum re-instantiates against
 the old config and the menu visuals stay stale.
 
-`widgetStyle` is always the plugin name `kvantum`; its selected profile is
+`widgetStyle` is the `MacTahoe` plugin wrapping Kvantum; its selected profile is
 mode-specific: `mac-tahoe-liquid-kde` for light and
 `mac-tahoe-liquid-kdeDark` for dark. `respect_DE=true` supplies palette
 colors but does not recolor literal SVG menu surfaces, so using the light
@@ -890,19 +879,23 @@ Preserve surface masks, shadows, highlights and solid fallbacks.
   (`org.kde.mac.tahoe.liquid.systemtray`, no overflow arrow, Plasma's tray
   as fallback) with its applets hidden, Input menu (`.keyboard`), Sound
   (`.volume`, its HUD replaces plasma-pa's OSD: `layout.py` turns
-  `VolumeOsd`/`MuteOsd` off and uninstall restores them), Battery, Wi-Fi,
-  Spotlight (Meta+Space), Control Center and the macOS Clock (Digital
-  Clock as fallback). The notifications fork
+  `VolumeOsd`/`MuteOsd` off and uninstall restores them), upstream's
+  Battery, Wi-Fi and Control Center, Spotlight (Meta+Space), upstream's
+  notification history button and the macOS Clock (Digital Clock as
+  fallback). Battery, Wi-Fi, Control Center and Notifications are
+  upstream's widgets as shipped; refresh them from upstream, not from the
+  AquaDesktop fork. The notifications fork
   (`org.kde.mac.tahoe.liquid.notifications`) gives macOS banners. Both
   forks and the `GlassBlur` QML module are compiled by `plasmoids.py`.
-- Flyouts blur only their glass shapes through
-  `org.kde.mac.tahoe.liquid.glass`; `GlassSurface.qml` reads
-  `~/.config/mac-tahoe-liquid-kde/glass.ini` (tint, accent, level,
-  `glass-level`). The Control Center runs `accent-sync` on every palette
-  change, so the Dock veil, the menu bar and the popovers follow the
-  accent. Keep the layouts and `TOP_BAR_SCRIM` identical.
-- The Dock is upstream's (shared `DockCell`/`DockMetrics` cells, task frame
-  margins) with the AquaDesktop sections added:
+- The AquaDesktop flyouts (Input, Sound, Spotlight, Clock) blur only their
+  glass shapes through `org.kde.mac.tahoe.liquid.glass`; `GlassSurface.qml`
+  reads `~/.config/mac-tahoe-liquid-kde/glass.ini` (tint, accent, level,
+  `glass-level`). Nothing runs `accent-sync` on palette changes any more
+  (upstream's Control Center does not): the tint follows a new accent on
+  the next style, tint or light/dark change. Keep the layouts and
+  `TOP_BAR_SCRIM` identical.
+- The Dock is upstream's (shared `DockCell`/`DockMetrics` cells for vertical
+  Docks, task frame margins) with the AquaDesktop sections added:
   Launcher (hidden in the horizontal Dock, `hiddenInDock`; the "Apps" pin
   opens its grid through `activateLauncherMenu`), task manager with the
   "Apps" pin right after the file manager (`APPS_PIN`,
@@ -978,11 +971,9 @@ wrapper selecting `MacGoldenGate`, not a separate theme implementation.
 
 Golden Gate (Official) is the only offered Golden Gate material and the
 installer default. Its independently tuned three-stop gradient, documented
-above, applies to menus in both light and dark mode. Dock surfaces are exempt
-from the gradient under every material; do not
-change the saved gradient settings or remove their blur and refraction.
-Dock/panel optics stay pinned to v0.62.0 independently of window presets and
-fine tuning: three Kawase levels, offset `5 * 0.14`, repaint expansion 50,
+above, applies to menus in both light and dark mode. Dock surfaces default to no gradient under every material, with an independent
+component override. Do not reset saved optics during an appearance transition.
+Dock/panel defaults preserve the v0.62.0 optics independently of window presets: three Kawase levels, offset `5 * 0.14`, repaint expansion 50,
 RGB separation `12 * 0.24`, refraction 0.1 / width 18, highlight 3.5 / 0.1,
 brightness 1, contrast 1, saturation 1.33 and 98% centre coverage. The old
 grain strength 1 generated an all-zero texture, so skip that no-op on Docks.
@@ -1345,6 +1336,36 @@ green   yellow   orange   red   purple   blue
 
 ## Documentation style
 
+### README presentation
+
+Show Dock photographs as one visible vertical list, with a short label for each appearance or tint. Do not use tables or collapsed galleries for the Dock.
+
+Use concise, factual English descriptions without marketing slogans or em dashes.
+Use the repository's edition name in feature headings: Finder, Launchpad, Dock,
+Shell, Control Center, Clipboard History, System Information, Plasma Theme and
+Boot Splash. Mark Shell, Control Center and Clipboard History as Alpha; do not
+add Alpha to System Information. Place the small centered distro-status caption
+above the distro icons.
+
+Show each feature once. Keep Finder and About/System Information photographs in
+their own sections, with no duplicate Finder or About gallery. Use only the
+startup photograph in Boot Splash. Keep implementation/reference links and
+capture-provenance commentary out of feature descriptions; retain the underlying
+provenance records and all required attribution and license notices. Credits
+should identify references and actual third-party components without promotional
+appeals. Use green text badges for available, supported or verified states,
+yellow for Alpha, planned, in-progress or pending states, and red for unsupported
+states. Preserve explicit coverage limits when summarizing testing.
+
+Keep the contribution guide linked and include verified contributors and issue
+reporters from both repositories, with working local avatars and profile links.
+Apply shared README edits to both editions using their respective names, defaults
+and photographs. Do not restore removed explanatory sections or duplicate
+screenshots during release bookkeeping. Batch requested editorial changes until
+the user finishes; commit and deliver both repositories when asked to publish.
+An explicit request for fresh photographs covers the requested README features,
+not the installer gallery or unrelated artwork.
+
 Keep TESTING.md as a concise snapshot of the latest verified release, stated
 once, followed by the installer photographs. Replace the previous summary;
 never append a changelog, superseded candidates or unreleased development logs.
@@ -1412,7 +1433,7 @@ that evidence.
 For implementation delivery, run focused local checks for the affected behavior,
 review component-scoped VM captures when needed, and record their exact source
 fingerprint in `release-evidence.json`. Complete the selected merge qualification
-above and resolve relevant known CI failures, then publish the installable fix. Full remote CI remains enabled and runs asynchronously on
+above and resolve relevant known CI failures, then publish the installable fix after any required visual approval. Full remote CI remains enabled and runs asynchronously on
 `dev`; `main` promotion does not run a polling or duplicate test job.
 Do not wait for the full matrix or repeat the historical screenshot audit before
 telling the user the release can be installed. Clearly distinguish local checks,
@@ -1572,3 +1593,7 @@ symbols, not hand-drawn approximations. Regenerate the committed paths with
 `src/scripts/build_menu_symbols.py`; keep the font hash, glyph identities and
 uniform transforms in `systemmenusymbols.json`. The plugin must not require
 a host Apple font or an SVG loader at runtime. App Store remains unchanged.
+
+Dock and Control Center gradients default off in every material and appearance mode; explicit component overrides may enable them. Preserve blur and refraction. Recover separate rounded blur islands and let shader coverage antialias their edges; integer region clipping must not cut off fractional coverage. Keep transparent gaps and custom cutouts intact.
+
+Acrylic Glass stores an independent component map for each stable material/variant ID. The KCM selector covers general windows, Finder, menus, other Plasma popups, Apps + Clipboard, search, Control Center, About, Dock and menu bar, with the same optical controls. Preserve existing defaults and legacy saved optics when migrating. Dock and Control Center gradients default off in all three presets but may be enabled explicitly for that component. Switching presets retains their edits; Restore resets only the selected preset. Background transparency edits Plasma/Kvantum SVG fills and About/Control Center QML fills, never whole-window opacity. Apply must patch owned assets transactionally and reload live surfaces; Cancel must not write assets. Preserve mode-specific values, unrelated app mappings and externally edited files. Keep implementations and preset definitions exclusively in Tahoe.
