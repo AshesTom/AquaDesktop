@@ -2,10 +2,47 @@
 
 ## Non-negotiable execution discipline
 
+If an operation is likely to take 20 minutes or more, treat that as a sign
+that its scope may exceed the request or its method may be inefficient. First
+look for a smaller sufficient check or an existing prepared environment.
+Before starting or retrying a run that still needs 20 minutes or more, tell
+the user the expected time and what makes it necessary.
+If a run exceeds its estimate or attempts for the same objective total
+20 minutes, stop that approach and report the result so far. Reuse verified
+work or choose a faster approach. Continue the long run only when the user
+explicitly authorizes it. Count base provisioning, retries and storage
+allocation when estimating VM work.
+
+**Top priority: Do not make changes the user did not request.** Treat
+everything outside the requested change as a constraint to preserve. When
+editing or recapturing an approved result, use that result and its provenance
+as the baseline. Compare the candidate against it and correct any unrelated
+difference before presenting or publishing the work. If a necessary deviation
+cannot be avoided, explain it and get approval before making it.
+
 Work quickly on the requested change. Choose the smallest executable checks
 from the diff and its direct risks; expand only for an observed failure or a
 specific affected dependency. Reuse passing evidence while code, inputs and
 environment remain unchanged. Do not repeat tests for release bookkeeping.
+
+For a visible change, use a capture of the affected component on the candidate.
+If it clearly shows the requested behavior, that capture is the complete
+focused validation. “Retest and fix” does not require a separate test run.
+Reuse a matching capture or take the needed frame with the existing capture
+tools in a prepared isolated environment. Do not build a custom harness, add
+a test suite or provision a new VM for a question the capture answers.
+
+If the capture shows a defect, keep it out of the gallery, fix the defect
+and recapture the same view. Use another check only for a specific behavior
+the image cannot establish. Show the passing visual change for approval
+before publication. Keep this workflow in maintainer files, outside product
+UI and README feature copy.
+
+Keep one prepared KDE neon base for routine capture checks and README previews
+in both editions. Install the current candidate in a disposable overlay and
+use the edition's defaults. Keep release qualification independent and select
+its checks from the affected behavior and existing coverage. A successful
+capture answers the visual claim it exercised.
 
 Brief nonvisual fixes proceed to paired release after focused checks. Changes
 to colors, icons, materials, layout or other appearance require the user's
@@ -25,6 +62,11 @@ Read and follow these skills on every task in this repository:
 
 - [communication-autonomy](skills/lester-skills/communication-autonomy/SKILL.md) — work silently, interrupt only for real decisions or blockers, and close with a one-line "Done." report.
 - [Skill organization](skills/lester-skills/other-skills.md) — keep Lester and other skill collections under `skills/`.
+
+Task-specific development skills are indexed in [skills/catalog.md](skills/catalog.md).
+Load only the relevant skill; `.agents/skills/` holds discovery links to the
+canonical collections under `skills/`. Project policy and current user
+instructions govern authorization and qualification.
 
 ## Clean install-ready delivery
 
@@ -161,6 +203,10 @@ All icon variants must preserve the original layers, paths, silhouette, cutouts 
 Dock icon qualification includes Apps, every pinned application, and both empty/full Trash. Use the bundled original artwork and its aliases; tint/material changes must not substitute newly invented symbols. Check application aliases separately from reserved menu symbols. Review facial details and lettering at actual Dock size over light and dark backgrounds. Generate icons deterministically from original artwork and explicit material parameters, never an image model. For performance-only changes, compare output hashes and benchmark the same fixture; reuse reviewed photographs when pixels are unchanged. State examples such as full Trash do not belong in color tables.
 
 ## Respect for the user's time
+
+Before allocating qualification or capture disks, use the
+[Plasma VM qualification skill](skills/lester-skills/plasma-vm-qualification/SKILL.md)
+to select a scratch filesystem with enough space and plan per-guest cleanup.
 
 Disposable development VM overlays, capture working copies and source archives
 must be removed once the requested qualification is complete and its reviewed
@@ -1392,11 +1438,26 @@ dependencies, affected editions/backends/SDKs, and the checks that prove each
 claim. Use the actual diff, not just the issue title, to choose scope. Expand
 that scope when a failure or shared dependency reveals another affected path.
 
+Use the least costly environment that can prove each claim. Reuse applicable
+evidence and existing CI environments. Run focused executable checks in an
+existing distro container or isolated graphical session when it provides the
+required SDK, render stack and backend. For a rendering claim, exercise the
+actual renderer and check visible output. A build or a configuration check
+alone is insufficient.
+
+Use a disposable desktop VM when the claim depends on an installed Plasma
+session, system lifecycle or hardware integration, or when a desktop preview
+is required. Check the local inventory first and reuse a prepared image with
+the required dependencies through a disposable overlay. A listed distro, a
+downloaded ISO and a raw cloud image are provisioning inputs. Provision or
+rebuild a guest only when a required check has no suitable prepared base.
+Existing scope, approval and backend requirements still apply.
+
 | Change | Required focused validation |
 | --- | --- |
 | Wrapper, downloader or source selection | Wrapper suite, including local-source staging, release fallback and checksum/version handling where affected. |
 | Tahoe implementation | Component regressions and affected installer lifecycle paths in Tahoe; exercise the prepared Golden Gate source when edition staging can change the result. |
-| Defaults, materials or appearance | Target the changed behavior, affected editions and saved choices. Use a disposable VM only for rendering or transition claims that need visual evidence; scope it to the changed component. Documentation photography follows the optional capture policy. |
+| Defaults, materials or appearance | Target the changed behavior, affected editions and saved choices. Use isolated rendering checks when they can exercise the affected stack. Use a prepared desktop VM for desktop-dependent behavior and required previews. |
 | Native backend, ABI or distro packages | Build against the affected SDKs and test the changed backend on representative distros with distinct relevant SDK/package layouts. Record build, load and behavior results separately. |
 | Documentation or agent instructions only | Review consistency, references and `git diff --check`; no manual pytest, native builds or VM runs. |
 

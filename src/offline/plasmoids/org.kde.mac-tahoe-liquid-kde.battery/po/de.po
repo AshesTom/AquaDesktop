@@ -4,7 +4,7 @@ msgstr "Project-Id-Version: MacTahoe Liquid KDE\nPO-Revision-Date: 2026-10-22 00
 
 msgctxt "@action"
 msgid "Battery Settings…"
-msgstr "Batterieeinstellungen …"
+msgstr "Batterieeinstellungen…"
 
 msgctxt "@info"
 msgid "%1 remaining"

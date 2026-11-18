@@ -4,7 +4,7 @@ msgstr "Project-Id-Version: MacTahoe Liquid KDE\nPO-Revision-Date: 2026-10-22 00
 
 msgctxt "@action"
 msgid "Battery Settings…"
-msgstr "Ajustes de Bateria…"
+msgstr "Ajustes de bateria…"
 
 msgctxt "@info"
 msgid "%1 remaining"
@@ -72,11 +72,11 @@ msgstr "Automático"
 
 msgctxt "@option energy mode"
 msgid "High Power"
-msgstr "Alta potência"
+msgstr "Alto Desempenho"
 
 msgctxt "@option energy mode"
 msgid "Low Power"
-msgstr "Pouca energia"
+msgstr "Pouca Energia"
 
 msgctxt "@title"
 msgid "Battery"

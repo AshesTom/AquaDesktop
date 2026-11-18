@@ -8,6 +8,32 @@ Kubuntu pins 26.04.1 LTS for the Plasma 6.6 launcher regression reported in
 This new test target is pending full live qualification; adding it is not a
 compatibility badge.
 
+## Run quick captures on KDE neon
+
+Reuse one KDE neon desktop for both editions. The base has Plasma autologin,
+SSH, the project dependencies and a populated compiler cache. Keep the base
+and disposable overlays on the fast local disk.
+
+```sh
+export VM_PREPARED_DIR=/path/to/desktop-bases
+export VM_RUN_DIR=/path/to/fast-scratch
+./vm capture neon --budget 600 --output build/vm-captures
+```
+
+Run from the edition checkout with a fresh output directory. The harness
+boots an isolated overlay, copies and installs the local candidate, and
+records dark/light screenshots, logs, timings and source fingerprints.
+Use `./vm neon --prepared` for an interactive preview of a specific component.
+Published README photographs follow the reviewed capture workflow and its
+pinned image profile.
+
+To replace a missing base, prepare KDE neon once using the guest setup below,
+including installer dependencies and the build cache. Remove
+`~/.config/autostart/mttkde-installer.desktop` from the capture account if it
+exists so the harness is the only process copying the installer. Shut down
+and run `./vm seal neon`. Release qualification uses the environments needed
+for the affected behavior.
+
 ## Start a guest
 
 Install QEMU with KVM, `qemu-img`, `genisoimage`, `curl`, Python 3 and OVMF on
@@ -28,6 +54,10 @@ installation media, pinned by URL and checksum in `.vm/images.json`. Complete
 the native installer onto the disposable 60 GB guest disk, select KDE Plasma,
 and create `tester`. Artix uses its OpenRC Plasma edition. These guests are not
 Arch or Fedora images with a changed distribution name.
+
+After shutting down the ISO installer, start the existing disk with
+`./vm <distro> --installed`. This keeps the guest online for initial
+preparation and boots without the installer media.
 
 After booting the installed OS, open its terminal and prepare it:
 
@@ -82,7 +112,7 @@ when automatic discovery does not find the host's installation.
 fresh one. Shut the target down before using it. `./vm all` opens all targets;
 it does not automate the native ISO installers or assert that any test passed.
 
-## Run the lifecycle test
+## Run release qualification
 
 On the host, after guest preparation:
 

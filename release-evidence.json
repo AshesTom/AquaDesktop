@@ -1,92 +1,50 @@
 {
-  "version": "0.73.5",
-  "source_sha256": "88efe8e5418830dc883dc2e6dd4fafa54a487fdc5c07febae073840869fb5b2c",
-  "scope": "User-approved macOS-style notification banners/history, original close and chevron contours, fixed right alignment/hover geometry, and duplicate tray-control migration. Shared implementation only; no unrelated gallery refresh.",
-  "environment": "Disposable KDE neon Plasma 6.8.1 / Qt 6.11.1 Wayland VM; isolated Arch 6.6 X11 rendering and 6.6/6.7/6.8 selected native SDK builds.",
-  "implementation_commit": "1e4fb383de04495e7aa0c65cf4c9fedaabe1d66d",
-  "approval": {
-    "date": "2026-11-17",
-    "message": "pls release with that... its OKAY",
-    "approved_hover_sha256": "8908d4edf9c56438fdf337451664b28d8159b01c825e314079fdc7c57cd4ed5f"
-  },
+  "version": "0.73.15",
+  "implementation_commit": "8fbc63ac2f39a3ecf13293c75a220983f2f675d9",
+  "scope": "Approved light and dark Notification Center README photographs",
+  "gallery_commit": "f09780b200b79302e7c23ef9f6f74d94748bbea3",
+  "runtime_sha256": "27d26c56fb1bd44e24918212d345ea193f0f6be1fae8f7efb8b4638b6defe5e3",
   "checks": [
     {
-      "command": "python3 -m pytest -q tests/test_layout_step.py tests/test_dock_defaults.py::test_status_control_migration_preserves_apps_and_unrelated_panels tests/test_acrylic_blur_region.py tests/test_acrylic_capture_safety.py tests/test_localization.py::test_french_control_catalogs_resolve_shared_views",
+      "command": "xvfb-run -a python kvantum-pixel-probe.py (cached primary CI SDK container)",
       "result": "passed",
-      "detail": 37
+      "detail": "A real Kvantum QMenu rendered each of the eight generated accent themes in light and dark. Measured selected text pixels were black with gray and white with every other accent."
     },
     {
-      "command": "dbus-run-session -- python3 tests/desktop_controls_probe.py <source> (private offscreen bus/config/data)",
+      "command": "pytest -q tests/test_installer_wizard.py -k accent; pytest -q tests/test_popup_rendering.py -k gtk_selection_foregrounds (same SDK container)",
       "result": "passed",
-      "detail": [
-        "native import and host election",
-        "DND filtering",
-        "real identified D-Bus notification retained and cleared in real history",
-        "actions/replies/jobs callbacks",
-        "history card content width 316 inside a 344px surface",
-        "rendered light/dark/light native banner palettes",
-        "explicit fixture teardown before Python models die"
-      ]
+      "detail": "Three source/generation regressions and two live GTK 3/4 cases passed, including selected, hover, focus and backdrop states over light/dark/light."
     },
     {
-      "command": "msgfmt --check -o /dev/null <catalog>",
+      "command": "Focused capture using Tahoe release_capture.Guest and Spectacle",
       "result": "passed",
-      "detail": "See detailed qualification evidence."
+      "detail": "Plasma 6.8.1, Qt 6.11.1, Wayland, bundled global-menu module, Kvantum 1.1.8 and Acrylic Glass on the pinned KDE neon base. Verified focused Nautilus identity, stable window geometry and exclusion of its window from the crop in each edition and mode."
     },
     {
-      "command": "cmake --build <build> --target mactahoelauncher controlglassprobe; QT_QPA_PLATFORM=offscreen <build>/controlglassprobe",
-      "result": "passed",
-      "detail": "Effect and native module builds; native surface region/input-mask probe. These builds do not independently prove visual behavior."
+      "command": "python3 src/scripts/component_manifest.py; git diff --check",
+      "result": "passed"
     },
     {
-      "command": "Real isolated X11 6.6 compositor, production effect loaded, notification-role surface rendered",
+      "command": "python3 .agents/skills/screenshot-provenance/scripts/audit.py --repo . --edition tahoe; git diff --cached --check",
       "result": "passed",
-      "detail": "Real isolated X11 6.6 compositor, production effect loaded, notification-role surface rendered"
-    },
-    {
-      "command": "Selected real source install and reinstall in disposable VM",
-      "result": "passed",
-      "detail": "Selected real source install and reinstall in disposable VM"
-    },
-    {
-      "command": "Persistent notification and Qt MacTahoe/Kvantum, GTK 3 and GTK 4 applications survive manual/native/GTK, overlapping selections and real automatic dusk crossing in each edition",
-      "result": "passed",
-      "detail": "Persistent notification and Qt MacTahoe/Kvantum, GTK 3 and GTK 4 applications survive manual/native/GTK, overlapping selections and real automatic dusk crossing in each edition"
-    },
-    {
-      "command": "Current source actual banner normal, hover and X-hover, dismissal by pointer; current history grouping, expansion and clear by pointer",
-      "result": "passed",
-      "detail": "Current source actual banner normal, hover and X-hover, dismissal by pointer; current history grouping, expansion and clear by pointer"
-    },
-    {
-      "command": "GOLDEN_GATE_TAHOE_SOURCE=<candidate> MAC_TAHOE_NO_UPDATE_CHECK=true ./install --prepare",
-      "result": "passed",
-      "detail": "All 70 changed payload files match the candidate byte-for-byte; Golden Gate wallpaper and launcher preset 2 verified; source checkouts were not updated."
-    },
-    {
-      "command": "git diff --check",
-      "result": "passed",
-      "detail": "See detailed qualification evidence."
+      "detail": "Audit of existing README gallery, with the new approved photographs checked against their separate capture manifest."
     }
   ],
-  "details": "docs/evidence/notifications-0735.json",
-  "coverage_limits": [
-    "Qt and CoreText rasterization and wallpapers differ; geometry comparisons do not establish pixel identity. Original bundled application artwork is preserved.",
-    "No refresh of unrelated README/installer photographs.",
-    "Desktop visual scope is banners and notification history; no additional macOS widgets or tray-management component.",
-    "X11 visible qualification uses a synthetic notification-role surface with the production effect; complete live applet qualification is Wayland.",
-    "Full candidate CI is asynchronous on dev; the observed base d2d149cb run passed. Later CI failures remain actionable.",
-    "Existing galleries are historical and preserve their original provenance. No unrelated captures were refreshed."
-  ],
-  "gallery_commit": "f09780b200b79302e7c23ef9f6f74d94748bbea3",
   "captures": [
     {
-      "path": "src/screenshots/previews/notifications-golden-gate-hover-8908d4edf9c5.png",
-      "sha256": "8908d4edf9c56438fdf337451664b28d8159b01c825e314079fdc7c57cd4ed5f",
-      "reviewed": true,
-      "source_commit": "1e4fb383de04495e7aa0c65cf4c9fedaabe1d66d",
-      "edition": "golden-gate",
-      "description": "Actual corrected-chevron hover explicitly approved by the user."
+      "path": "src/screenshots/previews/readme-tahoe-light-notifications-1751d29fa5df.webp",
+      "sha256": "1751d29fa5df489cc8c2cd7956cf5048465d8c4432f45f87b6143cf6fb39943a",
+      "reviewed": true
+    },
+    {
+      "path": "src/screenshots/previews/readme-tahoe-dark-notifications-6e3677470b76.webp",
+      "sha256": "6e3677470b76ef067986d5ccb12a14a371c1981ffbc5ed8eb6c00c7852311953",
+      "reviewed": true
     }
-  ]
+  ],
+  "coverage_limits": [
+    "Qt row pixels were checked on the primary SDK in Xvfb. The README captures cover the shared Shell on KDE neon Wayland. Full CI runs asynchronously."
+  ],
+  "source_sha256": "1838a650b610c7a0d66aab12bd8d0a3b9c620de98159c0ea7ed32872a392a19a",
+  "documentation_note": "The user approved the four edition-specific Notification Center photographs in the paired preview. The previous approved Shell and installer photographs retain their original provenance."
 }

@@ -4,7 +4,7 @@ msgstr "Project-Id-Version: MacTahoe Liquid KDE\nPO-Revision-Date: 2026-10-22 00
 
 msgctxt "@action:button"
 msgid "Wi-Fi Settings…"
-msgstr "Réglages Wi‑Fi…"
+msgstr "Réglages Wi-Fi…"
 
 msgctxt "@info"
 msgid "No Wi-Fi hardware or service (NetworkManager)"

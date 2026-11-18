@@ -4,7 +4,7 @@ msgstr "Project-Id-Version: MacTahoe Liquid KDE\nPO-Revision-Date: 2026-10-22 00
 
 msgctxt "@action:button"
 msgid "Wi-Fi Settings…"
-msgstr "Wi-Fi Settings…"
+msgstr "Ajustes de Wi-Fi…"
 
 msgctxt "@info"
 msgid "No Wi-Fi hardware or service (NetworkManager)"
@@ -44,8 +44,8 @@ msgstr "Wi-Fi"
 
 msgctxt "@title Wi-Fi menu section"
 msgid "Known Networks"
-msgstr "Known Networks"
+msgstr "Redes conocidas"
 
 msgctxt "@title Wi-Fi menu section"
 msgid "Other Networks"
-msgstr "Other Networks"
+msgstr "Otras redes"

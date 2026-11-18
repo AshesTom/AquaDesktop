@@ -293,3 +293,73 @@ def test_invalid_image_manifest_stops_before_vm_start(tmp_path, invalid):
     result = subprocess.run([str(tmp_path / "vm"), "list"], capture_output=True, text=True)
     assert result.returncode != 0
     assert "Invalid .vm/images.json" in result.stderr
+
+
+def test_prepared_guest_uses_only_an_overlay_and_cleans_it(tmp_path):
+    shutil.copy2(REPO / 'vm', tmp_path / 'vm')
+    metadata = tmp_path / '.vm'
+    metadata.mkdir()
+    shutil.copy2(REPO / '.vm/images.json', metadata / 'images.json')
+    binaries = tmp_path / 'bin'
+    binaries.mkdir()
+    commands = tmp_path / 'qemu-arguments'
+    for name, body in {
+        'qemu-img': '[[ "$1" == create ]] && touch "${@: -1}"',
+        'qemu-system-x86_64': '[[ -f disk.qcow2 ]] && printf "%s\\n" "$@" > "$VM_TEST_LOG"',
+    }.items():
+        binary = binaries / name
+        binary.write_text('#!/bin/bash\n' + body + '\n')
+        binary.chmod(0o755)
+    prepared = tmp_path / 'prepared'
+    base = prepared / 'neon/disk.qcow2'
+    base.parent.mkdir(parents=True)
+    base.write_bytes(b'read-only reference')
+    cache = tmp_path / 'cache'
+    runs = tmp_path / 'runs'
+    env = dict(os.environ, PATH=f'{binaries}:{os.environ["PATH"]}', VM_PREPARED_DIR=str(prepared),
+               VM_CACHE_DIR=str(cache), VM_RUN_DIR=str(runs), VM_TEST_LOG=str(commands),
+               VM_DISPLAY='egl-headless', VM_SSH_PORT='50001')
+    listing = subprocess.check_output([tmp_path / 'vm', 'inventory'], env=env, text=True)
+    assert f'neon\tprepared\t{base}' in listing
+    assert 'arch\tmissing\t' in listing
+    subprocess.run([tmp_path / 'vm', 'neon', '--prepared'], env=env, check=True, timeout=10)
+    assert base.read_bytes() == b'read-only reference'
+    assert list(runs.iterdir()) == []
+    assert not cache.exists()
+    launched = commands.read_text()
+    assert 'restrict=on,hostfwd=tcp:127.0.0.1:50001-:22' in launched
+    assert 'mount_tag=repo,security_model=none,readonly=on' in launched
+    assert 'egl-headless\n' in launched
+    assert str(base) not in launched
+    missing = subprocess.run([tmp_path / 'vm', 'arch', '--prepared'], env=env,
+                             capture_output=True, text=True, timeout=10)
+    assert missing.returncode and 'no prepared image' in missing.stderr
+    assert not cache.exists()
+
+
+def test_installed_iso_boot_needs_only_the_guest_disk_and_firmware(tmp_path):
+    shutil.copy2(REPO / 'vm', tmp_path / 'vm')
+    metadata = tmp_path / '.vm'
+    metadata.mkdir()
+    shutil.copy2(REPO / '.vm/images.json', metadata / 'images.json')
+    bin_dir = tmp_path / 'bin'
+    bin_dir.mkdir()
+    qemu = bin_dir / 'qemu-system-x86_64'
+    qemu.write_text('#!/bin/bash\nprintf "%s\\n" "$@"\n')
+    qemu.chmod(0o755)
+    work = tmp_path / 'run/kubuntu'
+    work.mkdir(parents=True)
+    for name in ('disk.qcow2', 'OVMF_VARS.fd'):
+        (work / name).write_bytes(b'existing')
+    firmware = tmp_path / 'firmware.fd'
+    firmware.touch()
+    env = dict(os.environ, PATH=f'{bin_dir}:{os.environ["PATH"]}', VM_RUN_DIR=str(work.parent),
+               VM_CACHE_DIR=str(tmp_path / 'missing-media'), VM_UEFI_CODE=str(firmware),
+               VM_UEFI_VARS=str(firmware))
+    result = subprocess.check_output([tmp_path / 'vm', 'kubuntu', '--installed'],
+                                     env=env, text=True, timeout=10)
+    assert str(work / 'disk.qcow2') in result
+    assert str(work / 'OVMF_VARS.fd') in result
+    assert 'media=cdrom' not in result and 'cidata.iso' not in result
+    assert (work / 'OVMF_VARS.fd').read_bytes() == b'existing'
+    assert not (tmp_path / 'missing-media').exists()
